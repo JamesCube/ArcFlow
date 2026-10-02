@@ -1,5 +1,8 @@
 package com.arcflow.demo;
 
+import com.arcflow.approval.ApprovalService;
+import com.arcflow.approval.ProcessDefinition;
+
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import java.io.IOException;
@@ -20,11 +23,12 @@ class ApprovalController {
                     @NotNull @Pattern(regexp="APPROVE|REJECT") String decision, @Size(max=2000) String comment) {}
     record Publication(@Min(1) int expectedVersion, @NotNull ProcessDefinition definition) {}
     private final ApprovalService service;
-    ApprovalController(ApprovalService service) { this.service = service; }
+    private final com.arcflow.approval.ActorDirectory actors;
+    ApprovalController(ApprovalService service, com.arcflow.approval.ActorDirectory actors) { this.service = service; this.actors = actors; }
     @GetMapping("/me") ApprovalService.Person me(Principal p) {
-        return ApprovalService.PEOPLE.stream().filter(person -> person.id().equals(p.getName())).findFirst().orElseThrow();
+        return actors.findActive(p.getName()).orElseThrow();
     }
-    @GetMapping("/people") List<ApprovalService.Person> people() { return ApprovalService.PEOPLE; }
+    @GetMapping("/people") List<ApprovalService.Person> people() { return actors.listActive(); }
     @GetMapping("/process") ProcessDefinition process() { return service.process(); }
     @PostMapping("/process") ProcessDefinition publish(Principal p, @Valid @RequestBody Publication input) throws IOException {
         return service.publish(p.getName(), input.expectedVersion(), input.definition());

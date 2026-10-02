@@ -4,10 +4,11 @@ Local-only Spring Boot 3.5.16 / Java 17+ example. Spring Boot 3.5 has reached th
 
 ## Run
 
-From the ArcFlow repository root, install the unchanged core first:
+From the ArcFlow repository root, install the unchanged core and shared approval domain first:
 
 ```sh
 mvn install
+mvn -f examples/approval-domain/pom.xml install
 export APPROVAL_ALICE_PASSWORD='replace-with-your-unique-alice-password'
 export APPROVAL_BOB_PASSWORD='replace-with-your-unique-bob-password'
 export APPROVAL_CAROL_PASSWORD='replace-with-your-unique-carol-password'
@@ -93,3 +94,7 @@ mvn -f examples/approval-demo/backend/pom.xml verify
 ```
 
 Tests cover real Basic authentication, editor-only publication, strict JSON/definition validation, forged actor/approver rejection, browser-origin/client-header protection, version conflicts, all-assignee visibility, ordered and repeated-assignee steps, authorization before replay, immutable instance definitions, reject-terminal behavior, duplicate/opposite decision concurrency, optimistic concurrent publication, persistence-failure rollback, restart continuation, lossless schema-1 migration/byte-exact backup, second-writer refusal, and malformed saved-state refusal. Test credentials are test-only and never apply to a normal run.
+
+## Reusable domain
+
+The executable backend depends on `com.arcflow.examples:approval-domain`; it no longer owns approval persistence or transitions. `ApprovalConfiguration` supplies the demo actor directory and initial Bob process. Other hosts supply their own `ActorDirectory` and initial definition. The shared jar contains no application entry point or security filter.

@@ -18,6 +18,7 @@ jobs:
           java-version: ${{ matrix.java }}
           cache: maven
       - run: mvn --batch-mode --no-transfer-progress install
+      - run: mvn --batch-mode --no-transfer-progress -f examples/approval-domain/pom.xml install
       - run: mvn --batch-mode --no-transfer-progress -f examples/approval-demo/backend/pom.xml verify
   frontend:
     runs-on: ubuntu-latest

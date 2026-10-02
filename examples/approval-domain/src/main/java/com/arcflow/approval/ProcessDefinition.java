@@ -1,4 +1,4 @@
-package com.arcflow.demo;
+package com.arcflow.approval;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
@@ -18,19 +18,17 @@ public record ProcessDefinition(
         @JsonProperty(required = true) String name,
         @JsonProperty(required = true) String assigneeId) {}
 
-    static ProcessDefinition initial() { return legacy("bob"); }
-
     /** Schema 1 selected an approver per request; its one-step behavior is preserved exactly. */
-    static ProcessDefinition legacy(String assignee) {
+    public static ProcessDefinition legacy(String assignee) {
         return new ProcessDefinition(2, "leave-approval", 1, "Leave approval", List.of(
             new ProcessNode("start", "start", "Submit leave", null),
             new ProcessNode("manager", "approval", "Designated approver", assignee),
             new ProcessNode("end", "end", "Completed", null)));
     }
 
-    List<ProcessNode> approvals() { return nodes.subList(1, nodes.size() - 1); }
+    public List<ProcessNode> approvals() { return nodes.subList(1, nodes.size() - 1); }
 
-    static void validate(ProcessDefinition d) {
+    public static void validate(ProcessDefinition d) {
         if (d == null || d.schemaVersion != 2 || !"leave-approval".equals(d.id) || d.version < 1 ||
             !validName(d.name) || d.nodes == null || d.nodes.size() < 3 || d.nodes.size() > 10)
             throw new IllegalArgumentException("Use schema 2, the leave-approval process, a positive version, a name and 1–8 approvals");
@@ -47,10 +45,16 @@ public record ProcessDefinition(
                 if (!"end".equals(n.id) || !"end".equals(n.type) || n.assigneeId != null)
                     throw new IllegalArgumentException("The last node must be the unassigned end node");
             } else if (!"approval".equals(n.type) || "start".equals(n.id) || "end".equals(n.id) ||
-                       !("bob".equals(n.assigneeId) || "carol".equals(n.assigneeId))) {
-                throw new IllegalArgumentException("Every middle node must be an approval assigned to bob or carol");
+                       !validActorId(n.assigneeId)) {
+                throw new IllegalArgumentException("Every middle node must be an approval assigned to a stable user ID");
             }
         }
+    }
+
+    /** Structural only: historical records remain readable after directory users are removed. */
+    public static boolean validActorId(String value) {
+        return value != null && !value.isBlank() && value.length() <= 128 &&
+            value.codePoints().noneMatch(Character::isISOControl);
     }
 
     private static boolean validName(String value) {

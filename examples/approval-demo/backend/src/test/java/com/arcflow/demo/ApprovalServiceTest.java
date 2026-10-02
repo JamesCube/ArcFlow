@@ -1,5 +1,8 @@
 package com.arcflow.demo;
 
+import com.arcflow.approval.ApprovalService;
+import com.arcflow.approval.ProcessDefinition;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
@@ -16,7 +19,7 @@ class ApprovalServiceTest {
     @TempDir Path dir;
     final ObjectMapper mapper = new ObjectMapper();
     Path file() { return dir.resolve("state.json"); }
-    ApprovalService open() throws Exception { return new ApprovalService(mapper, file().toString()); }
+    ApprovalService open() throws Exception { return new ApprovalService(mapper, file().toString(), ApprovalConfiguration.demoDirectory(), ProcessDefinition.legacy("bob")); }
     static ProcessDefinition definition(int version, String... assignees) {
         var nodes = new ArrayList<ProcessDefinition.ProcessNode>();
         nodes.add(new ProcessDefinition.ProcessNode("start", "start", "Submit", null));
