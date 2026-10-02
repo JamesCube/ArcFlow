@@ -5,6 +5,8 @@ Requires a newly imported disposable database and Redis; never points at product
 No mock authentication or fabricated bearer tokens are used. Secrets stay in memory.
 """
 import argparse
+import base64
+import redis
 import json
 import os
 from pathlib import Path
@@ -162,6 +164,19 @@ def run(server, password):
     assert decision(first, rejected_request, "first", "REJECT")["data"] == rejected
     api("/logout", outsider, method="POST")
     api("/arcflow/me", outsider, allowed=(401,))
+    # RuoYi's bearer token is backed by a Redis login session. Expire that exact
+    # disposable session using Redis TTL, without fabricating a signed token.
+    expiring = login("arcflow_outsider", password)
+    payload = expiring.split(".")[1]
+    claims = json.loads(base64.urlsafe_b64decode(payload + "=" * (-len(payload) % 4)))
+    cache = redis.Redis(host="127.0.0.1", port=6379)
+    session_key = "login_tokens:" + claims["login_user_key"]
+    assert cache.expire(session_key, 1), "Official login did not create Redis session"
+    deadline = time.monotonic() + 5
+    while cache.exists(session_key) and time.monotonic() < deadline:
+        time.sleep(0.1)
+    assert not cache.exists(session_key), "Disposable session did not expire"
+    api("/arcflow/me", expiring, allowed=(401,))
     # Existing Redis-backed sessions must not allow a disabled/deleted user through.
     actor_state(101, status="1")
     api("/arcflow/me", first, allowed=(401, 403))
@@ -181,7 +196,7 @@ def run(server, password):
     actor_state(101)
     first = login("arcflow_first", password)
     assert decision(first, req, "first")["data"] == approved
-    print("PASS: official login/menu, RBAC, authoritative assignments, ordered approvals, replay/conflict, logout, disabled/deleted identity, restart persistence")
+    print("PASS: official login/menu, RBAC, authoritative assignments, ordered approvals, replay/conflict, logout/expired Redis session, disabled/deleted identity, restart persistence")
 
 
 def main():
