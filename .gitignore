@@ -4,3 +4,11 @@ target/
 *.iml
 .vscode/
 .DS_Store
+node_modules/
+dist/
+coverage/
+.env
+.env.*
+!.env.example
+examples/approval-demo/data/
+examples/approval-demo/backend/data/

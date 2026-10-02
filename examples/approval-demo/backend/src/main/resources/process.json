@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "leave-approval",
+  "version": 1,
+  "name": "Leave approval",
+  "nodes": [
+    {"id": "start", "type": "start", "name": "Submit leave"},
+    {"id": "manager", "type": "approval", "name": "Designated approver", "assigneeField": "approverId"},
+    {"id": "end", "type": "end", "name": "Completed"}
+  ],
+  "edges": [
+    {"source": "start", "target": "manager"},
+    {"source": "manager", "target": "end", "outcome": "APPROVE"},
+    {"source": "manager", "target": "end", "outcome": "REJECT"}
+  ],
+  "layout": {"nodes": {"start": {"x": 40, "y": 120}, "manager": {"x": 310, "y": 120}, "end": {"x": 580, "y": 120}}}
+}
