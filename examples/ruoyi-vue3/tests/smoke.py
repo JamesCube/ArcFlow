@@ -23,7 +23,7 @@ def api(path, token=None, body=None, *, method=None, allowed=(200,)):
     headers = {"Content-Type": "application/json"}
     if token:
         headers["Authorization"] = "Bearer " + token
-    req = urllib.request.Request(BASE + path, data=None if body is None else json.dumps(body).encode(),
+    req = urllib.request.Request(BASE + path, data=None if body is None else (body if isinstance(body, bytes) else json.dumps(body).encode()),
                                  headers=headers, method=method or ("POST" if body is not None else "GET"))
     try:
         with urllib.request.urlopen(req, timeout=15) as res:
@@ -134,6 +134,8 @@ def run(server, password):
     api("/arcflow/requests", a, {**submission, "processVersion": definition["version"]}, allowed=(409,))
     api("/arcflow/requests", a, {**submission, "applicantId": "1"}, allowed=(400,))
     api("/arcflow/requests", a, {**submission, "days": "2"}, allowed=(400,))
+    for malformed in (b'', b'{"days":2,"days":3}', b'{"title":null}', b'{invalid'):
+        api("/arcflow/requests", a, malformed, allowed=(400,))
     req = data("/arcflow/requests", a, submission)
     assert req["applicantId"] == "100" and req["currentStepId"] == "first"
     assert req["definition"] == published
@@ -152,11 +154,18 @@ def run(server, password):
     assert approved["status"] == "APPROVED" and approved["currentStepId"] is None
     assert [event["actorId"] for event in approved["history"]] == ["100", "101", "102"]
     assert len(approved["history"]) == 3
+    rejected_request = data("/arcflow/requests", a, submission)
+    rejected = decision(first, rejected_request, "first", "REJECT")["data"]
+    assert rejected["status"] == "REJECTED" and rejected["currentStepId"] is None
+    decision(second, rejected_request, "second", allowed=(409,))
+    assert decision(first, rejected_request, "first", "REJECT")["data"] == rejected
     api("/logout", outsider, method="POST")
     api("/arcflow/me", outsider, allowed=(401,))
     # Existing Redis-backed sessions must not allow a disabled/deleted user through.
     actor_state(101, status="1")
     api("/arcflow/me", first, allowed=(401, 403))
+    api("/arcflow/requests", a, submission, allowed=(400,))
+    api("/arcflow/process", admin, {"expectedVersion": published["version"], "definition": published}, allowed=(400,))
     api("/login", body={"username": "arcflow_first", "password": password}, allowed=(500, 401, 403))
     actor_state(101, status="0", deleted="2")
     api("/arcflow/me", first, allowed=(401, 403))
