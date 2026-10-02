@@ -67,6 +67,7 @@ class Server:
 
     def start(self):
         env = dict(os.environ, TOKEN_SECRET=self.secret,
+                   ARCFLOW_LOG_DIR=str(self.directory / "logs"),
                    ARCFLOW_MYSQL_URL="jdbc:mysql://127.0.0.1:3306/ry-vue?useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC",
                    REDIS_HOST="127.0.0.1", REDIS_PORT="6379", REDIS_PASSWORD="",
                    ARCFLOW_INITIAL_APPROVER_ID="101",

@@ -22,7 +22,7 @@ mvn -f examples/approval-domain/pom.xml install
 python3 examples/ruoyi-vue3/bootstrap.py --directory examples/ruoyi-vue3/.work
 ```
 
-Bootstrap requires an empty destination, fetches and verifies the exact commits, then copies only ArcFlow's overlay files and adds one Maven dependency to `ruoyi-admin`. It does not modify the source repositories or replace their authentication.
+Bootstrap requires an empty destination, fetches and verifies the exact commits, then copies only ArcFlow's overlay files and adds one Maven dependency to `ruoyi-admin`. It changes only the upstream log directory to `ARCFLOW_LOG_DIR` (default `./logs`), retaining all audit appenders. It does not modify the source repositories or replace their authentication.
 
 Create an empty database named `ry-vue`, then import these files in order using your normal MySQL client:
 

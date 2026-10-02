@@ -41,6 +41,14 @@ def bootstrap(destination):
             <version>0.1.0-SNAPSHOT</version>
         </dependency>''')
     pom.write_text(text)
+    # Upstream hardcodes /home/ruoyi/logs, which is not writable on many hosts.
+    # Retain its audit appenders; only make their directory local/configurable.
+    logback = admin / 'src' / 'main' / 'resources' / 'logback.xml'
+    logs = logback.read_text()
+    marker = 'value="/home/ruoyi/logs"'
+    if logs.count(marker) != 1:
+        raise SystemExit('Upstream logging layout changed')
+    logback.write_text(logs.replace(marker, 'value="${ARCFLOW_LOG_DIR:-./logs}"'))
     shutil.copytree(HERE / 'frontend' / 'src', destination / 'frontend' / 'src', dirs_exist_ok=True)
     npm_lock = HERE / 'frontend' / 'package-lock.json'
     if npm_lock.exists():
