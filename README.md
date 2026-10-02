@@ -110,3 +110,7 @@ docs/                            路线图与未来集成设计
 ## 许可证
 
 [Apache License 2.0](LICENSE)。
+
+## Official RuoYi integration example
+
+[Real RuoYi-Vue + Vue 3 overlay](examples/ruoyi-vue3/README.md): pinned upstream applications, native JWT/Redis login, dynamic menus, role permissions and sequential approval. MySQL stores RuoYi identity; approval persistence remains a private single-writer JSON file.

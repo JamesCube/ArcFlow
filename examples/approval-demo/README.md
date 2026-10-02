@@ -11,6 +11,7 @@ Requirements: full JDK 17+, Maven 3.9+, Node 22.22.2+ and npm. Commands begin at
 ```bash
 # Install the small, dependency-free-at-runtime Java core locally.
 mvn install
+mvn -f examples/approval-domain/pom.xml install
 
 # Use three different demo-only passwords, at least 12 characters each.
 # Read them without echo or shell-history storage; these are not real accounts.
@@ -58,6 +59,7 @@ API listens on `127.0.0.1:8080`; Vite proxies `/api` from its local origin. Do n
 mvn verify
 bash scripts/test.sh
 mvn install
+mvn -f examples/approval-domain/pom.xml install
 mvn -f examples/approval-demo/backend/pom.xml verify
 (cd examples/approval-ui && npm ci && npm test && npm run build)
 ```

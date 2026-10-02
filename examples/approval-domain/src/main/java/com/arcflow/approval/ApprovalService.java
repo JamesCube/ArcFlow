@@ -1,4 +1,4 @@
-package com.arcflow.demo;
+package com.arcflow.approval;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -7,7 +7,6 @@ import com.fasterxml.jackson.core.StreamReadFeature;
 import com.fasterxml.jackson.databind.cfg.CoercionAction;
 import com.fasterxml.jackson.databind.cfg.CoercionInputShape;
 import com.fasterxml.jackson.databind.type.LogicalType;
-import jakarta.annotation.PreDestroy;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -16,13 +15,10 @@ import java.nio.file.*;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.time.Instant;
 import java.util.*;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 /** Local demonstration store. One process holds an exclusive lock; every mutation is serialized. */
-@Service
 public class ApprovalService implements AutoCloseable {
     public record Person(String id, String displayName) {}
     public record Event(String actorId, String action, String comment, String at, String stepId) {}
@@ -38,18 +34,21 @@ public class ApprovalService implements AutoCloseable {
                                  String status, String createdAt, String updatedAt, String decision, String comment,
                                  String processId, int processVersion, List<LegacyEvent> history) {}
     private record LegacySnapshot(int schemaVersion, List<LegacyRequest> requests) {}
-    public static final List<Person> PEOPLE = List.of(new Person("alice", "Alice"), new Person("bob", "Bob"), new Person("carol", "Carol"));
+    private final ActorDirectory actors;
     private final ObjectMapper mapper;
     private final Path file;
     private final FileChannel lockChannel;
     private final FileLock lock;
     private Map<String, Request> requests = new LinkedHashMap<>();
-    private ProcessDefinition definition = ProcessDefinition.initial();
+    private ProcessDefinition definition;
     private byte[] legacyOriginal;
     private Path legacyBackup;
     private boolean closed;
 
-    public ApprovalService(ObjectMapper mapper, @Value("${approval.data-file}") String filename) throws IOException {
+    public ApprovalService(ObjectMapper mapper, String filename, ActorDirectory actors, ProcessDefinition initialDefinition) throws IOException {
+        this.actors = Objects.requireNonNull(actors, "actors");
+        ProcessDefinition.validate(initialDefinition);
+        this.definition = initialDefinition;
         this.mapper = strictMapper(mapper.copy());
         this.file = Path.of(filename).toAbsolutePath();
         Files.createDirectories(file.getParent());
@@ -69,7 +68,7 @@ public class ApprovalService implements AutoCloseable {
     }
 
     /** Keep file and HTTP decoding strict, including scalar types and duplicate JSON keys. */
-    static ObjectMapper strictMapper(ObjectMapper mapper) {
+    public static ObjectMapper strictMapper(ObjectMapper mapper) {
         mapper.enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES,
             DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
         mapper.disable(DeserializationFeature.ACCEPT_FLOAT_AS_INT);
@@ -84,9 +83,11 @@ public class ApprovalService implements AutoCloseable {
     public synchronized ProcessDefinition process() { return definition; }
 
     public synchronized ProcessDefinition publish(String actor, int expectedVersion, ProcessDefinition proposed) throws IOException {
-        if (!"alice".equals(actor)) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only alice may publish processes");
+        requirePerson(actor);
+        if (!actors.canPublish(actor)) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Process publication is not permitted");
         try { ProcessDefinition.validate(proposed); }
         catch (IllegalArgumentException ex) { throw badRequest(ex.getMessage()); }
+        requireActiveAssignees(proposed);
         if (expectedVersion != definition.version() || proposed.version() != expectedVersion)
             throw conflict("The published process changed; reload before publishing");
         if (definition.version() == Integer.MAX_VALUE) throw conflict("Process version limit reached");
@@ -103,6 +104,7 @@ public class ApprovalService implements AutoCloseable {
     public synchronized Request submit(String actor, String title, String reason, int days, int processVersion) throws IOException {
         requirePerson(actor);
         if (processVersion != definition.version()) throw conflict("The published process changed; reload before submitting");
+        requireActiveAssignees(definition);
         if (definition.approvals().stream().anyMatch(n -> actor.equals(n.assigneeId())))
             throw badRequest("You cannot submit to a process that assigns you any approval step");
         if (!validText(title, 120) || !validText(reason, 2000) || days < 1 || days > 365)
@@ -119,6 +121,7 @@ public class ApprovalService implements AutoCloseable {
     }
 
     public synchronized Request decide(String actor, String id, String stepId, String decision, String comment) throws IOException {
+        requirePerson(actor);
         Request old = requests.get(id);
         // Conceal existence from unrelated users, then authorize this exact snapshotted step before replay lookup.
         if (old == null || !visibleTo(old, actor))
@@ -224,7 +227,7 @@ public class ApprovalService implements AutoCloseable {
     /** Replays the complete linear history and checks every derived field instead of trusting saved state. */
     private static void validateRequest(Request r) {
         if (r == null || r.id() == null || !r.id().matches("[A-Za-z0-9][A-Za-z0-9_-]{0,127}") ||
-            !validText(r.title(), 120) || !validText(r.reason(), 2000) || r.days() < 1 || r.days() > 365 || !knownPerson(r.applicantId()))
+            !validText(r.title(), 120) || !validText(r.reason(), 2000) || r.days() < 1 || r.days() > 365 || !ProcessDefinition.validActorId(r.applicantId()))
             throw new IllegalArgumentException("Invalid request fields");
         ProcessDefinition.validate(r.definition());
         if (!r.definition().id().equals(r.processId()) || r.definition().version() != r.processVersion() ||
@@ -300,13 +303,20 @@ public class ApprovalService implements AutoCloseable {
         return r.applicantId().equals(actor) || r.definition().approvals().stream().anyMatch(n -> n.assigneeId().equals(actor));
     }
     private static boolean validText(String value, int max) { return value != null && !value.isBlank() && value.length() <= max; }
-    private static boolean knownPerson(String actor) { return PEOPLE.stream().anyMatch(p -> p.id().equals(actor)); }
-    private static void requirePerson(String actor) {
-        if (!knownPerson(actor)) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Unknown user");
+    private void requirePerson(String actor) {
+        if (!ProcessDefinition.validActorId(actor) || actors.findActive(actor).filter(p -> actor.equals(p.id())).isEmpty())
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Unknown or inactive user");
+    }
+    private void requireActiveAssignees(ProcessDefinition proposed) {
+        for (var step : proposed.approvals()) {
+            String id = step.assigneeId();
+            if (actors.findActive(id).filter(p -> id.equals(p.id())).isEmpty() || !actors.canAssignApproval(id))
+                throw badRequest("Every approval must be assigned to an active eligible user");
+        }
     }
     private static ResponseStatusException badRequest(String message) { return new ResponseStatusException(HttpStatus.BAD_REQUEST, message); }
     private static ResponseStatusException conflict(String message) { return new ResponseStatusException(HttpStatus.CONFLICT, message); }
-    @PreDestroy @Override public synchronized void close() throws IOException {
+    @Override public synchronized void close() throws IOException {
         closed = true;
         if (lock.isValid()) lock.release();
         lockChannel.close();

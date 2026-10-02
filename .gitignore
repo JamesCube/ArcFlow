@@ -12,3 +12,9 @@ coverage/
 !.env.example
 examples/approval-demo/data/
 examples/approval-demo/backend/data/
+
+# Disposable pinned official RuoYi checkouts
+examples/ruoyi-vue3/.work/
+
+__pycache__/
+*.pyc

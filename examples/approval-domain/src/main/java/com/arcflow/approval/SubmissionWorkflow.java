@@ -1,4 +1,4 @@
-package com.arcflow.demo;
+package com.arcflow.approval;
 
 import com.arcflow.ArcFlowEngine;
 import com.arcflow.Node;
