@@ -10,7 +10,11 @@ export function createApi(fetcher = (...args) => fetch(...args)) {
         headers: { 'Content-Type': 'application/json', 'X-Arcflow-Client': 'approval-demo', ...options.headers, Authorization: authorization },
       })
       const data = await response.json().catch(() => null)
-      if (!response.ok) throw new Error(data?.message || data?.error || `Request failed (${response.status})`)
+      if (!response.ok) {
+        const error = new Error(data?.message || data?.error || `Request failed (${response.status})`)
+        error.status = response.status
+        throw error
+      }
       return data
     },
   }

@@ -10,7 +10,7 @@ describe('API transport',()=>{
   })
   it('normalizes server errors',async()=>{
     const api=createApi(vi.fn().mockResolvedValue({ok:false,status:409,json:async()=>({message:'Already decided'})}))
-    await expect(api.request('/requests/r1/decisions')).rejects.toThrow('Already decided')
+    await expect(api.request('/requests/r1/decisions')).rejects.toMatchObject({ message: 'Already decided', status: 409 })
   })
   it('handles a non-JSON error response',async()=>{
     const api=createApi(vi.fn().mockResolvedValue({ok:false,status:503,json:async()=>{throw new Error('HTML')}}))

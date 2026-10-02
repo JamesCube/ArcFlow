@@ -1,4 +1,4 @@
-# Approval demo backend
+# Sequential approval demo backend
 
 Local-only Spring Boot 3.5.16 / Java 17+ example. Spring Boot 3.5 has reached the end of open-source support; this requested Boot 3 baseline is **not a production recommendation**. Use an appropriately supported framework release and production security/persistence before deployment. Source: https://spring.io/blog/2026/06/25/spring-boot-3-5-16-available-now/
 
@@ -18,37 +18,78 @@ No default passwords. All three passwords must have at least 12 characters; star
 
 `APPROVAL_DATA_FILE` defaults to `./data/requests.json` relative to the backend working directory; set an absolute path for predictable restarts. `APPROVAL_UI_ORIGIN` defaults to `http://localhost:5173`; set it to the exact frontend origin if using another port/hostname. No wildcard origins or CORS are enabled.
 
-## Contract
+## Authentication and browser protection
 
-Every endpoint requires HTTP Basic authentication. Users: `alice`, `bob`, `carol`. All can submit; only `bob` and `carol` can be selected as approvers, and self-approval is rejected. Actor identity always comes from the authenticated principal. Unknown JSON fields, including forged `applicantId`, are rejected.
-
-- `GET /api/me`: `{id, displayName}`
-- `GET /api/people`: array of the three demo identities
-- `GET /api/process`: versioned neutral process description, with layout in a separate sibling object
-- `GET /api/requests`: only requests submitted by, or assigned to, the authenticated user
-- `POST /api/requests`: `{title, reason, days, approverId}`; creates a pending request (201)
-- `POST /api/requests/{id}/decisions`: `{decision:"APPROVE"|"REJECT", comment?}`; only the assigned approver may decide
+Every endpoint requires HTTP Basic authentication. Demo identities are `alice`, `bob`, and `carol`. Only Alice may publish a process; Bob and Carol receive 403, including before publication-body parsing. Every actor comes from the authenticated principal. Only Bob and Carol may be assigned approval steps. Any user may submit if **none** of the steps assigns that user. This hard-coded editor/approver policy is not a production role system.
 
 Every POST must include `Content-Type: application/json` and `X-Arcflow-Client: approval-demo`, as well as Authorization. Browser requests from foreign Origin / cross-site Fetch Metadata are rejected. The custom header prevents simple cross-origin forms from changing state even if a browser caches Basic credentials. No form login, cookie/session authentication, or Basic challenge dialog is used. Basic being stateless alone does not prevent CSRF: https://docs.spring.io/spring-security/reference/servlet/exploits/csrf.html
 
-Request response fields: `id,title,reason,days,applicantId,approverId,status,createdAt,updatedAt,decision,comment,processId,processVersion,history`. Status is `PENDING`, `APPROVED`, or `REJECTED`. Ordered immutable history entries are `{actorId,action,comment,at}`; action is `SUBMIT`, `APPROVE`, or `REJECT`.
+JSON is strict: unknown properties, duplicate keys, trailing content, fractional integers and scalar coercions are rejected. Do not include `applicantId`, an approver override, edges, layout, scripts, expressions or unsupported node attributes.
 
-Repeated same decisions return the original result without adding history or changing the comment/time. An opposite decision returns 409. Rejection is terminal. An unrelated user gets 404 for decisions; the applicant who is not the approver gets 403. Error body is `{message}`. Submission retries create new requests: submission has no idempotency key; refresh after an uncertain result before retrying.
+## HTTP contract
+
+- `GET /api/me`: `{id, displayName}`
+- `GET /api/people`: array of the three demo identities
+- `GET /api/process`: the current executable published definition
+- `POST /api/process`: `{expectedVersion, definition}`; Alice only; returns the newly published full definition (200)
+- `GET /api/requests`: requests visible to the applicant or **any** assignee in each request's immutable definition
+- `POST /api/requests`: `{title, reason, days, processVersion}`; starts from the exact current published version (201)
+- `POST /api/requests/{id}/decisions`: `{stepId, decision:"APPROVE"|"REJECT", comment?}`; authorizes the specified step against the request's saved definition
+
+### Executable definition (schema 2)
+
+```json
+{
+  "schemaVersion": 2,
+  "id": "leave-approval",
+  "version": 1,
+  "name": "Leave approval",
+  "nodes": [
+    {"id": "start", "type": "start", "name": "Submit leave", "assigneeId": null},
+    {"id": "manager", "type": "approval", "name": "Designated approver", "assigneeId": "bob"},
+    {"id": "end", "type": "end", "name": "Completed", "assigneeId": null}
+  ]
+}
+```
+
+The array is the entire execution order: exactly one `start`, **1–8 approvals**, then exactly one `end`. Start/end IDs are fixed to `start`/`end` and cannot have assignees. Approval nodes require `bob` or `carol`. Repeating an approver across distinct steps is allowed; each step needs its own decision. Node IDs are unique and match `[A-Za-z][A-Za-z0-9_-]{0,63}`. Process/node names are nonblank, at most 120 characters, and contain no control characters. All definition/node properties shown above must be present, including nullable `assigneeId` on start/end.
+
+Process ID is fixed to `leave-approval`. To publish, send a full definition with its `version` equal to `expectedVersion`, both equal to the current server version. The server validates it, increments the version and atomically saves it. Stale publication, even an identical retry, returns 409. A stale submission `processVersion` also returns 409; refresh and review before submitting again. Publishing does not modify any existing request.
+
+A fresh store starts with the single-Bob-approval definition above. `src/main/resources/process.json` is the matching schema example. The live process comes from `ApprovalService` and persisted publication; editing that resource does not publish a process.
+
+### Requests and transitions
+
+Submission constraints: nonblank title (at most 120 characters), nonblank reason (at most 2000), integer days (1–365), positive current process version. Title/reason are validated and trimmed by the real ArcFlow DAG integration.
+
+Response fields are `id,title,reason,days,applicantId,approverId,status,createdAt,updatedAt,decision,comment,processId,processVersion,history,definition,currentStepId`. The full `definition` is an immutable snapshot bound at submission. `status` is `PENDING`, `APPROVED`, or `REJECTED`. While pending, `currentStepId`/`approverId` name the current approval/assignee. At terminal states, `currentStepId` is null and `approverId` is the last deciding assignee. `decision`/`comment` are null before a decision, then represent the latest step decision, including while the request remains pending.
+
+Ordered immutable history entries are `{actorId,action,comment,at,stepId}`. The first `SUBMIT` event has null `stepId`; each subsequent `APPROVE`/`REJECT` event identifies the exact approval node. Missing decision comments become empty strings; supplied comments are trimmed and limited to 2000 characters.
+
+APPROVE advances **one** step. Only the final approval makes the request APPROVED. REJECT on a current step is terminal. A future-step attempt returns 409 even if the same person is assigned the current and future steps. A participant using someone else's step receives 403. An unrelated user receives 404 to conceal the request's existence.
+
+A same-decision replay for an already decided step is authorized **before** the replay lookup against that step's saved assignee. It returns the **current request state**, adds no history, preserves the original step comment/time, and never advances another step. It may therefore include later decisions that were not in the original response. Opposite decisions return 409. Replays remain valid after later approvals/rejection and after restart. A new decision after a terminal state returns 409.
+
+Errors use `{message}`. Validation errors return 400, authorization failures 401/403, missing or concealed requests 404, version/state conflicts 409, and storage failures 503. Submission has no idempotency key: uncertain submission retries may create another request, so refresh before retrying.
+
+## Persistence, restart and schema-1 migration
+
+All mutations serialize on one service monitor, including publishing, submitting and decisions. The store takes a process-exclusive file lock and writes the published definition **and all requests** in one schema-2 JSON snapshot through a same-directory temporary file, forced to disk before atomic replace. Unsupported atomic moves fail closed. New in-memory state is published only after replacement. Startup validates complete stored definitions, fields, actors, ordered step history, timestamps and derived request state. Corrupt, unsupported, extra-field or inconsistent snapshots fail startup without being rewritten. The lock prevents a second process from opening the same store on a supported local filesystem.
+
+Existing schema-1 single-approval snapshots are explicitly validated and migrated in memory. Each request gets a one-step definition assigned to its original approver, so Bob and Carol legacy requests retain their own behavior. Original IDs, fields, decisions, actors, comments and timestamps are retained; decision events gain `stepId: "manager"`. Reading or replaying a prior decision does not rewrite the old file. The first mutation preserves the original bytes in `requests.json.schema1.bak` (or a unique `.schema1-*.bak` if that backup already exists), then writes schema 2. Existing backups are never overwritten/deleted. New named backups use owner-only read/write permissions on POSIX filesystems; other filesystems use inherited permissions. A failed mutation leaves the active file and in-memory state unchanged; a backup may already have been written. Keep backups under the same OS-account access restrictions as the data file. Do not alternate old/new binaries against this store: the old backend cannot read schema 2.
+
+This is a small **single-JVM/local-filesystem** demo, not a database: no distributed coordination, bounded retention, encryption at rest, secure multi-tenant audit, automated backup rotation, or directory fsync/power-loss guarantee. Network filesystems and multiple replicas are unsupported. OS/process crashes after rename can leave a committed action whose response was lost; step-decision retry is safe. Abrupt power loss may lose the latest directory entry. Do not store real personnel/health data. Restrict the local data directory to your OS account.
 
 ## Architecture and boundaries
 
-`SubmissionWorkflow` calls the real dependency-free `ArcFlowEngine` using a two-node `validate → normalize` DAG. This performs synchronous business input processing. The existing core is **not modified** and does not suddenly gain human-task or durable workflow execution capabilities.
+`SubmissionWorkflow` calls the real dependency-free `ArcFlowEngine` with a synchronous `validate → normalize` DAG. The core is **unchanged**; human waits and durable instance state remain in this example-specific backend.
 
-`ApprovalService` is the example-specific human-wait state layer: it starts a request in PENDING, authorizes the assigned person, then records exactly one terminal decision. `process.json` describes this supported single-approval shape with version 1. It is display/interchange metadata, not a general executable workflow language: editing it does not change the hard-coded service behavior. There is no arbitrary graph deployment, BPMN, gateway engine, multi-step configurable approval, enterprise identity provider, or production audit store.
-
-All mutations serialize on one service monitor. The store takes a process-exclusive file lock and writes a complete JSON snapshot through a same-directory temporary file, forced to disk before atomic replace. Unsupported atomic moves fail closed. The in-memory result is published only after replacement. Startup restores records, and corrupt/unsupported snapshots fail startup. The lock prevents a second process from opening the same store on a supported local filesystem.
-
-This is a small **single-JVM/local-filesystem** demo, not a database: no distributed coordination, bounded retention, encryption at rest, secure multi-tenant audit, schema migration, backup, or directory fsync/power-loss guarantee. Network filesystems and multiple replicas are unsupported. OS/process crashes after rename can leave a committed action whose response was lost; decision retry is safe. Abrupt power loss may lose the latest directory entry. Do not store real personnel/health data. Restrict the local data directory to your OS account.
+`ProcessDefinition` validates the small, executable sequential model. `ApprovalService` publishes it, snapshots it at submission and advances its ordered steps. There is no arbitrary graph deployment, BPMN, gateway/parallel engine, expression execution, delegation, reassignment, cancellation, timers, enterprise identity provider, RuoYi integration or production audit store. See [the sequential contract](../../../docs/SEQUENTIAL_APPROVAL.md).
 
 ## Verification
 
 ```sh
-mvn -f examples/approval-demo/backend/pom.xml test
+mvn -f examples/approval-demo/backend/pom.xml verify
 ```
 
-Tests cover real Basic authentication, forged actor rejection, validation, forbidden origins/missing anti-CSRF header, ownership filtering, assigned approver enforcement, approve/reject, duplicate decisions, concurrent duplicate/opposite decisions, immutable history, restart restoration, second-writer refusal and corrupt snapshot refusal. Test credentials are test-only and never applied to a normal run.
+Tests cover real Basic authentication, editor-only publication, strict JSON/definition validation, forged actor/approver rejection, browser-origin/client-header protection, version conflicts, all-assignee visibility, ordered and repeated-assignee steps, authorization before replay, immutable instance definitions, reject-terminal behavior, duplicate/opposite decision concurrency, optimistic concurrent publication, persistence-failure rollback, restart continuation, lossless schema-1 migration/byte-exact backup, second-writer refusal, and malformed saved-state refusal. Test credentials are test-only and never apply to a normal run.

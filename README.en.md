@@ -34,9 +34,11 @@ bash scripts/test.sh
 
 ## Try the local approval example
 
-The experimental [approval demo](examples/approval-demo/README.md) pairs a Spring Boot 3 API with a [Vue 3 UI](examples/approval-ui/README.md): submit a leave request, sign in as its designated approver, approve or reject, and inspect status/history. Its sequential process blueprint is read-only, not a general-purpose designer.
+The experimental [approval demo](examples/approval-demo/README.md) pairs a Spring Boot 3 API with a [Vue 3 UI](examples/approval-ui/README.md): design and publish a sequential approval process, submit a leave request, complete each assigned step, and inspect status/history. The Vue designer can add, remove, reorder, name and assign 1–8 approval steps. Every request stores an immutable definition snapshot; later publications affect new requests only.
 
 The demo uses the ArcFlow DAG for synchronous submission validation/normalization. A separate example-layer state machine owns human waiting, authorization and local JSON snapshots. These capabilities do not change the core execution guarantees. Use synthetic data on localhost only. Spring Boot 3.5 is past OSS support; see the demo's dependency and security limitations before running it.
+
+See the [sequential contract](docs/SEQUENTIAL_APPROVAL.md) for definition validation, publishing, per-step retry semantics and saved-data migration.
 
 ## What is implemented
 

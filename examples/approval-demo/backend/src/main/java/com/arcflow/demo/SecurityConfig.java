@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
@@ -30,7 +31,7 @@ class SecurityConfig {
             String password = env.getProperty(key);
             if (password == null || password.isBlank() || password.length() < 12)
                 throw new IllegalStateException("Set " + key + " to a unique password of at least 12 characters");
-            users.createUser(User.withUsername(id).password("{bcrypt}" + encoder.encode(password)).roles("USER").build());
+            users.createUser(User.withUsername(id).password("{bcrypt}" + encoder.encode(password)).roles("alice".equals(id) ? new String[]{"USER", "EDITOR"} : new String[]{"USER"}).build());
         }
         return users;
     }
@@ -41,7 +42,8 @@ class SecurityConfig {
             .httpBasic(b -> b.authenticationEntryPoint((req, res, e) -> error(res, 401, "Authentication required")))
             .exceptionHandling(e -> e.authenticationEntryPoint((req, res, ex) -> error(res, 401, "Authentication required"))
                 .accessDeniedHandler((req, res, ex) -> error(res, 403, "Forbidden")))
-            .authorizeHttpRequests(a -> a.requestMatchers("/api/**").authenticated().anyRequest().denyAll())
+            .authorizeHttpRequests(a -> a.requestMatchers(HttpMethod.POST, "/api/process").hasRole("EDITOR")
+                .requestMatchers("/api/**").authenticated().anyRequest().denyAll())
             .addFilterBefore(new OncePerRequestFilter() {
                 @Override protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain) throws ServletException, IOException {
                     String requestOrigin = req.getHeader("Origin");

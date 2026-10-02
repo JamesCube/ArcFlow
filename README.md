@@ -32,7 +32,9 @@
 
 ## 独立审批示例（实验性）
 
-新增的 [本地审批演示](examples/approval-demo/README.md) 使用 Spring Boot 3 API 和 [Vue 3 界面](examples/approval-ui/README.md)，演示固定的请假申请 → 指定审批人 → 同意/拒绝 → 状态与历史。界面是只读流程预览，不是可编辑流程设计器。审批状态由独立示例层管理，核心 DAG 行为不变。仅用于本机合成数据演示，不用于真实审批或个人信息。
+新增的 [本地审批演示](examples/approval-demo/README.md) 使用 Spring Boot 3 API 和 [Vue 3 界面](examples/approval-ui/README.md)，提供可编辑的顺序审批设计器：增加、删除、排序审批步骤并指定审批人，发布后发起请假申请，逐步同意或终态拒绝。每个实例固定已发布定义快照，后续编辑不会改变运行中的实例。审批状态由独立示例层管理，核心 DAG 行为不变。仅用于本机合成数据演示，不用于真实审批或个人信息。
+
+顺序模型、版本发布与逐步重试规则见 [顺序审批契约](docs/SEQUENTIAL_APPROVAL.md)。
 
 ## 内核尚未实现
 
