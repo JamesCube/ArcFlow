@@ -18,3 +18,7 @@ examples/ruoyi-vue3/.work/
 
 __pycache__/
 *.pyc
+
+# Local browser QA output (synthetic screenshots are CI artifacts only)
+examples/approval-ui/test-results/
+examples/approval-ui/playwright-report/
