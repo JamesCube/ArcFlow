@@ -64,7 +64,11 @@ def login(page, name, password):
     page.goto(ORIGIN + "/login")
     expect(page.get_by_placeholder("验证码", exact=True)).to_have_count(0)
     page.get_by_placeholder("账号", exact=True).fill("admin" if name == "admin" else "arcflow_" + name)
-    page.get_by_placeholder("密码", exact=True).fill(password)
+    try:
+        page.get_by_placeholder("密码", exact=True).fill(password)
+    except Exception:
+        # Playwright action logs may echo fill values; never expose the CI password.
+        raise AssertionError("Native password entry failed (details redacted)") from None
     page.get_by_role("button", name=re.compile(r"登\s*录$")).click()
     expect(page.locator(".sidebar-container")).to_be_visible()
     # Enter through the genuine database-generated RuoYi menu, never a substitute shell.
