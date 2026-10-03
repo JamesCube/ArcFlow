@@ -1,95 +1,132 @@
 # ArcFlow
 
-A small Java workflow core with explicit execution semantics.
+A small Java DAG core, a runnable Vue approval designer, and a reference integration with the official RuoYi applications.
 
-[简体中文](README.md) · [QuickStart](src/main/java/com/arcflow/example/QuickStart.java) · [Roadmap](docs/ROADMAP.md)
+[简体中文](README.md) · [First approval](docs/GETTING_STARTED.md#english) · [RuoYi setup](examples/ruoyi-vue3/README.md) · [Contributing](CONTRIBUTING.md)
 
-**Early development: `0.1.0-SNAPSHOT`. APIs may change. The current core is not suitable for production approval workflows.**
+[![Java CI](https://github.com/JamesCube/ArcFlow/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/JamesCube/ArcFlow/actions/workflows/ci.yml)
+[![Approval demo CI](https://github.com/JamesCube/ArcFlow/actions/workflows/approval-demo.yml/badge.svg?branch=main)](https://github.com/JamesCube/ArcFlow/actions/workflows/approval-demo.yml)
+[![RuoYi integration](https://github.com/JamesCube/ArcFlow/actions/workflows/ruoyi-integration.yml/badge.svg?branch=main)](https://github.com/JamesCube/ArcFlow/actions/workflows/ruoyi-integration.yml)
 
-ArcFlow starts with an inspectable DAG implementation for Java 17+. The core has no third-party runtime dependencies and does not require Spring. Business approvals and application integrations are development directions; see the implementation status below before evaluating it.
+**Experimental, `0.1.0-SNAPSHOT`. APIs may change. Run the examples on localhost with synthetic data only; they are not production approval services.**
 
-## Run the current example
+## Actual standalone demo
 
-Requirements: a full JDK 17+ and Maven 3.9+.
+![Standalone approval request with saved Bob-to-Carol sequence](docs/images/standalone-approval.png)
+
+Actual Chromium screenshot using synthetic data: Alice’s request stores the published Bob → Carol approval sequence. Captured by the [browser CI journey](https://github.com/JamesCube/ArcFlow/actions/runs/37089823338) at source `0543a06`. This is the standalone UI, not the RuoYi host.
+
+## Choose your starting point
+
+| You want to… | Start here | Requirements |
+| --- | --- | --- |
+| Try a leave request and visual sequential designer | [Standalone demo](#try-one-leave-approval) | JDK 17+, Maven 3.9+, Node 22.22.2+ within 22.x, npm; no database |
+| Add the example to real RuoYi login, menus and permissions | [Official RuoYi overlay](examples/ruoyi-vue3/README.md) | Git, Python 3, Java 17, Maven 3.9+, Node 22, MySQL 8.4, Redis 7.4 |
+| Inspect or embed the synchronous Java DAG | [Core example](#run-just-the-java-core) | Full JDK 17+; Maven 3.9+ for a normal build |
+
+Start with the standalone demo if you only want to evaluate the approval flow. The RuoYi example downloads exact pinned upstream commits and uses native RuoYi identity; it is a separate host of the same approval domain, not another skin for the demo login.
+
+## Try one leave approval
+
+Use Bash (Linux, macOS, or WSL), Git, and the prerequisites above. Initial dependency downloads require network access. From a new checkout, run in terminal 1:
 
 ```bash
 git clone https://github.com/JamesCube/ArcFlow.git
 cd ArcFlow
+mvn install
+mvn -f examples/approval-domain/pom.xml install
+
+# Private local demo state; reuse this absolute path when restarting.
+umask 077
+mkdir -p "$PWD/examples/approval-demo/backend/data"
+export APPROVAL_DATA_FILE="$PWD/examples/approval-demo/backend/data/requests.json"
+
+# Choose three different demo-only passwords, each at least 12 characters.
+read -rs -p 'Alice demo password: ' APPROVAL_ALICE_PASSWORD; echo
+read -rs -p 'Bob demo password: ' APPROVAL_BOB_PASSWORD; echo
+read -rs -p 'Carol demo password: ' APPROVAL_CAROL_PASSWORD; echo
+export APPROVAL_ALICE_PASSWORD APPROVAL_BOB_PASSWORD APPROVAL_CAROL_PASSWORD
+mvn -f examples/approval-demo/backend/pom.xml spring-boot:run
+```
+
+In terminal 2, from the same checkout:
+
+```bash
+cd examples/approval-ui
+npm ci
+npm run dev
+```
+
+Open **http://localhost:5173**:
+
+1. Sign in as **Alice** with the password you just set. Submit a request titled `Demo leave`, reason `Synthetic test`, for `1` day.
+2. Sign out, sign in as **Bob**, open **Needs my review**, select the request, and approve it.
+3. Sign back in as Alice. The request is **approved**, with its definition snapshot and activity history.
+
+A fresh data file starts with one Bob approval. To explore the designer, sign in as Alice, open **Process designer**, add a Carol step after Bob, and publish. Submit a new request: Bob's approval advances it to Carol; Carol's approval completes it. Existing requests keep their original version.
+
+[Full walkthrough, restart checks and troubleshooting →](docs/GETTING_STARTED.md#english)
+
+## What works today
+
+| Capability | Java core | Standalone / RuoYi examples |
+| --- | --- | --- |
+| Validated DAG, synchronous sequential handlers | Implemented | Used to validate and normalize submissions |
+| Add, remove, reorder and assign 1–8 approval steps | Not a core feature | Implemented in Vue |
+| Versioned publication and immutable request definitions | Not a core feature | Implemented in the shared approval domain |
+| Ordered human decisions, rejection, per-step retry protection | Not a core feature | Implemented; only the current assigned approver can act |
+| Identity and authorization | Supplied by the embedding app | Demo accounts / native RuoYi users, roles and permissions |
+| Restart persistence | None | Single-writer local JSON snapshot; **not SQL approval storage** |
+| Conditional routes, parallel approvals, timers, delegation | Not implemented | Not implemented |
+| BPMN XML / BPMN 2.0 compatibility | Not implemented | Not implemented |
+
+The core has no third-party runtime dependencies and does not require Spring. Approval HTTP APIs and Vue screens live in the examples; there is no published Spring Boot Starter or Maven Central artifact.
+
+## Architecture and boundaries
+
+```text
+Standalone Vue UI → Spring Boot demo host ─┐
+                                         ├→ approval-domain → ArcFlow Java DAG
+Official RuoYi Vue UI → RuoYi host ────────┘        │            (submission checks)
+                                                  └→ local JSON snapshot
+```
+
+- `approval-domain` owns human waiting, ordered transitions, definition snapshots and file persistence. The core never waits for a person.
+- RuoYi's MySQL database stores users, roles and menus. Approval state still uses a private local JSON file. Multiple instances and network filesystems are unsupported.
+- No production security, clustered persistence, distributed transactions, exactly-once execution or durable audit guarantee is claimed. The standalone demo's pinned framework/support limitations are documented in its [README](examples/approval-demo/README.md).
+- Core DAG branches express dependencies, not parallel execution or conditional routes. All roots run; ready nodes run in declaration order. String variables share one namespace, and later writes win.
+- Every core execution starts fresh. Re-execution reruns all nodes; failed handlers or listeners do not roll back external side effects. Synchronous event callbacks are not a persistence mechanism. Handlers/listeners must manage their own thread safety and business idempotency.
+- Submission has no idempotency key. After an uncertain response, refresh before resubmitting. Same-decision retries are protected per saved approval step; see the [sequential contract](docs/SEQUENTIAL_APPROVAL.md).
+
+## Run just the Java core
+
+From the repository root:
+
+```bash
 mvn verify
 java -cp target/classes com.arcflow.example.QuickStart
 ```
 
-Expected example output:
+Expected output:
 
 ```text
 [validate, price, summary]
 Order DEMO-001: 120
 ```
 
-With a full JDK, the offline checks and example can also run without Maven:
+With a full JDK, `bash scripts/test.sh` runs the core checks and example without Maven or dependency downloads. It does **not** start or verify the approval applications. See the complete [QuickStart.java](src/main/java/com/arcflow/example/QuickStart.java).
 
-```bash
-bash scripts/test.sh
-```
+## Explore and contribute
 
-## Try the local approval example
+- [Core and handler/event SPI](src/main/java/com/arcflow/) · [Core tests](src/test/java/com/arcflow/)
+- [Shared approval domain](examples/approval-domain/) · [Standalone backend](examples/approval-demo/backend/README.md) · [Vue UI](examples/approval-ui/README.md)
+- [Official RuoYi integration and attribution](examples/ruoyi-vue3/README.md) · [Sequential contract](docs/SEQUENTIAL_APPROVAL.md)
+- [Contributing](CONTRIBUTING.md) · [Roadmap](docs/ROADMAP.md) · [Integration design](docs/INTEGRATION_DESIGN.md)
 
-The experimental [approval demo](examples/approval-demo/README.md) pairs a Spring Boot 3 API with a [Vue 3 UI](examples/approval-ui/README.md): design and publish a sequential approval process, submit a leave request, complete each assigned step, and inspect status/history. The Vue designer can add, remove, reorder, name and assign 1–8 approval steps. Every request stores an immutable definition snapshot; later publications affect new requests only.
+Useful contributions include reproducible first-run reports, regression tests for permission/retry boundaries, and focused documentation fixes. Include your commit, OS, Java/Node versions, command, expected result and actual result in [bug reports](https://github.com/JamesCube/ArcFlow/issues). Discuss new state-machine or persistence behavior before implementing it. Do not attach credentials or real personnel data.
 
-The demo uses the ArcFlow DAG for synchronous submission validation/normalization. A separate example-layer state machine owns human waiting, authorization and local JSON snapshots. These capabilities do not change the core execution guarantees. Use synthetic data on localhost only. Spring Boot 3.5 is past OSS support; see the demo's dependency and security limitations before running it.
-
-See the [sequential contract](docs/SEQUENTIAL_APPROVAL.md) for definition validation, publishing, per-step retry semantics and saved-data migration.
-
-## What is implemented
-
-- Immutable DAG definitions with validation for empty graphs, duplicate nodes/dependencies, unknown dependencies and cycles
-- Synchronous, sequential execution in dependency order; ready nodes use declaration order
-- Explicit `NodeHandler` registration and synchronous `EventListener` callbacks
-- Read-only string-variable snapshots and merged handler outputs
-- Handler-binding validation before execution
-- Fail-fast handler errors that preserve the failing node, original cause and interrupt flag
-- A Java example, regression checks, a Maven/JUnit test entry point and CI configuration
-
-Branches express dependencies; they do not execute in parallel. A DAG join waits for its dependencies; it is not a multi-person approval operation.
-
-## Minimal Java example
-
-```java
-import com.arcflow.*;
-import java.util.List;
-import java.util.Map;
-
-var workflow = new Workflow("demo", List.of(
-    new Node("prepare", "prepare", List.of()),
-    new Node("finish", "finish", List.of("prepare"))
-));
-var engine = new ArcFlowEngine(Map.of(
-    "prepare", (node, vars) -> Map.of("message", "Hello ArcFlow"),
-    "finish", (node, vars) -> Map.of("result", vars.get("message"))
-));
-var result = engine.execute(workflow, Map.of());
-```
-
-Put this snippet inside a method. For a complete executable class, use [QuickStart.java](src/main/java/com/arcflow/example/QuickStart.java).
-
-## Important limits
-
-Each execution starts in memory, with no persisted instance, recovery or queryable history. All roots execute. Variables are strings in a shared execution-wide namespace; later writes replace earlier values, including across independent branches. Handler and listener thread safety is the application's responsibility.
-
-Repeated execution reruns all nodes. The engine does not guarantee exactly-once behavior or roll back external effects. Callbacks are synchronous and are not durable audit records. STARTED/COMPLETED listener errors stop execution; FAILED listener errors are suppressed on the original failure. Large-graph performance is not promised.
-
-Human tasks, approver authorization, conditional routing, asynchronous execution, retries, persistence, transactions, timers, multi-tenancy, an HTTP API, a Spring Boot Starter, a Vue designer and RuoYi integration are not implemented in this core snapshot. There is no BPMN XML parser or BPMN 2.0 compatibility promise. Project Maven coordinates have not been published to Maven Central.
-
-## Where this project is heading
-
-The focus is a small core with clear semantics and testable extensions. See the [roadmap](docs/ROADMAP.md) and [integration design](docs/INTEGRATION_DESIGN.md) for planned work. Release timing and framework compatibility are not guaranteed.
-
-For Java and RuoYi developers evaluating future approval integration, feedback on identity boundaries, persistence and failure handling is useful. Please include the commit, command and observed result in bug reports. If the project is useful to you, a star helps you find it again.
+CI badges track `main`; inspect the workflow run for the exact commit you are evaluating. Builds and API tests are not proof of browser coverage or production readiness.
 
 ## License
 
-[Apache License 2.0](LICENSE).
-
-## Official RuoYi integration example
-
-[Real RuoYi-Vue + Vue 3 overlay](examples/ruoyi-vue3/README.md): pinned upstream applications, native JWT/Redis login, dynamic menus, role permissions and sequential approval. MySQL stores RuoYi identity; approval persistence remains a private single-writer JSON file.
+[Apache License 2.0](LICENSE). The separately fetched official RuoYi projects retain their MIT licenses. This integration does not imply upstream endorsement.

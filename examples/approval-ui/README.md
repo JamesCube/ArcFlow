@@ -37,3 +37,23 @@ npm run build
 ## Automated coverage
 
 Component and pure-model tests cover edit/reorder/reset/publish, role restrictions, 1–8 limits, malformed definitions, stale versions and interrupted requests, refresh with a dirty draft, repeated clicks, logout races, per-step decisions, and immutable instance snapshots. A production build is a compilation check, not browser visual verification.
+
+## Real-browser first-run check
+
+The approval-demo CI runs Chromium against the actual backend and Vite server on the same runner. It covers the fresh single-step flow, add/reorder/publish, sequential approval, read-only approvers, repeated decision clicks, rejection, reload/re-login, immutable request snapshots and recovery from an injected 503. The injected error checks UI recovery only; all other flows use the real backend.
+
+To run locally from the repository root (JDK 17+, Maven, supported Node/npm):
+
+```sh
+mvn install
+mvn -f examples/approval-domain/pom.xml install
+mvn -f examples/approval-demo/backend/pom.xml package
+cd examples/approval-ui
+npm ci
+npx playwright install chromium
+npm run test:e2e
+```
+
+On a clean Linux machine, Playwright may also require system browser dependencies (`npx playwright install --with-deps chromium`, which can need administrator permission). Stop other servers on ports 8080 and 5173 first: the test deliberately refuses to reuse an existing app or store. It generates disposable demo passwords and a fresh temporary data directory, and binds both servers to loopback. Test data is synthetic. The temporary `arcflow-e2e-*` directory in your OS temporary folder may be removed after the run; it is not your normal demo store.
+
+Only successful authenticated workspace views are captured under ignored `test-results/` directories; no password-form screenshots, authentication traces, HAR, videos or saved browser sessions are recorded. CI retains screenshot artifacts for seven days. These are proof of the standalone demo only, not visual verification of the RuoYi integration, production readiness, or backend restart persistence (covered separately by backend tests).
