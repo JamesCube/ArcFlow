@@ -203,6 +203,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--jar", type=Path, required=True)
     parser.add_argument("--state-directory", type=Path, required=True)
+    parser.add_argument("--frontend-directory", type=Path, help="Built official frontend; enables native Chromium journey")
     args = parser.parse_args()
     assert not (args.state_directory / "approval.json").exists(), "Use a fresh CI state directory"
     password = secrets.token_hex(10)  # Official RuoYi limits passwords to 20 characters.
@@ -211,6 +212,9 @@ def main():
     try:
         server.start()
         run(server, password)
+        if args.frontend_directory:
+            from browser import run as run_browser
+            run_browser(args.frontend_directory, args.state_directory / "screenshots", password)
     finally:
         server.stop()
 
