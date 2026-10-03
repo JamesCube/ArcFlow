@@ -24,7 +24,7 @@ Design, publish and complete a two-step approval inside the official RuoYi menu 
 
 [Explore the case and test evidence →](docs/RUOYI_SHOWCASE.md#english) · [Set up the pinned integration →](examples/ruoyi-vue3/README.md)
 
-Captured by the [native browser CI at `48f9b68`](https://github.com/JamesCube/ArcFlow/actions/runs/37091568795), not a concept mockup. RuoYi owns login, users, menus and permissions; ArcFlow owns approval definitions and state. Approval persistence is still single-writer local JSON. This localhost, synthetic-data example is neither production-ready nor endorsed by upstream.
+Captured by the [native browser CI at `48f9b68`](https://github.com/JamesCube/ArcFlow/actions/runs/37091568795), not a concept mockup. RuoYi owns login, users, menus and permissions; ArcFlow owns approval definitions and state. This RuoYi example still uses single-writer local JSON approval persistence. This localhost, synthetic-data example is neither production-ready nor endorsed by upstream.
 
 ## Standalone alternative: no RuoYi environment needed
 
@@ -104,7 +104,7 @@ A fresh data file starts with one Bob approval. To explore the designer, sign in
 | Versioned publication and immutable request definitions | Not a core feature | Implemented in the shared approval domain |
 | Ordered human decisions, rejection, per-step retry protection | Not a core feature | Implemented; only the current assigned approver can act |
 | Identity and authorization | Supplied by the embedding app | Demo accounts / native RuoYi users, roles and permissions |
-| Restart persistence | None | Single-writer local JSON snapshot; **not SQL approval storage** |
+| Restart persistence | None | Demo defaults to single-writer JSON; optional [JDBC adapter](examples/approval-jdbc/README.md) adds database transactions and persisted audit |
 | Conditional routes, parallel approvals, timers, delegation | Not implemented | Not implemented |
 | BPMN XML / BPMN 2.0 compatibility | Not implemented | Not implemented |
 
@@ -116,12 +116,13 @@ The core has no third-party runtime dependencies and does not require Spring. Ap
 Standalone Vue UI → Spring Boot demo host ─┐
                                          ├→ approval-domain → ArcFlow Java DAG
 Official RuoYi Vue UI → RuoYi host ────────┘        │            (submission checks)
-                                                  └→ local JSON snapshot
+                                                  └→ ApprovalStore: JSON / optional JDBC
 ```
 
-- `approval-domain` owns human waiting, ordered transitions, definition snapshots and file persistence. The core never waits for a person.
+- `approval-domain` owns human waiting, ordered transitions, definition snapshots and the persistence SPI. The core never waits for a person.
+- See [transactional approval storage](examples/approval-jdbc/README.md) for JDBC wiring, `arc_` migrations, and real PostgreSQL / H2 verification. This optional module does not automatically change either demonstration.
 - RuoYi's MySQL database stores users, roles and menus. Approval state still uses a private local JSON file. Multiple instances and network filesystems are unsupported.
-- No production security, clustered persistence, distributed transactions, exactly-once execution or durable audit guarantee is claimed. The standalone demo's pinned framework/support limitations are documented in its [README](examples/approval-demo/README.md).
+- The first JDBC slice covers competing service instances, revision checks, per-step idempotent retries, rollback and pinned process versions. Tenant isolation, pagination, submission idempotency keys, joint business-data transactions and outbox are absent. No general production-readiness, high-throughput, distributed-transaction or exactly-once claim is made. The standalone demo's pinned framework/support limitations are documented in its [README](examples/approval-demo/README.md).
 - Core DAG branches express dependencies, not parallel execution or conditional routes. All roots run; ready nodes run in declaration order. String variables share one namespace, and later writes win.
 - Every core execution starts fresh. Re-execution reruns all nodes; failed handlers or listeners do not roll back external side effects. Synchronous event callbacks are not a persistence mechanism. Handlers/listeners must manage their own thread safety and business idempotency.
 - Submission has no idempotency key. After an uncertain response, refresh before resubmitting. Same-decision retries are protected per saved approval step; see the [sequential contract](docs/SEQUENTIAL_APPROVAL.md).
