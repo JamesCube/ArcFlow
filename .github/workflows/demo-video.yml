@@ -1,5 +1,6 @@
 name: Record standalone demo
 on:
+  workflow_dispatch:
   push:
     branches: ['demo/real-ui-video']
 permissions:
