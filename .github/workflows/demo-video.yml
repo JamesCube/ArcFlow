@@ -1,0 +1,57 @@
+name: Record standalone demo
+on:
+  push:
+    branches: ['demo/real-ui-video']
+permissions:
+  contents: read
+jobs:
+  record:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: examples/approval-ui/package-lock.json
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - run: npm ci && npx playwright install --with-deps chromium
+        working-directory: examples/approval-ui
+      - name: Start isolated tryout and record authenticated workspace only
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/tryout.py > "$RUNNER_TEMP/tryout.log" 2>&1 &
+          launcher=$!
+          trap 'kill -TERM "$launcher" 2>/dev/null || true; wait "$launcher" || true' EXIT
+          for i in $(seq 1 180); do
+            grep -q '^READY:' "$RUNNER_TEMP/tryout.log" && break
+            kill -0 "$launcher" || { echo 'Tryout exited before readiness'; exit 1; }
+            sleep 2
+          done
+          grep -q '^READY:' "$RUNNER_TEMP/tryout.log"
+          runtime=$(sed -n 's/^Private runtime directory: //p' "$RUNNER_TEMP/tryout.log")
+          export ARCFLOW_RECORD_CREDENTIALS="$runtime/credentials.json"
+          cd examples/approval-ui
+          node --input-type=module -e '
+            import fs from "node:fs";
+            const credentials=JSON.parse(fs.readFileSync(process.env.ARCFLOW_RECORD_CREDENTIALS,"utf8"));
+            for(const [user,password] of Object.entries(credentials))process.env[`APPROVAL_${user.toUpperCase()}_PASSWORD`]=password;
+            await import("./record-demo.mjs");'
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: arcflow-real-demo-video
+          path: |
+            examples/approval-ui/demo-output/ArcFlow-demo.mp4
+            examples/approval-ui/demo-output/ArcFlow-demo-poster.png
+            examples/approval-ui/demo-output/PROVENANCE.txt
+            examples/approval-ui/demo-output/verification.json
+          if-no-files-found: error
+          retention-days: 7
