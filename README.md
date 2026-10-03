@@ -24,7 +24,7 @@
 
 [查看集成案例与验证证据 →](docs/RUOYI_SHOWCASE.md#简体中文) · [按锁定版本接入 →](examples/ruoyi-vue3/README.md)
 
-截图来自 [`48f9b68` 的原生浏览器 CI](https://github.com/JamesCube/ArcFlow/actions/runs/37091568795)，不是概念效果图。若依管理登录、用户、菜单和权限；ArcFlow 管理审批流程与状态。审批状态仍为单写者本地 JSON，本地合成演示不代表生产就绪或上游背书。
+截图来自 [`48f9b68` 的原生浏览器 CI](https://github.com/JamesCube/ArcFlow/actions/runs/37091568795)，不是概念效果图。若依管理登录、用户、菜单和权限；ArcFlow 管理审批流程与状态。此若依演示的审批状态仍为单写者本地 JSON，本地合成演示不代表生产就绪或上游背书。
 
 ## 独立演示：无需若依环境
 
@@ -104,7 +104,7 @@ npm run dev
 | 流程版本发布、实例固定定义快照 | 不属于内核 | 共享审批领域库已实现 |
 | 顺序人工审批、终态拒绝、逐步骤重试保护 | 不属于内核 | 已实现；仅当前指定审批人可操作 |
 | 身份与权限 | 由接入方提供 | 演示账号 / 若依原生用户、角色和权限 |
-| 重启恢复 | 无 | 单写者本地 JSON 快照，**不是 SQL 审批存储** |
+| 重启恢复 | 无 | 演示默认单写者 JSON；可选 [JDBC 适配器](examples/approval-jdbc/README.md)提供数据库事务与持久审计 |
 | 条件路由、并行审批、定时器、转办 | 未实现 | 未实现 |
 | BPMN XML / BPMN 2.0 兼容 | 未实现 | 未实现 |
 
@@ -116,12 +116,13 @@ npm run dev
 独立 Vue 界面 → Spring Boot 演示宿主 ─┐
                                     ├→ approval-domain → ArcFlow Java DAG
 官方若依 Vue 界面 → 若依宿主 ────────┘        │            （提交校验）
-                                             └→ 本地 JSON 快照
+                                             └→ ApprovalStore：本地 JSON / 可选 JDBC
 ```
 
-- `approval-domain` 管理人工等待、顺序状态流转、定义快照和文件持久化。内核不会等待人工处理。
+- `approval-domain` 管理人工等待、顺序状态流转、定义快照与存储 SPI。可选 `approval-jdbc` 将请求、审批修订号和审计事件在同一事务内提交；内核不会等待人工处理。
+- JDBC 接入、`arc_` 数据库迁移和真实 PostgreSQL / H2 测试命令见 [事务审批存储](examples/approval-jdbc/README.md)。它是独立可选模块，不会自动替换两个演示的存储。
 - 若依的 MySQL 仅存储用户、角色和菜单；审批仍存储于私有本地 JSON 文件，不支持多个实例或网络文件系统。
-- 不承诺生产安全、集群持久化、分布式事务、exactly-once 或持久审计保证。独立示例的框架版本和支持限制见其 [README](examples/approval-demo/README.md)。
+- JDBC 首个切片覆盖多服务实例的修订号竞争、步骤幂等重试、事务回滚和定义版本快照。它尚无租户隔离、分页、发起幂等键、业务表联合事务或 outbox；不承诺通用生产就绪、高吞吐、分布式事务或 exactly-once。独立示例的框架版本和支持限制见其 [README](examples/approval-demo/README.md)。
 - 内核 DAG 分支表达依赖，不是并行执行或条件路由；所有根节点都会执行，就绪节点按声明顺序运行。字符串变量共享一个命名空间，后写覆盖先写。
 - 每次内核执行均从头开始，重复执行会重跑全部节点。处理器或监听器失败不会回滚外部副作用，同步事件回调不是持久化机制；线程安全和业务幂等性由接入方负责。
 - 申请提交没有幂等键。网络中断后先刷新确认结果，再决定是否重提；审批决定按实例已保存的步骤提供同决定重试保护，详见 [顺序审批契约](docs/SEQUENTIAL_APPROVAL.md)。
