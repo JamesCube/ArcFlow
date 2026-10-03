@@ -2,6 +2,8 @@
 
 This is an **overlay on the real official RuoYi applications**, not a rebranded standalone login page. `upstream-lock.json` pins exact upstream commits. The bootstrap retains both upstream repositories and their MIT license files. ArcFlow's code remains Apache-2.0.
 
+[View the native integration screenshots and walkthrough](../../docs/RUOYI_SHOWCASE.md) · [查看原生集成实拍](../../docs/RUOYI_SHOWCASE.md#简体中文)
+
 ## Boundaries
 
 - RuoYi owns login, JWT/Redis sessions, immutable numeric user IDs, menu routes, roles and permission checks.

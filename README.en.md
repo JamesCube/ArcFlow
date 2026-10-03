@@ -10,7 +10,23 @@ A small Java DAG core, a runnable Vue approval designer, and a reference integra
 
 **Experimental, `0.1.0-SNAPSHOT`. APIs may change. Run the examples on localhost with synthetic data only; they are not production approval services.**
 
-## Actual standalone demo
+## Open-source integration in action: RuoYi × ArcFlow
+
+Design, publish and complete a two-step approval inside the official RuoYi menu and permission system.
+
+[![ArcFlow two-step process editor inside the official RuoYi workspace](docs/images/ruoyi-native-process-editor.png)](docs/images/ruoyi-native-process-editor.png)
+
+**Native workspace · Process design.** RuoYi navigation surrounds the ArcFlow page. Team review → Final review uses assignees from RuoYi users. Actual Chromium capture with synthetic test accounts.
+
+[![Completed approval with its saved process snapshot and activity history inside RuoYi](docs/images/ruoyi-native-approved-history.png)](docs/images/ruoyi-native-approved-history.png)
+
+**Complete approval · Saved snapshot and history.** Both assigned reviewers have approved in order. The request retains its submitted v3 definition and step-by-step history. Click either image for the original 1440 px capture.
+
+[Explore the case and test evidence →](docs/RUOYI_SHOWCASE.md#english) · [Set up the pinned integration →](examples/ruoyi-vue3/README.md)
+
+Captured by the [native browser CI at `48f9b68`](https://github.com/JamesCube/ArcFlow/actions/runs/37091568795), not a concept mockup. RuoYi owns login, users, menus and permissions; ArcFlow owns approval definitions and state. Approval persistence is still single-writer local JSON. This localhost, synthetic-data example is neither production-ready nor endorsed by upstream.
+
+## Standalone alternative: no RuoYi environment needed
 
 ![Standalone approval request with saved Bob-to-Carol sequence](docs/images/standalone-approval.png)
 
