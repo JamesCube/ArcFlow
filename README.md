@@ -10,7 +10,23 @@
 
 **实验阶段：`0.1.0-SNAPSHOT`，API 尚不稳定。示例仅用于 localhost 和合成数据，不适合直接用于生产审批。**
 
-## 独立演示实拍
+## 开源项目集成实拍：RuoYi × ArcFlow
+
+在官方若依的菜单与权限体系里，设计、发布并完成一笔两级审批。
+
+[![官方若依宿主中的 ArcFlow 两级顺序审批设计器](docs/images/ruoyi-native-process-editor.png)](docs/images/ruoyi-native-process-editor.png)
+
+**原生若依工作台 · 流程设计。** 左侧保留若依导航，ArcFlow 页面配置 Team review → Final review，审批人来自若依用户。真实 Chromium 截图，使用合成测试账号。
+
+[![官方若依宿主中已完成的两级审批与流程快照、操作记录](docs/images/ruoyi-native-approved-history.png)](docs/images/ruoyi-native-approved-history.png)
+
+**审批闭环 · 实例快照与记录。** 两位指定审批人依次通过，申请显示“已通过”，保留提交时的 v3 定义与逐步操作记录。点击图片查看原始 1440 px 截图。
+
+[查看集成案例与验证证据 →](docs/RUOYI_SHOWCASE.md#简体中文) · [按锁定版本接入 →](examples/ruoyi-vue3/README.md)
+
+截图来自 [`48f9b68` 的原生浏览器 CI](https://github.com/JamesCube/ArcFlow/actions/runs/37091568795)，不是概念效果图。若依管理登录、用户、菜单和权限；ArcFlow 管理审批流程与状态。审批状态仍为单写者本地 JSON，本地合成演示不代表生产就绪或上游背书。
+
+## 独立演示：无需若依环境
 
 ![Standalone approval request with saved Bob-to-Carol sequence](docs/images/standalone-approval.png)
 
