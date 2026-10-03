@@ -8,7 +8,7 @@ permissions:
 jobs:
   integration:
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    timeout-minutes: 30
     services:
       mysql:
         image: mysql:8.4.4
@@ -66,12 +66,22 @@ jobs:
           mysql -h 127.0.0.1 -u root ry-vue < "$RUNNER_TEMP/ruoyi/backend/sql/ry_20260417.sql"
           mysql -h 127.0.0.1 -u root ry-vue < "$RUNNER_TEMP/ruoyi/backend/sql/quartz.sql"
           mysql -h 127.0.0.1 -u root ry-vue < examples/ruoyi-vue3/sql/menu.sql
-      - name: Real session, permissions, approvals and restart smoke
+      - name: Real sessions, restart and native Chromium journey
         run: |
           python3 -m pip install -r examples/ruoyi-vue3/tests/requirements.txt
+          python3 -m playwright install --with-deps chromium
           python3 examples/ruoyi-vue3/tests/smoke.py \
             --jar "$RUNNER_TEMP/ruoyi/backend/ruoyi-admin/target/ruoyi-admin.jar" \
-            --state-directory "$RUNNER_TEMP/ruoyi-smoke"
+            --state-directory "$RUNNER_TEMP/ruoyi-smoke" \
+            --frontend-directory "$RUNNER_TEMP/ruoyi/frontend/dist"
+      - name: Save native RuoYi workspace screenshots (no auth traces)
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ruoyi-native-browser-screenshots
+          path: ${{ runner.temp }}/ruoyi-smoke/screenshots/*.png
+          if-no-files-found: error
+          retention-days: 7
       - name: Preserve diagnostic server log
         if: failure()
         uses: actions/upload-artifact@v4

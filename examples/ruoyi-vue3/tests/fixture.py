@@ -21,7 +21,7 @@ def install(password):
     with connection() as db, db.cursor() as cur:
         cur.execute("UPDATE sys_config SET config_value='false' WHERE config_key='sys.account.captchaEnabled'")
         # The database is newly imported for this job. Replace upstream demo passwords too.
-        cur.execute("UPDATE sys_user SET password=%s", (hashed,))
+        cur.execute("UPDATE sys_user SET password=%s,pwd_update_date=NOW()", (hashed,))
         for uid, name in USERS.items():
             cur.execute("""INSERT INTO sys_user
                 (user_id,dept_id,user_name,nick_name,password,status,del_flag,create_by,create_time,pwd_update_date)
