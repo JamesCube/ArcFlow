@@ -23,6 +23,7 @@ async function select(page, title) {
 async function screenshot(page, testInfo, name) {
   // Only authenticated workspace views, never the password form or network logs.
   await expect(page.getByLabel('Password', { exact: true })).toHaveCount(0)
+  await page.evaluate(() => window.scrollTo(0, 0))
   await page.screenshot({ path: testInfo.outputPath(`${name}.png`), fullPage: true })
 }
 

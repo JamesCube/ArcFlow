@@ -1,116 +1,132 @@
 # ArcFlow｜弧流
 
-[English](README.en.md) | 简体中文
+轻量 Java DAG 内核，可运行的 Vue 顺序审批设计器，以及基于官方若依应用的参考集成。
 
-以弧串联业务，让流程轻量流转
+简体中文 · [English](README.en.md) · [完成第一笔审批](docs/GETTING_STARTED.md#简体中文) · [若依接入](examples/ruoyi-vue3/README.md) · [参与贡献](CONTRIBUTING.md)
 
-轻量级 Java 工作流引擎，从小而清晰的内核出发，逐步支持业务审批与 DAG 任务编排。
+[![Java CI](https://github.com/JamesCube/ArcFlow/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/JamesCube/ArcFlow/actions/workflows/ci.yml)
+[![Approval demo CI](https://github.com/JamesCube/ArcFlow/actions/workflows/approval-demo.yml/badge.svg?branch=main)](https://github.com/JamesCube/ArcFlow/actions/workflows/approval-demo.yml)
+[![RuoYi integration](https://github.com/JamesCube/ArcFlow/actions/workflows/ruoyi-integration.yml/badge.svg?branch=main)](https://github.com/JamesCube/ArcFlow/actions/workflows/ruoyi-integration.yml)
 
-- Java 包名：`com.arcflow`
-- 主入口：`ArcFlowEngine`
-- 未来数据库表前缀：`arc_`
-- 许可证：Apache License 2.0
-- 当前阶段：`0.1.0-SNAPSHOT` 初始骨架，API 尚不稳定，**不适合直接用于生产审批**
+**实验阶段：`0.1.0-SNAPSHOT`，API 尚不稳定。示例仅用于 localhost 和合成数据，不适合直接用于生产审批。**
 
-## 设计方向
+## 独立演示实拍
 
-核心不强依赖 Spring；业务审批只选择实用 BPM 子集，不追求完整 BPMN 实现。未来通过可选 Spring Boot Starter、身份适配、持久化和前后端示例接入企业系统。
+![Standalone approval request with saved Bob-to-Carol sequence](docs/images/standalone-approval.png)
 
-内核以 Java 17 为最低目标：它是成熟的 LTS 基线，也便于未来接入 Spring Boot 3 生态。当前核心没有第三方运行时依赖。`com.arcflow:arcflow-core` 是项目内拟定坐标，尚未验证 Maven Central 命名空间所有权，也未发布任何制品。
+真实 Chromium 截图，使用合成数据：Alice 的申请保存了已发布的 Bob → Carol 审批序列。来自源码 `0543a06` 的[浏览器 CI 流程](https://github.com/JamesCube/ArcFlow/actions/runs/37089823338)。这是独立界面，不是若依宿主。
 
-## 当前实现
+## 从哪里开始
 
-- 不可变 DAG 定义，校验空流程、重复节点、未知依赖、重复依赖及环
-- 按依赖拓扑顺序**同步、串行**执行；多个就绪节点按声明顺序选择
-- 显式注册 `NodeHandler` 与同步 `EventListener` SPI
-- 字符串变量快照与处理器输出合并；同名键由后执行节点覆盖
-- 处理器异常立即终止，并保留失败节点、原始原因与线程中断标记
-- 运行前检查所有处理器绑定，避免执行一半才发现处理器缺失
-- Java 示例、24 项回归检查、Maven/JUnit 测试入口及 CI 配置
+| 你想做什么 | 入口 | 环境要求 |
+| --- | --- | --- |
+| 体验请假审批与可视化顺序设计器 | [独立演示](#先完成一笔请假审批) | 完整 JDK 17+、Maven 3.9+、Node 22.22.2+（22.x）、npm；无需数据库 |
+| 在真正的若依登录、菜单和权限中接入审批 | [官方若依参考集成](examples/ruoyi-vue3/README.md) | Git、Python 3、Java 17、Maven 3.9+、Node 22、MySQL 8.4、Redis 7.4 |
+| 阅读或嵌入同步 Java DAG | [纯 Java 示例](#只运行-java-内核) | 完整 JDK 17+；常规构建需要 Maven 3.9+ |
 
-这里的 DAG 分支仅表达依赖关系，并不并行执行；join 表示所有依赖完成，不是审批会签。
+只想了解审批闭环，先运行独立演示。若依示例会下载锁定提交的官方上游代码，使用原生若依身份体系，与独立演示共享审批领域库；它不是给演示登录页换皮。
 
-## 独立审批示例（实验性）
+## 先完成一笔请假审批
 
-新增的 [本地审批演示](examples/approval-demo/README.md) 使用 Spring Boot 3 API 和 [Vue 3 界面](examples/approval-ui/README.md)，提供可编辑的顺序审批设计器：增加、删除、排序审批步骤并指定审批人，发布后发起请假申请，逐步同意或终态拒绝。每个实例固定已发布定义快照，后续编辑不会改变运行中的实例。审批状态由独立示例层管理，核心 DAG 行为不变。仅用于本机合成数据演示，不用于真实审批或个人信息。
+使用 Bash（Linux、macOS 或 WSL）、Git 和上表环境。首次下载依赖需要网络。终端 1，从新检出的仓库开始：
 
-顺序模型、版本发布与逐步重试规则见 [顺序审批契约](docs/SEQUENTIAL_APPROVAL.md)。
+```bash
+git clone https://github.com/JamesCube/ArcFlow.git
+cd ArcFlow
+mvn install
+mvn -f examples/approval-domain/pom.xml install
 
-## 内核尚未实现
+# 私有本地演示数据；重启时复用这个绝对路径。
+umask 077
+mkdir -p "$PWD/examples/approval-demo/backend/data"
+export APPROVAL_DATA_FILE="$PWD/examples/approval-demo/backend/data/requests.json"
 
-人工任务、审批人权限校验、会签/或签/加签/转办/退回指定节点、条件路由、异步执行、重试补偿、持久化、事务、定时器、多租户、HTTP API、Spring Boot Starter、Vue 设计器以及若依等框架集成，均为后续路线图。
+# 设置三个不同的、至少 12 个字符的演示专用密码。
+read -rs -p 'Alice demo password: ' APPROVAL_ALICE_PASSWORD; echo
+read -rs -p 'Bob demo password: ' APPROVAL_BOB_PASSWORD; echo
+read -rs -p 'Carol demo password: ' APPROVAL_CAROL_PASSWORD; echo
+export APPROVAL_ALICE_PASSWORD APPROVAL_BOB_PASSWORD APPROVAL_CAROL_PASSWORD
+mvn -f examples/approval-demo/backend/pom.xml spring-boot:run
+```
 
-**没有 BPMN XML 解析或 BPMN 2.0 兼容性承诺。** 不要把事件回调当成持久化审计；不保证 exactly-once，也不会回滚处理器已产生的外部副作用。
+终端 2，从同一个仓库目录开始：
 
-## 快速运行
+```bash
+cd examples/approval-ui
+npm ci
+npm run dev
+```
 
-需要完整 JDK 17+；常规构建需要 Maven 3.9+。
+打开 **http://localhost:5173**：
+
+1. 选择 **Alice**，输入刚设置的密码。提交标题为 `Demo leave`、原因为 `Synthetic test`、天数为 `1` 的合成申请。
+2. 退出登录，切换 **Bob**，打开 **Needs my review**，选中该申请并同意。
+3. 重新以 Alice 登录。申请应为 **approved**，可查看该实例的流程快照与操作历史。
+
+全新数据文件默认只有一个 Bob 审批步骤。想体验设计器，以 Alice 打开 **Process designer**，在 Bob 后新增 Carol 步骤并发布，再提交一笔新申请。Bob 同意后流转到 Carol，Carol 同意后完成；已有申请仍保留原来的流程版本。
+
+[完整操作、重启验证与常见问题 →](docs/GETTING_STARTED.md#简体中文)
+
+## 当前能力
+
+| 能力 | Java 内核 | 独立演示 / 若依示例 |
+| --- | --- | --- |
+| DAG 校验、同步串行处理器 | 已实现 | 用于申请的校验与规范化 |
+| 增删、排序、指定 1–8 个审批步骤 | 不属于内核 | Vue 已实现 |
+| 流程版本发布、实例固定定义快照 | 不属于内核 | 共享审批领域库已实现 |
+| 顺序人工审批、终态拒绝、逐步骤重试保护 | 不属于内核 | 已实现；仅当前指定审批人可操作 |
+| 身份与权限 | 由接入方提供 | 演示账号 / 若依原生用户、角色和权限 |
+| 重启恢复 | 无 | 单写者本地 JSON 快照，**不是 SQL 审批存储** |
+| 条件路由、并行审批、定时器、转办 | 未实现 | 未实现 |
+| BPMN XML / BPMN 2.0 兼容 | 未实现 | 未实现 |
+
+内核没有第三方运行时依赖，也不强依赖 Spring。审批 HTTP API 和 Vue 界面位于示例层；尚未发布 Spring Boot Starter 或 Maven Central 制品。
+
+## 分层与边界
+
+```text
+独立 Vue 界面 → Spring Boot 演示宿主 ─┐
+                                    ├→ approval-domain → ArcFlow Java DAG
+官方若依 Vue 界面 → 若依宿主 ────────┘        │            （提交校验）
+                                             └→ 本地 JSON 快照
+```
+
+- `approval-domain` 管理人工等待、顺序状态流转、定义快照和文件持久化。内核不会等待人工处理。
+- 若依的 MySQL 仅存储用户、角色和菜单；审批仍存储于私有本地 JSON 文件，不支持多个实例或网络文件系统。
+- 不承诺生产安全、集群持久化、分布式事务、exactly-once 或持久审计保证。独立示例的框架版本和支持限制见其 [README](examples/approval-demo/README.md)。
+- 内核 DAG 分支表达依赖，不是并行执行或条件路由；所有根节点都会执行，就绪节点按声明顺序运行。字符串变量共享一个命名空间，后写覆盖先写。
+- 每次内核执行均从头开始，重复执行会重跑全部节点。处理器或监听器失败不会回滚外部副作用，同步事件回调不是持久化机制；线程安全和业务幂等性由接入方负责。
+- 申请提交没有幂等键。网络中断后先刷新确认结果，再决定是否重提；审批决定按实例已保存的步骤提供同决定重试保护，详见 [顺序审批契约](docs/SEQUENTIAL_APPROVAL.md)。
+
+## 只运行 Java 内核
+
+在仓库根目录运行：
 
 ```bash
 mvn verify
 java -cp target/classes com.arcflow.example.QuickStart
 ```
 
-无 Maven、无网络时，可在完整 JDK 上运行同一组回归检查和示例：
-
-```bash
-bash scripts/test.sh
-```
-
-预期示例输出：
+预期输出：
 
 ```text
 [validate, price, summary]
 Order DEMO-001: 120
 ```
 
-最小使用：
+有完整 JDK 时，`bash scripts/test.sh` 可以不依赖 Maven 或下载依赖运行内核检查与示例；它**不会**启动或验证审批应用。完整代码见 [QuickStart.java](src/main/java/com/arcflow/example/QuickStart.java)。
 
-```java
-var workflow = new Workflow("demo", List.of(
-    new Node("prepare", "prepare", List.of()),
-    new Node("finish", "finish", List.of("prepare"))
-));
-var engine = new ArcFlowEngine(Map.of(
-    "prepare", (node, vars) -> Map.of("message", "Hello ArcFlow"),
-    "finish", (node, vars) -> Map.of("result", vars.get("message"))
-));
-var result = engine.execute(workflow, Map.of());
-```
+## 阅读代码与参与贡献
 
-上述代码导入 `com.arcflow.*`、`java.util.List`、`java.util.Map`。完整可执行示例见 [QuickStart.java](src/main/java/com/arcflow/example/QuickStart.java)。
+- [内核与处理器 / 事件 SPI](src/main/java/com/arcflow/) · [内核测试](src/test/java/com/arcflow/)
+- [共享审批领域库](examples/approval-domain/) · [独立后端](examples/approval-demo/backend/README.md) · [Vue 界面](examples/approval-ui/README.md)
+- [官方若依集成与归属说明](examples/ruoyi-vue3/README.md) · [顺序审批契约](docs/SEQUENTIAL_APPROVAL.md)
+- [贡献说明](CONTRIBUTING.md) · [路线图](docs/ROADMAP.md) · [集成设计](docs/INTEGRATION_DESIGN.md)
 
-## 执行语义与边界
+欢迎提供可复现的首次运行反馈、权限 / 重试边界回归测试及文档修正。[报告问题](https://github.com/JamesCube/ArcFlow/issues)时请附提交版本、操作系统、Java / Node 版本、命令、预期和实际结果。新增状态机或持久化行为请先讨论；不要附带密码或真实人员数据。
 
-- 每次 `execute` 都是全新内存执行，没有实例 ID、检查点、恢复或查询历史。
-- 所有根节点都会运行。没有条件表达式、跳过状态或人工等待状态。
-- 输入及输出变量不允许 null 键/值；只支持字符串值。
-- 处理器拿到只读快照；返回变量更新，不直接修改共享上下文。
-- 变量属于整个执行的共享命名空间：独立分支也能看到之前串行执行的分支更新，不提供分支隔离。
-- 引擎不持有可变运行状态，但处理器及监听器的线程安全由接入方负责。
-- 监听器同步调用；STARTED/COMPLETED 回调异常直接中止执行，已发生的副作用保留。FAILED 回调异常作为 suppressed exception 保存，避免掩盖处理器异常。监听器应自行隔离日志/网络故障。
-- 处理器必须自行考虑业务幂等性。重复调用 `execute` 会重新运行全部节点。
-- 该版 DAG 校验面向小规模流程，不承诺大型图性能。
-
-## 目录
-
-```text
-src/main/java/com/arcflow/          内核、模型和异常
-src/main/java/com/arcflow/spi/      当前可用的处理器/事件 SPI
-src/main/java/com/arcflow/example/  纯 Java 示例
-src/test/java/com/arcflow/         Maven 与离线共用的回归检查
-scripts/test.sh                    完整 JDK 上的离线验证
-docs/                            路线图与未来集成设计
-```
-
-## 后续方向
-
-见 [路线图](docs/ROADMAP.md)、[企业框架与 Vue 设计器集成设计](docs/INTEGRATION_DESIGN.md)。欢迎围绕小内核、清晰语义和可测试扩展贡献；暂不承诺发布时间和兼容矩阵。
+徽章跟踪 `main`；评估时请查看具体提交的工作流结果。构建和 API 测试通过不等于浏览器验证或生产就绪。
 
 ## 许可证
 
-[Apache License 2.0](LICENSE)。
-
-## Official RuoYi integration example
-
-[Real RuoYi-Vue + Vue 3 overlay](examples/ruoyi-vue3/README.md): pinned upstream applications, native JWT/Redis login, dynamic menus, role permissions and sequential approval. MySQL stores RuoYi identity; approval persistence remains a private single-writer JSON file.
+[Apache License 2.0](LICENSE)。另行下载的官方若依项目保留其 MIT 许可证；本集成不代表上游背书。
