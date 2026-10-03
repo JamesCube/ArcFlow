@@ -132,7 +132,8 @@ def run(frontend_directory, output_directory, password):
             page.get_by_label("审批 2 名称", exact=True).fill("Final review")
             for step, actor in ((1, "first (101)"), (2, "second (102)")):
                 page.get_by_role("combobox", name=f"审批 {step} 审批人", exact=True).click()
-                page.get_by_role("option", name="CI " + actor, exact=True).click()
+                page.get_by_role("listbox", name=f"审批 {step} 审批人", exact=True).get_by_role(
+                    "option", name="CI " + actor, exact=True).click()
             page.get_by_role("button", name="发布新版本", exact=True).click()
             expect(page.get_by_text(re.compile(r"已发布版本 v\d+。"))).to_be_visible()
             expect(page.get_by_role("button", name="发布新版本", exact=True)).to_be_disabled()
