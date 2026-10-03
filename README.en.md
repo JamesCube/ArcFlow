@@ -28,6 +28,18 @@ Start with the standalone demo if you only want to evaluate the approval flow. T
 
 ## Try one leave approval
 
+### Fast local tryout (one terminal)
+
+With Python 3.9+ and the build tools installed, run:
+
+```bash
+python3 scripts/tryout.py
+```
+
+It checks prerequisites and ports, builds the demo, generates private demo passwords, then prints the loopback URL and credentials-file path. Ctrl-C stops both services and deletes this run’s data. No database or system-tool installation. See [TRYOUT](docs/TRYOUT.md) for exact versions, port overrides, source bundles and troubleshooting. This launches the standalone host; [RuoYi setup](examples/ruoyi-vue3/README.md) remains separate.
+
+### Manual startup (keep local data)
+
 Use Bash (Linux, macOS, or WSL), Git, and the prerequisites above. Initial dependency downloads require network access. From a new checkout, run in terminal 1:
 
 ```bash
