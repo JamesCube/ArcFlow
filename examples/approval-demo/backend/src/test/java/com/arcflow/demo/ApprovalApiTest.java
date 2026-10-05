@@ -419,7 +419,11 @@ class ApprovalApiTest {
         JsonNode allFailed = response(decide("bob", third, "manager", "REJECT", "Veto").andExpect(status().isOk()));
         assertStep(allFailed, "REJECTED", null, "bob", 2);
         decide("carol", third, "manager", "APPROVE", "Too late").andExpect(status().isConflict());
-        assertEquals(2, getJson("/api/requests", "alice").get(0).path("history").size());
+        JsonNode saved = getJson("/api/requests", "alice");
+        assertEquals(3, saved.size());
+        assertEquals(allRejected, requestById(saved, first));
+        assertEquals(anyApproved, requestById(saved, second));
+        assertEquals(allFailed, requestById(saved, third));
     }
 
     @Test void groupsRejectDuplicateParticipantsUnsupportedModesAndForgedActorFields() throws Exception {
@@ -448,7 +452,11 @@ class ApprovalApiTest {
         JsonNode grouped = submit("alice", 2);
         postJson("/api/process", "alice", publication(2, definition(2, "bob"))).andExpect(status().isOk());
         assertEquals(2, getJson("/api/process", "alice").path("schemaVersion").intValue());
-        assertEquals(3, getJson("/api/requests", "alice").get(0).path("definition").path("schemaVersion").intValue());
+        JsonNode saved = getJson("/api/requests", "alice");
+        assertEquals(2, saved.size());
+        assertEquals(legacy, requestById(saved, legacy));
+        assertEquals(grouped, requestById(saved, grouped));
+        assertEquals(3, requestById(saved, grouped).path("definition").path("schemaVersion").intValue());
         assertStep(response(decide("bob", legacy, "manager", "APPROVE", "Legacy").andExpect(status().isOk())), "APPROVED", null, "bob", 2);
         assertStep(response(decide("bob", grouped, "manager", "APPROVE", "Group partial").andExpect(status().isOk())), "PENDING", "manager", "carol", 2);
         JsonNode fresh = submit("alice", 3);
@@ -475,6 +483,18 @@ class ApprovalApiTest {
     }
     private JsonNode getJson(String path, String user) throws Exception {
         return response(mvc.perform(authenticated(get(path), user)).andExpect(status().isOk()));
+    }
+    private JsonNode requestById(JsonNode requests, JsonNode expected) {
+        assertTrue(requests.isArray());
+        JsonNode found = null;
+        for (JsonNode request : requests) {
+            if (expected.path("id").equals(request.path("id"))) {
+                assertNull(found, "Duplicate request ID in response");
+                found = request;
+            }
+        }
+        assertNotNull(found, "Request is missing from response: " + expected.path("id").textValue());
+        return found;
     }
     private JsonNode response(ResultActions result) throws Exception {
         return mapper.readTree(result.andReturn().getResponse().getContentAsString());
