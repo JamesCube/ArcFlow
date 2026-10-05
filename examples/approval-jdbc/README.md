@@ -85,7 +85,7 @@ Existing standalone and RuoYi examples keep their default JSON persistence unles
 
 ## MySQL 8 integration target
 
-The MySQL dialect is implemented as an **experimental target, pending real MySQL execution for this revision**. The local verification record is [MYSQL_VERIFICATION.md](MYSQL_VERIFICATION.md). MySQL 5.7, MariaDB, non-InnoDB engines, MySQL 9 and vendor forks are outside this target. Do not describe a passing H2 or simulated-dialect test as a MySQL integration pass.
+The MySQL dialect remains experimental and has now passed **real MySQL 8.0.46 and 8.4.11 on Java 17 and 21**, with all 29 tests passing in each combination at merged source `e1ee9c6`. See the [exact jobs, versions and acceptance boundary](MYSQL_VERIFICATION.md#verified-server-acceptance-2026-10-05). MySQL 5.7, MariaDB, non-InnoDB engines, MySQL 9 and vendor forks are outside this target. Do not describe a passing H2 or simulated-dialect test as a MySQL integration pass.
 
 The SQL schema is revision 1 (separate from process-definition JSON schema 2/3). Apply `schema-mysql.sql` once through the host migration system. Do not run PostgreSQL/H2 DDL on MySQL or change existing production tables blindly. MySQL DDL implicitly commits; install/upgrade schemas outside approval transactions with a separate migration identity. There is no automatic upgrade or cross-database/JSON import. All application instances must understand process schema 3 before it is published.
 
@@ -111,7 +111,7 @@ mvn -f examples/approval-jdbc/pom.xml -Dtest=MysqlApprovalStoreTest verify
 
 `MysqlApprovalStoreTest` is skipped when `ARCFLOW_MYSQL_URL` is absent. It requires an actual MySQL 8 server; it never substitutes H2 compatibility mode. PostgreSQL and MySQL inherit the same server contract for independent-instance races, ALL/ANY mixed decisions, replay/idempotency, atomic rollback, publication/submission locking, snapshot consistency, corruption detection and adapter close/reopen. MySQL-specific cases check FK/CHECK enforcement, exact string comparisons, supplementary Unicode, >64-KiB histories, unsafe schema rejection and whole-operation rollback after an audit INSERT lock timeout. The timeout case requires the default `innodb_rollback_on_timeout=0` and checks it without changing it. Adapter reopen does **not** establish physical-server restart/crash durability.
 
-The dedicated workflow adds MySQL 8.0 and 8.4 service jobs on Java 17/21. It records the actual server version and fails if any of the 29 MySQL tests are skipped or missing. The PostgreSQL job similarly requires its 23 inherited server tests. Mutable 8.0/8.4 image series keep CI on maintenance releases; review the recorded version and exact-commit result before advertising that release combination. This source change has not been published and those CI jobs have not run.
+The dedicated workflow adds MySQL 8.0 and 8.4 service jobs on Java 17/21. It records the actual server version and fails if any of the 29 MySQL tests are skipped or missing. The PostgreSQL job similarly requires its 23 inherited server tests. Mutable 8.0/8.4 image series keep CI on maintenance releases; review the recorded version and exact-commit result before advertising that release combination. The [merged-source matrix](https://github.com/JamesCube/ArcFlow/actions/runs/37258262111) passed all four MySQL combinations and both PostgreSQL jobs on 2026-10-05. This validates those tested combinations, not every MySQL 8.x version or production deployment.
 
 ### Primary references
 

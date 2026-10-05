@@ -1,6 +1,6 @@
 # ArcFlow
 
-A small Java DAG core, a runnable Vue approval designer, and a reference integration with the official RuoYi applications.
+A small Java DAG core, a runnable Vue single-reviewer / ALL / ANY approval designer, and a reference integration with the official RuoYi applications.
 
 [简体中文](README.md) · [First approval](docs/GETTING_STARTED.md#english) · [RuoYi setup](examples/ruoyi-vue3/README.md) · [Contributing](CONTRIBUTING.md)
 
@@ -9,6 +9,20 @@ A small Java DAG core, a runnable Vue approval designer, and a reference integra
 [![RuoYi integration](https://github.com/JamesCube/ArcFlow/actions/workflows/ruoyi-integration.yml/badge.svg?branch=main)](https://github.com/JamesCube/ArcFlow/actions/workflows/ruoyi-integration.yml)
 
 **Experimental, `0.1.0-SNAPSHOT`. APIs may change. Run the examples on localhost with synthetic data only; they are not production approval services.**
+
+## Start with the designer: real desktop and mobile views
+
+Insert at a connector, configure a single reviewer, ALL or ANY group in one inspector, then publish an executable approval sequence.
+
+[![ArcFlow Chinese-first designer with stage cards, an ANY participant inspector and publication state](docs/images/designer-desktop-836e605.png)](docs/DESIGNER_SHOWCASE.md#english)
+
+- **Design and run:** ordered stages support single reviewers or ALL/ANY groups; submitted requests retain their original definition snapshots.
+- **Focus on one stage:** connector insertion, one inspector and local undo/redo; narrow screens use a stacked layout.
+- **Choose persistence explicitly:** the standalone demo defaults to JSON; optional JDBC passed real MySQL **8.0.46 / 8.4.11 × Java 17 / 21** tests. [Exact evidence](examples/approval-jdbc/MYSQL_VERIFICATION.md#verified-server-acceptance-2026-10-05)
+
+[Desktop / 390px mobile gallery and evidence →](docs/DESIGNER_SHOWCASE.md#english) · [One-command local tryout →](#fast-local-tryout-one-terminal)
+
+Captured by [Chromium CI at `836e605`](https://github.com/JamesCube/ArcFlow/actions/runs/37257554086), whose source tree matches merged [`e1ee9c6`](https://github.com/JamesCube/ArcFlow/commit/e1ee9c6bdb971949c4f8746fe88b9ff49e6d4c36). Chinese-first labels cover the designer; the surrounding demo remains English. The RuoYi host below remains sequential-only, and neither demo automatically switches to JDBC.
 
 ## Open-source integration in action: RuoYi × ArcFlow
 
@@ -26,17 +40,11 @@ Design, publish and complete a two-step approval inside the official RuoYi menu 
 
 Captured by the [native browser CI at `48f9b68`](https://github.com/JamesCube/ArcFlow/actions/runs/37091568795), not a concept mockup. RuoYi owns login, users, menus and permissions; ArcFlow owns approval definitions and state. This RuoYi example still uses single-writer local JSON approval persistence. This localhost, synthetic-data example is neither production-ready nor endorsed by upstream.
 
-## Standalone alternative: no RuoYi environment needed
-
-![Standalone approval request with saved Bob-to-Carol sequence](docs/images/standalone-approval.png)
-
-Actual Chromium screenshot using synthetic data: Alice’s request stores the published Bob → Carol approval sequence. Captured by the [browser CI journey](https://github.com/JamesCube/ArcFlow/actions/runs/37089823338) at source `0543a06`. This is the standalone UI, not the RuoYi host.
-
 ## Choose your starting point
 
 | You want to… | Start here | Requirements |
 | --- | --- | --- |
-| Try a leave request and visual sequential designer | [Standalone demo](#try-one-leave-approval) | JDK 17+, Maven 3.9+, Node 22.22.2+ within 22.x, npm; no database |
+| Try a leave request and single / ALL / ANY designer | [Standalone demo](#try-one-leave-approval) | JDK 17+, Maven 3.9+, Node 22.22.2+ within 22.x, npm; no database |
 | Add the example to real RuoYi login, menus and permissions | [Official RuoYi overlay](examples/ruoyi-vue3/README.md) | Git, Python 3, Java 17, Maven 3.9+, Node 22, MySQL 8.4, Redis 7.4 |
 | Inspect or embed the synchronous Java DAG | [Core example](#run-just-the-java-core) | Full JDK 17+; Maven 3.9+ for a normal build |
 
@@ -53,6 +61,8 @@ python3 scripts/tryout.py
 ```
 
 It checks prerequisites and ports, builds the demo, generates private demo passwords, then prints the loopback URL and credentials-file path. Ctrl-C stops both services and deletes this run’s data. No database or system-tool installation. See [TRYOUT](docs/TRYOUT.md) for exact versions, port overrides, source bundles and troubleshooting. This launches the standalone host; [RuoYi setup](examples/ruoyi-vue3/README.md) remains separate.
+
+The existing [`v0.1.0-alpha.1`](https://github.com/JamesCube/ArcFlow/releases/tag/v0.1.0-alpha.1) remains the older sequential snapshot. It does not include the new designer, ALL/ANY or JDBC. Use current `main` or the gallery’s verified commit for these capabilities.
 
 ### Manual startup (keep local data)
 
@@ -121,7 +131,7 @@ Official RuoYi Vue UI → RuoYi host ────────┘        │     
 ```
 
 - `approval-domain` owns human waiting, ordered transitions, definition snapshots and the persistence SPI. The core never waits for a person.
-- See [transactional approval storage](examples/approval-jdbc/README.md) for JDBC wiring, `arc_` migrations, and PostgreSQL / H2 verification and experimental MySQL 8 checks. This optional module does not automatically change either demonstration.
+- See [transactional approval storage](examples/approval-jdbc/README.md) for JDBC wiring, `arc_` migrations, PostgreSQL / H2 verification, and the experimental MySQL adapter’s passing real 8.0 / 8.4 tests. This optional module does not automatically change either demonstration.
 - RuoYi's MySQL database stores users, roles and menus. Approval state still uses a private local JSON file. Multiple instances and network filesystems are unsupported.
 - The first JDBC slice covers competing service instances, revision checks, per-step idempotent retries, rollback and pinned process versions. Tenant isolation, pagination, submission idempotency keys, joint business-data transactions and outbox are absent. No general production-readiness, high-throughput, distributed-transaction or exactly-once claim is made. The standalone demo's pinned framework/support limitations are documented in its [README](examples/approval-demo/README.md).
 - Core DAG branches express dependencies, not parallel execution or conditional routes. All roots run; ready nodes run in declaration order. String variables share one namespace, and later writes win.

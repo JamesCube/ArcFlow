@@ -4,6 +4,8 @@ A single terminal starts the standalone Vue approval designer and Spring Boot de
 
 The launcher does not start RuoYi, MySQL or Redis. The RuoYi integration remains a separate example with its own prerequisites and setup.
 
+For the [current designer gallery](DESIGNER_SHOWCASE.md), use `main` or verified source `e1ee9c6bdb971949c4f8746fe88b9ff49e6d4c36`. The existing `v0.1.0-alpha.1` source archives are the older sequential snapshot and do not contain the Chinese-first workbench, ALL/ANY groups or JDBC adapter.
+
 ## Requirements
 
 - Linux or macOS with a POSIX environment. Native Windows is not supported by this launcher; use a Linux environment such as WSL.
@@ -44,13 +46,15 @@ Use the printed URL rather than substituting a different hostname or port: the b
 
 ## What to try
 
-1. Sign in as `alice` with the generated Alice password. Open **Process designer**, assign the first approval to Bob, add a second approval assigned to Carol, then publish the Bob → Carol sequence.
+1. Sign in as `alice` with the generated Alice password. Open **Process designer**, assign the first approval to Bob, add a second approval assigned to Carol, then choose **发布流程** (or **Publish template** after switching the designer to English) to publish the Bob → Carol sequence.
 2. Submit a request with a synthetic title/reason and `1` day.
 3. Sign out and sign in as `bob`. Open **Needs my review** and approve the current step. The request remains pending and advances to Carol.
 4. Sign out and sign in as `carol`. Approve the final step. Sign back in as Alice to inspect the approved status, saved process definition and ordered activity history.
 5. Publish a different sequence and compare an existing request: its stored definition keeps the original version.
 
-A fresh store initially has one Bob approval. Alice alone can publish. Only the current assigned approver can make the next decision; an immediate rejection is terminal. See [the sequential contract](SEQUENTIAL_APPROVAL.md) for exact behavior.
+To try groups, select a stage and choose **全员同意（ALL）** or **任一同意（ANY）**, keeping Bob and Carol selected. ALL requires both approvals and any rejection ends the request; ANY advances on one approval and rejects only after both reject. Publish, then submit a new synthetic request. These are fixed-participant stages in an ordered sequence, not conditional graph branches.
+
+A fresh store initially has one Bob approval. Alice alone can publish. For the single-reviewer journey above, only the current assigned approver can make the next decision and a rejection is terminal. See [the sequential contract](SEQUENTIAL_APPROVAL.md) for exact behavior.
 
 ## Readiness and stopping
 
