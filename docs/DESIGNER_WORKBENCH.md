@@ -1,6 +1,6 @@
 # Focused approval designer workbench
 
-This local milestone improves the standalone Vue designer on the MySQL-combined base `30acdbe9c6d851b24a7aa2d460a28d27fbfbcc7a`. It does not change the approval domain, JDBC adapter or MySQL behavior. It is a bounded interaction upgrade, not a claim of production or commercial-product parity.
+This milestone improves the standalone Vue designer. The implementation and real-browser acceptance are included in merged source [`e1ee9c6`](https://github.com/JamesCube/ArcFlow/commit/e1ee9c6bdb971949c4f8746fe88b9ff49e6d4c36); see the [desktop/mobile gallery](DESIGNER_SHOWCASE.md). It does not change the approval domain, JDBC adapter or MySQL behavior. It is a bounded interaction upgrade, not a claim of production or commercial-product parity.
 
 ## Interaction
 
@@ -26,8 +26,8 @@ Text contrast and keyboard decisions follow the intent of [WCAG contrast guidanc
 
 ## Verification boundary
 
-The final bundle manifest records the exact executed test count, source commit and checks. Component/model tests cover insertion positions, stable IDs, one/eight-stage limits, local history, selected-node focus, invalid groups, read-only users, repeated/in-flight interactions, IME Escape, navigation history retention, stale reset recovery and confirmed-publication boundaries. Existing sequential and parallel tests remain part of the suite.
+The [exact-commit approval CI](https://github.com/JamesCube/ArcFlow/actions/runs/37258262057) passed 185 UI tests, 35 backend tests and all three Chromium journeys. Component/model tests cover insertion positions, stable IDs, one/eight-stage limits, local history, selected-node focus, invalid groups, read-only users, repeated/in-flight interactions, IME Escape, navigation history retention, stale reset recovery and confirmed-publication boundaries. Existing sequential and parallel tests remain part of the suite.
 
-The browser specifications have been updated for the single inspector and Chinese-first labels, and include real desktop/narrow screenshots when run successfully. They have not been executed in this environment: Chromium IPC and cloud-browser localhost access remain blocked. No screenshot, mobile rendering, browser-native text undo, zoom behavior, or visual acceptance is represented as verified. Do not substitute concept imagery for that missing evidence.
+The successful [capture run at `836e605`](https://github.com/JamesCube/ArcFlow/actions/runs/37257554086) exercised Chinese-first labels, connector insertion, invalid-group focus, local undo, Escape focus return, the 390px stacked inspector with no horizontal overflow, and publication. Its source tree matches merged `e1ee9c6`. [Unmodified screenshots and provenance](DESIGNER_SHOWCASE.md) are checked into this repository.
 
-Run `npm test`, `npm run build`, then the repository’s `npm run test:e2e` in a browser-capable environment. Review the 1440px canvas/ANY inspector, validation focus, 390px stacked inspector and 200% zoom before visual acceptance.
+This closes the earlier desktop/narrow browser-execution gap. It does not establish browser-native text undo, 200% zoom behavior, other browsers or audited accessibility compliance. Run `npm test`, `npm run build`, then the repository’s `npm run test:e2e` to reproduce; review these remaining boundaries separately.

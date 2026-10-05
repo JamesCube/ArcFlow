@@ -1,5 +1,23 @@
 # MySQL implementation verification record
 
+## Verified server acceptance (2026-10-05)
+
+Merged source: [`e1ee9c6bdb971949c4f8746fe88b9ff49e6d4c36`](https://github.com/JamesCube/ArcFlow/commit/e1ee9c6bdb971949c4f8746fe88b9ff49e6d4c36). The [JDBC workflow](https://github.com/JamesCube/ArcFlow/actions/runs/37258262111) completed successfully against real database services:
+
+| Database | Java 17 | Java 21 | Executed server tests per job |
+| --- | --- | --- | --- |
+| MySQL 8.0.46 | [Passed](https://github.com/JamesCube/ArcFlow/actions/runs/37258262111/job/111599834615) | [Passed](https://github.com/JamesCube/ArcFlow/actions/runs/37258262111/job/111599834619) | 29, zero failures/errors/skips |
+| MySQL 8.4.11 | [Passed](https://github.com/JamesCube/ArcFlow/actions/runs/37258262111/job/111599834610) | [Passed](https://github.com/JamesCube/ArcFlow/actions/runs/37258262111/job/111599834528) | 29, zero failures/errors/skips |
+| PostgreSQL 17.6 | [Passed](https://github.com/JamesCube/ArcFlow/actions/runs/37258262111/job/111599834449) | [Passed](https://github.com/JamesCube/ArcFlow/actions/runs/37258262111/job/111599834632) | 23, zero failures/errors/skips |
+
+The PostgreSQL jobs also passed 31 H2 integration tests per Java version. Their MySQL tests are intentionally skipped because MySQL executes in its four dedicated jobs; those dedicated jobs reject skips or missing tests. Counts are per job, not distinct tests multiplied by the matrix. Actual server versions and report-gate results are in each job log.
+
+These runs close the earlier Java 17, Maven and real-server execution gaps documented below. The tested MySQL contract includes ALL/ANY races, state/audit rollback, exact identity comparisons, Unicode and >64-KiB history, and adapter close/reopen. Physical-server crash/restart recovery, capacity, tenant isolation and host-business-transaction integration remain outside this acceptance. The adapter is experimental and optional; both demo hosts still default to JSON, and RuoYi remains sequential-only.
+
+## Historical implementation record (2026-10-04)
+
+The remaining sections preserve the original local-only findings and blockers as of October 4. Their “not run” statements are historical and superseded by the exact-commit server acceptance above.
+
 Date: 2026-10-04. Base: combined local ArcFlow source `b39787e8dc0d3877b4903821df699461ab6a9641` (includes parallel approval domain and designer work).
 
 ## Acceptance boundary
