@@ -167,6 +167,10 @@ async function decide(decision) {
   } catch (e) { if (current === generation) showFailure(e, 'decision') }
   finally { if (current === generation) busy.value = false }
 }
+function navigate(next) {
+  if (next !== tab.value) notice.value = null
+  tab.value = next
+}
 function select(item) { selectedId.value = item.id; comment.value = ''; error.value = null }
 </script>
 
@@ -196,9 +200,9 @@ function select(item) { selectedId.value = item.id; comment.value = ''; error.va
     <aside class="sidebar">
       <div class="wordmark"><span class="logo">a</span> arcflow</div><p class="sidebar-label">{{ t.workspaceLabel }}</p>
       <nav :aria-label="t.navigation">
-        <button data-testid="requests-tab" :class="{active: tab === 'requests'}" :aria-current="tab === 'requests' ? 'page' : undefined" @click="tab = 'requests'"><span class="nav-symbol" aria-hidden="true">▤</span><span>{{ t.requests }}</span></button>
-        <button data-testid="inbox-tab" :class="{active: tab === 'inbox'}" :aria-current="tab === 'inbox' ? 'page' : undefined" @click="tab = 'inbox'"><span class="nav-symbol" aria-hidden="true">◷</span><span>{{ t.needsMyReview }}</span><b>{{ pending.length }}</b></button>
-        <button data-testid="process-tab" :class="{active: tab === 'process'}" :aria-current="tab === 'process' ? 'page' : undefined" @click="tab = 'process'"><span class="nav-symbol" aria-hidden="true">◇</span><span>{{ t.processDesigner }}</span></button>
+        <button data-testid="requests-tab" :class="{active: tab === 'requests'}" :aria-current="tab === 'requests' ? 'page' : undefined" @click="navigate('requests')"><span class="nav-symbol" aria-hidden="true">▤</span><span>{{ t.requests }}</span></button>
+        <button data-testid="inbox-tab" :class="{active: tab === 'inbox'}" :aria-current="tab === 'inbox' ? 'page' : undefined" @click="navigate('inbox')"><span class="nav-symbol" aria-hidden="true">◷</span><span>{{ t.needsMyReview }}</span><b>{{ pending.length }}</b></button>
+        <button data-testid="process-tab" :class="{active: tab === 'process'}" :aria-current="tab === 'process' ? 'page' : undefined" @click="navigate('process')"><span class="nav-symbol" aria-hidden="true">◇</span><span>{{ t.processDesigner }}</span></button>
       </nav>
       <div class="sidebar-bottom"><span class="avatar">{{ displayName(me).charAt(0) }}</span><div><strong>{{ displayName(me) }}</strong><small>{{ me.id }}</small></div><button class="logout" data-testid="sign-out" @click="logout" :aria-label="t.signOut" :title="t.signOut">↪</button></div>
     </aside>
@@ -211,7 +215,7 @@ function select(item) { selectedId.value = item.id; comment.value = ''; error.va
         </div><button class="secondary" data-testid="refresh" :disabled="busy" @click="refresh">{{ busy ? t.working : t.refresh }}</button></div>
         <p v-if="errorText" class="error" role="alert">{{ errorText }}</p><p v-if="noticeText" class="notice" role="status">{{ noticeText }}</p>
 
-        <ProcessDesigner v-if="draft" v-show="tab === 'process'" v-model="draft" :published="process" :people="people" :editable="canEdit" :busy="busy" :publishing="publishing" :dirty="draftDirty" :stale="staleDraft" :initial-locale="locale" @update:locale="locale = $event" @publish="publish" @reset="resetDraft" />
+        <ProcessDesigner v-if="draft" v-show="tab === 'process'" v-model="draft" :published="process" :people="people" :editable="canEdit" :busy="busy" :publishing="publishing" :dirty="draftDirty" :stale="staleDraft" :initial-locale="locale" :show-language="false" @update:locale="locale = $event" @publish="publish" @reset="resetDraft" />
 
         <section v-if="tab !== 'process'" class="workspace-summary" :aria-label="t.summary">
           <div class="summary-stat"><span>{{ t.visibleRequests }}</span><strong>{{ requests.length }}</strong></div>

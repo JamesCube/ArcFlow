@@ -34,9 +34,11 @@ views rather than pretending an excessively long page is one phone screen.
 | --- | --- | --- |
 | `01-same-scene-three-step-any` | Original workbench scene: unpublished first ANY group selected, followed by Team group ANY and Final review single | Chinese |
 | `02-sequential-leave-designer` | Manager review assigned directly to Bob, then HR review assigned directly to Carol | Chinese / English |
+| `02-tablet-sequential-designer-en-1024` | 1024px intermediate-width designer | English |
 | `03-applicant-new-leave-form` | Alice's filled three-day leave form, before submission | Chinese / English |
 | `04-applicant-submitted-leave` | Real submitted request and its saved sequential definition | Chinese / English |
 | `05-all-group-designer` | Editable ALL group, named handover step and exact completion rule | Chinese / English |
+| `06-mobile-all-workspace` | Top-of-page mobile workspace context | Chinese / English |
 | `06-mobile-all-designer-flow` | Compact mobile sequence view | Chinese / English |
 | `07-mobile-all-designer-inspector` | Mobile name, review mode, participants and rule settings | Chinese / English |
 | `08-mobile-bob-review-controls` | Bob's real pending group decision, comment and action buttons | Chinese / English |
@@ -46,7 +48,7 @@ views rather than pretending an excessively long page is one phone screen.
 | `12-mobile-any-saved-snapshot` | Same saved ANY definition on mobile | Chinese / English |
 | `13-mobile-any-completed-activity` | Same completed request's actual recorded activity on mobile | Chinese / English |
 
-There are 25 PNGs. All screenshots show authenticated workspace UI. No successful
+There are 28 PNGs. All screenshots show authenticated workspace UI. No successful
 response is mocked. Seeding and two sequential example decisions call the real
 version-checked API; ALL/ANY edits, publication, applicant submission and group
 votes go through the browser UI. After ANY completes, another actual publication
@@ -57,9 +59,9 @@ are not painted over or fabricated, so this is a scenario gallery rather than a
 pixel-stable golden-image suite.
 
 Every capture checks document and body horizontal overflow. Mobile inspector
-fields must remain inside the viewport width, at least 36px tall, and at least
-14px in computed font size. Decision buttons must be at least 40px tall with
-readable text. Both localized UI labels and group participant states are checked.
+fields must remain inside the viewport width, at least 44px tall, and at least
+16px in computed font size. Decision buttons must be at least 44px tall with
+15px text. Insert, add-step and step-control targets are also checked at 44px. Both localized UI labels and group participant states are checked.
 The journey also rejects browser page errors. These checks are not a formal
 accessibility audit, physical-phone verification or a real 200% zoom test.
 

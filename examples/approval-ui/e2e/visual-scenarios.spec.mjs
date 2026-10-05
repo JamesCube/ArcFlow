@@ -99,7 +99,7 @@ async function language(page, locale) {
     await page.getByTestId('workspace-language').selectOption(locale)
     await expect(page.getByTestId('workspace-language')).toHaveValue(locale)
     // v-show preserves this control when the requests or inbox tab is selected.
-    await expect(page.getByTestId('designer-language')).toHaveValue(locale)
+    await expect(page.locator('.designer-workbench')).toHaveAttribute('lang', locale === 'zh' ? 'zh-CN' : 'en')
   })
 }
 
@@ -246,6 +246,9 @@ test('visual showcase: bilingual leave design, applicant, ALL votes, ANY result 
       await expect(page.getByTestId('select-step').last()).toContainText('HR review · 人事复核')
       await capture(page, testInfo, `02-sequential-leave-designer-${locale}-desktop`)
     }
+    await page.setViewportSize({ width: 1024, height: 1000 })
+    await capture(page, testInfo, '02-tablet-sequential-designer-en-1024')
+    await page.setViewportSize(DESKTOP)
     await fillLeave(page, 'Autumn break · 秋季年假', 3)
     for (const locale of ['zh', 'en']) {
       await language(page, locale)
@@ -288,15 +291,19 @@ test('visual showcase: bilingual leave design, applicant, ALL votes, ANY result 
       await switcher.getByRole('button').first().click()
       await expect(page.locator('.designer-canvas')).toBeVisible()
       await expect(page.locator('.step-inspector')).not.toBeVisible()
+      await readableControl(page.locator('.insert-step').first(), { minHeight: 44, minFont: 18 })
+      await readableControl(page.getByTestId('add-step'), { minHeight: 44, minFont: 12 })
+      await capture(page, testInfo, `06-mobile-all-workspace-${locale}-390`, { mobile: true })
       await capture(page, testInfo, `06-mobile-all-designer-flow-${locale}-390`, { mobile: true, anchor: switcher })
       await stage(page)
       await expect(page.locator('.step-inspector')).toBeVisible()
       await expect(page.locator('.designer-canvas')).not.toBeVisible()
       const name = page.getByLabel(locale === 'zh' ? '节点 1 名称' : 'Step 1 name', { exact: true })
       const mode = page.getByLabel(locale === 'zh' ? '节点 1 审批方式' : 'Step 1 review mode', { exact: true })
-      await readableControl(name)
-      await readableControl(mode)
-      await capture(page, testInfo, `07-mobile-all-designer-inspector-${locale}-390`, { mobile: true, anchor: page.locator('.step-inspector') })
+      await readableControl(name, { minHeight: 44, minFont: 16 })
+      await readableControl(mode, { minHeight: 44, minFont: 16 })
+      await readableControl(page.locator('.step-controls button').first(), { minHeight: 44, minFont: 12 })
+      await capture(page, testInfo, `07-mobile-all-designer-inspector-${locale}-390`, { mobile: true, anchor: page.locator('.mobile-designer-switch') })
     }
     await page.setViewportSize(DESKTOP)
     await language(page, 'en')
@@ -312,9 +319,9 @@ test('visual showcase: bilingual leave design, applicant, ALL votes, ANY result 
     await page.setViewportSize(MOBILE)
     for (const locale of ['zh', 'en']) {
       await language(page, locale)
-      await readableControl(page.getByTestId('decision-comment'))
-      await readableControl(page.getByTestId('approve-decision'), { minHeight: 40 })
-      await readableControl(page.getByTestId('reject-decision'), { minHeight: 40 })
+      await readableControl(page.getByTestId('decision-comment'), { minHeight: 44, minFont: 16 })
+      await readableControl(page.getByTestId('approve-decision'), { minHeight: 44, minFont: 15 })
+      await readableControl(page.getByTestId('reject-decision'), { minHeight: 44, minFont: 15 })
       await capture(page, testInfo, `08-mobile-bob-review-controls-${locale}-390`, { mobile: true, anchor: page.locator('.decision-form') })
     }
     await page.setViewportSize(DESKTOP)

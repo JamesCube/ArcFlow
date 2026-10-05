@@ -24,7 +24,7 @@ async function login(wrapper) {
   await wrapper.find('.login-form').trigger('submit')
   await flushPromises()
 }
-async function designer(wrapper) { await wrapper.find('[data-testid="process-tab"]').trigger('click'); await wrapper.find('[data-testid="designer-language"]').setValue('en') }
+async function designer(wrapper) { await wrapper.find('[data-testid="process-tab"]').trigger('click'); await wrapper.find('[data-testid="workspace-language"]').setValue('en') }
 async function selectStep(wrapper, index) { await wrapper.findAll('[data-testid="select-step"]')[index - 1].trigger('click') }
 async function requestForm(wrapper) {
   await wrapper.find('.new-request input[maxlength="120"]').setValue('Annual leave')

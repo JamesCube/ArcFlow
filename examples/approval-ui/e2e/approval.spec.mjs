@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 
-async function designer(page) { await page.getByTestId('process-tab').click(); await page.getByTestId('designer-language').selectOption('en'); await page.getByTestId('select-step').first().click() }
+async function designer(page) { await page.getByTestId('process-tab').click(); await page.getByTestId('workspace-language').selectOption('en'); await page.getByTestId('select-step').first().click() }
 async function stage(page, index) { await page.getByTestId('select-step').nth(index - 1).click() }
 async function login(page, user) {
   await page.getByLabel('Demo account').selectOption(user)

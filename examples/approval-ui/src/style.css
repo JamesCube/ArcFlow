@@ -430,3 +430,46 @@ pre { padding: 18px; background: #f4f6fa; border-radius: 7px; overflow: auto; ma
   .sidebar nav .nav-symbol { font-size: 14px; }
 }
 .step-inspector:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
+/* Readable touch controls and a reachable editing target at narrow widths. */
+@media (max-width: 640px) {
+  .workspace input:not([type="checkbox"]), .workspace textarea,
+  .step-inspector select, .login-panel input, .login-panel select {
+    font-size: 16px; min-height: 44px;
+  }
+  .decision-actions button { font-size: 15px; min-height: 44px; }
+  .sidebar nav button span { font-size: 12px; }
+  .sidebar nav button { min-height: 44px; }
+  .mode-pill { font-size: 11px; max-width: 190px; }
+  .review-stage-label, .designer-state { font-size: 11px; }
+  .designer-add p, .designer-footer > p, .designer-footer .draft-storage,
+  .directory-note, .participant-picker > p { font-size: 12px; }
+  .designer-toolbar .process-name { flex-basis: 100%; }
+  .designer-history button, .step-controls button, .designer-add .secondary,
+  .mobile-designer-switch button, .designer-footer button { min-height: 44px; }
+  .stage-connector { height: 46px; }
+  .insert-step { width: 44px; height: 44px; background: transparent; border: 0; box-shadow: none; }
+  .insert-step::before { content: ''; position: absolute; inset: 10px; background: #fff; border: 1px solid #ccd5e7; border-radius: 50%; z-index: -1; }
+  .insert-step { isolation: isolate; }
+}
+
+/* The process name is a real editable field, with a persistent affordance. */
+.designer-toolbar .process-name { max-width: 680px; }
+.designer-toolbar .process-name input,
+.designer-toolbar .process-name input:hover,
+.designer-toolbar .process-name input:focus { padding: 9px 12px; border-color: #d8dfea; background: #fafbfe; min-height: 44px; }
+.designer-history { margin-left: auto; }
+.designer-state { font-size: 12px; }
+.mode-pill { font-size: 11px; }
+@media (max-width: 640px) {
+  .designer-toolbar .process-name { max-width: none; }
+  .designer-history { margin-left: 0; }
+  .step-controls button { font-size: 12px; }
+  .workspace-locale select { min-height: 44px; font-size: 12px; }
+}
+@media (min-width: 1181px) {
+  .sidebar { width: 228px; }
+  .main-area { margin-left: 228px; width: calc(100% - 228px); }
+}
+@media (max-width: 640px) {
+  .designer-add p:not(.limit-hint) { display: none; }
+}

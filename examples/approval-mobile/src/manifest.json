@@ -1,0 +1,14 @@
+{
+  "name": "ArcFlow Mobile",
+  "appid": "",
+  "description": "Local approval demo; H5 acceptance target",
+  "versionName": "0.1.0",
+  "versionCode": 1,
+  "transformPx": false,
+  "vueVersion": "3",
+  "h5": {
+    "router": { "mode": "hash" },
+    "title": "ArcFlow \u00b7 \u79fb\u52a8\u5ba1\u6279"
+  },
+  "uniStatistics": { "enable": false }
+}

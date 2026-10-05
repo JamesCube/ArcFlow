@@ -24,3 +24,6 @@ examples/approval-ui/test-results/
 examples/approval-ui/playwright-report/
 
 examples/approval-ui/visual-results/
+# Mobile H5 acceptance output
+examples/approval-mobile/test-results/
+examples/approval-mobile/playwright-report/
