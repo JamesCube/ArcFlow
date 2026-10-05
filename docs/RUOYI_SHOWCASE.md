@@ -6,7 +6,7 @@
 
 ### 从熟悉的若依工作台，走完一笔两级审批
 
-本案例把 ArcFlow 的顺序审批设计器挂载到**官方 RuoYi-Vue（Spring Boot 3）+ RuoYi-Vue3** 应用中。左侧菜单、顶栏、登录会话、用户和权限来自真实若依宿主；工作台内的流程定义、申请与逐步审批由 ArcFlow 提供。
+本页较早的实拍把 ArcFlow 的顺序审批设计器挂载到**官方 RuoYi-Vue（Spring Boot 3）+ RuoYi-Vue3** 应用中。左侧菜单、顶栏、登录会话、用户和权限来自真实若依宿主；工作台内的流程定义、申请与逐步审批由 ArcFlow 提供。
 
 1. 管理员在 **ArcFlow → 审批工作台 → 流程设计** 发布 Team review → Final review 两个步骤，分别指定若依用户。
 2. 合成申请人提交请假申请，实例保存提交时的流程版本。
@@ -16,7 +16,7 @@
 
 [![若依原生菜单中的 ArcFlow 两级流程设计器](images/ruoyi-native-process-editor.png)](images/ruoyi-native-process-editor.png)
 
-截图中已发布 v3，两个步骤分别分配给 CI first（101）与 CI second（102）。这是顺序步骤编辑器；不暗示已实现条件路由、并行审批或 BPMN 设计。
+截图中已发布 v3，两个步骤分别分配给 CI first（101）与 CI second（102）。这些旧截图展示顺序步骤编辑器，不证明后来加入的分组能力；条件路由和 BPMN 设计仍未实现。
 
 ### 02 · 在同一个宿主里完成审批
 
@@ -37,6 +37,8 @@
 
 上游项目：[RuoYi-Vue](https://github.com/yangzongzhuan/RuoYi-Vue) 与 [RuoYi-Vue3](https://github.com/yangzongzhuan/RuoYi-Vue3)，保留各自 MIT 许可证；ArcFlow 代码使用 Apache-2.0。此参考集成与截图不代表上游背书。其他若依分支或开源项目未在此作为已完成集成展示。
 
+当前源码另已增加[若依原生 ALL/ANY 分组配置与逐人投票](../examples/ruoyi-vue3/README.md#configure-and-vote-in-groups)。本页旧截图只证明当时的两级顺序流程；新分组运行结果以对应提交的原生 CI 为准，审批存储仍为单写者 JSON。
+
 ## English
 
 ### A real two-step approval inside the familiar RuoYi workspace
@@ -47,7 +49,7 @@ This reference overlay mounts ArcFlow in the **official RuoYi-Vue (Spring Boot 3
 2. A synthetic applicant submits a leave request, saving that process version.
 3. The assigned reviewers approve in order; the completed request retains its definition snapshot and activity history.
 
-The two unmodified 1440 × 1080 screenshots above show the published v3 editor and the completed request inside the native shell. Click to inspect full-size images. This is a sequential editor, with no claim of conditional routing, parallel approval or BPMN support.
+The two unmodified 1440 × 1080 screenshots above show the published v3 editor and the completed request inside the native shell. Click to inspect full-size images. These older captures show the sequential editor. The current native host separately adds [ALL/ANY participant groups](../examples/ruoyi-vue3/README.md#configure-and-vote-in-groups); these screenshots do not prove that newer journey. Conditional routing and BPMN remain unsupported.
 
 ### Reproduce and verify
 

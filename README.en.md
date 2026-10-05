@@ -22,7 +22,7 @@ Insert at a connector, configure a single reviewer, ALL or ANY group in one insp
 
 [Desktop / 390px mobile gallery and evidence →](docs/DESIGNER_SHOWCASE.md#english) · [One-command local tryout →](#fast-local-tryout-one-terminal)
 
-Captured by [Chromium CI at `836e605`](https://github.com/JamesCube/ArcFlow/actions/runs/37257554086), whose source tree matches merged [`e1ee9c6`](https://github.com/JamesCube/ArcFlow/commit/e1ee9c6bdb971949c4f8746fe88b9ff49e6d4c36). Chinese-first labels cover the designer; the surrounding demo remains English. The RuoYi host below remains sequential-only, and neither demo automatically switches to JDBC.
+Captured by [Chromium CI at `836e605`](https://github.com/JamesCube/ArcFlow/actions/runs/37257554086), whose source tree matches merged [`e1ee9c6`](https://github.com/JamesCube/ArcFlow/commit/e1ee9c6bdb971949c4f8746fe88b9ff49e6d4c36). Chinese-first labels cover the designer; the surrounding demo remains English. The current native RuoYi host also supports [ALL/ANY groups](examples/ruoyi-vue3/README.md#configure-and-vote-in-groups); the older RuoYi captures below show its sequential journey. Neither demo automatically switches to JDBC.
 
 ## Open-source integration in action: RuoYi × ArcFlow
 
@@ -115,7 +115,7 @@ A fresh data file starts with one Bob approval. To explore the designer, sign in
 | Ordered human decisions, rejection, per-step retry protection | Not a core feature | Implemented; only the current assigned approver can act |
 | Identity and authorization | Supplied by the embedding app | Demo accounts / native RuoYi users, roles and permissions |
 | Restart persistence | None | Demo defaults to single-writer JSON; optional [JDBC adapter](examples/approval-jdbc/README.md) adds database transactions and persisted audit |
-| Fixed-participant ALL / ANY groups | Outside the core | [Domain + JSON/JDBC implemented](docs/PARALLEL_APPROVAL.md); standalone Vue / HTTP supports group editing and participant votes; RuoYi remains sequential-only |
+| Fixed-participant ALL / ANY groups | Outside the core | [Domain + JSON/JDBC implemented](docs/PARALLEL_APPROVAL.md); standalone and native RuoYi support group editing and participant votes |
 | Conditional routes, timers, delegation | Not implemented | Not implemented |
 | BPMN XML / BPMN 2.0 compatibility | Not implemented | Not implemented |
 

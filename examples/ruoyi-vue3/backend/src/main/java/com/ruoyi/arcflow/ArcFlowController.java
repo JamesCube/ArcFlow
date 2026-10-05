@@ -47,8 +47,8 @@ public class ArcFlowController {
     @PostMapping("/process") @PreAuthorize("@ss.hasPermi('arcflow:process:publish')")
     public AjaxResult publish(@RequestBody byte[] bytes) throws IOException {
         String id = actor(); var input = body(bytes, Publication.class);
-        if (input.definition() == null || input.definition().schemaVersion() != 2)
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "This RuoYi host supports only schema-2 sequential processes");
+        // The shared domain validates schema 2/3 and every real-directory participant.
+        // Never replace its assignment authorization with RuoYi's wildcard permission.
         return AjaxResult.success(service.publish(id, input.expectedVersion(), input.definition()));
     }
     @GetMapping("/requests") @PreAuthorize("@ss.hasPermi('arcflow:request:read')")

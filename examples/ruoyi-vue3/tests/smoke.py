@@ -54,6 +54,235 @@ def decision(token, req, step, action="APPROVE", *, allowed=(200,)):
                {"stepId": step, "decision": action, "comment": "CI decision"}, allowed=allowed)
 
 
+def saved_request(token, req):
+    matches = [item for item in data("/arcflow/requests", token) if item["id"] == req["id"]]
+    assert len(matches) == 1, "Assigned participant cannot read the request snapshot"
+    return matches[0]
+
+
+def pending_members(req):
+    """Derive the full worklist from the public snapshot, never just approverId."""
+    if req["status"] != "PENDING":
+        assert req["currentStepId"] is None
+        return []
+    step = next(node for node in req["definition"]["nodes"] if node["id"] == req["currentStepId"])
+    members = step["assigneeIds"] if step["type"] == "parallelApproval" else [step["assigneeId"]]
+    voted = {event["actorId"] for event in req["history"] if event["stepId"] == step["id"]}
+    return [member for member in members if member not in voted]
+
+
+def assert_votes(req, expected):
+    assert [(event["actorId"], event["stepId"], event["action"]) for event in req["history"]] == [
+        ("100", None, "SUBMIT"), *expected]
+
+
+def assert_retry(token, req, step, action="APPROVE"):
+    assert decision(token, req, step, action)["data"] == req, "Exact retry appended or changed a vote"
+    opposite = "REJECT" if action == "APPROVE" else "APPROVE"
+    decision(token, req, step, opposite, allowed=(409,))
+    assert saved_request(token, req) == req, "Conflicting retry changed the saved request"
+
+
+def run_groups(server, password, sequential):
+    """Exercise schema-3 contracts through authenticated, real native endpoints."""
+    a, first, second, outsider, none = (
+        login("arcflow_" + name, password)
+        for name in ("applicant", "first", "second", "outsider", "nopermission"))
+    admin = login("admin", password)
+    group = {"id": "group", "type": "parallelApproval", "name": "Joint review", "assigneeId": None,
+             "assigneeIds": ["101", "102"], "completionMode": "ALL"}
+    proposed = {**sequential, "schemaVersion": 3, "name": "CI ALL group then final approval", "nodes": [
+        sequential["nodes"][0], group,
+        {"id": "final", "type": "approval", "name": "Final approval", "assigneeId": "101"},
+        sequential["nodes"][-1]]}
+
+    # Shape validation must happen at this host's real HTTP boundary, before a
+    # bad publication can replace the previously valid sequential definition.
+    invalid_groups = [
+        {**group, "assigneeIds": members} for members in (
+            [], ["101"], ["101", "101"], ["101", "999999999"],
+            ["101", ""], ["101", " "], ["101", 102], ["101", None], ["101", True],
+            ["101", {"id": "102"}], "101,102", None,
+            [str(member) for member in range(100, 117)])]
+    invalid_groups += [{**group, "completionMode": mode} for mode in ("all", "FIRST", "", None, 1)]
+    invalid_groups += [{**group, "assigneeId": "101"}, {**group, "unknown": "rejected"}]
+    invalid_groups += [{key: value for key, value in group.items() if key != missing} for missing in group]
+    malformed = [{**proposed, "nodes": [proposed["nodes"][0], invalid, proposed["nodes"][-1]]}
+                 for invalid in invalid_groups]
+    malformed.append({**proposed, "schemaVersion": 2})
+    for candidate in malformed:
+        api("/arcflow/process", admin,
+            {"expectedVersion": sequential["version"], "definition": candidate}, allowed=(400,))
+        assert data("/arcflow/process", a) == sequential, "Malformed group changed the published process"
+    duplicate_key = json.dumps({"expectedVersion": sequential["version"], "definition": proposed}).replace(
+        '"completionMode": "ALL"', '"completionMode": "ALL", "completionMode": "ANY"', 1).encode()
+    api("/arcflow/process", admin, duplicate_key, allowed=(400,))
+    assert data("/arcflow/process", a) == sequential
+
+    publication = {"expectedVersion": sequential["version"], "definition": proposed}
+    api("/arcflow/process", a, publication, allowed=(403,))
+    all_definition = data("/arcflow/process", admin, publication)
+    assert all_definition == {**proposed, "version": sequential["version"] + 1}
+    api("/arcflow/process", admin, publication, allowed=(409,))
+    submission = {"title": "Native ALL group", "reason": "Disposable group integration exercise", "days": 2,
+                  "processVersion": all_definition["version"]}
+    api("/arcflow/requests", none, submission, allowed=(403,))
+    # Both positions in a group are authoritative assignments for self-submission.
+    for participant in (first, second):
+        api("/arcflow/requests", participant, submission, allowed=(400,))
+    all_complete = data("/arcflow/requests", a, submission)
+    all_reject = data("/arcflow/requests", a, {**submission, "title": "Native ALL immediate rejection"})
+    all_partial_reject = data("/arcflow/requests", a, {**submission, "title": "Native ALL partial rejection"})
+    assert all_complete["definition"] == all_definition and all_complete["currentStepId"] == "group"
+    assert all_complete["approverId"] == "101" and pending_members(all_complete) == ["101", "102"]
+    assert_votes(all_complete, [])
+    for participant in (a, first, second):
+        assert saved_request(participant, all_complete) == all_complete
+    # In particular, non-first member 102 has this item in their pending worklist
+    # even though the backward-compatible approverId points to 101.
+    assert all_complete["id"] in {
+        item["id"] for item in data("/arcflow/requests", second) if "102" in pending_members(item)}
+    for unassigned in (outsider, admin):
+        assert all(item["id"] != all_complete["id"] for item in data("/arcflow/requests", unassigned))
+        decision(unassigned, all_complete, "group", allowed=(403, 404))
+    decision(a, all_complete, "group", allowed=(403,))
+    decision(none, all_complete, "group", allowed=(403,))
+    decision(first, all_complete, "final", allowed=(409,))
+    assert saved_request(a, all_complete) == all_complete
+
+    # Publish a different policy before voting. Existing requests must continue
+    # using their pinned ALL group and final stage, rather than the new ANY policy.
+    any_proposal = {**all_definition, "name": "CI ANY group", "nodes": [
+        all_definition["nodes"][0], {**group, "completionMode": "ANY"}, all_definition["nodes"][-1]]}
+    any_definition = data("/arcflow/process", admin,
+                          {"expectedVersion": all_definition["version"], "definition": any_proposal})
+    assert any_definition == {**any_proposal, "version": all_definition["version"] + 1}
+    assert saved_request(second, all_complete) == all_complete
+    api("/arcflow/requests", a, submission, allowed=(409,))
+
+    partial = decision(second, all_complete, "group")["data"]
+    assert partial["status"] == "PENDING" and partial["currentStepId"] == "group"
+    assert pending_members(partial) == ["101"] and partial["approverId"] == "101"
+    assert partial["definition"] == all_definition
+    assert_votes(partial, [("102", "group", "APPROVE")])
+    assert_retry(second, partial, "group")
+    assert partial["id"] not in {
+        item["id"] for item in data("/arcflow/requests", second) if "102" in pending_members(item)}
+    assert saved_request(second, partial) == partial, "Voting removed historical participant visibility"
+    advanced = decision(first, partial, "group")["data"]
+    assert advanced["status"] == "PENDING" and advanced["currentStepId"] == "final"
+    assert pending_members(advanced) == ["101"]
+    assert_votes(advanced, [("102", "group", "APPROVE"), ("101", "group", "APPROVE")])
+    assert_retry(first, advanced, "group")
+    assert_retry(second, advanced, "group")
+    # The same actor may vote once in each assigned stage; replay identity includes
+    # stepId, and a retry of the group cannot accidentally approve the final stage.
+    all_complete = decision(first, advanced, "final")["data"]
+    assert all_complete["status"] == "APPROVED" and pending_members(all_complete) == []
+    assert all_complete["definition"] == all_definition
+    assert_votes(all_complete, [("102", "group", "APPROVE"), ("101", "group", "APPROVE"),
+                                ("101", "final", "APPROVE")])
+    assert_retry(first, all_complete, "group")
+    assert_retry(first, all_complete, "final")
+    all_reject = decision(second, all_reject, "group", "REJECT")["data"]
+    assert all_reject["status"] == "REJECTED" and pending_members(all_reject) == []
+    assert_votes(all_reject, [("102", "group", "REJECT")])
+    decision(first, all_reject, "group", allowed=(409,))
+    decision(first, all_reject, "final", allowed=(409,))
+    assert_retry(second, all_reject, "group", "REJECT")
+    all_partial_reject = decision(first, all_partial_reject, "group")["data"]
+    assert all_partial_reject["status"] == "PENDING" and pending_members(all_partial_reject) == ["102"]
+    all_partial_reject = decision(second, all_partial_reject, "group", "REJECT")["data"]
+    assert all_partial_reject["status"] == "REJECTED" and pending_members(all_partial_reject) == []
+    assert_votes(all_partial_reject, [("101", "group", "APPROVE"), ("102", "group", "REJECT")])
+    assert_retry(first, all_partial_reject, "group")
+
+    any_submission = {**submission, "title": "Native ANY reject then approve", "processVersion": any_definition["version"]}
+    any_approved = data("/arcflow/requests", a, any_submission)
+    any_approved = decision(first, any_approved, "group", "REJECT")["data"]
+    assert any_approved["status"] == "PENDING" and any_approved["currentStepId"] == "group"
+    assert any_approved["approverId"] == "102" and pending_members(any_approved) == ["102"]
+    assert_votes(any_approved, [("101", "group", "REJECT")])
+    assert_retry(first, any_approved, "group", "REJECT")
+    any_approved = decision(second, any_approved, "group")["data"]
+    assert any_approved["status"] == "APPROVED" and pending_members(any_approved) == []
+    assert_votes(any_approved, [("101", "group", "REJECT"), ("102", "group", "APPROVE")])
+    assert_retry(first, any_approved, "group", "REJECT")
+    assert_retry(second, any_approved, "group")
+
+    any_rejected = data("/arcflow/requests", a, {**any_submission, "title": "Native ANY all reject"})
+    any_rejected = decision(second, any_rejected, "group", "REJECT")["data"]
+    assert any_rejected["status"] == "PENDING" and pending_members(any_rejected) == ["101"]
+    any_rejected = decision(first, any_rejected, "group", "REJECT")["data"]
+    assert any_rejected["status"] == "REJECTED" and pending_members(any_rejected) == []
+    assert_votes(any_rejected, [("102", "group", "REJECT"), ("101", "group", "REJECT")])
+    assert_retry(first, any_rejected, "group", "REJECT")
+    assert_retry(second, any_rejected, "group", "REJECT")
+
+    any_immediate = data("/arcflow/requests", a, {**any_submission, "title": "Native ANY immediate approval"})
+    any_immediate = decision(second, any_immediate, "group")["data"]
+    assert any_immediate["status"] == "APPROVED" and pending_members(any_immediate) == []
+    assert_votes(any_immediate, [("102", "group", "APPROVE")])
+    decision(first, any_immediate, "group", allowed=(409,))
+    decision(first, any_immediate, "group", "REJECT", allowed=(409,))
+    assert_retry(second, any_immediate, "group")
+
+    # Keep both a partial group and an unvoted assignment while its non-first
+    # participant becomes inactive/deleted. Cached upstream sessions grant no bypass.
+    any_partial = data("/arcflow/requests", a, {**any_submission, "title": "Native ANY historical partial"})
+    any_partial = decision(second, any_partial, "group", "REJECT")["data"]
+    assert any_partial["status"] == "PENDING" and pending_members(any_partial) == ["101"]
+    unvoted = data("/arcflow/requests", a, {**any_submission, "title": "Native ANY inactive assignment"})
+    before_restart = {item["id"]: item for item in data("/arcflow/requests", a)}
+    for status, deleted in (("1", "0"), ("0", "2")):
+        actor_state(102, status=status, deleted=deleted)
+        api("/arcflow/me", second, allowed=(401, 403))
+        api("/arcflow/requests", second, allowed=(401, 403))
+        decision(second, unvoted, "group", allowed=(401, 403))
+        decision(second, any_partial, "group", "REJECT", allowed=(401, 403))
+        assert "102" not in {str(person["id"]) for person in data("/arcflow/people", a)}
+        api("/arcflow/process", admin,
+            {"expectedVersion": any_definition["version"], "definition": any_definition}, allowed=(400,))
+        api("/arcflow/requests", a, any_submission, allowed=(400,))
+        assert data("/arcflow/process", a) == any_definition
+        assert {item["id"]: item for item in data("/arcflow/requests", a)} == before_restart
+        assert saved_request(first, any_partial) == any_partial
+
+    server.stop()
+    server.start()
+    a, first, admin = login("arcflow_applicant", password), login("arcflow_first", password), login("admin", password)
+    assert {item["id"]: item for item in data("/arcflow/requests", a)} == before_restart, \
+        "Restart lost sequential/group definitions, votes or historical deleted participants"
+    assert data("/arcflow/process", a) == any_definition
+    assert saved_request(first, any_partial) == any_partial
+    decision(second, unvoted, "group", allowed=(401, 403))
+    decision(second, any_partial, "group", "REJECT", allowed=(401, 403))
+    api("/arcflow/requests", a, any_submission, allowed=(400,))
+    actor_state(102)
+    second = login("arcflow_second", password)
+    assert saved_request(second, any_partial) == any_partial
+    assert_retry(second, any_partial, "group", "REJECT")
+
+    # Leave the browser journey its original two-step schema-2 editor fixture.
+    # Pending schema-3 snapshots must remain actionable after that later publication.
+    restored_definition = data("/arcflow/process", admin, {
+        "expectedVersion": any_definition["version"],
+        "definition": {**sequential, "version": any_definition["version"]}})
+    assert restored_definition == {**sequential, "version": any_definition["version"] + 1}
+    assert saved_request(first, any_partial) == any_partial
+    any_partial = decision(first, any_partial, "group")["data"]
+    assert any_partial["status"] == "APPROVED" and pending_members(any_partial) == []
+    assert any_partial["definition"] == any_definition and any_partial["processVersion"] == any_definition["version"]
+    assert_votes(any_partial, [("102", "group", "REJECT"), ("101", "group", "APPROVE")])
+    assert_retry(second, any_partial, "group", "REJECT")
+    unvoted = decision(second, unvoted, "group")["data"]
+    assert unvoted["status"] == "APPROVED" and unvoted["definition"] == any_definition
+    assert_votes(unvoted, [("102", "group", "APPROVE")])
+    assert_retry(second, unvoted, "group")
+    assert data("/arcflow/process", a) == restored_definition
+    print("PASS: native schema-3 ALL/ANY publication, strict group shapes, participant worklists, assignment/RBAC/self-submission, per-actor-and-step replay/conflict, pinned definitions, inactive/deleted group members, exact group restart persistence; two-step browser fixture restored")
+
+
 def contains_component(routes, component):
     return any(r.get("component") == component or contains_component(r.get("children", []), component)
                for r in routes)
@@ -122,15 +351,6 @@ def run(server, password):
     api("/arcflow/me", "invalid-token", allowed=(401,))
     api("/arcflow/requests", none, allowed=(403,))
     definition = data("/arcflow/process", a)
-    # Schema-3 groups require a participant-aware host/UI; this host remains sequential.
-    group_definition = {**definition, "schemaVersion": 3, "nodes": [
-        definition["nodes"][0],
-        {"id": "group", "type": "parallelApproval", "name": "Group", "assigneeId": None,
-         "assigneeIds": ["101", "102"], "completionMode": "ALL"},
-        definition["nodes"][-1],
-    ]}
-    api("/arcflow/process", admin, {"expectedVersion": definition["version"], "definition": group_definition}, allowed=(400,))
-    assert data("/arcflow/process", a) == definition
     proposed = {**definition, "name": "CI two-step process", "nodes": [
         {"id": "start", "type": "start", "name": "Submit", "assigneeId": None},
         {"id": "first", "type": "approval", "name": "First approval", "assigneeId": "101"},
@@ -206,6 +426,7 @@ def run(server, password):
     first = login("arcflow_first", password)
     assert decision(first, req, "first")["data"] == approved
     print("PASS: official login/menu, RBAC, authoritative assignments, ordered approvals, replay/conflict, logout/expired Redis session, disabled/deleted identity, restart persistence")
+    run_groups(server, password, published)
 
 
 def main():
