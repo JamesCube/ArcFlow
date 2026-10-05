@@ -105,7 +105,8 @@ A fresh data file starts with one Bob approval. To explore the designer, sign in
 | Ordered human decisions, rejection, per-step retry protection | Not a core feature | Implemented; only the current assigned approver can act |
 | Identity and authorization | Supplied by the embedding app | Demo accounts / native RuoYi users, roles and permissions |
 | Restart persistence | None | Demo defaults to single-writer JSON; optional [JDBC adapter](examples/approval-jdbc/README.md) adds database transactions and persisted audit |
-| Conditional routes, parallel approvals, timers, delegation | Not implemented | Not implemented |
+| Fixed-participant ALL / ANY groups | Outside the core | [Domain + JSON/JDBC implemented](docs/PARALLEL_APPROVAL.md); standalone Vue / HTTP supports group editing and participant votes; RuoYi remains sequential-only |
+| Conditional routes, timers, delegation | Not implemented | Not implemented |
 | BPMN XML / BPMN 2.0 compatibility | Not implemented | Not implemented |
 
 The core has no third-party runtime dependencies and does not require Spring. Approval HTTP APIs and Vue screens live in the examples; there is no published Spring Boot Starter or Maven Central artifact.
@@ -120,7 +121,7 @@ Official RuoYi Vue UI → RuoYi host ────────┘        │     
 ```
 
 - `approval-domain` owns human waiting, ordered transitions, definition snapshots and the persistence SPI. The core never waits for a person.
-- See [transactional approval storage](examples/approval-jdbc/README.md) for JDBC wiring, `arc_` migrations, and real PostgreSQL / H2 verification. This optional module does not automatically change either demonstration.
+- See [transactional approval storage](examples/approval-jdbc/README.md) for JDBC wiring, `arc_` migrations, and PostgreSQL / H2 verification and experimental MySQL 8 checks. This optional module does not automatically change either demonstration.
 - RuoYi's MySQL database stores users, roles and menus. Approval state still uses a private local JSON file. Multiple instances and network filesystems are unsupported.
 - The first JDBC slice covers competing service instances, revision checks, per-step idempotent retries, rollback and pinned process versions. Tenant isolation, pagination, submission idempotency keys, joint business-data transactions and outbox are absent. No general production-readiness, high-throughput, distributed-transaction or exactly-once claim is made. The standalone demo's pinned framework/support limitations are documented in its [README](examples/approval-demo/README.md).
 - Core DAG branches express dependencies, not parallel execution or conditional routes. All roots run; ready nodes run in declaration order. String variables share one namespace, and later writes win.

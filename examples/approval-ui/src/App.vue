@@ -1,7 +1,8 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { api } from './api'
-import { MAX_APPROVALS, MAX_NAME_LENGTH, approvalNodes, cloneDefinition, validateDefinition, stepState, stepStateLabel } from './process'
+import ProcessDesigner from './ProcessDesigner.vue'
+import { approvalNodes, isApproval, participants, pendingParticipants, participantVotes, participantStateLabel, cloneDefinition, validateDefinition, stepState, stepStateLabel } from './process'
 
 const username = ref('alice'), password = ref(''), me = ref(null)
 const people = ref([]), process = ref(null), draft = ref(null), draftBaseline = ref(''), requests = ref([])
@@ -9,33 +10,37 @@ const busy = ref(false), publishing = ref(false), error = ref(''), notice = ref(
 const publishConflict = ref(false)
 const title = ref(''), reason = ref(''), days = ref(1)
 const selectedId = ref(null), comment = ref('')
-let generation = 0, nextStepId = 0
+let generation = 0
 const displayName = value => value?.displayName || value?.name || value?.id || ''
 const person = id => displayName(people.value.find(p => p.id === id)) || id || '—'
 const selected = computed(() => requests.value.find(r => r.id === selectedId.value))
-const pending = computed(() => requests.value.filter(r => r.status === 'PENDING' && r.approverId === me.value?.id))
+const pending = computed(() => requests.value.filter(r => pendingParticipants(r).includes(me.value?.id)))
 const visible = computed(() => tab.value === 'inbox' ? pending.value : requests.value)
-const approvers = computed(() => people.value.filter(p => ['bob', 'carol'].includes(p.id)))
 const history = computed(() => selected.value?.history || [])
 const canEdit = computed(() => me.value?.id === 'alice')
 const draftDirty = computed(() => !!draft.value && JSON.stringify(draft.value) !== draftBaseline.value)
 const draftErrors = computed(() => validateDefinition(draft.value))
-const draftApprovals = computed(() => approvalNodes(draft.value))
 const publishedApprovals = computed(() => approvalNodes(process.value))
 const staleDraft = computed(() => publishConflict.value || draft.value?.version !== process.value?.version)
-const selfAssigned = computed(() => publishedApprovals.value.some(node => node.assigneeId === me.value?.id))
-const canDecide = computed(() => selected.value?.status === 'PENDING' && !!selected.value?.currentStepId && selected.value?.approverId === me.value?.id)
+const selfAssigned = computed(() => publishedApprovals.value.some(node => participants(node).includes(me.value?.id)))
+const canDecide = computed(() => pendingParticipants(selected.value).includes(me.value?.id))
 const currentNode = computed(() => selected.value?.definition?.nodes.find(node => node.id === selected.value.currentStepId))
 const followingNode = computed(() => {
   const steps = approvalNodes(selected.value?.definition)
   const index = steps.findIndex(node => node.id === selected.value?.currentStepId)
   return index >= 0 ? steps[index + 1] : null
 })
+const groupRule = node => node?.completionMode === 'ALL'
+  ? 'ALL: every participant must approve. Any rejection ends the request.'
+  : 'ANY: one approval completes this group. Rejection ends the request only after every participant rejects.'
+const nodeSummary = node => node?.type === 'parallelApproval' ? `${node.completionMode} · ${participants(node).map(person).join(' + ')}` : person(node?.assigneeId)
+const pendingNames = item => pendingParticipants(item).map(person).join(', ') || '—'
 const date = value => value ? new Date(value).toLocaleString() : '—'
 const historyLabel = entry => {
   if (['SUBMIT', 'SUBMITTED'].includes(entry.action)) return 'Request submitted'
   const name = selected.value?.definition?.nodes.find(node => node.id === entry.stepId)?.name || 'Approval step'
-  return `${name} · ${['APPROVE', 'APPROVED'].includes(entry.action) ? 'approved' : 'rejected'}`
+  const node = selected.value?.definition?.nodes.find(node => node.id === entry.stepId)
+  return `${name} · ${node?.type === 'parallelApproval' ? 'vote ' : ''}${['APPROVE', 'APPROVED'].includes(entry.action) ? 'approved' : 'rejected'}`
 }
 function requireValidDefinition(definition) {
   const errors = validateDefinition(definition)
@@ -88,24 +93,6 @@ async function refresh() {
   } catch (e) { if (current === generation) error.value = e.message }
   finally { if (current === generation) busy.value = false }
 }
-function addStep() {
-  if (!canEdit.value || busy.value || draftApprovals.value.length >= MAX_APPROVALS || !draft.value) return
-  let id
-  do { id = `approval-${++nextStepId}` } while (draft.value.nodes.some(node => node.id === id))
-  draft.value.nodes.splice(-1, 0, { id, type: 'approval', name: `Approval ${draftApprovals.value.length + 1}`, assigneeId: 'bob' })
-}
-function removeStep(id) {
-  if (!canEdit.value || busy.value || draftApprovals.value.length <= 1) return
-  draft.value.nodes = draft.value.nodes.filter(node => node.type !== 'approval' || node.id !== id)
-}
-function moveStep(id, direction) {
-  if (!canEdit.value || busy.value || ![-1, 1].includes(direction)) return
-  const index = draft.value.nodes.findIndex(node => node.id === id)
-  const target = index + direction
-  if (index < 1 || target < 1 || target >= draft.value.nodes.length - 1) return
-  const [node] = draft.value.nodes.splice(index, 1)
-  draft.value.nodes.splice(target, 0, node)
-}
 function resetDraft() {
   if (busy.value || !canEdit.value) return
   loadDraft(process.value); error.value = ''; notice.value = 'Local draft reset to the latest loaded published template.'
@@ -118,7 +105,7 @@ async function publish() {
   const current = generation
   const definition = cloneDefinition(draft.value)
   definition.name = definition.name.trim()
-  definition.nodes = definition.nodes.map(node => node.type === 'approval' ? { ...node, name: node.name.trim() } : node)
+  definition.nodes = definition.nodes.map(node => isApproval(node) ? { ...node, name: node.name.trim() } : node)
   busy.value = true; publishing.value = true
   try {
     const published = await api.request('/process', { method: 'POST', body: JSON.stringify({ expectedVersion: definition.version, definition }) })
@@ -149,7 +136,7 @@ async function submit() {
     if (current !== generation) return
     requests.value = [item, ...requests.value]; selectedId.value = item.id; tab.value = 'requests'; comment.value = ''
     title.value = ''; reason.value = ''; days.value = 1
-    notice.value = `Request submitted. ${person(item.approverId)} can now review the first step.`
+    notice.value = `Request submitted. ${pendingNames(item)} can now review the first step.`
   } catch (e) { if (current === generation) error.value = `${e.message}. Refresh requests before retrying if the connection was interrupted or the template changed.` }
   finally { if (current === generation) busy.value = false }
 }
@@ -163,7 +150,9 @@ async function decide(decision) {
     requests.value = requests.value.map(r => r.id === item.id ? item : r)
     if (selectedId.value === requestId) comment.value = ''
     notice.value = item.status === 'PENDING'
-      ? `Step approved. The request is still pending; ${person(item.approverId)} reviews the next step.`
+      ? item.currentStepId === stepId
+        ? `Vote recorded. This group is still pending; awaiting ${pendingNames(item)}.`
+        : `Step approved. The request is still pending; ${pendingNames(item)} reviews the next step.`
       : `Request ${item.status === 'APPROVED' ? 'approved' : 'rejected'}.`
   } catch (e) { if (current === generation) error.value = `${e.message}. Refresh to check the latest status before retrying.` }
   finally { if (current === generation) busy.value = false }
@@ -178,7 +167,7 @@ function select(item) { selectedId.value = item.id; comment.value = ''; error.va
       <p class="eyebrow">A SMALL WORKFLOW, END TO END</p><h1>Less chasing.<br>More clarity.</h1>
       <p>Build a clear approval sequence. Follow every request, one decision at a time.</p>
       <div class="story-path"><span>Request</span><b>→</b><span>Reviews</span><b>→</b><span>Outcome</span></div>
-      <small>Approval prototype · sequential workflow</small>
+      <small>Approval prototype · sequential and parallel reviews</small>
     </section>
     <section class="login-panel"><form @submit.prevent="login" class="login-form">
       <p class="eyebrow">WELCOME TO THE DEMO</p><h2>Choose your perspective</h2>
@@ -205,50 +194,17 @@ function select(item) { selectedId.value = item.id; comment.value = ''; error.va
       <div class="content">
         <div class="page-heading"><div><p class="eyebrow">KEEP WORK MOVING</p>
           <h1>{{ tab === 'process' ? 'Process designer' : tab === 'inbox' ? 'Needs your review' : 'Leave approvals' }}</h1>
-          <p class="muted">{{ tab === 'process' ? 'Arrange a sequence. Assign each review. Publish when ready.' : 'Every request follows its own saved approval sequence.' }}</p>
+          <p class="muted">{{ tab === 'process' ? 'Arrange steps. Choose single, ALL, or ANY review. Publish when ready.' : 'Every request follows its own saved approval sequence.' }}</p>
         </div><button class="secondary" data-testid="refresh" :disabled="busy" @click="refresh">{{ busy ? 'Working…' : '↻ Refresh' }}</button></div>
         <p v-if="error" class="error" role="alert">{{ error }}</p><p v-if="notice" class="notice" role="status">{{ notice }}</p>
 
-        <section v-if="tab === 'process' && draft" class="blueprint card">
-          <div class="card-heading"><div><h2>{{ canEdit ? 'Design your approval sequence' : process.name }}</h2><p class="muted">Published v{{ process.version }} · schema v{{ process.schemaVersion }}<template v-if="canEdit"> · Draft based on v{{ draft.version }}</template></p></div><span class="pill">{{ canEdit ? draftDirty ? 'Unpublished changes' : 'Published' : 'Read-only template' }}</span></div>
-          <p v-if="!canEdit" class="blueprint-note">Only Alice can edit and publish the process. These are the steps new requests will follow.</p>
-          <p v-else class="blueprint-note">Changes stay in this tab until you publish. Existing requests keep their saved sequence. Refresh preserves your unsaved draft.</p>
-          <p v-if="canEdit && staleDraft" class="warning" data-testid="stale-draft">A newer version may have been published. Refresh to load it, then reset to the published template and reapply your changes. Your draft is preserved until you reset or sign out.</p>
-          <label v-if="canEdit" class="process-name">Process name<input v-model="draft.name" data-testid="process-name" :maxlength="MAX_NAME_LENGTH" :disabled="busy"></label>
-          <div class="flow" aria-label="Approval sequence">
-            <template v-for="(node, i) in draft.nodes" :key="node.id">
-              <div v-if="i" class="connector" aria-hidden="true">↓</div>
-              <article class="flow-node" :class="node.type" :data-step-id="node.id">
-                <span class="node-icon" aria-hidden="true">{{ node.type === 'start' ? '↗' : node.type === 'approval' ? i : '●' }}</span>
-                <div class="node-content">
-                  <small>{{ node.type === 'approval' ? `APPROVAL ${i}` : `${node.type.toUpperCase()} · FIXED` }}</small>
-                  <template v-if="node.type === 'approval' && canEdit">
-                    <label>Step name<input v-model="node.name" :aria-label="`Step ${i} name`" :maxlength="MAX_NAME_LENGTH" :disabled="busy"></label>
-                    <label>Assigned approver<select v-model="node.assigneeId" :aria-label="`Step ${i} approver`" :disabled="busy"><option v-for="p in approvers" :key="p.id" :value="p.id">{{ displayName(p) }}</option></select></label>
-                    <div class="step-controls">
-                      <button type="button" class="secondary" :aria-label="`Move step ${i} up`" :disabled="busy || i === 1" @click="moveStep(node.id, -1)">↑ Up</button>
-                      <button type="button" class="secondary" :aria-label="`Move step ${i} down`" :disabled="busy || i === draft.nodes.length - 2" @click="moveStep(node.id, 1)">↓ Down</button>
-                      <button type="button" class="remove-step" :aria-label="`Remove step ${i}`" :disabled="busy || draftApprovals.length <= 1" @click="removeStep(node.id)">Remove</button>
-                    </div>
-                  </template>
-                  <template v-else><h3>{{ node.name }}</h3><p>{{ node.type === 'start' ? 'Applicant provides leave details' : node.type === 'approval' ? `Assigned to ${person(node.assigneeId)}` : 'All approval steps complete' }}</p></template>
-                </div>
-              </article>
-            </template>
-          </div>
-          <template v-if="canEdit">
-            <div class="designer-add"><button type="button" class="secondary" data-testid="add-step" :disabled="busy || draftApprovals.length >= MAX_APPROVALS" @click="addStep">+ Add approval step</button><span>{{ draftApprovals.length }} of {{ MAX_APPROVALS }} steps · repeated approvers allowed</span></div>
-            <ul v-if="draftErrors.length" class="validation-list" aria-label="Draft validation"><li v-for="message in draftErrors" :key="message">{{ message }}</li></ul>
-            <div class="designer-footer"><p>Start and end stay fixed. Steps run from top to bottom; a rejection ends the request.</p><div><button type="button" class="secondary" data-testid="reset-draft" :disabled="busy || (!draftDirty && !staleDraft)" @click="resetDraft">Reset to published</button><button type="button" class="primary" data-testid="publish" :disabled="busy || !draftDirty || !!draftErrors.length || staleDraft" @click="publish">{{ publishing ? 'Publishing…' : 'Publish template' }}</button></div></div>
-          </template>
-          <details><summary>Inspect {{ canEdit ? 'local draft' : 'published process' }} JSON</summary><pre>{{ JSON.stringify(draft, null, 2) }}</pre></details>
-        </section>
+        <ProcessDesigner v-if="draft" v-show="tab === 'process'" v-model="draft" :published="process" :people="people" :editable="canEdit" :busy="busy" :publishing="publishing" :dirty="draftDirty" :stale="staleDraft" @publish="publish" @reset="resetDraft" />
 
-        <div v-else-if="tab !== 'process'" class="columns">
+        <div v-if="tab !== 'process'" class="columns">
           <section class="request-column">
             <form v-if="tab === 'requests'" class="card new-request" @submit.prevent="submit">
               <div class="card-heading"><div><p class="eyebrow">START HERE</p><h2>New leave request</h2></div><span class="small-icon">↗</span></div>
-              <div class="submission-template" data-testid="submission-template"><strong>{{ process?.name }} · v{{ process?.version }}</strong><p>{{ publishedApprovals.map(node => `${node.name} (${person(node.assigneeId)})`).join(' → ') }}</p><small>The published template is saved with your request.<template v-if="draftDirty"> Your unpublished draft is not used.</template></small></div>
+              <div class="submission-template" data-testid="submission-template"><strong>{{ process?.name }} · v{{ process?.version }}</strong><p>{{ publishedApprovals.map(node => `${node.name} (${nodeSummary(node)})`).join(' → ') }}</p><small>The published template is saved with your request.<template v-if="draftDirty"> Your unpublished draft is not used.</template></small></div>
               <p v-if="selfAssigned" class="warning">You cannot submit: this template includes an approval assigned to you. Ask Alice to publish a sequence without you before submitting.</p>
               <label>Title<input v-model="title" maxlength="120" placeholder="e.g. Annual leave · October" required :disabled="busy"></label>
               <label>Days<input v-model="days" type="number" min="1" max="365" step="1" required :disabled="busy"></label>
@@ -257,22 +213,24 @@ function select(item) { selectedId.value = item.id; comment.value = ''; error.va
             </form>
             <section class="card request-list"><div class="card-heading"><h2>{{ tab === 'inbox' ? 'Pending decisions' : 'Your visible requests' }}</h2><span class="count">{{ visible.length }}</span></div>
               <p v-if="!visible.length" class="empty">{{ tab === 'inbox' ? 'You’re all caught up. No requests need your review.' : 'No requests yet. Start with the form above.' }}</p>
-              <button v-for="item in visible" :key="item.id" class="request-item" :class="{selected: selectedId === item.id}" @click="select(item)"><span class="request-glyph">▤</span><span class="request-summary"><strong>{{ item.title }}</strong><small>{{ person(item.applicantId) }} · {{ item.days }} {{ item.days === 1 ? 'day' : 'days' }}<template v-if="item.status === 'PENDING'"> · Awaiting {{ person(item.approverId) }}</template></small></span><span class="status" :class="item.status.toLowerCase()">{{ item.status.toLowerCase() }}</span></button>
+              <button v-for="item in visible" :key="item.id" class="request-item" :class="{selected: selectedId === item.id}" @click="select(item)"><span class="request-glyph">▤</span><span class="request-summary"><strong>{{ item.title }}</strong><small>{{ person(item.applicantId) }} · {{ item.days }} {{ item.days === 1 ? 'day' : 'days' }}<template v-if="item.status === 'PENDING'"> · Awaiting {{ pendingNames(item) }}</template></small></span><span class="status" :class="item.status.toLowerCase()">{{ item.status.toLowerCase() }}</span></button>
             </section>
           </section>
           <aside class="detail card">
             <template v-if="selected">
               <div class="card-heading"><p class="eyebrow">REQUEST DETAILS</p><span class="status" :class="selected.status.toLowerCase()">{{ selected.status.toLowerCase() }}</span></div>
               <h2>{{ selected.title }}</h2><p class="detail-reason">{{ selected.reason }}</p>
-              <dl><div><dt>Applicant</dt><dd>{{ person(selected.applicantId) }}</dd></div><div><dt>{{ selected.status === 'PENDING' ? 'Current approver' : 'Last approver' }}</dt><dd>{{ person(selected.approverId) }}</dd></div><div><dt>Duration</dt><dd>{{ selected.days }} days</dd></div><div><dt>Saved process</dt><dd>{{ selected.processId }} · v{{ selected.processVersion }}</dd></div></dl>
+              <dl><div><dt>Applicant</dt><dd>{{ person(selected.applicantId) }}</dd></div><div><dt>{{ selected.status === 'PENDING' ? 'Awaiting votes from' : 'Last voter' }}</dt><dd>{{ selected.status === 'PENDING' ? pendingNames(selected) : person(selected.approverId) }}</dd></div><div><dt>Duration</dt><dd>{{ selected.days }} days</dd></div><div><dt>Saved process</dt><dd>{{ selected.processId }} · v{{ selected.processVersion }}</dd></div></dl>
               <section class="instance-snapshot" data-testid="instance-snapshot">
                 <h3>Saved approval sequence</h3><p class="footnote">{{ selected.definition?.name }} · v{{ selected.definition?.version }} · Read-only snapshot from submission</p>
-                <ol class="snapshot-steps"><li v-for="node in selected.definition?.nodes" :key="node.id" :class="stepState(selected, node)" :data-step-id="node.id"><span class="snapshot-dot" aria-hidden="true"></span><div><strong>{{ node.name }}</strong><small v-if="node.type === 'approval'">{{ person(node.assigneeId) }}</small></div><span class="step-state">{{ stepStateLabel(stepState(selected, node)) }}</span></li></ol>
-                <p v-if="selected.status === 'PENDING'" class="next-step"><strong>Now:</strong> {{ currentNode?.name }} · {{ person(selected.approverId) }}<br><template v-if="followingNode"><strong>Next:</strong> {{ followingNode.name }} · {{ person(followingNode.assigneeId) }}</template><template v-else>Final approval step</template></p>
+                <ol class="snapshot-steps"><li v-for="node in selected.definition?.nodes" :key="node.id" :class="stepState(selected, node)" :data-step-id="node.id"><span class="snapshot-dot" aria-hidden="true"></span><div><strong>{{ node.name }}</strong><small v-if="isApproval(node)">{{ nodeSummary(node) }}</small>
+                  <div v-if="node.type === 'parallelApproval'" class="participant-votes" :aria-label="`${node.name} participant votes`"><div v-for="vote in participantVotes(selected, node)" :key="vote.actorId" class="participant-vote" :data-participant="vote.actorId"><span>{{ person(vote.actorId) }} · {{ participantStateLabel(vote.state) }}</span><small v-if="vote.at">{{ date(vote.at) }}</small><p v-if="vote.comment">{{ vote.comment }}</p></div></div></div><span class="step-state">{{ stepStateLabel(stepState(selected, node)) }}</span></li></ol>
+                <p v-if="selected.status === 'PENDING'" class="next-step"><strong>Now:</strong> {{ currentNode?.name }} · {{ pendingNames(selected) }}<br><template v-if="followingNode"><strong>Next:</strong> {{ followingNode.name }} · {{ nodeSummary(followingNode) }}</template><template v-else>Final approval step</template></p>
               </section>
-              <h3 class="history-heading">Activity</h3><ol class="timeline"><li v-for="(entry, index) in history" :key="index"><strong>{{ historyLabel(entry) }}</strong><p>{{ person(entry.actorId) }}</p><small>{{ date(entry.at) }}</small><p v-if="entry.comment" class="decision-comment">{{ entry.comment }}</p></li><li v-if="selected.status === 'PENDING'" class="waiting"><strong>Awaiting review · {{ currentNode?.name }}</strong><p>{{ person(selected.approverId) }}</p></li></ol>
-              <form v-if="canDecide" @submit.prevent="decide('APPROVE')" class="decision-form"><p class="decision-context">Reviewing: <strong>{{ currentNode?.name }}</strong></p><label>Decision comment <span class="muted">(optional)</span><textarea v-model="comment" maxlength="2000" rows="3" :disabled="busy"></textarea></label><div class="decision-actions"><button type="button" class="danger" :disabled="busy" @click="decide('REJECT')">Reject request</button><button class="primary" :disabled="busy">{{ followingNode ? 'Approve step' : 'Approve request' }}</button></div></form>
-              <p v-else-if="selected.status === 'PENDING'" class="footnote">Only the designated approver for the current step can record a decision.</p>
+              <p v-if="currentNode?.type === 'parallelApproval'" class="group-rule current-rule">{{ groupRule(currentNode) }}</p>
+              <h3 class="history-heading">Activity</h3><ol class="timeline"><li v-for="(entry, index) in history" :key="index"><strong>{{ historyLabel(entry) }}</strong><p>{{ person(entry.actorId) }}</p><small>{{ date(entry.at) }}</small><p v-if="entry.comment" class="decision-comment">{{ entry.comment }}</p></li><li v-if="selected.status === 'PENDING'" class="waiting"><strong>Awaiting review · {{ currentNode?.name }}</strong><p>{{ pendingNames(selected) }}</p></li></ol>
+              <form v-if="canDecide" @submit.prevent="decide('APPROVE')" class="decision-form"><p class="decision-context">Reviewing: <strong>{{ currentNode?.name }}</strong></p><label>Decision comment <span class="muted">(optional)</span><textarea v-model="comment" maxlength="2000" rows="3" :disabled="busy"></textarea></label><div class="decision-actions"><button type="button" class="danger" :disabled="busy" @click="decide('REJECT')">{{ currentNode?.type === 'parallelApproval' ? 'Reject vote' : 'Reject request' }}</button><button class="primary" :disabled="busy">{{ currentNode?.type === 'parallelApproval' ? 'Approve vote' : followingNode ? 'Approve step' : 'Approve request' }}</button></div></form>
+              <p v-else-if="selected.status === 'PENDING'" class="footnote">Only the designated approver for the current step, or a group participant who has not yet voted, can record a decision.</p>
               <details class="snapshot-json"><summary>Inspect saved snapshot JSON</summary><pre>{{ JSON.stringify(selected.definition, null, 2) }}</pre></details><small class="request-id">{{ selected.id }}</small>
             </template>
             <div v-else class="detail-empty"><span>◷</span><h2>The full picture</h2><p>Select a request to see its details,<br>approval sequence, and activity.</p></div>

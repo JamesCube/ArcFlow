@@ -1,0 +1,193 @@
+import { mount, flushPromises } from '@vue/test-utils'
+import { afterEach, describe, it, expect, vi } from 'vitest'
+import ProcessDesigner from './ProcessDesigner.vue'
+const people = [{ id:'alice', displayName:'Alice' }, { id:'bob', displayName:'Bob' }, { id:'carol', displayName:'Carol' }]
+const clone = value => JSON.parse(JSON.stringify(value))
+const definition = () => ({ schemaVersion:2, id:'leave-approval', version:3, name:'Leave approval', nodes:[
+  { id:'start', type:'start', name:'Submit', assigneeId:null },
+  { id:'manager', type:'approval', name:'Manager review', assigneeId:'bob' },
+  { id:'final', type:'approval', name:'Final review', assigneeId:'carol' },
+  { id:'end', type:'end', name:'Complete', assigneeId:null },
+] })
+let wrappers=[]
+function setup(overrides={}) {
+  const state = { value:definition(), published:definition() }
+  let wrapper
+  wrapper = mount(ProcessDesigner, { attachTo:document.body, props:{ modelValue:state.value, published:state.published, people, editable:true, dirty:false, initialLocale:'en', ...overrides,
+    'onUpdate:modelValue': next => { state.value=next; wrapper.setProps({ modelValue:next, dirty:JSON.stringify(next)!==JSON.stringify(state.published) }) },
+    onReset: () => wrapper.setProps({ modelValue:clone(state.published), dirty:false, stale:false }),
+  } })
+  wrappers.push(wrapper); return { wrapper,state }
+}
+const button = (w,id) => w.get(`[data-testid="${id}"]`)
+const cards = w => w.findAll('[data-testid="select-step"]')
+const selected = w => w.find('[data-testid="select-step"][aria-pressed="true"]')
+const input = w => w.get('.step-inspector input:not([type=checkbox])')
+afterEach(()=>{ wrappers.forEach(w=>w.unmount()); wrappers=[]; vi.restoreAllMocks(); vi.unstubAllGlobals() })
+
+describe('focused designer workbench',()=>{
+  it('shows compact nodes and exactly one selected-stage inspector',async()=>{
+    const {wrapper}=setup()
+    expect(cards(wrapper)).toHaveLength(2)
+    expect(wrapper.findAll('.flow-node input, .flow-node select')).toHaveLength(0)
+    expect(wrapper.findAll('.step-inspector')).toHaveLength(1)
+    expect(selected(wrapper).attributes('data-step-id')).toBe('manager')
+    await cards(wrapper)[1].trigger('click')
+    expect(selected(wrapper).attributes('data-step-id')).toBe('final')
+    expect(wrapper.get('[aria-label="Step 2 name"]').element.value).toBe('Final review')
+  })
+  it.each([['start', 'Insert approval before step 1',0],['manager','Insert approval before step 2',1],['final','Insert approval before end',2]])('inserts after %s at the chosen connector and focuses the new name',async(after,label,index)=>{
+    const {wrapper,state}=setup(); const oldIds=state.value.nodes.map(n=>n.id)
+    await wrapper.get(`[aria-label="${label}"]`).trigger('click'); await flushPromises()
+    const id=selected(wrapper).attributes('data-step-id')
+    expect(state.value.nodes.filter(n=>oldIds.includes(n.id)).map(n=>n.id)).toEqual(oldIds)
+    expect(state.value.nodes[index+1].id).toBe(id)
+    expect(document.activeElement).toBe(input(wrapper).element)
+    expect(wrapper.text()).toContain('New approval added')
+  })
+  it('brings the stacked inspector into view after pointer selection on a narrow screen',async()=>{
+    const scrollIntoView=vi.fn()
+    vi.stubGlobal('matchMedia',()=>({matches:true}))
+    const {wrapper}=setup()
+    wrapper.get('.step-inspector').element.scrollIntoView=scrollIntoView
+    cards(wrapper)[1].element.dispatchEvent(new MouseEvent('click',{detail:1,bubbles:true})); await flushPromises()
+    expect(scrollIntoView).toHaveBeenCalledWith({block:'start',behavior:'smooth'})
+    expect(selected(wrapper).attributes('data-step-id')).toBe('final')
+  })
+  it('keeps identity and selection through movement, deletion, undo and redo',async()=>{
+    const {wrapper,state}=setup(); await cards(wrapper)[1].trigger('click')
+    await wrapper.get('[aria-label="Move step 2 up"]').trigger('click')
+    expect(state.value.nodes.map(n=>n.id)).toEqual(['start','final','manager','end'])
+    expect(selected(wrapper).attributes('data-step-id')).toBe('final')
+    await wrapper.get('[aria-label="Remove step 1"]').trigger('click')
+    expect(state.value.nodes.map(n=>n.id)).toEqual(['start','manager','end'])
+    expect(selected(wrapper).attributes('data-step-id')).toBe('manager')
+    await button(wrapper,'undo').trigger('click')
+    expect(state.value.nodes.map(n=>n.id)).toEqual(['start','final','manager','end'])
+    expect(selected(wrapper).attributes('data-step-id')).toBe('final')
+    await button(wrapper,'undo').trigger('click')
+    expect(state.value.nodes.map(n=>n.id)).toEqual(['start','manager','final','end'])
+    await button(wrapper,'redo').trigger('click')
+    expect(state.value.nodes.map(n=>n.id)).toEqual(['start','final','manager','end'])
+  })
+  it('coalesces continuous text edits but keeps other edits separately undoable',async()=>{
+    const {wrapper,state}=setup()
+    await input(wrapper).setValue('T'); await input(wrapper).setValue('Team'); await input(wrapper).trigger('blur')
+    await wrapper.get('[aria-label="Step 1 approver"]').setValue('carol')
+    await button(wrapper,'undo').trigger('click')
+    expect(state.value.nodes[1]).toMatchObject({ name:'Team', assigneeId:'bob' })
+    await button(wrapper,'undo').trigger('click')
+    expect(state.value.nodes[1].name).toBe('Manager review')
+    expect(button(wrapper,'undo').attributes('disabled')).toBeDefined()
+  })
+  it('makes mode and participant edits undoable with their exact ALL/ANY semantics',async()=>{
+    const {wrapper,state}=setup()
+    await wrapper.get('[aria-label="Step 1 review mode"]').setValue('ANY')
+    expect(wrapper.get('.rule-callout').text()).toContain('Rejection ends the request only after every participant rejects')
+    expect(wrapper.text()).toContain('preselects both demo reviewers')
+    await wrapper.get('[aria-label="Step 1 participant Carol"]').setValue(false)
+    expect(wrapper.get('.participant-picker').attributes('aria-invalid')).toBe('true')
+    expect(button(wrapper,'publish').attributes('disabled')).toBeDefined()
+    await button(wrapper,'undo').trigger('click')
+    expect(state.value.nodes[1].assigneeIds).toEqual(['bob','carol'])
+    await button(wrapper,'undo').trigger('click')
+    expect(state.value.schemaVersion).toBe(2)
+    expect(state.value.nodes[1]).toEqual(definition().nodes[1])
+  })
+  it('locates invalid names and participant choices from the validation summary',async()=>{
+    const {wrapper}=setup()
+    await input(wrapper).setValue(' ')
+    await cards(wrapper)[1].trigger('click')
+    await wrapper.get('.validation-list button').trigger('click'); await flushPromises()
+    expect(selected(wrapper).attributes('data-step-id')).toBe('manager')
+    expect(document.activeElement).toBe(input(wrapper).element)
+    expect(input(wrapper).attributes('aria-describedby')).toBe('step-name-error')
+    await input(wrapper).setValue('Team')
+    await wrapper.get('[aria-label="Step 1 review mode"]').setValue('ALL')
+    await wrapper.get('[aria-label="Step 1 participant Carol"]').setValue(false)
+    await cards(wrapper)[1].trigger('click')
+    await wrapper.get('.validation-list button').trigger('click'); await flushPromises()
+    expect(document.activeElement).toBe(wrapper.get('.participant-picker input').element)
+  })
+  it('explains count limits and preserves at least one approval',async()=>{
+    const {wrapper,state}=setup()
+    for(let i=0;i<8;i++) await button(wrapper,'add-step').trigger('click')
+    expect(state.value.nodes).toHaveLength(10)
+    expect(wrapper.get('.limit-hint').text()).toContain('Maximum 8 stages')
+    expect(wrapper.findAll('.insert-step').every(n=>n.attributes('disabled')!==undefined)).toBe(true)
+    for(let i=0;i<7;i++) await wrapper.get('.remove-step').trigger('click')
+    expect(state.value.nodes).toHaveLength(3)
+    expect(wrapper.get('.remove-step').attributes('disabled')).toBeDefined()
+    expect(wrapper.get('.inspector-limit').text()).toContain('at least one')
+  })
+  it('supports canvas undo shortcuts and Escape without hijacking native text-field undo',async()=>{
+    const {wrapper,state}=setup(); await input(wrapper).setValue('Team')
+    const native=new KeyboardEvent('keydown',{key:'z',ctrlKey:true,bubbles:true,cancelable:true})
+    input(wrapper).element.dispatchEvent(native)
+    expect(native.defaultPrevented).toBe(false); expect(state.value.nodes[1].name).toBe('Team')
+    await input(wrapper).trigger('keydown',{key:'Escape'}); expect(document.activeElement).toBe(selected(wrapper).element)
+    await selected(wrapper).trigger('keydown',{key:'z',ctrlKey:true})
+    expect(state.value.nodes[1].name).toBe('Manager review')
+    await selected(wrapper).trigger('keydown',{key:'z',metaKey:true,shiftKey:true})
+    expect(state.value.nodes[1].name).toBe('Team')
+  })
+  it('leaves Escape to an active Chinese IME composition session',async()=>{
+    const {wrapper,state}=setup(); input(wrapper).element.focus()
+    const event=new KeyboardEvent('keydown',{key:'Escape',isComposing:true,bubbles:true,cancelable:true})
+    input(wrapper).element.dispatchEvent(event)
+    expect(event.defaultPrevented).toBe(false)
+    expect(document.activeElement).toBe(input(wrapper).element)
+    expect(state.value).toEqual(definition())
+  })
+  it('shows ready-to-publish only for a changed, valid, current and idle draft',async()=>{
+    const {wrapper}=setup()
+    expect(wrapper.find('.ready-indicator').exists()).toBe(false)
+    await input(wrapper).setValue('Team'); expect(wrapper.find('.ready-indicator').exists()).toBe(true)
+    await wrapper.setProps({stale:true}); expect(wrapper.find('.ready-indicator').exists()).toBe(false)
+    await wrapper.setProps({stale:false,busy:true}); expect(wrapper.find('.ready-indicator').exists()).toBe(false)
+  })
+  it('preserves draft history and selection during conflicts, but clears it on external publication',async()=>{
+    const {wrapper,state}=setup(); await cards(wrapper)[1].trigger('click'); await input(wrapper).setValue('My final review')
+    await wrapper.setProps({ stale:true, published:{...definition(),version:4} })
+    expect(selected(wrapper).attributes('data-step-id')).toBe('final')
+    expect(button(wrapper,'undo').attributes('disabled')).toBeUndefined()
+    expect(button(wrapper,'publish').attributes('disabled')).toBeDefined()
+    await wrapper.setProps({modelValue:{...clone(state.value),version:4},published:{...clone(state.value),version:4},dirty:false,stale:false})
+    expect(button(wrapper,'undo').attributes('disabled')).toBeDefined()
+    expect(wrapper.text()).toContain('Published v4')
+  })
+  it('allows undo of a deliberate draft reset without publishing anything',async()=>{
+    const {wrapper,state}=setup(); await input(wrapper).setValue('Recover me')
+    await button(wrapper,'reset-draft').trigger('click'); await flushPromises()
+    expect(input(wrapper).element.value).toBe('Manager review')
+    await button(wrapper,'undo').trigger('click')
+    expect(state.value.nodes[1].name).toBe('Recover me')
+    expect(wrapper.emitted('publish')).toBeUndefined()
+  })
+  it('disables mutation and undo during publication while keeping the selected context',async()=>{
+    const {wrapper,state}=setup(); await input(wrapper).setValue('Team'); await wrapper.setProps({busy:true,publishing:true})
+    for(const id of ['add-step','undo','redo','reset-draft','publish']) expect(button(wrapper,id).attributes('disabled')).toBeDefined()
+    expect(input(wrapper).attributes('disabled')).toBeDefined()
+    await selected(wrapper).trigger('keydown',{key:'z',ctrlKey:true})
+    expect(state.value.nodes[1].name).toBe('Team')
+  })
+  it('lets read-only users inspect every group without mutation controls',async()=>{
+    const {wrapper}=setup({editable:false})
+    await cards(wrapper)[1].trigger('click')
+    expect(wrapper.get('.readonly-step-name').text()).toBe('Final review')
+    expect(wrapper.find('.step-inspector input, .step-inspector select').exists()).toBe(false)
+    expect(wrapper.find('[data-testid="publish"]').exists()).toBe(false)
+    expect(wrapper.find('.insert-step').exists()).toBe(false)
+  })
+  it('offers a Chinese-first designer with exact group rules and localized validation',async()=>{
+    const {wrapper}=setup({initialLocale:'zh'})
+    expect(wrapper.attributes('lang')).toBe('zh-CN')
+    expect(wrapper.text()).toContain('草稿仅保存在当前标签页')
+    await wrapper.get('[aria-label="节点 1 审批方式"]').setValue('ANY')
+    expect(wrapper.get('.rule-callout').text()).toContain('任一同意即通过，全部拒绝才驳回')
+    await wrapper.get('[aria-label="节点 1 审批方式"]').setValue('ALL')
+    expect(wrapper.get('.rule-callout').text()).toContain('全部同意才通过，任一拒绝即驳回')
+    await input(wrapper).setValue(' ')
+    expect(wrapper.get('.validation-list').text()).toContain('请填写节点 1 的名称')
+  })
+})

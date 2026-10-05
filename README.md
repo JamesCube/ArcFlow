@@ -105,7 +105,8 @@ npm run dev
 | 顺序人工审批、终态拒绝、逐步骤重试保护 | 不属于内核 | 已实现；仅当前指定审批人可操作 |
 | 身份与权限 | 由接入方提供 | 演示账号 / 若依原生用户、角色和权限 |
 | 重启恢复 | 无 | 演示默认单写者 JSON；可选 [JDBC 适配器](examples/approval-jdbc/README.md)提供数据库事务与持久审计 |
-| 条件路由、并行审批、定时器、转办 | 未实现 | 未实现 |
+| 固定参与人会签 ALL / 或签 ANY | 不属于内核 | [领域与 JSON/JDBC 已实现](docs/PARALLEL_APPROVAL.md)；独立 Vue / HTTP 已支持参与人分组与逐人投票；若依仍只开放顺序审批 |
+| 条件路由、定时器、转办 | 未实现 | 未实现 |
 | BPMN XML / BPMN 2.0 兼容 | 未实现 | 未实现 |
 
 内核没有第三方运行时依赖，也不强依赖 Spring。审批 HTTP API 和 Vue 界面位于示例层；尚未发布 Spring Boot Starter 或 Maven Central 制品。
@@ -119,8 +120,8 @@ npm run dev
                                              └→ ApprovalStore：本地 JSON / 可选 JDBC
 ```
 
-- `approval-domain` 管理人工等待、顺序状态流转、定义快照与存储 SPI。可选 `approval-jdbc` 将请求、审批修订号和审计事件在同一事务内提交；内核不会等待人工处理。
-- JDBC 接入、`arc_` 数据库迁移和真实 PostgreSQL / H2 测试命令见 [事务审批存储](examples/approval-jdbc/README.md)。它是独立可选模块，不会自动替换两个演示的存储。
+- `approval-domain` 管理人工等待、顺序阶段 / 并行分组状态流转、定义快照与存储 SPI。可选 `approval-jdbc` 将请求、审批修订号和审计事件在同一事务内提交；内核不会等待人工处理。
+- JDBC 接入、`arc_` 数据库迁移和PostgreSQL / H2 测试命令和实验性 MySQL 8 验证配置见 [事务审批存储](examples/approval-jdbc/README.md)。它是独立可选模块，不会自动替换两个演示的存储。
 - 若依的 MySQL 仅存储用户、角色和菜单；审批仍存储于私有本地 JSON 文件，不支持多个实例或网络文件系统。
 - JDBC 首个切片覆盖多服务实例的修订号竞争、步骤幂等重试、事务回滚和定义版本快照。它尚无租户隔离、分页、发起幂等键、业务表联合事务或 outbox；不承诺通用生产就绪、高吞吐、分布式事务或 exactly-once。独立示例的框架版本和支持限制见其 [README](examples/approval-demo/README.md)。
 - 内核 DAG 分支表达依赖，不是并行执行或条件路由；所有根节点都会执行，就绪节点按声明顺序运行。字符串变量共享一个命名空间，后写覆盖先写。

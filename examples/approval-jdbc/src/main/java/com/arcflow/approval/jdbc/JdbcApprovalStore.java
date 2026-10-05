@@ -31,6 +31,7 @@ public final class JdbcApprovalStore implements ApprovalStore {
         + "applicant_id, approver_id, request_status, current_step_id, created_at, updated_at, request_json";
     private final DataSource dataSource;
     private final ObjectMapper mapper;
+    private final JdbcDialect dialect;
     private final AtomicBoolean closed = new AtomicBoolean();
 
     /** First successful initializer wins; subsequent instances use the persisted definition. */
@@ -40,6 +41,11 @@ public final class JdbcApprovalStore implements ApprovalStore {
         this.mapper = ApprovalService.strictMapper(Objects.requireNonNull(mapper, "mapper").copy())
             .enable(DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES)
             .setSerializationInclusion(JsonInclude.Include.ALWAYS);
+        try (var connection = dataSource.getConnection()) {
+            if (!connection.getAutoCommit())
+                throw new IOException("JdbcApprovalStore requires independently owned auto-commit connections; ambient transactions are unsupported");
+            dialect = JdbcDialect.inspect(connection);
+        } catch (SQLException failure) { throw new IOException("Could not inspect approval JDBC dialect/schema", failure); }
         initialize(initialDefinition);
     }
 
@@ -152,14 +158,10 @@ public final class JdbcApprovalStore implements ApprovalStore {
             // The only accepted initialization race is a duplicate key from another initializer.
             // Rollback already happened; verify a complete committed head in a fresh transaction.
             // Do not retry an insert, a connection failure, serialization failure, or other SQL error.
-            if (!duplicateKey(failure)) throw failure;
+            if (!dialect.cleanInitializationDuplicate(failure)) throw failure;
             try { transaction(true, connection -> requireProcess(connection, false)); }
             catch (IOException verification) { failure.addSuppressed(verification); throw failure; }
         }
-    }
-
-    private static boolean duplicateKey(IOException failure) {
-        return failure.getCause() instanceof SQLException sql && "23505".equals(sql.getSQLState());
     }
 
     private ProcessDefinition requireProcess(Connection connection, boolean lock) throws SQLException, IOException {
