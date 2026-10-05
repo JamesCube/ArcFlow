@@ -7,7 +7,7 @@ Date: 2026-10-04. This is a local source deliverable. It has not been uploaded t
 - Ordered single / ALL / ANY approval stages; local draft mode conversion, distinct participant selection, publication, reset and version conflicts.
 - Participant-aware inbox and decision controls, saved group snapshots, per-participant votes/comments/timestamps, correct partial and terminal group outcomes.
 - Existing single-assignee flows and HTTP identity checks are preserved. The standalone demo only offers Bob and Carol; this does not add an enterprise identity picker.
-- The shared domain still supports 2–16 unique stable IDs per group. RuoYi remains schema-2-only, with its compatibility guard unchanged from the original parallel-domain change.
+- The shared domain still supports 2–16 unique stable IDs per group. At this historical standalone milestone RuoYi remained schema-2-only; its later [native group integration](../examples/ruoyi-vue3/README.md#configure-and-vote-in-groups) is separate from this verification record.
 
 ## Provenance
 

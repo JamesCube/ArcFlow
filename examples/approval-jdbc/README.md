@@ -80,7 +80,7 @@ Existing standalone and RuoYi examples keep their default JSON persistence unles
 
 ## Parallel-group schema compatibility
 
-[Schema-3 ALL/ANY groups](../../docs/PARALLEL_APPROVAL.md) reuse these tables and transactions without DDL changes. Existing schema-2 versions/requests/events keep their exact JSON shapes. Upgrade all application instances before publishing schema 3; mixed old/new binaries are unsupported. A pending `approver_id` is only the first undecided group participant, so its index cannot represent the full group inbox. Use the domain participant worklist and visibility checks. The standalone Vue demo supports schema 3 using JSON persistence. The RuoYi UI host remains sequential-only; neither host automatically switches to JDBC.
+[Schema-3 ALL/ANY groups](../../docs/PARALLEL_APPROVAL.md) reuse these tables and transactions without DDL changes. Existing schema-2 versions/requests/events keep their exact JSON shapes. Upgrade all application instances before publishing schema 3; mixed old/new binaries are unsupported. A pending `approver_id` is only the first undecided group participant, so its index cannot represent the full group inbox. Use the domain participant worklist and visibility checks. The standalone Vue demo supports schema 3 using JSON persistence. The native RuoYi host also supports groups using real-directory participants and JSON persistence; neither host automatically switches to JDBC.
 
 
 ## MySQL 8 integration target

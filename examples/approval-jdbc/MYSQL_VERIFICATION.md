@@ -12,7 +12,7 @@ Merged source: [`e1ee9c6bdb971949c4f8746fe88b9ff49e6d4c36`](https://github.com/J
 
 The PostgreSQL jobs also passed 31 H2 integration tests per Java version. Their MySQL tests are intentionally skipped because MySQL executes in its four dedicated jobs; those dedicated jobs reject skips or missing tests. Counts are per job, not distinct tests multiplied by the matrix. Actual server versions and report-gate results are in each job log.
 
-These runs close the earlier Java 17, Maven and real-server execution gaps documented below. The tested MySQL contract includes ALL/ANY races, state/audit rollback, exact identity comparisons, Unicode and >64-KiB history, and adapter close/reopen. Physical-server crash/restart recovery, capacity, tenant isolation and host-business-transaction integration remain outside this acceptance. The adapter is experimental and optional; both demo hosts still default to JSON, and RuoYi remains sequential-only.
+These runs close the earlier Java 17, Maven and real-server execution gaps documented below. The tested MySQL contract includes ALL/ANY races, state/audit rollback, exact identity comparisons, Unicode and >64-KiB history, and adapter close/reopen. Physical-server crash/restart recovery, capacity, tenant isolation and host-business-transaction integration remain outside this acceptance. The adapter is experimental and optional; both demo hosts still default to JSON. RuoYi was sequential-only at this acceptance commit; its current group UI is documented [separately](../ruoyi-vue3/README.md#configure-and-vote-in-groups).
 
 ## Historical implementation record (2026-10-04)
 

@@ -1,7 +1,7 @@
 <script setup name="ArcflowApproval">
 import { computed, onMounted, ref } from 'vue'
 import { getMe, getPeople, getProcess, getRequests, publishProcess, submitRequest, decideRequest } from '@/api/arcflow/approval'
-import { approvals, clone, stepState, validText, validateDefinition } from './process'
+import { approvals, approvalMode, canVote, clone, modeLabel, modeRule, participantVotes, participants, pendingParticipants, setApprovalMode, stepState, validText, validateDefinition } from './process'
 
 const me = ref(null), people = ref([]), process = ref(null), draft = ref(null), baseline = ref('')
 const requests = ref([]), selectedId = ref(null), tab = ref('mine'), busy = ref(false)
@@ -11,11 +11,11 @@ const dirty = computed(() => draft.value && JSON.stringify(draft.value) !== base
 const draftSteps = computed(() => approvals(draft.value))
 const draftError = computed(() => validateDefinition(draft.value, people.value))
 const stale = computed(() => publishUncertain.value || draft.value?.version !== process.value?.version)
-const inbox = computed(() => requests.value.filter(item => item.status === 'PENDING' && item.approverId === me.value?.id))
+const inbox = computed(() => requests.value.filter(item => canVote(item, me.value?.id)))
 const visible = computed(() => tab.value === 'inbox' ? inbox.value : tab.value === 'mine' ? requests.value.filter(item => item.applicantId === me.value?.id) : requests.value)
 const selected = computed(() => requests.value.find(item => item.id === selectedId.value))
-const canDecide = computed(() => selected.value?.status === 'PENDING' && selected.value?.approverId === me.value?.id && !!selected.value?.currentStepId)
-const selfAssigned = computed(() => approvals(process.value).some(node => node.assigneeId === me.value?.id))
+const canDecide = computed(() => canVote(selected.value, me.value?.id))
+const selfAssigned = computed(() => approvals(process.value).some(node => participants(node).includes(me.value?.id)))
 const locked = computed(() => busy.value || refreshRequired.value || !me.value)
 const person = id => people.value.find(person => String(person.id) === id)?.displayName || id || '—'
 const date = value => value ? new Date(value).toLocaleString() : '—'
@@ -46,6 +46,10 @@ function addStep() {
   let suffix = 1
   while (draft.value.nodes.some(node => node.id === `approval-${suffix}`)) suffix++
   draft.value.nodes.splice(-1, 0, { id: `approval-${suffix}`, type: 'approval', name: `审批 ${draftSteps.value.length + 1}`, assigneeId: people.value[0] ? String(people.value[0].id) : '' })
+}
+function changeMode(id, mode) {
+  if (locked.value || !me.value?.canPublish) return
+  draft.value = setApprovalMode(draft.value, id, mode)
 }
 function removeStep(id) {
   if (locked.value || !me.value?.canPublish || draftSteps.value.length <= 1) return
@@ -99,7 +103,7 @@ async function decide(decision) {
   try {
     const { data } = await decideRequest(id, { stepId, decision, comment: comment.value.trim() })
     requests.value = requests.value.map(item => item.id === data.id ? data : item); comment.value = ''
-    notice.value = data.status === 'PENDING' ? '本节点已通过，已流转至下一审批人。' : `申请${status(data.status)}。`
+    notice.value = data.status !== 'PENDING' ? `申请${status(data.status)}。` : data.currentStepId === stepId ? '投票已记录，等待本组其他参与人。' : '本节点已通过，已流转至下一审批人。'
   } catch (e) { mutationFailure('decide') }
   finally { busy.value = false }
 }
@@ -122,7 +126,7 @@ onMounted(refresh)
       <el-tab-pane label="流程设计" name="process" />
     </el-tabs>
     <template v-if="tab === 'process'">
-      <el-alert title="顺序审批：开始 → 1–8 个审批节点 → 结束。发布仅影响新申请。" type="info" :closable="false" class="message" />
+      <el-alert title="有序阶段：开始 → 1–8 个单人 / ALL / ANY 节点 → 结束。分组同时开放投票，完成后进入下一阶段；发布仅影响新申请。" type="info" :closable="false" class="message" />
       <el-alert v-if="stale" title="草稿版本已过期或发布结果未确认。请刷新后重置草稿，再重新应用需要的修改。" type="warning" :closable="false" class="message" />
       <el-card v-if="draft" shadow="never">
         <el-form label-width="100px" :disabled="locked || !me?.canPublish">
@@ -131,9 +135,18 @@ onMounted(refresh)
           <div v-for="(node, index) in draftSteps" :key="node.id" class="approval-node">
             <strong>审批 {{ index + 1 }}</strong>
             <el-input v-model="node.name" maxlength="120" :aria-label="`审批 ${index + 1} 名称`" placeholder="节点名称" />
-            <el-select v-model="node.assigneeId" filterable placeholder="选择审批人" :aria-label="`审批 ${index + 1} 审批人`">
+            <el-select :model-value="approvalMode(node)" @update:model-value="changeMode(node.id, $event)" :aria-label="`审批 ${index + 1} 完成方式`">
+              <el-option label="单人审批" value="SINGLE" />
+              <el-option label="全员同意（ALL）" value="ALL" />
+              <el-option label="任一同意（ANY）" value="ANY" />
+            </el-select>
+            <el-select v-if="node.type === 'approval'" v-model="node.assigneeId" filterable placeholder="选择审批人" :aria-label="`审批 ${index + 1} 审批人`">
               <el-option v-for="user in people" :key="user.id" :label="`${user.displayName} (${user.id})`" :value="String(user.id)" />
             </el-select>
+            <el-select v-else v-model="node.assigneeIds" multiple filterable :multiple-limit="16" placeholder="选择 2 至 16 个参与人" :aria-label="`审批 ${index + 1} 参与人`">
+              <el-option v-for="user in people" :key="user.id" :label="`${user.displayName} (${user.id})`" :value="String(user.id)" />
+            </el-select>
+            <p class="group-rule">{{ modeRule(node) }}</p>
             <div class="node-actions" v-hasPermi="['arcflow:process:publish']">
               <el-button :disabled="index === 0" @click="moveStep(node.id, -1)" :aria-label="`上移审批 ${index + 1}`">上移</el-button>
               <el-button :disabled="index === draftSteps.length - 1" @click="moveStep(node.id, 1)" :aria-label="`下移审批 ${index + 1}`">下移</el-button>
@@ -178,14 +191,25 @@ onMounted(refresh)
             <el-descriptions-item label="天数">{{ selected.days }}</el-descriptions-item>
             <el-descriptions-item label="原因"><span class="prewrap">{{ selected.reason }}</span></el-descriptions-item>
             <el-descriptions-item label="状态">{{ status(selected.status) }}</el-descriptions-item>
-            <el-descriptions-item label="当前审批人">{{ selected.status === 'PENDING' ? person(selected.approverId) : '—' }}</el-descriptions-item>
+            <el-descriptions-item label="当前审批人">{{ pendingParticipants(selected).map(person).join('、') || '—' }}</el-descriptions-item>
             <el-descriptions-item label="流程快照">{{ selected.definition?.name }} · v{{ selected.processVersion }}</el-descriptions-item>
           </el-descriptions>
           <h3>提交时的流程快照</h3>
-          <ol class="snapshot"><li v-for="node in selected.definition?.nodes || []" :key="node.id"><strong>{{ node.name }}</strong> · {{ stepState(selected, node) }}<span v-if="node.assigneeId"> · {{ person(node.assigneeId) }}</span></li></ol>
+          <ol class="snapshot">
+            <li v-for="node in selected.definition?.nodes || []" :key="node.id">
+              <strong>{{ node.name }}</strong> · {{ stepState(selected, node) }}
+              <template v-if="participants(node).length">
+                <span> · {{ modeLabel(node) }}</span>
+                <p class="snapshot-rule">{{ modeRule(node) }}</p>
+                <ul class="participant-votes">
+                  <li v-for="vote in participantVotes(selected, node)" :key="vote.actorId">{{ person(vote.actorId) }} · {{ vote.state }}<span v-if="vote.comment" class="prewrap"> · {{ vote.comment }}</span></li>
+                </ul>
+              </template>
+            </li>
+          </ol>
           <div v-if="canDecide" v-hasPermi="['arcflow:request:decide']" class="decision">
             <el-input v-model="comment" type="textarea" :rows="2" maxlength="2000" show-word-limit :disabled="locked" placeholder="审批意见（选填）" aria-label="审批意见" />
-            <div class="decision-actions"><el-button type="success" :loading="busy" :disabled="locked" @click="decide('APPROVE')">通过当前节点</el-button><el-button type="danger" :disabled="locked" @click="decide('REJECT')">拒绝申请</el-button></div>
+            <div class="decision-actions"><el-button type="success" :loading="busy" :disabled="locked" @click="decide('APPROVE')">投同意票</el-button><el-button type="danger" :disabled="locked" @click="decide('REJECT')">投拒绝票</el-button></div>
           </div>
           <h3>审批记录</h3>
           <el-timeline>
@@ -206,7 +230,11 @@ onMounted(refresh)
 .page-header h2 { margin-top: 0; }
 .page-header p { color: #606266; }
 .message { margin-bottom: 16px; }
-.approval-node { display: grid; grid-template-columns: 80px minmax(100px, 1fr) minmax(160px, 1fr) auto; align-items: center; gap: 12px; padding: 16px; margin: 12px 0; border: 1px solid #dcdfe6; border-radius: 6px; }
+.approval-node { display: grid; grid-template-columns: 80px minmax(100px, 1fr) minmax(160px, 1fr) minmax(180px, 1fr); align-items: center; gap: 12px; padding: 16px; margin: 12px 0; border: 1px solid #dcdfe6; border-radius: 6px; }
+.group-rule { grid-column: 2 / -1; margin: 0; color: #606266; }
+.snapshot-rule { margin: 6px 0; color: #606266; }
+.participant-votes { padding-left: 20px; }
+.approval-node .node-actions { grid-column: 2 / -1; }
 .fixed-node { text-align: center; padding: 12px; background: #f5f7fa; border-radius: 6px; margin-bottom: 16px; }
 .node-actions { display: flex; flex-wrap: wrap; gap: 6px; }
 .node-actions .el-button { margin-left: 0; }
@@ -215,5 +243,5 @@ onMounted(refresh)
 .snapshot li { padding: 8px 0; overflow-wrap: anywhere; }
 .prewrap { white-space: pre-wrap; overflow-wrap: anywhere; }
 .decision-actions { margin-top: 16px; }
-@media (max-width: 1200px) { .approval-node { grid-template-columns: 1fr; } .detail { margin-top: 20px; } }
+@media (max-width: 1200px) { .approval-node { grid-template-columns: 1fr; } .group-rule, .approval-node .node-actions { grid-column: auto; } .detail { margin-top: 20px; } }
 </style>

@@ -22,7 +22,7 @@
 
 [查看桌面 / 390px 移动端图集与验证来源 →](docs/DESIGNER_SHOWCASE.md#简体中文) · [一键本地试用 →](#一键本地试用一个终端)
 
-截图来自 [`836e605` 的 Chromium CI](https://github.com/JamesCube/ArcFlow/actions/runs/37257554086)，与已合并的 [`e1ee9c6`](https://github.com/JamesCube/ArcFlow/commit/e1ee9c6bdb971949c4f8746fe88b9ff49e6d4c36) 源码树相同。中文优先仅覆盖设计器，外围演示界面仍为英文。以下若依宿主仍只开放顺序审批；两个演示均不会自动切换为 JDBC。
+截图来自 [`836e605` 的 Chromium CI](https://github.com/JamesCube/ArcFlow/actions/runs/37257554086)，与已合并的 [`e1ee9c6`](https://github.com/JamesCube/ArcFlow/commit/e1ee9c6bdb971949c4f8746fe88b9ff49e6d4c36) 源码树相同。中文优先仅覆盖设计器，外围演示界面仍为英文。当前若依宿主也已开放 [ALL/ANY 分组](examples/ruoyi-vue3/README.md#configure-and-vote-in-groups)；以下较早的若依截图仍展示顺序审批。两个演示均不会自动切换为 JDBC。
 
 ## 开源项目集成实拍：RuoYi × ArcFlow
 
@@ -115,7 +115,7 @@ npm run dev
 | 顺序人工审批、终态拒绝、逐步骤重试保护 | 不属于内核 | 已实现；仅当前指定审批人可操作 |
 | 身份与权限 | 由接入方提供 | 演示账号 / 若依原生用户、角色和权限 |
 | 重启恢复 | 无 | 演示默认单写者 JSON；可选 [JDBC 适配器](examples/approval-jdbc/README.md)提供数据库事务与持久审计 |
-| 固定参与人会签 ALL / 或签 ANY | 不属于内核 | [领域与 JSON/JDBC 已实现](docs/PARALLEL_APPROVAL.md)；独立 Vue / HTTP 已支持参与人分组与逐人投票；若依仍只开放顺序审批 |
+| 固定参与人会签 ALL / 或签 ANY | 不属于内核 | [领域与 JSON/JDBC 已实现](docs/PARALLEL_APPROVAL.md)；独立演示与若依原生界面均支持参与人分组与逐人投票 |
 | 条件路由、定时器、转办 | 未实现 | 未实现 |
 | BPMN XML / BPMN 2.0 兼容 | 未实现 | 未实现 |
 

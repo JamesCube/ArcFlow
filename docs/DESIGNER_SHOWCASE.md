@@ -35,7 +35,7 @@ python3 scripts/tryout.py
 | 层次 | 本次已验证 | 保留的边界 |
 | --- | --- | --- |
 | 独立设计器与演示 | 单人 / ALL / ANY、逐人投票、固定流程快照、桌面 / 窄屏布局 | 固定合成账号；按顺序执行阶段；默认单写者 JSON |
-| 官方若依参考集成 | 真实若依登录、菜单、权限与两级顺序审批 | 若依宿主仍只开放顺序审批，审批仍为 JSON；[原生实拍](RUOYI_SHOWCASE.md#简体中文) |
+| 官方若依参考集成 | 真实若依登录、菜单、权限与两级顺序审批实拍 | 当前宿主支持 [ALL/ANY 分组](../examples/ruoyi-vue3/README.md#configure-and-vote-in-groups)，审批仍为 JSON；[原生实拍](RUOYI_SHOWCASE.md#简体中文) |
 | 可选 JDBC | MySQL 8.0.46 / 8.4.11 × Java 17 / 21，每组合 29 项真实服务器测试通过 | 需宿主显式接线与迁移；不会自动替换演示存储；[测试明细](../examples/approval-jdbc/MYSQL_VERIFICATION.md#verified-server-acceptance-2026-10-05) |
 
 ALL 要求全员同意，任一拒绝即驳回；ANY 任一同意即通过，只有全员拒绝才驳回。分组属于有序阶段，不是条件分支或通用图形连线。草稿只在当前页面内存中；工作台 Refresh 保留草稿，浏览器刷新或退出会丢失未发布修改。尚无条件路由、定时器、转办、BPMN 兼容或生产就绪承诺。
@@ -61,7 +61,7 @@ From a current checkout, with the [required tools](TRYOUT.md#requirements), run 
 ### What this proves
 
 - **Standalone:** single-reviewer, ALL and ANY stages, participant votes, immutable request snapshots, local undo/redo and tested desktop/narrow layouts. ALL rejects on any rejection; ANY advances on one approval and rejects only after everyone rejects.
-- **RuoYi:** the [real native integration](RUOYI_SHOWCASE.md#english) retains its own sequential-only designer and JSON approval store. It does not receive the standalone group UI automatically.
+- **RuoYi:** the [real native integration](RUOYI_SHOWCASE.md#english) has its own [participant-aware group editor](../examples/ruoyi-vue3/README.md#configure-and-vote-in-groups) and JSON approval store. The older native screenshots remain evidence of its sequential journey.
 - **Optional JDBC:** real MySQL 8.0.46 and 8.4.11 each passed 29 server tests on both Java 17 and 21. [Per-job results and limits](../examples/approval-jdbc/MYSQL_VERIFICATION.md#verified-server-acceptance-2026-10-05). Both demos still default to JSON; JDBC requires explicit host wiring and schema installation.
 
 Capture source [`836e605`](https://github.com/JamesCube/ArcFlow/commit/836e6051a0c1198c9348e58c094e40cdcf11f3f1) passed the [browser workflow](https://github.com/JamesCube/ArcFlow/actions/runs/37257554086) and has the same Git tree as merged [`e1ee9c6`](https://github.com/JamesCube/ArcFlow/commit/e1ee9c6bdb971949c4f8746fe88b9ff49e6d4c36). The five merged-source workflow links and capture provenance are above. The older `v0.1.0-alpha.1` release remains unchanged and does not contain these new capabilities.
