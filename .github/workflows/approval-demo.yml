@@ -57,13 +57,18 @@ jobs:
         working-directory: examples/approval-ui
       - run: npx playwright install --with-deps chromium
         working-directory: examples/approval-ui
-      - run: npm run test:e2e
+      - run: npm run test:e2e -- --grep-invert "^visual showcase:"
+        working-directory: examples/approval-ui
+      - name: Capture bilingual leave scenarios against a fresh real backend
+        run: npm run test:e2e -- --grep "^visual showcase:" --output=visual-results
         working-directory: examples/approval-ui
       - name: Save synthetic workspace screenshots (no auth traces)
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: standalone-browser-screenshots
-          path: examples/approval-ui/test-results/**/*.png
+          path: |
+            examples/approval-ui/test-results/**/*.png
+            examples/approval-ui/visual-results/**/*.png
           if-no-files-found: error
           retention-days: 7
