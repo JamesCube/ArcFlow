@@ -173,4 +173,4 @@ CI badges track `main`; inspect the workflow run for the exact commit you are ev
 
 ## Mobile approvals (H5 first slice)
 
-The separate uni-app Vue 3 [mobile approval client](examples/approval-mobile/README.md) uses the real backend for worklists, decision notes and audit history. Build, unit and HTTP checks have run; browser visuals, native/mini-program targets and enterprise-platform integration remain separate acceptance work.
+The separate uni-app Vue 3 [mobile approval client](examples/approval-mobile/README.md) uses the real backend for worklists, decision notes and audit history. Build, unit/HTTP and Chromium mobile journeys have passed; [acceptance and screenshot provenance](examples/approval-mobile/ACCEPTANCE.md) list exact coverage. Native/mini-program targets, real devices and enterprise-platform integration remain separate acceptance work.

@@ -173,4 +173,4 @@ Order DEMO-001: 120
 
 ## 移动审批（H5 首片）
 
-独立的 uni-app Vue 3 [移动审批客户端](examples/approval-mobile/README.md) 已提供真实后端待办、审批意见和历史闭环。构建与单元/HTTP 检查已执行；浏览器视觉、App/小程序和飞书/企微/钉钉接入仍待单独验收。
+独立的 uni-app Vue 3 [移动审批客户端](examples/approval-mobile/README.md) 已提供真实后端待办、审批意见和历史闭环。构建、单元/HTTP 和 Chromium 移动闭环已验证；[具体范围与截图来源](examples/approval-mobile/ACCEPTANCE.md)列出已测与未测项目。App/小程序、真机和飞书/企微/钉钉接入仍待单独验收。

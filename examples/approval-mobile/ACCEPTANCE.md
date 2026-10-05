@@ -1,7 +1,7 @@
 # Mobile slice acceptance / 验收记录
 
 Recorded **2026-10-05 UTC**. Base repository: **549e8da**. This is a local,
-H5-first implementation checkpoint, **not a production or visual sign-off**.
+H5-first implementation checkpoint, **not a production or real-device sign-off**.
 
 ## Executed and passed
 
@@ -18,8 +18,17 @@ H5-first implementation checkpoint, **not a production or visual sign-off**.
   restarts. Existing parallel harness: **40 checks**. Core: **24 regression
   checks**; domain: **36 tests**; backend: **35 tests**. See
   [HTTP_VERIFICATION.md](HTTP_VERIFICATION.md).
-- Browser test source and configuration pass `node --check`. This is syntax
-  checking only; no Playwright browser test was executed.
+- Chromium CI at **6838509e195935de35f4479d9aa39d159f46f967** passed all **seven**
+  real-backend browser journeys. [Run 37266601292](https://github.com/JamesCube/ArcFlow/actions/runs/37266601292)
+  completed on 2026-10-05. Its seven synthetic PNGs were downloaded, SHA256-verified
+  (`5ec912b5ce913c2ed9b5392ed01dced27ca3b10b7d349b330dd9aee7936c63d1`) and inspected.
+  Inbox, decisions, ALL/ANY outcomes, retained notes after a blocked request,
+  deep-link reload, application Back/Cancel and 360/390/430 long-content reflow
+  passed. No horizontal clipping was visible in those captures.
+- The follow-up capture/test change waits for refresh completion, uses viewport
+  captures for fixed action docks/dialogs and adds browser Back/Forward plus
+  native dialog Tab/Shift+Tab assertions plus an English 360px decision sheet. Its own exact-head CI must pass before
+  those additional assertions are claimed.
 
 The UI tests use an injected transport to cover controlled failure timing; they
 are explicitly tests, not a production fixture mode. The HTTP suite uses the real
@@ -32,19 +41,17 @@ expiration and platform-token expiry were **not** tested or implemented.
 
 ## Unrun acceptance, still required
 
-No actual browser was launched and no screenshot was created in this task.
-The local environment's browser restriction was respected. Therefore the
-following remain unverified:
+No local browser was launched; the local browser restriction was respected.
+The Chromium evidence above was executed in GitHub CI. These remain unverified:
 
-- Real browser inbox → detail → decision → history/done, deep-link reload and
-  browser Back/Forward; keyboard/screen-reader behavior in the built runtime.
-- Rendered 360/390/430px layouts, long content, 200% zoom, full contrast, touch
-  target measurements, safe areas, software keyboard and actual focus visibility.
-- Browser network offline/reconnect and runtime network/telemetry observation.
+- Full screen-reader behavior, 200% text zoom, full contrast, actual touch-target
+  measurements, device safe areas and software keyboard coverage.
+- Entire-browser offline/reconnect and runtime network/telemetry observation
+  (one intercepted POST failure is covered, not every offline condition).
 - All native App, mini-program, Feishu, WeCom and DingTalk builds, SSO, permissions,
   tenant identity mapping, delivery, callback signature/code/state validation.
 
-`e2e/mobile.spec.mjs` contains **seven authored browser tests** against a real
+`e2e/mobile.spec.mjs` contains **eight authored browser tests** against a real
 local backend, including screenshots produced only when those tests actually
 run. They are **unexecuted** locally. The owning test launcher always creates a new
 isolated backend store, generates three ephemeral test passwords in memory and
@@ -58,8 +65,8 @@ npx playwright install --with-deps chromium
 npm run test:e2e
 ```
 
-The proposed `Mobile approval CI` workflow runs the real backend harness, all
-mobile checks, and these seven Chromium tests. CI status must be checked for the
+The `Mobile approval CI` workflow runs the real backend harness, all
+mobile checks, and these eight Chromium tests. CI status must be checked for the
 exact published commit before any browser acceptance claim.
 
 ## Dependency security checkpoint
@@ -108,7 +115,8 @@ remain release gates.
 ## What this checkpoint does not claim
 
 No live enterprise platform connection, account creation, OAuth grant, callback,
-notification, deployment, merge, or screenshot/visual acceptance. The unchanged
+notification, deployment or merge. Screenshot inspection is limited to the
+verified CI captures above; it is not comprehensive visual/device acceptance. The unchanged
 backend is single tenant with fixed demo identities. Cross-tenant isolation is
 not established. Comments are vote notes; standalone commenting is not present.
 The desktop designer remains the authoring tool; mobile flow rendering is read-only.

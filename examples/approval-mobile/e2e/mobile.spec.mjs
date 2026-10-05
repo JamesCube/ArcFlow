@@ -73,7 +73,7 @@ async function login(page) {
 async function screenshot(page, testInfo, name) {
   await page.screenshot({
     path: testInfo.outputPath(`${name}.png`),
-    fullPage: true,
+    fullPage: name.startsWith("completed"),
   });
 }
 test("real ALL vote, decision note, cancel, back, durable history and reload", async ({
@@ -95,10 +95,26 @@ test("real ALL vote, decision note, cancel, back, durable history and reload", a
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await page.getByRole("button", { name: "返回列表" }).click();
   await expect(page.getByLabel("搜索标题、原因或申请人")).toHaveValue(r.title);
+  await page.goBack();
+  await expect(page.locator(".detail-title")).toHaveText(r.title);
+  await page.goForward();
+  await expect(page.getByLabel("搜索标题、原因或申请人")).toHaveValue(r.title);
   await page.getByRole("button", { name: new RegExp(r.title) }).click();
+  await expect(
+    page.getByRole("button", { name: "刷新", exact: true }),
+  ).toBeEnabled();
+  await expect(page.locator(".action-dock")).toBeVisible();
   await screenshot(page, testInfo, "detail-390");
   await page.getByRole("button", { name: "同意", exact: true }).click();
   await expect(page.getByLabel("审批意见（选填）")).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.locator(".dialog-actions .secondary")).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.locator(".dialog-actions .primary")).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.locator(".decision-dialog .icon-button")).toBeFocused();
+  await page.keyboard.press("Shift+Tab");
+  await expect(page.locator(".dialog-actions .primary")).toBeFocused();
   await page.getByLabel("审批意见（选填）").fill("同意。阶段意见只记录一次。");
   await screenshot(page, testInfo, "decision-390");
   await page.getByRole("button", { name: "确认提交" }).click();
@@ -200,4 +216,29 @@ test("unconfigured and unknown enterprise hosts never expose demo sign-in", asyn
     await expect(page.getByText("PROVIDER_NOT_CONFIGURED")).toBeVisible();
     await expect(page.locator("input[type=password]")).toHaveCount(0);
   }
+});
+
+test("English decision sheet reflows at 360px with native controls", async ({
+  page,
+}, testInfo) => {
+  const r = await seed("ALL", "Quarterly planning and team handover");
+  await page.setViewportSize({ width: 360, height: 844 });
+  await page.goto(`/?task=${r.id}`);
+  await login(page);
+  await page.getByRole("button", { name: "English", exact: true }).click();
+  await expect(page.locator(".detail-title")).toHaveText(r.title);
+  await page.getByRole("button", { name: "Approve", exact: true }).click();
+  await expect(page.getByRole("dialog")).toContainText("All must approve");
+  await expect(page.getByLabel("Decision note (optional)")).toBeFocused();
+  await expect(
+    page.getByRole("button", { name: "Submit decision", exact: true }),
+  ).toBeVisible();
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+  ).toBe(true);
+  await screenshot(page, testInfo, "decision-en-360");
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
 });
