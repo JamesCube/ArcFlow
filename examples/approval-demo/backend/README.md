@@ -37,7 +37,7 @@ JSON is strict: unknown properties, duplicate keys, trailing content, fractional
 - `POST /api/requests`: `{title, reason, days, processVersion}`; starts from the exact current published version (201)
 - `POST /api/requests/{id}/decisions`: `{stepId, decision:"APPROVE"|"REJECT", comment?}`; authorizes the specified step against the request's saved definition
 
-### Executable definition (schema 2)
+### Executable definition (schema 2, with schema-3 groups)
 
 ```json
 {
@@ -53,6 +53,8 @@ JSON is strict: unknown properties, duplicate keys, trailing content, fractional
 }
 ```
 
+Schema 3 also accepts `parallelApproval` nodes with `assigneeId: null`, `assigneeIds` containing distinct participants, and `completionMode: "ALL" | "ANY"`. This fixed-account host permits only Bob and Carol, so its groups contain both. The standalone Vue designer exposes these fields and participant-level votes. See the [parallel contract](../../../docs/PARALLEL_APPROVAL.md).
+
 The array is the entire execution order: exactly one `start`, **1–8 approvals**, then exactly one `end`. Start/end IDs are fixed to `start`/`end` and cannot have assignees. Approval nodes require `bob` or `carol`. Repeating an approver across distinct steps is allowed; each step needs its own decision. Node IDs are unique and match `[A-Za-z][A-Za-z0-9_-]{0,63}`. Process/node names are nonblank, at most 120 characters, and contain no control characters. All definition/node properties shown above must be present, including nullable `assigneeId` on start/end.
 
 Process ID is fixed to `leave-approval`. To publish, send a full definition with its `version` equal to `expectedVersion`, both equal to the current server version. The server validates it, increments the version and atomically saves it. Stale publication, even an identical retry, returns 409. A stale submission `processVersion` also returns 409; refresh and review before submitting again. Publishing does not modify any existing request.
@@ -63,11 +65,11 @@ A fresh store starts with the single-Bob-approval definition above. `src/main/re
 
 Submission constraints: nonblank title (at most 120 characters), nonblank reason (at most 2000), integer days (1–365), positive current process version. Title/reason are validated and trimmed by the real ArcFlow DAG integration.
 
-Response fields are `id,title,reason,days,applicantId,approverId,status,createdAt,updatedAt,decision,comment,processId,processVersion,history,definition,currentStepId`. The full `definition` is an immutable snapshot bound at submission. `status` is `PENDING`, `APPROVED`, or `REJECTED`. While pending, `currentStepId`/`approverId` name the current approval/assignee. At terminal states, `currentStepId` is null and `approverId` is the last deciding assignee. `decision`/`comment` are null before a decision, then represent the latest step decision, including while the request remains pending.
+Response fields are `id,title,reason,days,applicantId,approverId,status,createdAt,updatedAt,decision,comment,processId,processVersion,history,definition,currentStepId`. The full `definition` is an immutable snapshot bound at submission. `status` is `PENDING`, `APPROVED`, or `REJECTED`. While pending, `currentStepId` identifies the current stage; `approverId` is the first undecided participant in definition order. For groups, derive the full pending worklist from saved participants minus that group’s history voters. It is not a complete group inbox field. At terminal states, `currentStepId` is null and `approverId` is the last deciding assignee. `decision`/`comment` are null before a decision, then represent the latest step decision, including while the request remains pending.
 
 Ordered immutable history entries are `{actorId,action,comment,at,stepId}`. The first `SUBMIT` event has null `stepId`; each subsequent `APPROVE`/`REJECT` event identifies the exact approval node. Missing decision comments become empty strings; supplied comments are trimmed and limited to 2000 characters.
 
-APPROVE advances **one** step. Only the final approval makes the request APPROVED. REJECT on a current step is terminal. A future-step attempt returns 409 even if the same person is assigned the current and future steps. A participant using someone else's step receives 403. An unrelated user receives 404 to conceal the request's existence.
+For a single-assignee step, APPROVE advances **one** step. Only the final approval makes the request APPROVED. REJECT on a current single-assignee step is terminal. ALL groups advance only after every participant approves and reject on any rejection. ANY groups advance on the first approval and reject only when all participants reject. Decision identity is `(requestId, stepId, authenticated actorId)`; one member’s replay cannot record or advance another member’s vote. A future-step attempt returns 409 even if the same person is assigned the current and future steps. A participant using someone else's step receives 403. An unrelated user receives 404 to conceal the request's existence.
 
 A same-decision replay for an already decided step is authorized **before** the replay lookup against that step's saved assignee. It returns the **current request state**, adds no history, preserves the original step comment/time, and never advances another step. It may therefore include later decisions that were not in the original response. Opposite decisions return 409. Replays remain valid after later approvals/rejection and after restart. A new decision after a terminal state returns 409.
 
@@ -85,7 +87,7 @@ This is a small **single-JVM/local-filesystem** demo, not a database: no distrib
 
 `SubmissionWorkflow` calls the real dependency-free `ArcFlowEngine` with a synchronous `validate → normalize` DAG. The core is **unchanged**; human waits and durable instance state remain in this example-specific backend.
 
-`ProcessDefinition` validates the small, executable sequential model. `ApprovalService` publishes it, snapshots it at submission and advances its ordered steps. There is no arbitrary graph deployment, BPMN, gateway/parallel engine, expression execution, delegation, reassignment, cancellation, timers, enterprise identity provider, RuoYi integration or production audit store. See [the sequential contract](../../../docs/SEQUENTIAL_APPROVAL.md).
+`ProcessDefinition` validates the small, executable sequential model. `ApprovalService` publishes it, snapshots it at submission and advances its ordered steps. There is no arbitrary graph deployment, BPMN, general parallel graph engine, expression execution, delegation, reassignment, cancellation, timers, enterprise identity provider, RuoYi integration or production audit store. Fixed ALL/ANY groups are stages in the ordered approval model. See [the sequential contract](../../../docs/SEQUENTIAL_APPROVAL.md).
 
 ## Verification
 

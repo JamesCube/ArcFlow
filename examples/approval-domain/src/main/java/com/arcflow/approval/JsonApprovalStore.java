@@ -27,13 +27,15 @@ public final class JsonApprovalStore implements ApprovalStore {
     private final FileLock lock;
     private Map<String, Request> requests = new LinkedHashMap<>();
     private ProcessDefinition definition;
-    private byte[] legacyOriginal;
-    private Path legacyBackup;
+    private byte[] previousSchemaOriginal;
+    private int snapshotSchema = 2;
+    private Path migrationBackup;
     private boolean closed;
 
     public JsonApprovalStore(ObjectMapper mapper, String filename, ProcessDefinition initialDefinition) throws IOException {
         ProcessDefinition.validate(initialDefinition);
         this.definition = initialDefinition;
+        this.snapshotSchema = initialDefinition.schemaVersion();
         this.mapper = ApprovalService.strictMapper(mapper.copy());
         this.file = Path.of(filename).toAbsolutePath();
         Files.createDirectories(file.getParent());
@@ -108,15 +110,19 @@ public final class JsonApprovalStore implements ApprovalStore {
                         ProcessDefinition.legacy(r.approverId()), "PENDING".equals(r.status()) ? "manager" : null));
                 }
                 restored = migrated;
-                legacyOriginal = bytes.clone(); // No rewrite until a successful mutation is requested.
-            } else if (schema == 2) {
+                // No rewrite until a successful mutation is requested.
+            } else if (schema == 2 || schema == 3) {
                 exactFields(root, "schemaVersion", "definition", "requests");
                 validateStoredShapes(root, true);
                 Snapshot snapshot = mapper.treeToValue(root, Snapshot.class);
                 definition = snapshot.definition();
                 ProcessDefinition.validate(definition);
                 restored = snapshot.requests();
+                if (definition.schemaVersion() > schema || restored.stream().anyMatch(r -> r.definition().schemaVersion() > schema))
+                    throw new IOException("Definition exceeds snapshot schema");
             } else throw new IOException("Unsupported snapshot schema");
+            snapshotSchema = schema;
+            if (schema < 3) previousSchemaOriginal = bytes.clone();
             for (Request r : restored) {
                 ApprovalService.validateRequest(r);
                 if (r.processVersion() > definition.version() || requests.putIfAbsent(r.id(), r) != null)
@@ -145,7 +151,11 @@ public final class JsonApprovalStore implements ApprovalStore {
     private static void validateDefinitionShape(JsonNode d) throws IOException {
         exactFields(d, "schemaVersion", "id", "version", "name", "nodes");
         if (!d.path("nodes").isArray()) throw new IOException("Invalid process nodes");
-        for (JsonNode n : d.get("nodes")) exactFields(n, "id", "type", "name", "assigneeId");
+        for (JsonNode n : d.get("nodes")) {
+            if ("parallelApproval".equals(n.path("type").asText()))
+                exactFields(n, "id", "type", "name", "assigneeId", "assigneeIds", "completionMode");
+            else exactFields(n, "id", "type", "name", "assigneeId");
+        }
     }
 
     private static void exactFields(JsonNode value, String... names) throws IOException {
@@ -161,16 +171,18 @@ public final class JsonApprovalStore implements ApprovalStore {
 
     private void commit(ProcessDefinition nextDefinition, Map<String, Request> updated) throws IOException {
         if (closed) throw new IOException("Approval store is closed");
-        byte[] json = mapper.writerWithDefaultPrettyPrinter().writeValueAsBytes(new Snapshot(2, nextDefinition, List.copyOf(updated.values())));
-        if (legacyOriginal != null && legacyBackup == null) {
+        int nextSchema = Math.max(2, Math.max(snapshotSchema, nextDefinition.schemaVersion()));
+        if (updated.values().stream().anyMatch(r -> r.definition().schemaVersion() == 3)) nextSchema = 3;
+        byte[] json = mapper.writerWithDefaultPrettyPrinter().writeValueAsBytes(new Snapshot(nextSchema, nextDefinition, List.copyOf(updated.values())));
+        if (previousSchemaOriginal != null && snapshotSchema < nextSchema && migrationBackup == null) {
             // Preserve the byte-exact original separately; never delete an existing migration backup.
-            Path backup = file.resolveSibling(file.getFileName() + ".schema1.bak");
-            if (Files.exists(backup)) backup = Files.createTempFile(file.getParent(), file.getFileName() + ".schema1-", ".bak");
+            Path backup = file.resolveSibling(file.getFileName() + ".schema" + snapshotSchema + ".bak");
+            if (Files.exists(backup)) backup = Files.createTempFile(file.getParent(), file.getFileName() + ".schema" + snapshotSchema + "-", ".bak");
             else if (Files.getFileStore(file.getParent()).supportsFileAttributeView("posix"))
                 Files.createFile(backup, PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-------")));
             else Files.createFile(backup);
-            writeForced(backup, legacyOriginal);
-            legacyBackup = backup;
+            writeForced(backup, previousSchemaOriginal);
+            migrationBackup = backup;
         }
         Path temp = Files.createTempFile(file.getParent(), "approval-", ".tmp");
         try {
@@ -179,7 +191,9 @@ public final class JsonApprovalStore implements ApprovalStore {
             Files.move(temp, file, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
             definition = nextDefinition;
             requests = new LinkedHashMap<>(updated); // Publish only after persistence succeeds.
-            legacyOriginal = null;
+            snapshotSchema = nextSchema;
+            previousSchemaOriginal = nextSchema < 3 ? json.clone() : null;
+            migrationBackup = null;
         } finally { Files.deleteIfExists(temp); }
     }
 

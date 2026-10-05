@@ -1,5 +1,7 @@
 import { test, expect } from '@playwright/test'
 
+async function designer(page) { await page.getByTestId('process-tab').click(); await page.getByTestId('designer-language').selectOption('en'); await page.getByTestId('select-step').first().click() }
+async function stage(page, index) { await page.getByTestId('select-step').nth(index - 1).click() }
 async function login(page, user) {
   await page.getByLabel('Demo account').selectOption(user)
   await page.getByLabel('Password', { exact: true }).fill(process.env[`APPROVAL_${user.toUpperCase()}_PASSWORD`])
@@ -41,7 +43,7 @@ test('first run: single approval, designer, sequential approvals, replay guard, 
   await expect(page.getByRole('status')).toHaveText('Request approved.')
 
   await switchUser(page, 'alice')
-  await page.getByTestId('process-tab').click()
+  await designer(page)
   await page.getByTestId('process-name').fill('Two-step synthetic leave approval')
   await page.getByLabel('Step 1 name', { exact: true }).fill('Team review')
   await page.getByTestId('add-step').click()
@@ -50,8 +52,10 @@ test('first run: single approval, designer, sequential approvals, replay guard, 
   await page.getByRole('button', { name: 'Move step 2 up', exact: true }).click()
   await expect(page.getByLabel('Step 1 name', { exact: true })).toHaveValue('Final review')
   await page.getByRole('button', { name: 'Move step 1 down', exact: true }).click()
+  await stage(page, 1)
   await expect(page.getByLabel('Step 1 name', { exact: true })).toHaveValue('Team review')
   // Invalid drafts cannot publish; reset returns to the loaded persisted version.
+  await stage(page, 2)
   await page.getByLabel('Step 2 name', { exact: true }).fill(' ')
   await expect(page.getByTestId('publish')).toBeDisabled()
   await page.getByLabel('Step 2 name', { exact: true }).fill('Final review')
@@ -67,7 +71,7 @@ test('first run: single approval, designer, sequential approvals, replay guard, 
   await switchUser(page, 'carol')
   await select(page, 'Sequential approval example')
   await expect(page.getByRole('button', { name: /^Approve/ })).toHaveCount(0)
-  await page.getByTestId('process-tab').click()
+  await designer(page)
   await expect(page.getByTestId('publish')).toHaveCount(0)
   await expect(page.getByText('Read-only template', { exact: true })).toBeVisible()
   await switchUser(page, 'bob')
@@ -100,7 +104,8 @@ test('first run: single approval, designer, sequential approvals, replay guard, 
   await expect(page.locator('.timeline li')).toHaveCount(3)
 
   // Publishing a new version must not rewrite the selected request snapshot.
-  await page.getByTestId('process-tab').click()
+  await designer(page)
+  await stage(page, 2)
   await page.getByRole('button', { name: 'Move step 2 up', exact: true }).click()
   await page.getByTestId('publish').click()
   await expect(page.getByRole('status')).toContainText('Template v3 published')

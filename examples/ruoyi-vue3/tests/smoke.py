@@ -122,6 +122,15 @@ def run(server, password):
     api("/arcflow/me", "invalid-token", allowed=(401,))
     api("/arcflow/requests", none, allowed=(403,))
     definition = data("/arcflow/process", a)
+    # Schema-3 groups require a participant-aware host/UI; this host remains sequential.
+    group_definition = {**definition, "schemaVersion": 3, "nodes": [
+        definition["nodes"][0],
+        {"id": "group", "type": "parallelApproval", "name": "Group", "assigneeId": None,
+         "assigneeIds": ["101", "102"], "completionMode": "ALL"},
+        definition["nodes"][-1],
+    ]}
+    api("/arcflow/process", admin, {"expectedVersion": definition["version"], "definition": group_definition}, allowed=(400,))
+    assert data("/arcflow/process", a) == definition
     proposed = {**definition, "name": "CI two-step process", "nodes": [
         {"id": "start", "type": "start", "name": "Submit", "assigneeId": None},
         {"id": "first", "type": "approval", "name": "First approval", "assigneeId": "101"},

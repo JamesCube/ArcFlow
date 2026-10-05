@@ -38,10 +38,73 @@ jobs:
       - run: mvn --batch-mode --no-transfer-progress install
       - run: mvn --batch-mode --no-transfer-progress -f examples/approval-domain/pom.xml install
       - run: mvn --batch-mode --no-transfer-progress -f examples/approval-jdbc/pom.xml verify
+      - name: Require actual PostgreSQL execution, never a skipped green build
+        run: |
+          python3 - <<'PY'
+          import xml.etree.ElementTree as ET
+          report = ET.parse('examples/approval-jdbc/target/surefire-reports/TEST-com.arcflow.approval.jdbc.PostgresqlApprovalStoreTest.xml').getroot()
+          assert int(report.attrib['tests']) >= 23, report.attrib
+          for key in ('skipped', 'errors', 'failures'):
+              assert int(report.attrib[key]) == 0, report.attrib
+          print('Real PostgreSQL contract executed:', report.attrib)
+          PY
       - name: Retain verification reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: jdbc-test-reports-java-${{ matrix.java }}
+          path: examples/approval-jdbc/target/surefire-reports/
+          retention-days: 7
+  mysql:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        java: ['17', '21']
+        mysql: ['8.0', '8.4']
+    services:
+      mysql:
+        image: mysql:${{ matrix.mysql }}
+        env:
+          # Disposable CI-only server. Tests need CREATE/DROP DATABASE for UUID-isolated catalogs.
+          MYSQL_ROOT_PASSWORD: arcflow-ci-disposable
+          MYSQL_ROOT_HOST: '%'
+          MYSQL_DATABASE: arcflow_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -parcflow-ci-disposable --silent"
+          --health-interval=5s --health-timeout=5s --health-retries=24
+    env:
+      # TLS is disabled only for this isolated loopback disposable CI server, never a host example.
+      ARCFLOW_MYSQL_URL: jdbc:mysql://127.0.0.1:3306/arcflow_test?sslMode=DISABLED&allowPublicKeyRetrieval=true
+      ARCFLOW_MYSQL_USER: root
+      ARCFLOW_MYSQL_PASSWORD: arcflow-ci-disposable
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+          cache: maven
+      - run: mvn --batch-mode --no-transfer-progress install
+      - run: mvn --batch-mode --no-transfer-progress -f examples/approval-domain/pom.xml install
+      - run: mvn --batch-mode --no-transfer-progress -f examples/approval-jdbc/pom.xml -Dtest=MysqlApprovalStoreTest verify
+      - name: Require actual MySQL execution, never a skipped green build
+        run: |
+          python3 - <<'PY'
+          import xml.etree.ElementTree as ET
+          report = ET.parse('examples/approval-jdbc/target/surefire-reports/TEST-com.arcflow.approval.jdbc.MysqlApprovalStoreTest.xml').getroot()
+          assert int(report.attrib['tests']) >= 29, report.attrib
+          for key in ('skipped', 'errors', 'failures'):
+              assert int(report.attrib[key]) == 0, report.attrib
+          print('Real MySQL contract executed:', report.attrib)
+          PY
+      - name: Retain MySQL verification reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mysql-${{ matrix.mysql }}-jdbc-test-reports-java-${{ matrix.java }}
           path: examples/approval-jdbc/target/surefire-reports/
           retention-days: 7

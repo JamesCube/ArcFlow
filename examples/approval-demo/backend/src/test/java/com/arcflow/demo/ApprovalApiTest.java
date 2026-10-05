@@ -158,7 +158,7 @@ class ApprovalApiTest {
     @Test void processPublicationValidatesLinearShapeNamesIdsAndAssignees() throws Exception {
         List<InvalidBody> invalid = new ArrayList<>();
         ObjectNode valid = definition(1, "bob");
-        for (int schema : List.of(0, 1, 3)) invalid.add(invalidDefinition("schema " + schema, valid, n -> n.put("schemaVersion", schema)));
+        for (int schema : List.of(0, 1, 4)) invalid.add(invalidDefinition("schema " + schema, valid, n -> n.put("schemaVersion", schema)));
         invalid.add(invalidDefinition("wrong process id", valid, n -> n.put("id", "other-process")));
         invalid.add(invalidDefinition("zero version", valid, n -> n.put("version", 0)));
         for (String name : List.of("", "  ", "x".repeat(121), "bad\nname", "bad\u0000name")) {
@@ -374,6 +374,94 @@ class ApprovalApiTest {
         noComment.remove("comment");
         postJson("/api/requests/" + another.path("id").textValue() + "/decisions", "bob", noComment)
             .andExpect(status().isOk()).andExpect(jsonPath("$.comment").value(""));
+    }
+
+    @Test void allGroupsPublishReloadAndAuthorizeEachVoteWithoutSkippingTheNextStep() throws Exception {
+        var proposal = groupDefinition(1, "ALL");
+        for (String user : List.of("bob", "carol"))
+            postJson("/api/process", user, publication(1, proposal)).andExpect(status().isForbidden());
+        JsonNode published = response(postJson("/api/process", "alice", publication(1, proposal)).andExpect(status().isOk()));
+        assertEquals(3, published.path("schemaVersion").intValue());
+        assertEquals(proposal.path("nodes"), getJson("/api/process", "bob").path("nodes"));
+        postJson("/api/process", "alice", publication(1, proposal)).andExpect(status().isConflict());
+        postJson("/api/requests", "bob", submission(2)).andExpect(status().isBadRequest());
+        JsonNode initial = submit("alice", 2);
+        assertStep(initial, "PENDING", "manager", "bob", 1);
+        decide("alice", initial, "manager", "APPROVE", "forged voter").andExpect(status().isForbidden());
+        decide("carol", initial, "step2", "APPROVE", "future").andExpect(status().isConflict());
+        JsonNode partial = response(decide("carol", initial, "manager", "APPROVE", "Carol first").andExpect(status().isOk()));
+        assertStep(partial, "PENDING", "manager", "bob", 2);
+        assertEquals(partial, response(decide("carol", initial, "manager", "APPROVE", "retry").andExpect(status().isOk())));
+        decide("carol", initial, "manager", "REJECT", "opposite").andExpect(status().isConflict());
+        JsonNode next = response(decide("bob", initial, "manager", "APPROVE", "Bob second").andExpect(status().isOk()));
+        assertStep(next, "PENDING", "step2", "carol", 3);
+        assertEquals(next, response(decide("carol", initial, "manager", "APPROVE", "late retry").andExpect(status().isOk())));
+        decide("bob", initial, "step2", "APPROVE", "wrong assignee").andExpect(status().isForbidden());
+        JsonNode done = response(decide("carol", initial, "step2", "APPROVE", "Final").andExpect(status().isOk()));
+        assertStep(done, "APPROVED", null, "carol", 4);
+        assertEquals(published, done.path("definition"));
+        assertEquals(List.of("alice", "carol", "bob", "carol"), eventValues(done, "actorId"));
+    }
+
+    @Test void anyAndAllRulesHaveDistinctPartialAndTerminalRejectionSemantics() throws Exception {
+        postJson("/api/process", "alice", publication(1, groupDefinition(1, "ANY"))).andExpect(status().isOk());
+        JsonNode first = submit("alice", 2);
+        JsonNode rejectedVote = response(decide("bob", first, "manager", "REJECT", "One no").andExpect(status().isOk()));
+        assertStep(rejectedVote, "PENDING", "manager", "carol", 2);
+        JsonNode allRejected = response(decide("carol", first, "manager", "REJECT", "Two no").andExpect(status().isOk()));
+        assertStep(allRejected, "REJECTED", null, "carol", 3);
+        JsonNode second = submit("alice", 2);
+        JsonNode anyApproved = response(decide("bob", second, "manager", "APPROVE", "One yes").andExpect(status().isOk()));
+        assertStep(anyApproved, "PENDING", "step2", "carol", 2);
+        decide("carol", second, "manager", "APPROVE", "Unneeded vote").andExpect(status().isConflict());
+        postJson("/api/process", "alice", publication(2, groupDefinition(2, "ALL"))).andExpect(status().isOk());
+        JsonNode third = submit("alice", 3);
+        JsonNode allFailed = response(decide("bob", third, "manager", "REJECT", "Veto").andExpect(status().isOk()));
+        assertStep(allFailed, "REJECTED", null, "bob", 2);
+        decide("carol", third, "manager", "APPROVE", "Too late").andExpect(status().isConflict());
+        assertEquals(2, getJson("/api/requests", "alice").get(0).path("history").size());
+    }
+
+    @Test void groupsRejectDuplicateParticipantsUnsupportedModesAndForgedActorFields() throws Exception {
+        List<InvalidBody> invalid = new ArrayList<>();
+        var valid = groupDefinition(1, "ALL");
+        for (String members : List.of("[]", "[\"bob\"]", "[\"bob\",\"bob\"]", "[\"bob\",\"alice\"]", "null", "\"bob\"", "[\"bob\",2]"))
+            invalid.add(invalidDefinition("invalid group members " + members, valid, n -> node(n, 1).set("assigneeIds", json(members))));
+        for (String field : List.of("assigneeIds", "completionMode"))
+            invalid.add(invalidDefinition("missing " + field, valid, n -> node(n, 1).remove(field)));
+        invalid.add(invalidDefinition("unsupported mode", valid, n -> node(n, 1).put("completionMode", "MAJORITY")));
+        invalid.add(invalidDefinition("single assignee in group", valid, n -> node(n, 1).put("assigneeId", "bob")));
+        invalid.add(invalidDefinition("schema2 group", valid, n -> n.put("schemaVersion", 2)));
+        invalid.add(invalidDefinition("script on group", valid, n -> node(n, 1).put("script", "execute")));
+        assertInvalidBodies("/api/process", "alice", invalid);
+        assertEquals(1, getJson("/api/process", "alice").path("version").intValue());
+        postJson("/api/process", "alice", publication(1, valid)).andExpect(status().isOk());
+        JsonNode item = submit("alice", 2);
+        ObjectNode forged = decision("manager", "APPROVE", "forged").put("actorId", "bob");
+        postJson("/api/requests/" + item.path("id").textValue() + "/decisions", "alice", forged).andExpect(status().isBadRequest());
+        assertEquals(item, getJson("/api/requests", "alice").get(0));
+    }
+
+    @Test void changingBackToSchema2KeepsExistingGroupSnapshotsAndLegacySingleApprovals() throws Exception {
+        JsonNode legacy = submit("alice", 1);
+        postJson("/api/process", "alice", publication(1, groupDefinition(1, "ALL"))).andExpect(status().isOk());
+        JsonNode grouped = submit("alice", 2);
+        postJson("/api/process", "alice", publication(2, definition(2, "bob"))).andExpect(status().isOk());
+        assertEquals(2, getJson("/api/process", "alice").path("schemaVersion").intValue());
+        assertEquals(3, getJson("/api/requests", "alice").get(0).path("definition").path("schemaVersion").intValue());
+        assertStep(response(decide("bob", legacy, "manager", "APPROVE", "Legacy").andExpect(status().isOk())), "APPROVED", null, "bob", 2);
+        assertStep(response(decide("bob", grouped, "manager", "APPROVE", "Group partial").andExpect(status().isOk())), "PENDING", "manager", "carol", 2);
+        JsonNode fresh = submit("alice", 3);
+        assertStep(response(decide("bob", fresh, "manager", "APPROVE", "Single").andExpect(status().isOk())), "APPROVED", null, "bob", 2);
+    }
+
+    private ObjectNode groupDefinition(int version, String mode) {
+        ObjectNode d = definition(version, "bob", "carol");
+        d.put("schemaVersion", 3);
+        ObjectNode group = node(d, 1);
+        group.put("type", "parallelApproval").putNull("assigneeId").put("completionMode", mode);
+        group.putArray("assigneeIds").add("bob").add("carol");
+        return d;
     }
 
     private MockHttpServletRequestBuilder authenticated(MockHttpServletRequestBuilder request, String user) {
