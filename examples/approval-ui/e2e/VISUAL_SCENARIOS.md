@@ -6,9 +6,9 @@ can capture a clean gallery in a separate Playwright invocation:
 
 ```sh
 # Run the existing functional journeys first.
-npm run test:e2e -- --grep-invert '^visual showcase:'
+npm run test:e2e -- --grep-invert 'visual showcase:'
 # Start new disposable servers and an empty store for the gallery.
-npm run test:e2e -- --grep '^visual showcase:' --output=visual-results
+npm run test:e2e -- --grep 'visual showcase:' --output=visual-results
 ```
 
 Build the backend and install Playwright first, as described in the
@@ -16,11 +16,12 @@ Build the backend and install Playwright first, as described in the
 to reuse existing servers, generates disposable passwords and creates a new
 single-writer store. The existing configuration runs one worker. Do not override
 that setting or run competing publications against the same backend. The visual
-journey reads the current version before every seeded publication and restores
-the preceding template topology in `finally`; it never rewrites version numbers
-or existing request snapshots. It can run with the regular suite, but their
-previous request rows will appear in screenshots, so use a separate invocation
-for the curated gallery.
+journey reads the current version before every seeded publication; it never rewrites
+version numbers or existing request snapshots. Playwright stops the disposable servers after the run; the isolated temporary
+data directory can remain until the runner is cleaned up. No cleanup publication
+can mask the original failure. Run it
+in the separate invocation shown above, keeping gallery data and functional fixtures
+isolated.
 
 ## Captures and evidence
 
@@ -82,7 +83,10 @@ and `carol` directly; it does not discover managers, resolve organizational role
 or integrate an HR directory. These screenshots prove only the standalone demo,
 not the separately developed native RuoYi integration or production readiness.
 
-No password-form screenshots, trace, HAR, video, saved authentication state or
-credential dumps are produced. CI should upload only the PNG directories. Runtime
+No password-form screenshots, trace, HAR, video or saved authentication state
+are produced. Explicit progress logs contain no credential values. Gallery API
+transport and password-entry errors are replaced with bounded summaries because
+Playwright’s raw failure logs can contain headers or filled values; do not add raw
+error/cause logging. CI uploads only the PNG directories. Runtime
 and visual acceptance require a successful current CI run and inspection of its
 artifacts; static syntax checks alone do not establish either.
