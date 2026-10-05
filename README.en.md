@@ -170,3 +170,7 @@ CI badges track `main`; inspect the workflow run for the exact commit you are ev
 ## License
 
 [Apache License 2.0](LICENSE). The separately fetched official RuoYi projects retain their MIT licenses. This integration does not imply upstream endorsement.
+
+## Mobile approvals (H5 first slice)
+
+The separate uni-app Vue 3 [mobile approval client](examples/approval-mobile/README.md) uses the real backend for worklists, decision notes and audit history. Build, unit and HTTP checks have run; browser visuals, native/mini-program targets and enterprise-platform integration remain separate acceptance work.

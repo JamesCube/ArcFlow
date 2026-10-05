@@ -170,3 +170,7 @@ Order DEMO-001: 120
 ## 许可证
 
 [Apache License 2.0](LICENSE)。另行下载的官方若依项目保留其 MIT 许可证；本集成不代表上游背书。
+
+## 移动审批（H5 首片）
+
+独立的 uni-app Vue 3 [移动审批客户端](examples/approval-mobile/README.md) 已提供真实后端待办、审批意见和历史闭环。构建与单元/HTTP 检查已执行；浏览器视觉、App/小程序和飞书/企微/钉钉接入仍待单独验收。
