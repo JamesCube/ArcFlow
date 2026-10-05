@@ -123,8 +123,15 @@ def native_data(page, path, action, method="POST"):
     return value["data"]
 
 
+def open_select(page, label):
+    # Element Plus renders selected text above a non-filterable readonly input.
+    # Click its normal visible wrapper, not that covered accessibility input.
+    combobox = page.get_by_role("combobox", name=label, exact=True)
+    page.locator(".el-select__wrapper").filter(has=combobox).click()
+
+
 def choose_option(page, label, option):
-    page.get_by_role("combobox", name=label, exact=True).click()
+    open_select(page, label)
     page.get_by_role("listbox", name=label, exact=True).get_by_role(
         "option", name=option, exact=True).click()
     page.keyboard.press("Escape")
@@ -291,7 +298,7 @@ def run(frontend_directory, output_directory, password):
                 expect(page.get_by_role("combobox", name=f"审批 {step} 审批人", exact=True)).to_have_count(0)
                 expect(page.get_by_role("button", name="发布新版本", exact=True)).to_be_disabled()
                 participant_label = f"审批 {step} 参与人"
-                page.get_by_role("combobox", name=participant_label, exact=True).click()
+                open_select(page, participant_label)
                 choices = page.get_by_role("listbox", name=participant_label, exact=True)
                 expect(choices.get_by_role("option", name="CI " + retained, exact=True)).to_have_attribute("aria-selected", "true")
                 expect(choices.get_by_role("option", name="CI " + added, exact=True)).to_have_attribute("aria-selected", "false")
