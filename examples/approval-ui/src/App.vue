@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { api } from './api'
 import ProcessDesigner from './ProcessDesigner.vue'
+import UiIcon from './UiIcon.vue'
 import { appCopy, translate, validationText, apiFailure } from './locale'
 import { approvalNodes, isApproval, participants, pendingParticipants, participantVotes, cloneDefinition, validateDefinition, stepState } from './process'
 
@@ -200,16 +201,16 @@ function select(item) { selectedId.value = item.id; comment.value = ''; error.va
     <aside class="sidebar">
       <div class="wordmark"><span class="logo">a</span> arcflow</div><p class="sidebar-label">{{ t.workspaceLabel }}</p>
       <nav :aria-label="t.navigation">
-        <button data-testid="requests-tab" :class="{active: tab === 'requests'}" :aria-current="tab === 'requests' ? 'page' : undefined" @click="navigate('requests')"><span class="nav-symbol" aria-hidden="true">▤</span><span>{{ t.requests }}</span></button>
-        <button data-testid="inbox-tab" :class="{active: tab === 'inbox'}" :aria-current="tab === 'inbox' ? 'page' : undefined" @click="navigate('inbox')"><span class="nav-symbol" aria-hidden="true">◷</span><span>{{ t.needsMyReview }}</span><b>{{ pending.length }}</b></button>
-        <button data-testid="process-tab" :class="{active: tab === 'process'}" :aria-current="tab === 'process' ? 'page' : undefined" @click="navigate('process')"><span class="nav-symbol" aria-hidden="true">◇</span><span>{{ t.processDesigner }}</span></button>
+        <button data-testid="requests-tab" :class="{active: tab === 'requests'}" :aria-current="tab === 'requests' ? 'page' : undefined" @click="navigate('requests')"><UiIcon name="requests" /><span>{{ t.requests }}</span></button>
+        <button data-testid="inbox-tab" :class="{active: tab === 'inbox'}" :aria-current="tab === 'inbox' ? 'page' : undefined" @click="navigate('inbox')"><UiIcon name="review" /><span>{{ t.needsMyReview }}</span><b>{{ pending.length }}</b></button>
+        <button data-testid="process-tab" :class="{active: tab === 'process'}" :aria-current="tab === 'process' ? 'page' : undefined" @click="navigate('process')"><UiIcon name="process" /><span>{{ t.processDesigner }}</span></button>
       </nav>
-      <div class="sidebar-bottom"><span class="avatar">{{ displayName(me).charAt(0) }}</span><div><strong>{{ displayName(me) }}</strong><small>{{ me.id }}</small></div><button class="logout" data-testid="sign-out" @click="logout" :aria-label="t.signOut" :title="t.signOut">↪</button></div>
+      <div class="sidebar-bottom"><span class="avatar">{{ displayName(me).charAt(0) }}</span><div><strong>{{ displayName(me) }}</strong><small>{{ me.id }}</small></div><button class="logout" data-testid="sign-out" @click="logout" :aria-label="t.signOut" :title="t.signOut"><UiIcon name="logout" /></button></div>
     </aside>
     <section class="main-area">
-      <header class="topbar"><span class="breadcrumb">{{ t.workspace }} <span class="slash">/</span> {{ t.leaveApprovals }}</span><div class="topbar-actions"><span class="prototype">{{ t.prototype }}</span><label class="workspace-locale"><span>{{ t.languageShort }}</span><select v-model="locale" data-testid="workspace-language" :aria-label="t.language"><option value="en">English</option><option value="zh">简体中文</option></select></label></div></header>
+      <header class="topbar"><span class="breadcrumb">{{ t.workspace }} <span class="slash">/</span> <strong>{{ tab === 'process' ? t.processDesigner : tab === 'inbox' ? t.needsReview : t.leaveApprovals }}</strong></span><div class="topbar-actions"><span class="prototype">{{ t.prototype }}</span><label class="workspace-locale"><span>{{ t.languageShort }}</span><select v-model="locale" data-testid="workspace-language" :aria-label="t.language"><option value="en">English</option><option value="zh">简体中文</option></select></label></div></header>
       <div class="content">
-        <div class="page-heading"><div><p class="eyebrow">{{ t.keepMoving }}</p>
+        <div class="page-heading"><div>
           <h1>{{ tab === 'process' ? t.processDesigner : tab === 'inbox' ? t.needsReview : t.leaveApprovals }}</h1>
           <p class="muted">{{ tab === 'process' ? t.designerDescription : t.requestsDescription }}</p>
         </div><button class="secondary" data-testid="refresh" :disabled="busy" @click="refresh">{{ busy ? t.working : t.refresh }}</button></div>
@@ -226,7 +227,7 @@ function select(item) { selectedId.value = item.id; comment.value = ''; error.va
         <div v-if="tab !== 'process'" class="columns">
           <section class="request-column">
             <form v-if="tab === 'requests'" class="card new-request" @submit.prevent="submit">
-              <div class="card-heading"><div><p class="eyebrow">{{ t.startHere }}</p><h2>{{ t.newRequest }}</h2></div><span class="small-icon" aria-hidden="true">↗</span></div>
+              <div class="card-heading"><div><p class="eyebrow">{{ t.startHere }}</p><h2>{{ t.newRequest }}</h2></div><span class="small-icon"><UiIcon name="arrow" /></span></div>
               <div class="submission-template" data-testid="submission-template"><strong>{{ process?.name }} · v{{ process?.version }}</strong><p>{{ publishedApprovals.map(node => `${node.name} (${nodeSummary(node)})`).join(' → ') }}</p><small>{{ t.savedTemplate }}<template v-if="draftDirty"> {{ t.draftNotUsed }}</template></small></div>
               <p v-if="selfAssigned" class="warning">{{ t.selfAssignedWarning }}</p>
               <div class="request-form-fields"><label class="request-title-field">{{ t.title }}<input v-model="title" data-testid="request-title" maxlength="120" :placeholder="t.titlePlaceholder" required :disabled="busy"></label>
@@ -236,7 +237,7 @@ function select(item) { selectedId.value = item.id; comment.value = ''; error.va
             </form>
             <section class="card request-list"><div class="card-heading"><h2>{{ tab === 'inbox' ? t.pendingDecisions : t.yourVisibleRequests }}</h2><span class="count">{{ visible.length }}</span></div>
               <p v-if="!visible.length" class="empty">{{ tab === 'inbox' ? t.caughtUp : t.noRequests }}</p>
-              <button v-for="item in visible" :key="item.id" class="request-item" :class="{selected: selectedId === item.id}" :aria-pressed="selectedId === item.id" @click="select(item)"><span class="request-glyph" aria-hidden="true">▤</span><span class="request-summary"><strong>{{ item.title }}</strong><small>{{ person(item.applicantId) }} · {{ duration(item.days) }}<template v-if="item.status === 'PENDING'"> · {{ tr('awaiting', { names: pendingNames(item) }) }}</template></small></span><span class="status" :class="item.status.toLowerCase()">{{ statusLabel(item.status) }}</span></button>
+              <button v-for="item in visible" :key="item.id" class="request-item" :class="{selected: selectedId === item.id}" :aria-pressed="selectedId === item.id" @click="select(item)"><span class="request-glyph"><UiIcon name="requests" /></span><span class="request-summary"><strong>{{ item.title }}</strong><small>{{ person(item.applicantId) }} · {{ duration(item.days) }}<template v-if="item.status === 'PENDING'"> · {{ tr('awaiting', { names: pendingNames(item) }) }}</template></small></span><span class="status" :class="item.status.toLowerCase()">{{ statusLabel(item.status) }}</span></button>
             </section>
           </section>
           <aside class="detail card">
@@ -244,19 +245,19 @@ function select(item) { selectedId.value = item.id; comment.value = ''; error.va
               <div class="card-heading"><p class="eyebrow">{{ t.requestDetails }}</p><span class="status" :class="selected.status.toLowerCase()">{{ statusLabel(selected.status) }}</span></div>
               <h2>{{ selected.title }}</h2><p class="detail-reason">{{ selected.reason }}</p>
               <dl><div><dt>{{ t.applicant }}</dt><dd>{{ person(selected.applicantId) }}</dd></div><div><dt>{{ selected.status === 'PENDING' ? t.awaitingVotes : t.lastVoter }}</dt><dd>{{ selected.status === 'PENDING' ? pendingNames(selected) : person(selected.approverId) }}</dd></div><div><dt>{{ t.duration }}</dt><dd>{{ duration(selected.days) }}</dd></div><div><dt>{{ t.savedProcess }}</dt><dd>{{ selected.processId }} · v{{ selected.processVersion }}</dd></div></dl>
+              <p v-if="currentNode?.type === 'parallelApproval'" class="group-rule current-rule">{{ groupRule(currentNode) }}</p>
+              <form v-if="canDecide" @submit.prevent="decide('APPROVE')" class="decision-form"><p class="decision-context">{{ t.reviewing }} <strong>{{ currentNode?.name }}</strong></p><label>{{ t.decisionComment }} <span class="muted">{{ t.optional }}</span><textarea v-model="comment" data-testid="decision-comment" maxlength="2000" rows="3" :disabled="busy"></textarea></label><div class="decision-actions"><button type="button" class="danger" data-testid="reject-decision" :disabled="busy" @click="decide('REJECT')">{{ currentNode?.type === 'parallelApproval' ? t.rejectVote : t.rejectRequest }}</button><button class="primary" data-testid="approve-decision" :disabled="busy">{{ currentNode?.type === 'parallelApproval' ? t.approveVote : followingNode ? t.approveStep : t.approveRequest }}</button></div></form>
+              <p v-else-if="selected.status === 'PENDING'" class="footnote">{{ t.whoCanDecide }}</p>
               <section class="instance-snapshot" data-testid="instance-snapshot">
                 <h3>{{ t.savedSequence }}</h3><p class="footnote">{{ selected.definition?.name }} · v{{ selected.definition?.version }} · {{ t.readOnlySnapshot }}</p>
                 <ol class="snapshot-steps"><li v-for="node in selected.definition?.nodes" :key="node.id" :class="stepState(selected, node)" :data-step-id="node.id"><span class="snapshot-dot" aria-hidden="true"></span><div><strong>{{ node.name }}</strong><small v-if="isApproval(node)">{{ nodeSummary(node) }}</small>
                   <div v-if="node.type === 'parallelApproval'" class="participant-votes" :aria-label="tr('participantVotes', { name: node.name })"><div v-for="vote in participantVotes(selected, node)" :key="vote.actorId" class="participant-vote" :data-participant="vote.actorId"><span>{{ person(vote.actorId) }} · {{ voteLabel(vote.state) }}</span><small v-if="vote.at">{{ date(vote.at) }}</small><p v-if="vote.comment">{{ vote.comment }}</p></div></div></div><span class="step-state">{{ stateLabel(stepState(selected, node)) }}</span></li></ol>
                 <p v-if="selected.status === 'PENDING'" class="next-step"><strong>{{ t.now }}</strong> {{ currentNode?.name }} · {{ pendingNames(selected) }}<br><template v-if="followingNode"><strong>{{ t.next }}</strong> {{ followingNode.name }} · {{ nodeSummary(followingNode) }}</template><template v-else>{{ t.finalStep }}</template></p>
               </section>
-              <p v-if="currentNode?.type === 'parallelApproval'" class="group-rule current-rule">{{ groupRule(currentNode) }}</p>
               <h3 class="history-heading">{{ t.activity }}</h3><ol class="timeline"><li v-for="(entry, index) in history" :key="index"><strong>{{ historyLabel(entry) }}</strong><p>{{ person(entry.actorId) }}</p><small>{{ date(entry.at) }}</small><p v-if="entry.comment" class="decision-comment">{{ entry.comment }}</p></li><li v-if="selected.status === 'PENDING'" class="waiting"><strong>{{ t.awaitingReview }} · {{ currentNode?.name }}</strong><p>{{ pendingNames(selected) }}</p></li></ol>
-              <form v-if="canDecide" @submit.prevent="decide('APPROVE')" class="decision-form"><p class="decision-context">{{ t.reviewing }} <strong>{{ currentNode?.name }}</strong></p><label>{{ t.decisionComment }} <span class="muted">{{ t.optional }}</span><textarea v-model="comment" data-testid="decision-comment" maxlength="2000" rows="3" :disabled="busy"></textarea></label><div class="decision-actions"><button type="button" class="danger" data-testid="reject-decision" :disabled="busy" @click="decide('REJECT')">{{ currentNode?.type === 'parallelApproval' ? t.rejectVote : t.rejectRequest }}</button><button class="primary" data-testid="approve-decision" :disabled="busy">{{ currentNode?.type === 'parallelApproval' ? t.approveVote : followingNode ? t.approveStep : t.approveRequest }}</button></div></form>
-              <p v-else-if="selected.status === 'PENDING'" class="footnote">{{ t.whoCanDecide }}</p>
               <details class="snapshot-json"><summary>{{ t.inspectSnapshot }}</summary><pre>{{ JSON.stringify(selected.definition, null, 2) }}</pre></details><small class="request-id">{{ selected.id }}</small>
             </template>
-            <div v-else class="detail-empty"><span aria-hidden="true">◷</span><h2>{{ t.fullPicture }}</h2><p>{{ t.selectRequest }}</p></div>
+            <div v-else class="detail-empty"><span><UiIcon name="review" /></span><h2>{{ t.fullPicture }}</h2><p>{{ t.selectRequest }}</p></div>
           </aside>
         </div>
         <footer class="page-footer">{{ t.footer }} <span>{{ t.footerNote }}</span></footer>

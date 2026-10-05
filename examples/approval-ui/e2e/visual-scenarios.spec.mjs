@@ -294,6 +294,11 @@ test('visual showcase: bilingual leave design, applicant, ALL votes, ANY result 
       await readableControl(page.locator('.insert-step').first(), { minHeight: 44, minFont: 18 })
       await readableControl(page.getByTestId('add-step'), { minHeight: 44, minFont: 12 })
       await capture(page, testInfo, `06-mobile-all-workspace-${locale}-390`, { mobile: true })
+      // The first real stage must enter the initial viewport even with publication feedback.
+      const firstStageTop = await page.getByTestId('select-step').first().evaluate(element => element.getBoundingClientRect().top)
+      expect(firstStageTop, 'Compact chrome leaves a real stage in the first mobile viewport').toBeLessThan(760)
+      await readableControl(page.getByTestId('undo'), { minHeight: 44, minFont: 11 })
+      await readableControl(page.getByTestId('redo'), { minHeight: 44, minFont: 11 })
       await capture(page, testInfo, `06-mobile-all-designer-flow-${locale}-390`, { mobile: true, anchor: switcher })
       await stage(page)
       await expect(page.locator('.step-inspector')).toBeVisible()
@@ -316,6 +321,9 @@ test('visual showcase: bilingual leave design, applicant, ALL votes, ANY result 
     await page.getByTestId('inbox-tab').click()
     await selectRequest(page, allRequest.title)
     await page.getByTestId('decision-comment').fill('My handover is ready. / 我的交接已完成。')
+    expect(await page.locator('.decision-form').evaluate(element =>
+      Boolean(element.compareDocumentPosition(document.querySelector('.instance-snapshot')) & Node.DOCUMENT_POSITION_FOLLOWING)
+    ), 'Review actions precede the saved sequence').toBe(true)
     await page.setViewportSize(MOBILE)
     for (const locale of ['zh', 'en']) {
       await language(page, locale)
