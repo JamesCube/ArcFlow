@@ -2,6 +2,7 @@
 import { computed, nextTick, reactive, ref, watch } from 'vue'
 import { MAX_APPROVALS, MAX_NAME_LENGTH, approvalNodes, isApproval, approvalMode, participants, setApprovalMode, cloneDefinition, validateDefinition } from './process'
 import { validationText } from './locale'
+import UiIcon from './UiIcon.vue'
 import { createDraftHistory, insertApproval, moveApproval, removeApproval, updateApproval } from './designer-model'
 
 const props = defineProps({ modelValue: Object, published: Object, people: { type: Array, default: () => [] }, editable: Boolean, busy: Boolean, publishing: Boolean, dirty: Boolean, stale: Boolean, initialLocale: { type: String, default: 'zh' }, showLanguage: { type: Boolean, default: true } })
@@ -144,7 +145,7 @@ async function focusIssue(message) {
     <div class="designer-toolbar">
       <label v-if="editable" class="process-name">{{ t.processName }}<input :value="modelValue.name" data-testid="process-name" :maxlength="MAX_NAME_LENGTH" :disabled="busy" @input="editProcessName($event.target.value)" @blur="history.endMerge()"></label>
       <h3 v-else class="readonly-name">{{ published.name }}</h3>
-      <div v-if="editable" class="designer-history" :aria-label="locale === 'zh' ? '草稿编辑历史' : 'Draft edit history'"><button type="button" class="secondary" data-testid="undo" :disabled="busy || !history.canUndo" @click="travel('undo')">↶ {{ t.undo }}</button><button type="button" class="secondary" data-testid="redo" :disabled="busy || !history.canRedo" @click="travel('redo')">↷ {{ t.redo }}</button></div>
+      <div v-if="editable" class="designer-history" :aria-label="locale === 'zh' ? '草稿编辑历史' : 'Draft edit history'"><button type="button" class="secondary" data-testid="undo" :aria-label="t.undo" :disabled="busy || !history.canUndo" @click="travel('undo')"><UiIcon name="undo" /><span>{{ t.undo }}</span></button><button type="button" class="secondary" data-testid="redo" :aria-label="t.redo" :disabled="busy || !history.canRedo" @click="travel('redo')"><UiIcon name="redo" /><span>{{ t.redo }}</span></button></div>
       <label v-if="showLanguage" class="designer-language"><span class="sr-only">Designer language / 设计器语言</span><select v-model="locale" data-testid="designer-language" aria-label="Designer language / 设计器语言"><option value="zh">中文</option><option value="en">English</option></select></label>
     </div>
     <div class="designer-state" aria-live="polite"><span class="draft-badge" :class="{dirty}">{{ !editable ? t.readOnly : dirty ? t.dirty : t.clean }}</span><span>{{ t.published }} v{{ published.version }}<template v-if="editable"> · {{ t.draft }} v{{ modelValue.version }}</template></span><span v-if="!editable" class="draft-storage">{{ t.editorOnly }}</span></div>
@@ -171,7 +172,7 @@ async function focusIssue(message) {
         <div v-if="editable" class="designer-add"><button type="button" class="secondary" data-testid="add-step" :disabled="!canAdd" @click="insert(modelValue.nodes.at(-2).id)">＋ {{ t.add }}</button><p v-if="!canAdd && !busy" class="limit-hint">{{ t.limit }}</p><p v-else>{{ t.keyboard }}</p></div>
       </div>
       <aside v-if="selected" ref="inspector" class="step-inspector" tabindex="-1" aria-labelledby="inspector-heading">
-        <header class="inspector-heading"><div><p>{{ t.stage }} {{ selectedIndex }}</p><h3 id="inspector-heading">{{ t.inspector }}</h3></div><span class="inspector-symbol" aria-hidden="true">≡</span></header>
+        <header class="inspector-heading"><div><p>{{ t.stage }} {{ selectedIndex }}</p><h3 id="inspector-heading">{{ t.inspector }}</h3></div><span class="inspector-symbol"><UiIcon name="settings" /></span></header>
         <template v-if="editable">
           <label>{{ t.name }}<input ref="nameInput" :value="selected.name" :aria-label="ariaLabel('name', selectedIndex)" :aria-invalid="!!nameError" :aria-describedby="nameError ? 'step-name-error' : undefined" :maxlength="MAX_NAME_LENGTH" :disabled="busy" @input="editName($event.target.value)" @blur="history.endMerge()"></label><p v-if="nameError" id="step-name-error" class="field-error">{{ issueText(nameError) }}</p>
           <label>{{ t.mode }}<select :value="approvalMode(selected)" :aria-label="ariaLabel('mode', selectedIndex)" :disabled="busy" @change="mode($event.target.value)"><option value="SINGLE">{{ t.single }}</option><option value="ALL">{{ t.all }}</option><option value="ANY">{{ t.any }}</option></select></label>

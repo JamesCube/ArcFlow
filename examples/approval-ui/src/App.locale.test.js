@@ -109,6 +109,29 @@ describe('one language throughout the workspace', () => {
   })
 })
 
+describe('task-first workspace hierarchy', () => {
+  it('keeps a review decision before the long snapshot and activity trail', async () => {
+    const { wrapper } = setup(); await login(wrapper); await wrapper.find('.request-item').trigger('click')
+    const detail = wrapper.find('.detail').element
+    const form = detail.querySelector('.decision-form')
+    const snapshot = detail.querySelector('.instance-snapshot')
+    expect(form.compareDocumentPosition(snapshot) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(wrapper.findAll('.decision-form')).toHaveLength(1)
+    expect(posts()).toHaveLength(0)
+  })
+  it('tracks the active page in both breadcrumb languages and keeps decorative icons hidden', async () => {
+    const { wrapper } = setup('alice'); await login(wrapper)
+    await field(wrapper, 'process-tab').trigger('click')
+    expect(wrapper.find('.breadcrumb').text()).toContain('Process designer')
+    await locale(wrapper, 'zh')
+    expect(wrapper.find('.breadcrumb').text()).toContain('流程设计器')
+    await field(wrapper, 'inbox-tab').trigger('click')
+    expect(wrapper.find('.breadcrumb').text()).toContain('待你审批')
+    wrapper.findAll('.ui-icon').forEach(icon => expect(icon.attributes('aria-hidden')).toBe('true'))
+    expect(field(wrapper, 'undo').attributes('aria-label')).toBe('撤销')
+  })
+})
+
 describe('localized recovery in real application states', () => {
   it('retranslates login errors and clears credentials on failure', async () => {
     const { wrapper } = setup(); api.request.mockRejectedValue(Object.assign(new Error('Unauthorized'), { status: 401 }))
