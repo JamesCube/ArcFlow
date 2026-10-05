@@ -24,7 +24,7 @@ async function login(wrapper) {
   await wrapper.find('.login-form').trigger('submit')
   await flushPromises()
 }
-async function designer(wrapper) { await wrapper.find('[data-testid="process-tab"]').trigger('click'); await wrapper.find('[data-testid="designer-language"]').setValue('en') }
+async function designer(wrapper) { await wrapper.find('[data-testid="process-tab"]').trigger('click'); await wrapper.find('[data-testid="workspace-language"]').setValue('en') }
 async function selectStep(wrapper, index) { await wrapper.findAll('[data-testid="select-step"]')[index - 1].trigger('click') }
 async function requestForm(wrapper) {
   await wrapper.find('.new-request input[maxlength="120"]').setValue('Annual leave')
@@ -48,7 +48,7 @@ describe('authentication and session isolation', () => {
   })
   it('shows login errors without entering the workspace or keeping credentials', async () => {
     const { wrapper } = setup(); api.request.mockRejectedValue(new Error('Unauthorized')); await login(wrapper)
-    expect(wrapper.find('[role=alert]').text()).toBe('Unauthorized')
+    expect(wrapper.find('[role=alert]').text()).toContain('Check the demo account and its server-configured password')
     expect(wrapper.find('.workspace').exists()).toBe(false)
     expect(api.logout).toHaveBeenCalled()
     expect(wrapper.find('input[type=password]').element.value).toBe('')
@@ -442,7 +442,8 @@ describe('parallel process designer and participant views', () => {
     api.request.mockResolvedValueOnce(published)
     await button(wrapper, 'publish').trigger('click'); await flushPromises()
     expect(payload()).toEqual({ expectedVersion: 1, definition: { ...published, version: 1 } })
-    expect(wrapper.text()).toContain('Published v2 · schema v3')
+    expect(wrapper.text()).toContain('Published v2')
+    expect(JSON.parse(wrapper.find('.designer-json pre').text()).schemaVersion).toBe(3)
   })
   it('blocks missing participants, keeps changes across navigation, and resets without posting', async () => {
     const { wrapper } = setup(); await login(wrapper); await designer(wrapper)
