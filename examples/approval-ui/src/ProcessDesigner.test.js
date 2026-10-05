@@ -47,12 +47,21 @@ describe('focused designer workbench',()=>{
   })
   it('brings the stacked inspector into view after pointer selection on a narrow screen',async()=>{
     const scrollIntoView=vi.fn()
-    vi.stubGlobal('matchMedia',()=>({matches:true}))
+    vi.stubGlobal('matchMedia', query => ({ matches: query.includes('max-width') }))
     const {wrapper}=setup()
     wrapper.get('.step-inspector').element.scrollIntoView=scrollIntoView
     cards(wrapper)[1].element.dispatchEvent(new MouseEvent('click',{detail:1,bubbles:true})); await flushPromises()
     expect(scrollIntoView).toHaveBeenCalledWith({block:'start',behavior:'smooth'})
     expect(selected(wrapper).attributes('data-step-id')).toBe('final')
+  })
+  it('respects reduced motion when opening the mobile inspector', async () => {
+    const scrollIntoView = vi.fn()
+    vi.stubGlobal('matchMedia', () => ({ matches: true }))
+    const { wrapper } = setup()
+    wrapper.get('.step-inspector').element.scrollIntoView = scrollIntoView
+    cards(wrapper)[1].element.dispatchEvent(new MouseEvent('click', { detail: 1, bubbles: true }))
+    await flushPromises()
+    expect(scrollIntoView).toHaveBeenCalledWith({ block: 'start', behavior: 'auto' })
   })
   it('keeps identity and selection through movement, deletion, undo and redo',async()=>{
     const {wrapper,state}=setup(); await cards(wrapper)[1].trigger('click')

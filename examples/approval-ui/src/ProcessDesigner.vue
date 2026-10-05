@@ -65,7 +65,10 @@ async function choose(id, focus = false) {
   if (window.matchMedia?.('(max-width: 930px)').matches) mobileEditing.value = true
   await nextTick()
   if (focus) (nameInput.value || inspector.value)?.focus()
-  else if (window.matchMedia?.('(max-width: 930px)').matches) inspector.value?.scrollIntoView?.({ block: 'start', behavior: 'smooth' })
+  else if (window.matchMedia?.('(max-width: 930px)').matches) {
+    const behavior = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
+    inspector.value?.scrollIntoView?.({ block: 'start', behavior })
+  }
 }
 async function insert(after) {
   if (!canAdd.value) return
