@@ -68,6 +68,26 @@ class JdbcApprovalStoreTest {
         assertNotNull(string(firstDataSource, "SELECT published_at FROM arc_process_version WHERE process_version = 2"));
     }
 
+    @Test void procurementBusinessSnapshotSurvivesFileBackedDatabaseRestart() throws Exception {
+        String location = "file:" + temp.resolve("business-approvals");
+        var source = database(location);
+        install(source);
+        var definition = ServerApprovalStoreContract.procurementDefinition("bob");
+        var document = ServerApprovalStoreContract.procurement();
+        Request approved;
+        try (var first = new ApprovalService(new JdbcApprovalStore(source, mapper, definition), ServerApprovalStoreContract.USERS)) {
+            var submitted = first.submitDocument("alice", document, 1, "file-backed-purchase");
+            approved = first.decide("bob", submitted.id(), "manager", "APPROVE", "Budget checked");
+        }
+        // No DB_CLOSE_DELAY: the file database actually closes when the last connection closes.
+        try (var restarted = new ApprovalService(new JdbcApprovalStore(database(location), mapper, definition), ServerApprovalStoreContract.USERS)) {
+            assertEquals(List.of(approved), restarted.list("alice"));
+            assertEquals(document, restarted.list("alice").get(0).business());
+            assertEquals(approved, restarted.submitDocument("alice", document, 1, "file-backed-purchase"));
+        }
+        assertEquals(2, scalar(database(location), "SELECT COUNT(*) FROM arc_request_event"));
+    }
+
     @Test void independentInstancesReadFreshDatabaseState() throws Exception {
         JdbcDataSource dataSource = initialized();
         try (var first = store(dataSource); var second = store(dataSource)) {

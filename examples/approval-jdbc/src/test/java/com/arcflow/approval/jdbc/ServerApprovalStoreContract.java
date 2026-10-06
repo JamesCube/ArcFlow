@@ -2,9 +2,11 @@ package com.arcflow.approval.jdbc;
 
 import com.arcflow.approval.ActorDirectory;
 import com.arcflow.approval.ApprovalService;
+import com.arcflow.approval.BusinessDocument;
 import com.arcflow.approval.ProcessDefinition;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -625,6 +627,217 @@ abstract class ServerApprovalStoreContract {
             assertNotEquals(legacy.id(), keyed.id());
             assertEquals(keyed, service.submit("alice", "Leave", "Rest", 1, 1, "after-upgrade"));
             assertEquals(2, count("arc_request"));
+        }
+    }
+
+    protected static ProcessDefinition procurementDefinition(String approver) {
+        var base = ProcessDefinition.legacy(approver);
+        return new ProcessDefinition(base.schemaVersion(), "procurement-approval", 1, "Procurement approval", base.nodes());
+    }
+
+    private ApprovalService open(ProcessDefinition definition) throws IOException {
+        return new ApprovalService(new JdbcApprovalStore(dataSource, new ObjectMapper(), definition), USERS);
+    }
+
+    protected static BusinessDocument.Procurement procurement() {
+        return new BusinessDocument.Procurement("purchase:2026/001", "Team laptops", "Replacement equipment",
+            "Laptop", 3, new BigDecimal("1299.95"), "USD");
+    }
+
+    @Test void procurementSnapshotDecisionAndKeyReplaySurvivePublicationAndAdapterReopen() throws Exception {
+        ApprovalService.Request original;
+        ApprovalService.Request approved;
+        var definition = procurementDefinition("bob");
+        var priceCases = new ArrayList<ApprovalService.Request>();
+        var amounts = List.of("10", "100", "1000000000", "0.10");
+        try (var service = open(definition)) {
+            original = service.submitDocument("alice", procurement(), 1, "purchase-001");
+            assertEquals(procurement(), original.business());
+            assertEquals(0, original.days());
+            assertEquals(definition.id(), original.processId());
+            assertEquals(409, result(() -> service.submitDocument("alice",
+                new BusinessDocument.Procurement("purchase:2026/001", "Team laptops", "Replacement equipment",
+                    "Laptop", 4, new BigDecimal("1299.95"), "USD"), 1, "purchase-001")));
+            service.publish("alice", 1, procurementDefinition("carol"));
+            approved = service.decide("bob", original.id(), "manager", "APPROVE", "Budget checked");
+            assertEquals(procurement(), approved.business());
+            assertEquals(original.definition(), approved.definition());
+            assertEquals("APPROVED", approved.status());
+            for (int i = 0; i < amounts.size(); i++) {
+                var priceDocument = new BusinessDocument.Procurement("purchase:price/" + i, "Price precision", "Canonical decimal test",
+                    "Equipment", 1, new BigDecimal(amounts.get(i)), "USD");
+                var submitted = service.submitDocument("alice", priceDocument, 2, "price-case-" + i);
+                var savedBusiness = (BusinessDocument.Procurement) submitted.business();
+                assertEquals(new BigDecimal(amounts.get(i)).stripTrailingZeros(), savedBusiness.unitPrice());
+                priceCases.add(service.decide("carol", submitted.id(), "manager", "APPROVE", "Price checked"));
+            }
+        }
+        try (var restarted = open(procurementDefinition("carol"))) {
+            assertEquals(2, restarted.process().version());
+            var restored = restarted.list("alice");
+            assertEquals(1 + priceCases.size(), restored.size());
+            assertTrue(restored.contains(approved));
+            for (int i = 0; i < priceCases.size(); i++) {
+                var expected = priceCases.get(i);
+                assertTrue(restored.contains(expected), "Canonical decimal snapshot must survive persistence and reopen: " + amounts.get(i));
+                assertEquals(expected, restarted.submitDocument("alice", expected.business(), 2, "price-case-" + i));
+            }
+            assertEquals(approved, restarted.submitDocument("alice", procurement(), 1, "purchase-001"));
+            assertEquals(approved, restarted.decide("bob", original.id(), "manager", "APPROVE", "retry"));
+            assertEquals(2 + 2 * priceCases.size(), count("arc_request_event"));
+            assertEquals(1 + priceCases.size(), count("arc_submission_key"));
+        }
+    }
+
+    @Test void configuredProcessesIsolateReadsWritesAndPublicationsInOneDatabase() throws Exception {
+        var leaveDefinition = ProcessDefinition.legacy("bob");
+        var procurementDefinition = procurementDefinition("bob");
+        try (var leaves = new JdbcApprovalStore(dataSource, new ObjectMapper(), leaveDefinition);
+             var purchases = new JdbcApprovalStore(dataSource, new ObjectMapper(), procurementDefinition);
+             var leaveService = new ApprovalService(leaves, USERS);
+             var purchaseService = new ApprovalService(purchases, USERS)) {
+            var leave = leaveService.submit("alice", "Leave", "Rest", 2, 1);
+            var purchase = purchaseService.submitDocument("alice", procurement(), 1, null);
+            assertEquals(List.of(leave), leaves.requests());
+            assertEquals(List.of(purchase), purchases.requests());
+            assertNull(leaves.request(purchase.id()));
+            assertNull(purchases.request(leave.id()));
+            assertEquals(404, result(() -> leaveService.decide("bob", purchase.id(), "manager", "APPROVE", "wrong process")));
+            assertEquals(404, result(() -> purchaseService.decide("bob", leave.id(), "manager", "APPROVE", "wrong process")));
+            assertThrows(IllegalArgumentException.class, () -> leaves.create(1, purchase));
+            assertThrows(IllegalArgumentException.class, () -> purchases.create(1, leave));
+            var foreignPublication = new ProcessDefinition(2, procurementDefinition.id(), 2, "Purchases", procurementDefinition.nodes());
+            assertThrows(IllegalArgumentException.class, () -> leaves.publish("alice", 1, foreignPublication));
+            var approved = purchaseService.decide("bob", purchase.id(), "manager", "APPROVE", "Authorized");
+            assertThrows(IllegalArgumentException.class, () -> leaves.update(0, approved));
+            purchaseService.publish("alice", 1, procurementDefinition("carol"));
+            assertEquals(1, leaves.process().version());
+            assertEquals(2, purchases.process().version());
+            assertEquals(List.of(leave), leaves.requests());
+            assertEquals(2, count("arc_process_head"));
+            assertEquals(3, count("arc_process_version"));
+        }
+    }
+
+    @Test void submissionKeysRemainApplicantGlobalAndCannotReplayAnotherProcess() throws Exception {
+        // Use identical business intent in both processes to isolate the process-ID check itself.
+        try (var first = open(ProcessDefinition.legacy("bob")); var second = open(procurementDefinition("bob"));
+             var otherStore = new JdbcApprovalStore(dataSource, new ObjectMapper(), procurementDefinition("bob"))) {
+            var saved = first.submitDocument("alice", procurement(), 1, "global-key");
+            assertEquals(saved, otherStore.submission("alice", "global-key"));
+            assertNull(otherStore.request(saved.id()));
+            assertEquals(409, result(() -> second.submitDocument("alice", procurement(), 1, "global-key")));
+            assertEquals(saved, first.submitDocument("alice", procurement(), 1, "global-key"));
+            assertEquals(1, count("arc_request"));
+            assertEquals(1, count("arc_request_event"));
+            assertEquals(1, count("arc_submission_key"));
+        }
+    }
+
+    @Test void differentProcessHeadLocksStillProduceOneGlobalKeyWinnerAndAConflict() throws Exception {
+        var firstGate = new GateDataSource(dataSource, "INSERT INTO arc_submission_key");
+        var secondGate = new GateDataSource(dataSource, "INSERT INTO arc_submission_key");
+        var executor = Executors.newFixedThreadPool(2);
+        try (var first = new ApprovalService(new JdbcApprovalStore(firstGate, new ObjectMapper(), ProcessDefinition.legacy("bob")), USERS);
+             var second = new ApprovalService(new JdbcApprovalStore(secondGate, new ObjectMapper(), procurementDefinition("bob")), USERS)) {
+            var firstSubmit = executor.submit(() -> result(() -> first.submitDocument("alice", procurement(), 1, "racing-global-key")));
+            var secondSubmit = executor.submit(() -> result(() -> second.submitDocument("alice", procurement(), 1, "racing-global-key")));
+            assertTrue(firstGate.entered.await(5, TimeUnit.SECONDS));
+            assertTrue(secondGate.entered.await(5, TimeUnit.SECONDS));
+            // Both transactions have passed the empty key lookup and hold different process heads.
+            firstGate.release.countDown();
+            secondGate.release.countDown();
+            var statuses = List.of(firstSubmit.get(15, TimeUnit.SECONDS), secondSubmit.get(15, TimeUnit.SECONDS));
+            assertEquals(List.of(200, 409), statuses.stream().sorted().toList());
+            assertEquals(1, count("arc_request"));
+            assertEquals(1, count("arc_request_event"));
+            assertEquals(1, count("arc_submission_key"));
+            assertEquals(1, first.list("alice").size() + second.list("alice").size());
+        } finally {
+            firstGate.release.countDown(); secondGate.release.countDown();
+            executor.shutdownNow(); assertTrue(executor.awaitTermination(10, TimeUnit.SECONDS));
+        }
+    }
+
+    @Test void businessSnapshotCannotChangeWhileAppendingAnOtherwiseValidDecision() throws Exception {
+        try (var store = new JdbcApprovalStore(dataSource, new ObjectMapper(), procurementDefinition("bob"));
+             var service = new ApprovalService(store, USERS)) {
+            var original = service.submitDocument("alice", procurement(), 1, "immutable");
+            String now = java.time.Instant.now().toString();
+            var history = new ArrayList<>(original.history());
+            history.add(new ApprovalService.Event("bob", "APPROVE", "Approved", now, "manager"));
+            var changedDocument = new BusinessDocument.Procurement(procurement().businessId(), procurement().title(), procurement().reason(),
+                procurement().item(), 4, procurement().unitPrice(), procurement().currency());
+            var rewritten = new ApprovalService.Request(original.id(), original.title(), original.reason(), original.days(), "alice", "bob",
+                "APPROVED", original.createdAt(), now, "APPROVE", "Approved", original.processId(), original.processVersion(),
+                history, original.definition(), null, changedDocument);
+            ApprovalService.validateRequest(rewritten);
+            assertThrows(IllegalArgumentException.class, () -> store.update(0, rewritten));
+            assertEquals(original, store.request(original.id()));
+            assertEquals(1, count("arc_request_event"));
+            assertEquals(procurement(), service.decide("bob", original.id(), "manager", "APPROVE", "Approved").business());
+        }
+    }
+
+    @Test void strictRequestDecoderRetainsLegacyShapeAndRejectsUnknownBusinessFields() throws Exception {
+        ApprovalService.Request legacy;
+        ApprovalService.Request purchase;
+        try (var service = open()) {
+            legacy = service.submit("alice", "Leave", "Rest", 2, 1);
+            purchase = service.submitDocument("alice", procurement(), 1, null);
+        }
+        var mapper = new ObjectMapper();
+        var legacyJson = mapper.valueToTree(legacy);
+        assertFalse(legacyJson.has("business"));
+        try (var reopened = open()) {
+            assertTrue(reopened.list("alice").contains(legacy));
+            assertNull(reopened.decide("bob", legacy.id(), "manager", "APPROVE", "Legacy reply").business());
+        }
+        var corrupted = (com.fasterxml.jackson.databind.node.ObjectNode) mapper.valueToTree(purchase);
+        ((com.fasterxml.jackson.databind.node.ObjectNode) corrupted.get("business")).put("unrecognized", true);
+        try (var connection = dataSource.getConnection(); var statement = connection.prepareStatement(
+                "UPDATE arc_request SET request_json = ? WHERE request_id = ?")) {
+            statement.setString(1, mapper.writeValueAsString(corrupted));
+            statement.setString(2, purchase.id());
+            assertEquals(1, statement.executeUpdate());
+        }
+        try (var store = new JdbcApprovalStore(dataSource, mapper, ProcessDefinition.legacy("bob"))) {
+            assertThrows(IOException.class, () -> store.request(purchase.id()));
+        }
+    }
+
+    @Test void duplicateRequestIdentityNeverBecomesSuccessfulKeyedReplay() throws Exception {
+        try (var store = new JdbcApprovalStore(dataSource, new ObjectMapper(), ProcessDefinition.legacy("bob"))) {
+            var original = candidate("duplicate-request", "Leave");
+            assertTrue(store.create(1, original));
+            assertThrows(IOException.class, () -> store.create(1, original, "fresh-key"));
+            assertNull(store.submission("alice", "fresh-key"));
+            assertEquals(1, count("arc_request"));
+            assertEquals(1, count("arc_request_event"));
+            assertEquals(0, count("arc_submission_key"));
+        }
+    }
+
+    @Test void cleanKeyDuplicateWithoutDurableWinnerRemainsFailureAndRollsBack() throws Exception {
+        String state;
+        int code;
+        try (var connection = dataSource.getConnection()) {
+            boolean mysql = "MySQL".equals(connection.getMetaData().getDatabaseProductName());
+            state = mysql ? "23000" : "23505";
+            code = mysql ? 1062 : 0;
+        }
+        var inserted = new java.util.concurrent.atomic.AtomicBoolean();
+        // Inject a known duplicate after a real insert, then let the adapter roll back all writes.
+        // A duplicate signal alone must never manufacture a successful replay without a durable key.
+        var failing = ServerTestSupport.failAfterStatement(dataSource, "INSERT INTO arc_submission_key", inserted,
+            () -> new java.sql.SQLException("Injected duplicate without a committed winner", state, code));
+        try (var service = new ApprovalService(new JdbcApprovalStore(failing, new ObjectMapper(), procurementDefinition("bob")), USERS)) {
+            assertThrows(IOException.class, () -> service.submitDocument("alice", procurement(), 1, "no-winner"));
+            assertTrue(inserted.get());
+            assertEmptySubmissionTables();
+        }
+        try (var service = open(procurementDefinition("bob"))) {
+            assertEquals(procurement(), service.submitDocument("alice", procurement(), 1, "no-winner").business());
         }
     }
 

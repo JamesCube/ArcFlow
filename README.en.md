@@ -174,3 +174,7 @@ CI badges track `main`; inspect the workflow run for the exact commit you are ev
 ## Mobile approvals (H5 first slice)
 
 The separate uni-app Vue 3 [mobile approval client](examples/approval-mobile/README.md) uses the real backend for worklists, decision notes and audit history. Build, unit/HTTP and Chromium mobile journeys have passed; [acceptance and screenshot provenance](examples/approval-mobile/ACCEPTANCE.md) list exact coverage. Native/mini-program targets, real devices and enterprise-platform integration remain separate acceptance work.
+
+## Business document boundary
+
+Typed leave/procurement Java and HTTP submission paths share approval, authorization, audit, idempotency and JSON/JDBC persistence. The legacy leave API remains compatible; procurement UI is outside this change. See [the business and compatibility contract](docs/BUSINESS_DOCUMENTS.md).

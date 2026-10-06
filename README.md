@@ -174,3 +174,7 @@ Order DEMO-001: 120
 ## 移动审批（H5 首片）
 
 独立的 uni-app Vue 3 [移动审批客户端](examples/approval-mobile/README.md) 已提供真实后端待办、审批意见和历史闭环。构建、单元/HTTP 和 Chromium 移动闭环已验证；[具体范围与截图来源](examples/approval-mobile/ACCEPTANCE.md)列出已测与未测项目。App/小程序、真机和飞书/企微/钉钉接入仍待单独验收。
+
+## 业务单据解耦
+
+新增类型化请假/采购单 Java 与 HTTP 入口，复用审批、权限、审计、幂等和 JSON/JDBC 持久化；旧请假 API 保持兼容。本轮不包含采购表单 UI。[业务边界与兼容说明](docs/BUSINESS_DOCUMENTS.md)。

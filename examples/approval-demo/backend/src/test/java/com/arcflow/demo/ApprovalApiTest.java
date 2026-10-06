@@ -57,7 +57,7 @@ class ApprovalApiTest {
         mvc.perform(authenticated(get("/api/process"), "alice").header("Sec-Fetch-Site", "cross-site"))
             .andExpect(status().isForbidden());
 
-        for (String path : List.of("/api/process", "/api/requests", "/api/requests/missing/decisions")) {
+        for (String path : List.of("/api/process", "/api/requests", "/api/documents", "/api/requests/missing/decisions")) {
             mvc.perform(post(path).header("X-Arcflow-Client", "approval-demo").contentType("application/json").content("{}"))
                 .andExpect(status().isUnauthorized());
             mvc.perform(authenticated(post(path), "alice").contentType("application/json").content("{}"))

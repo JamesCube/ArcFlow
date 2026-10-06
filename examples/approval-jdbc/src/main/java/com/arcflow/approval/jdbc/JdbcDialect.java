@@ -65,9 +65,9 @@ enum JdbcDialect {
             : "23505".equals(error.getSQLState());
     }
 
-    boolean cleanInitializationDuplicate(IOException failure) {
+    boolean cleanDuplicate(IOException failure) {
         // A duplicate alone is reconcilable, but rollback/reset/close errors leave the outcome uncertain.
         return failure.getSuppressed().length == 0 && failure.getCause() instanceof SQLException sql
-            && sql.getSuppressed().length == 0 && duplicateKey(sql);
+            && sql.getSuppressed().length == 0 && sql.getNextException() == null && duplicateKey(sql);
     }
 }

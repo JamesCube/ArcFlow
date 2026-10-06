@@ -33,3 +33,7 @@ Publication, submission and decision recheck that the acting user is active. Pub
 The default `JsonApprovalStore` remains a local demonstration store: process-exclusive file lock, serialized transitions, atomic replace, schema-1/schema-2/schema-3 migration backups and strict history replay. Use it only with one process and a local filesystem. The optional JDBC module has separate schema, transaction and scaling boundaries. Neither adapter provides tenant isolation or a general production workflow platform. Avoid exposing the store file or active user directory beyond the host's authorization scope.
 
 The standalone Vue/HTTP and native RuoYi hosts support schema 3. Schema-3 hosts must use `ApprovalService.pendingApproverIds(request)` or derive the equivalent unvoted membership from the snapshotted current stage and history; the legacy `approverId` field is only a representative. Do not use it as group authorization or a full inbox filter.
+
+## Business document boundary / 业务单据边界
+
+The domain now accepts typed immutable leave and procurement documents through `submitDocument`, sharing the same approval lifecycle. Legacy leave APIs and stored request shapes remain compatible; new typed writes use JSON snapshot schema 5. See [the business-document contract](../../docs/BUSINESS_DOCUMENTS.md) for validation, process scope, migration and replay rules.
