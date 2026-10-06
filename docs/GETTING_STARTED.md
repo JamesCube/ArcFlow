@@ -46,7 +46,7 @@ If you open a new terminal, set the passwords again and set `APPROVAL_DATA_FILE`
 | UI cannot connect / login fails | Wait for backend startup; use the configured account/password and exact URL `http://localhost:5173`. Check API logs, Node version, and port 5173. Keep loopback bindings. |
 | UI port 5173 is already in use | Stop your other demo instance or deliberately change both the Vite port and backend `APPROVAL_UI_ORIGIN`. Avoid changing the hostname/port in only one place. |
 | Publish or submit reports a conflict | Refresh to load the current published version. Review before retrying; preserve/reapply designer changes if needed. |
-| A submission's response was interrupted | Refresh the request list before submitting again. Submission has no idempotency key and a blind retry can create a duplicate. |
+| A submission's response was interrupted | Keep the original form and retry with its retained idempotency key. If the page was reloaded or the key was lost, inspect the request list before a new submission. See [retry boundaries](SUBMISSION_IDEMPOTENCY.md). |
 | Restart appears to lose data | Check the absolute `APPROVAL_DATA_FILE`; a different path creates a different store. Do not delete or edit a failing snapshot to bypass validation. |
 
 ### Next steps
@@ -97,7 +97,7 @@ If you open a new terminal, set the passwords again and set `APPROVAL_DATA_FILE`
 - **无法连接或登录：**等待后端启动完成，使用配置的账号密码以及准确地址 `http://localhost:5173`；检查后端日志、Node 版本和 5173 端口，保持仅绑定回环地址。
 - **5173 被占用：**停止另一个演示实例，或同时调整 Vite 端口和后端 `APPROVAL_UI_ORIGIN`，不要只改一端的主机名或端口。
 - **发布 / 提交冲突：**刷新并检查最新流程版本，再决定重试；必要时重置并重新应用设计器草稿。
-- **提交时断网：**先刷新申请列表确认结果，直接重提可能重复创建申请，因为提交没有幂等键。
+- **提交时断网：**保留原表单并沿用其页面内存中的幂等键重试。整页重载、退出或丢失键后，先刷新申请列表确认结果，再决定是否新建，详见[提交重试边界](SUBMISSION_IDEMPOTENCY.md)。
 - **重启后似乎丢失数据：**确认使用相同的绝对 `APPROVAL_DATA_FILE`。不要删除或编辑校验失败的快照来绕过检查。
 
 ### 下一步

@@ -1,12 +1,23 @@
 <script setup name="ArcflowApproval">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { getMe, getPeople, getProcess, getRequests, publishProcess, submitRequest, decideRequest } from '@/api/arcflow/approval'
 import { approvals, approvalMode, canVote, clone, modeLabel, modeRule, participantVotes, participants, pendingParticipants, setApprovalMode, stepState, validText, validateDefinition } from './process'
+import { createSubmissionIntent, isRejectedSubmissionVersion } from './submission-intent'
+import { validateSubmissionResponse } from './submission-response'
 
 const me = ref(null), people = ref([]), process = ref(null), draft = ref(null), baseline = ref('')
 const requests = ref([]), selectedId = ref(null), tab = ref('mine'), busy = ref(false)
 const error = ref(''), notice = ref(''), refreshRequired = ref(false), publishUncertain = ref(false)
 const title = ref(''), reason = ref(''), days = ref(1), comment = ref('')
+const submissionIntent = createSubmissionIntent(), submissionAttempt = ref(null), submissionDefinition = ref(null)
+let submissionVersionRejected = false
+const submissionFields = () => ({ title: title.value, reason: reason.value, days: days.value })
+function clearSubmission() { submissionIntent.clear(); submissionAttempt.value = null; submissionDefinition.value = null; submissionVersionRejected = false }
+watch([() => me.value?.id, title, reason, days], () => {
+  submissionIntent.invalidate(me.value?.id, submissionFields())
+  if (!submissionIntent.current(me.value?.id, submissionFields())) clearSubmission()
+}, { flush: 'sync' })
+const submissionProcess = computed(() => submissionAttempt.value ? submissionDefinition.value : process.value)
 const dirty = computed(() => draft.value && JSON.stringify(draft.value) !== baseline.value)
 const draftSteps = computed(() => approvals(draft.value))
 const draftError = computed(() => validateDefinition(draft.value, people.value))
@@ -15,7 +26,7 @@ const inbox = computed(() => requests.value.filter(item => canVote(item, me.valu
 const visible = computed(() => tab.value === 'inbox' ? inbox.value : tab.value === 'mine' ? requests.value.filter(item => item.applicantId === me.value?.id) : requests.value)
 const selected = computed(() => requests.value.find(item => item.id === selectedId.value))
 const canDecide = computed(() => canVote(selected.value, me.value?.id))
-const selfAssigned = computed(() => approvals(process.value).some(node => participants(node).includes(me.value?.id)))
+const selfAssigned = computed(() => approvals(submissionProcess.value).some(node => participants(node).includes(me.value?.id)))
 const locked = computed(() => busy.value || refreshRequired.value || !me.value)
 const person = id => people.value.find(person => String(person.id) === id)?.displayName || id || '—'
 const date = value => value ? new Date(value).toLocaleString() : '—'
@@ -32,6 +43,7 @@ async function refresh() {
   try {
     const [identity, persons, blueprint, items] = await Promise.all([getMe(), getPeople(), getProcess(), getRequests()])
     me.value = identity.data; people.value = persons.data; process.value = blueprint.data; requests.value = items.data
+    if (submissionVersionRejected) clearSubmission()
     if (!preserve) { draft.value = clone(blueprint.data); baseline.value = JSON.stringify(draft.value) }
     if (previousStep !== selected.value?.currentStepId) comment.value = ''
     refreshRequired.value = false
@@ -89,11 +101,16 @@ async function submit() {
   }
   busy.value = true; error.value = ''; notice.value = ''
   try {
-    const { data } = await submitRequest({ title: title.value.trim(), reason: reason.value.trim(), days: days.value, processVersion: process.value.version })
+    if (!submissionAttempt.value) submissionDefinition.value = clone(process.value)
+    const attempt = submissionIntent.prepare(me.value.id, submissionFields(), process.value.version)
+    submissionAttempt.value = attempt
+    const { data } = await submitRequest(attempt.payload, attempt.key)
+    validateSubmissionResponse(data, me.value.id, attempt.payload, submissionDefinition.value)
+    clearSubmission()
     requests.value = [data, ...requests.value.filter(item => item.id !== data.id)]
     selectedId.value = data.id; tab.value = 'mine'; title.value = ''; reason.value = ''; days.value = 1; comment.value = ''
-    notice.value = '申请已提交。'
-  } catch (e) { mutationFailure('submit') }
+    notice.value = data.status === 'PENDING' ? '申请已提交。' : `申请${status(data.status)}。`
+  } catch (e) { submissionVersionRejected = isRejectedSubmissionVersion(e); mutationFailure('submit') }
   finally { busy.value = false }
 }
 async function decide(decision) {
@@ -173,7 +190,7 @@ onMounted(refresh)
             <el-form-item label="标题" required><el-input v-model="title" maxlength="120" show-word-limit /></el-form-item>
             <el-form-item label="天数" required><el-input-number v-model="days" :min="1" :max="365" :precision="0" /></el-form-item>
             <el-form-item label="原因" required><el-input v-model="reason" type="textarea" :rows="3" maxlength="2000" show-word-limit /></el-form-item>
-            <el-form-item><el-button type="primary" :loading="busy" :disabled="!process" @click="submit">提交申请 · v{{ process?.version || '—' }}</el-button></el-form-item>
+            <el-form-item><el-button type="primary" :loading="busy" :disabled="!process" @click="submit">提交申请 · v{{ submissionProcess?.version || '—' }}</el-button></el-form-item>
           </el-form>
         </el-card>
         <el-table :data="visible" v-loading="busy" row-key="id" highlight-current-row @row-click="select" empty-text="暂无申请">

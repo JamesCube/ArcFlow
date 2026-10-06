@@ -14,7 +14,7 @@ mvn -f examples/approval-domain/pom.xml install
 mvn -f examples/approval-jdbc/pom.xml verify
 ```
 
-`JdbcApprovalStoreTest` uses real H2 JDBC connections, including a file-backed close/reopen test. It covers independent store instances, optimistic decision/publication conflicts, racing initialization, publication-versus-submission locking, immutable request/process snapshots, audit corruption and rollback when an audit insertion or publication update fails.
+`JdbcApprovalStoreTest` uses real H2 JDBC connections, including a file-backed close/reopen test. `H2ApprovalStoreContractTest` also executes the full inherited server contract on actual H2 (not a server compatibility mode). It covers independent store instances, optimistic decision/publication conflicts, racing initialization, publication-versus-submission locking, immutable request/process snapshots, audit corruption and rollback when an audit insertion or publication update fails.
 
 `PostgresqlApprovalStoreTest` runs against an actual PostgreSQL server only when `ARCFLOW_PG_URL` is present. Without it, those tests are skipped; a successful H2 run is not evidence of PostgreSQL compatibility. The dedicated `approval-jdbc.yml` CI workflow provisions PostgreSQL and runs the server tests. Check its result for the exact revision being used. To run them locally against a disposable database whose user can create/drop test schemas:
 
@@ -37,14 +37,33 @@ Apply exactly one SQL resource through the host's normal migration tool before o
 
 Classpath resources use the same names under `/com/arcflow/approval/jdbc/`. These are first-install scripts, not idempotent schema-upgrade or JSON-import tools. Apply migrations once with an appropriately privileged migration identity, and coordinate deployment separately. The constructor never executes DDL and fails if the required schema is absent. MySQL inspection also rejects unsupported versions, non-InnoDB tables, text-column collation mismatches and non-LONGTEXT JSON columns. This is a defensive compatibility check, not an exhaustive schema drift detector.
 
-The four `arc_` tables are:
+The five `arc_` tables are:
 
 - `arc_process_version`: retained immutable definition snapshots, publication actor and timestamp. Initial bootstrap is recorded with actor `bootstrap`.
 - `arc_process_head`: the single active version and the shared row lock for publication and submission.
 - `arc_request`: request JSON plus normalized revision, process, participant, status, step and timestamp columns. Indexes support participant/status queries, although this small SPI currently lists all requests.
 - `arc_request_event`: append-only event JSON, keyed by request ID and zero-based event index. Index 0 is `SUBMIT`; request revision is `history.size() - 1`.
+- `arc_submission_key`: durable `(applicant_id, submission_key)` primary key referencing one unique request. Keys are exact and case-sensitive; requests submitted without a key have no row.
 
-The adapter inserts process versions and events but never rewrites or deletes them. For defense in depth, restrict the application role to `SELECT`/`INSERT` on those two tables; reserve schema changes, destructive operations and repairs for a separate operator role. It also needs `SELECT`/`INSERT`/`UPDATE` on the head and request tables. Database owners can still rewrite data: this is consistency checking, not cryptographic tamper-proof storage.
+The adapter inserts process versions and events but never rewrites or deletes them. For defense in depth, restrict the application role to `SELECT`/`INSERT` on those two tables and `arc_submission_key`; reserve schema changes, destructive operations and repairs for a separate operator role. It also needs `SELECT`/`INSERT`/`UPDATE` on the head and request tables. Database owners can still rewrite data: this is consistency checking, not cryptographic tamper-proof storage.
+
+## Durable submission retries and revision-2 upgrade
+
+Pass an optional `Idempotency-Key` through the host to the service's keyed `submit` overload. The grammar is `[A-Za-z0-9][A-Za-z0-9._:-]{0,127}` (1–128 ASCII characters), without trimming or case folding. Authentication determines the applicant scope; never trust an applicant ID from a request body. The same applicant/key and normalized title, reason, days and process version returns the same request with its current validated approval state. Reusing a key for different intent returns conflict. A replay still works after later publication; a fresh key using a stale process version cannot create a request or reserve the key. Omitting the key preserves independent submissions.
+
+All new keyed submissions serialize on the existing process-head lock. Request, initial `SUBMIT` event and key mapping commit in one transaction. Lookup checks the stored applicant/key exactly, resolves the referenced request, verifies applicant ownership, and validates its full snapshot, retained definition and audit. Public lookup uses `REPEATABLE_READ`; keyed creation's replay locks the request while reading its current state and audit under `READ_COMMITTED`. Another application's concurrent decision cannot produce a mixed replay. Changed-intent comparison belongs to the service; the immutable request fields are the stored canonical intent, so no payload hash or duplicate snapshot is stored.
+
+For an existing revision-1 installation, stop/drain all application writers, back up, and explicitly apply exactly one matching migration with your migration identity:
+
+- H2: `upgrade-h2-v1-to-v2.sql`
+- PostgreSQL: `upgrade-postgresql-v1-to-v2.sql`
+- MySQL: `upgrade-mysql-v1-to-v2.sql`
+
+These resources are beside the fresh schema scripts under `/com/arcflow/approval/jdbc/`. They add only the key table and do not assign historical requests any key or rewrite request/event/process JSON. Use the revision-2 `schema-*.sql` only for an empty installation, never on an existing schema. New constructors reject a missing key table before initialization; no automatic migration or fallback to non-durable keyed behavior is performed. MySQL additionally inspects the key table's InnoDB engine and `utf8mb4_0900_bin` collation. MySQL DDL implicitly commits, so run upgrades outside application transactions.
+
+Deploy all instances on the matching new domain/JDBC code before accepting keyed traffic. Mixed old/new application binaries are unsupported: an old host may silently ignore the header and create duplicates, so a coordinated application rollout is required. Rollback requires an operator plan; do not drop the key table while retained requests may be retried. The adapter does not delete or expire mappings. A durable key makes retries after an uncertain commit reconcilable, but does not justify blind retries with a new key or different intent.
+
+The inherited contract covers cross-instance identical/changed-intent races; normalized, scoped and case-sensitive keys; replay after partial/final decisions, publication and adapter reopen; unkeyed behavior; rollback before/during/after a real key insert; durable replay after a lost real commit acknowledgement; mapping/audit corruption; key PK/unique/FK constraints; snapshot and locked replay races; and explicit upgrade of a database containing legacy requests.
 
 ## Host integration
 
@@ -68,7 +87,7 @@ The service owns the store lifecycle. Closing it prevents new store operations, 
 - Writes run at JDBC `READ_COMMITTED`. Publication and submission lock the same process-head row with `SELECT ... FOR UPDATE`. Submission therefore cannot insert using a version invalidated between its version check and its commit.
 - Decision updates lock the request, replay the existing saved state, enforce an exact append-one history prefix and immutable request identity/definition, then compare-and-set its revision. The request state update and event insertion commit together. A failed event insertion rolls back the state and revision; submission failures also roll back the inserted request.
 - Reads use a `REPEATABLE_READ` transaction so request state, events and retained process versions come from one consistent snapshot. Each read replays the request's complete stage/participant history, matches every event with the audit table, checks normalized columns and checks the retained definition. Missing, changed, extra or misordered audit events fail closed with `IOException` rather than silently repairing data.
-- A stale process version or request revision returns `false` at the SPI. `ApprovalService` converts the appropriate races to conflict responses, and re-reads/re-authorizes decision retries to preserve its existing idempotency behavior. Duplicate request IDs are database errors, not successful submissions.
+- A stale process version or request revision returns `false` at the original SPI; keyed creation returns `null` for a stale version with no existing key. `ApprovalService` converts the appropriate races to conflict responses, and re-reads/re-authorizes decision retries to preserve its existing idempotency behavior. Duplicate request IDs are database errors, not successful submissions.
 - The adapter does not automatically retry general database errors, deadlocks, timeouts or serialization errors. Only a known duplicate-key first-initialization race after a clean rollback/cleanup is reconciled by reading the committed head. PostgreSQL/H2 use SQLState `23505`; MySQL requires both SQLState `23000` and vendor code `1062`. Other integrity errors and any rollback/reset/close failure remain failures. A connection failure during commit may leave the outcome uncertain; inspect durable state before retrying. Pool or driver errors during cleanup are surfaced even if the transaction already committed.
 - Publication timestamps come from the application's clock. Request decision timestamps and replay rules remain those of the domain. The adapter does not supply distributed clock synchronization.
 
@@ -85,13 +104,13 @@ Existing standalone and RuoYi examples keep their default JSON persistence unles
 
 ## MySQL 8 integration target
 
-The MySQL dialect remains experimental and has now passed **real MySQL 8.0.46 and 8.4.11 on Java 17 and 21**, with all 29 tests passing in each combination at merged source `e1ee9c6`. See the [exact jobs, versions and acceptance boundary](MYSQL_VERIFICATION.md#verified-server-acceptance-2026-10-05). MySQL 5.7, MariaDB, non-InnoDB engines, MySQL 9 and vendor forks are outside this target. Do not describe a passing H2 or simulated-dialect test as a MySQL integration pass.
+The MySQL dialect remains experimental and has now passed **real MySQL 8.0.46 and 8.4.11 on Java 17 and 21**, with all 29 pre-idempotency tests passing in each combination at merged source `e1ee9c6`. That historical run does not verify the submission-key changes; use the exact-revision CI result for the expanded contract. See the [exact jobs, versions and acceptance boundary](MYSQL_VERIFICATION.md#verified-server-acceptance-2026-10-05). MySQL 5.7, MariaDB, non-InnoDB engines, MySQL 9 and vendor forks are outside this target. Do not describe a passing H2 or simulated-dialect test as a MySQL integration pass.
 
-The SQL schema is revision 1 (separate from process-definition JSON schema 2/3). Apply `schema-mysql.sql` once through the host migration system. Do not run PostgreSQL/H2 DDL on MySQL or change existing production tables blindly. MySQL DDL implicitly commits; install/upgrade schemas outside approval transactions with a separate migration identity. There is no automatic upgrade or cross-database/JSON import. All application instances must understand process schema 3 before it is published.
+The SQL schema is revision 2 (separate from process-definition JSON schema 2/3). Apply `schema-mysql.sql` once through the host migration system. Do not run PostgreSQL/H2 DDL on MySQL or change existing production tables blindly. MySQL DDL implicitly commits; install/upgrade schemas outside approval transactions with a separate migration identity. There is no automatic upgrade or cross-database/JSON import. All application instances must understand process schema 3 before it is published.
 
 Key choices:
 
-- MySQL minimum 8.0.17 provides `utf8mb4_0900_bin`; it also includes enforced CHECK constraints introduced in 8.0.16. All four tables explicitly use InnoDB and DYNAMIC row format, independent of host defaults.
+- MySQL minimum 8.0.17 provides `utf8mb4_0900_bin`; it also includes enforced CHECK constraints introduced in 8.0.16. All five tables explicitly use InnoDB and DYNAMIC row format, independent of host defaults.
 - `utf8mb4_0900_bin` preserves case, accents and trailing spaces in comparisons (NO PAD). The domain treats stable actor IDs as exact strings. The default case-insensitive collation and older `utf8mb4_bin` PAD SPACE behavior are unsuitable.
 - JSON snapshots use LONGTEXT with prepared-string parameters. A valid 16-participant history with Unicode comments can exceed TEXT's 65,535-byte limit. Driver/server packet limits and application memory still apply; LONGTEXT does not provide unlimited capacity. Size the pool and `max_allowed_packet` for the workload and test representative maximum histories.
 - Foreign keys use explicit table-level declarations, including event-to-request. MySQL ignores inline column `REFERENCES`. All identifiers are fixed lowercase nonreserved names; values are bound with prepared statements, without dialect-specific quote interpolation.
@@ -111,7 +130,7 @@ mvn -f examples/approval-jdbc/pom.xml -Dtest=MysqlApprovalStoreTest verify
 
 `MysqlApprovalStoreTest` is skipped when `ARCFLOW_MYSQL_URL` is absent. It requires an actual MySQL 8 server; it never substitutes H2 compatibility mode. PostgreSQL and MySQL inherit the same server contract for independent-instance races, ALL/ANY mixed decisions, replay/idempotency, atomic rollback, publication/submission locking, snapshot consistency, corruption detection and adapter close/reopen. MySQL-specific cases check FK/CHECK enforcement, exact string comparisons, supplementary Unicode, >64-KiB histories, unsafe schema rejection and whole-operation rollback after an audit INSERT lock timeout. The timeout case requires the default `innodb_rollback_on_timeout=0` and checks it without changing it. Adapter reopen does **not** establish physical-server restart/crash durability.
 
-The dedicated workflow adds MySQL 8.0 and 8.4 service jobs on Java 17/21. It records the actual server version and fails if any of the 29 MySQL tests are skipped or missing. The PostgreSQL job similarly requires its 23 inherited server tests. Mutable 8.0/8.4 image series keep CI on maintenance releases; review the recorded version and exact-commit result before advertising that release combination. The [merged-source matrix](https://github.com/JamesCube/ArcFlow/actions/runs/37258262111) passed all four MySQL combinations and both PostgreSQL jobs on 2026-10-05. This validates those tested combinations, not every MySQL 8.x version or production deployment.
+The dedicated workflow adds MySQL 8.0 and 8.4 service jobs on Java 17/21. It records the actual server version and fails if any of the 45 MySQL tests are skipped or missing. The PostgreSQL job similarly requires its 39 inherited server tests; the same 39 also execute on H2. Mutable 8.0/8.4 image series keep CI on maintenance releases; review the recorded version and exact-commit result before advertising that release combination. The [merged-source matrix](https://github.com/JamesCube/ArcFlow/actions/runs/37258262111) passed all four MySQL combinations and both PostgreSQL jobs on 2026-10-05. This validates those tested combinations, not every MySQL 8.x version or production deployment.
 
 ### Primary references
 

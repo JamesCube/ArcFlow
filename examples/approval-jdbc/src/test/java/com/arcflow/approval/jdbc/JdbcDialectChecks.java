@@ -60,12 +60,13 @@ public final class JdbcDialectChecks {
             default -> throw new AssertionError("Unexpected metadata operation: " + method);
         });
         var tables = new ArrayList<String[]>();
-        for (String name : List.of("arc_process_version", "arc_process_head", "arc_request", "arc_request_event"))
+        for (String name : List.of("arc_process_version", "arc_process_head", "arc_request", "arc_request_event", "arc_submission_key"))
             if (!missingTable || !name.equals("arc_request")) tables.add(new String[]{name, engine, collation});
         var columns = List.of(new String[]{"arc_process_version", "definition_json", jsonType, columnCollation},
             new String[]{"arc_request", "request_json", jsonType, columnCollation},
             new String[]{"arc_request_event", "event_json", jsonType, columnCollation},
-            new String[]{"arc_request", "applicant_id", "varchar", columnCollation});
+            new String[]{"arc_request", "applicant_id", "varchar", columnCollation},
+            new String[]{"arc_submission_key", "submission_key", "varchar", columnCollation});
         return proxy(Connection.class, (method, args) -> switch (method) {
             case "getMetaData" -> metadata;
             case "createStatement" -> proxy(Statement.class, (m, a) -> switch (m) {

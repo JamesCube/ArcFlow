@@ -54,9 +54,14 @@ public class ArcFlowController {
     @GetMapping("/requests") @PreAuthorize("@ss.hasPermi('arcflow:request:read')")
     public AjaxResult requests() { return AjaxResult.success(service.list(actor())); }
     @PostMapping("/requests") @PreAuthorize("@ss.hasPermi('arcflow:request:submit')")
-    public AjaxResult submit(@RequestBody byte[] bytes) throws IOException {
+    public AjaxResult submit(@RequestBody byte[] bytes, @RequestHeader HttpHeaders headers) throws IOException {
         String id = actor(); var input = body(bytes, Submission.class);
-        return AjaxResult.success(service.submit(id, input.title(), input.reason(), input.days(), input.processVersion()));
+        var keys = headers.get("Idempotency-Key");
+        if (keys != null && keys.size() != 1)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Supply exactly one Idempotency-Key header");
+        // Preserve absence as null; an explicitly blank or malformed key is rejected by the domain.
+        String key = keys == null ? null : keys.get(0);
+        return AjaxResult.success(service.submit(id, input.title(), input.reason(), input.days(), input.processVersion(), key));
     }
     @PostMapping("/requests/{id}/decisions") @PreAuthorize("@ss.hasPermi('arcflow:request:decide')")
     public AjaxResult decide(@PathVariable String id, @RequestBody byte[] bytes) throws IOException {

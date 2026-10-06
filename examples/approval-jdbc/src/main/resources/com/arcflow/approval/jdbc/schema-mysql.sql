@@ -1,4 +1,4 @@
--- MySQL 8.0.17+ / 8.x, approval SQL schema revision 1. Not MariaDB or MySQL 5.7.
+-- MySQL 8.0.17+ / 8.x, approval SQL schema revision 2. Not MariaDB or MySQL 5.7.
 -- First-install migration only. Apply once, outside an application transaction, before opening the store.
 -- MySQL DDL implicitly commits. No automatic upgrade, CREATE IF NOT EXISTS or JSON import is performed.
 -- Stable IDs are exact/case-sensitive, including trailing spaces in actor IDs (NO PAD).
@@ -38,5 +38,14 @@ CREATE TABLE arc_request_event (
     event_json LONGTEXT NOT NULL,
     PRIMARY KEY (request_id, event_index),
     -- Table-level FK is required: MySQL ignores inline column REFERENCES syntax.
+    FOREIGN KEY (request_id) REFERENCES arc_request (request_id)
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_bin;
+
+-- Durable submission retry keys; existing unkeyed requests intentionally have no mapping.
+CREATE TABLE arc_submission_key (
+    applicant_id VARCHAR(128) NOT NULL,
+    submission_key VARCHAR(128) NOT NULL,
+    request_id VARCHAR(128) NOT NULL UNIQUE,
+    PRIMARY KEY (applicant_id, submission_key),
     FOREIGN KEY (request_id) REFERENCES arc_request (request_id)
 ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_bin;

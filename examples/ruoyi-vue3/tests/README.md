@@ -15,6 +15,25 @@ The fixture deliberately grants ordinary participants read/submit/decide but not
 publish. A fifth account has no ArcFlow permissions. Admin may publish but cannot
 approve a request on behalf of its assigned user.
 
+Submission checks exercise the optional `Idempotency-Key` header through the real
+native endpoint, retaining its existing `AjaxResult` response envelope:
+
+- Identical and whitespace-normalized retries return the same request with one
+  `SUBMIT` event; changed title, reason, days or process version return conflict.
+- Missing keys retain create-on-every-call behavior. Blank, malformed, oversized,
+  comma-joined and repeated header values are rejected without creating requests.
+  Repeated fields are sent as separate HTTP header lines, including mixed casing.
+- The same key used by different authenticated applicants creates separate
+  requests without exposing either applicant's state to the other. Body-supplied
+  identity or key fields remain invalid. Invalid bodies do not reserve keys.
+- A cached session cannot replay while its applicant is disabled or deleted.
+  After a fixture role change and re-login, an applicant who lost submission
+  permission cannot replay a key they previously used either.
+- Replays after later publication and decisions return the current saved request
+  with its original definition. Exact replay and conflict handling survive the
+  existing server restart, even with a historical reviewer deleted, without
+  adding history or another request.
+
 The API smoke retains the schema-2 ordered two-step approval checks and adds
 schema-3 group coverage through the same native `/arcflow` endpoints:
 

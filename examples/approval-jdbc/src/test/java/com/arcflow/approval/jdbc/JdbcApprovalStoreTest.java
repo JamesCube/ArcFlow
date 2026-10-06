@@ -49,7 +49,7 @@ class JdbcApprovalStoreTest {
         install(firstDataSource);
         Request original = submission("restart", INITIAL);
         try (var first = store(firstDataSource)) {
-            assertTrue(first.create(1, original));
+            assertEquals(original, first.create(1, original, "restart-key"));
             assertTrue(first.publish("publisher", 1, definition(2, "carol")));
             assertTrue(first.update(0, decision(original, "APPROVE")));
         }
@@ -61,6 +61,7 @@ class JdbcApprovalStoreTest {
             assertEquals(INITIAL, restored.definition());
             assertEquals(definition(2, "carol"), restarted.process());
             assertEquals(List.of(restored), restarted.requests());
+            assertEquals(restored, restarted.submission("alice", "restart-key"));
         }
         assertEquals(2, scalar(firstDataSource, "SELECT COUNT(*) FROM arc_process_version"));
         assertEquals("publisher", string(firstDataSource, "SELECT published_by FROM arc_process_version WHERE process_version = 2"));

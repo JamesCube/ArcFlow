@@ -29,6 +29,62 @@ final class ServerTestSupport {
         });
     }
 
+    /** Throw after a real statement succeeded, before commit, to prove whole-transaction rollback. */
+    static DataSource failAfterStatement(DataSource delegate, String prefix, java.util.concurrent.atomic.AtomicBoolean inserted) {
+        return (DataSource) Proxy.newProxyInstance(ServerTestSupport.class.getClassLoader(), new Class<?>[]{DataSource.class}, (proxy, method, args) -> {
+            try {
+                Object result = method.invoke(delegate, args);
+                if (!method.getName().equals("getConnection")) return result;
+                Connection connection = (Connection) result;
+                return Proxy.newProxyInstance(ServerTestSupport.class.getClassLoader(), new Class<?>[]{Connection.class}, (p, m, a) -> {
+                    try {
+                        Object value = m.invoke(connection, a);
+                        if (!m.getName().equals("prepareStatement") || !((String) a[0]).startsWith(prefix)) return value;
+                        PreparedStatement statement = (PreparedStatement) value;
+                        return Proxy.newProxyInstance(ServerTestSupport.class.getClassLoader(), new Class<?>[]{PreparedStatement.class}, (sp, sm, sa) -> {
+                            try {
+                                Object outcome = sm.invoke(statement, sa);
+                                if (sm.getName().equals("executeUpdate")) {
+                                    inserted.set(true);
+                                    throw new SQLException("Injected failure after successful submission-key insert", "HY000");
+                                }
+                                return outcome;
+                            } catch (InvocationTargetException failure) { throw failure.getCause(); }
+                        });
+                    } catch (InvocationTargetException failure) { throw failure.getCause(); }
+                });
+            } catch (InvocationTargetException failure) { throw failure.getCause(); }
+        });
+    }
+
+    /** Simulate a lost commit acknowledgement, leaving a real committed request/key in the database. */
+    static DataSource loseKeyedCommitAcknowledgement(DataSource delegate, java.util.concurrent.atomic.AtomicBoolean lost) {
+        return (DataSource) Proxy.newProxyInstance(ServerTestSupport.class.getClassLoader(), new Class<?>[]{DataSource.class}, (proxy, method, args) -> {
+            try {
+                Object result = method.invoke(delegate, args);
+                if (!method.getName().equals("getConnection")) return result;
+                Connection connection = (Connection) result;
+                boolean[] keyWritten = {false};
+                return Proxy.newProxyInstance(ServerTestSupport.class.getClassLoader(), new Class<?>[]{Connection.class}, (p, m, a) -> {
+                    try {
+                        Object value = m.invoke(connection, a);
+                        if (m.getName().equals("commit") && keyWritten[0] && lost.compareAndSet(false, true))
+                            throw new SQLException("Injected lost acknowledgement after successful commit", "08006");
+                        if (!m.getName().equals("prepareStatement") || !((String) a[0]).startsWith("INSERT INTO arc_submission_key")) return value;
+                        PreparedStatement statement = (PreparedStatement) value;
+                        return Proxy.newProxyInstance(ServerTestSupport.class.getClassLoader(), new Class<?>[]{PreparedStatement.class}, (sp, sm, sa) -> {
+                            try {
+                                Object outcome = sm.invoke(statement, sa);
+                                if (sm.getName().equals("executeUpdate")) keyWritten[0] = true;
+                                return outcome;
+                            } catch (InvocationTargetException failure) { throw failure.getCause(); }
+                        });
+                    } catch (InvocationTargetException failure) { throw failure.getCause(); }
+                });
+            } catch (InvocationTargetException failure) { throw failure.getCause(); }
+        });
+    }
+
     /** Connector/J can make setCatalog a no-op (databaseTerm=SCHEMA); verify the server before any DDL. */
     static void selectDisposableCatalog(Connection connection, String catalog) throws SQLException {
         if (catalog == null || !catalog.matches("arcflow_test_[a-f0-9]{32}"))

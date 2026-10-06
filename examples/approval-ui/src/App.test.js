@@ -12,7 +12,7 @@ const blueprint = { schemaVersion: 2, id: 'leave-approval', version: 1, name: 'L
 const sequence = { ...blueprint, nodes: [start, manager, finance, end] }
 const clone = value => JSON.parse(JSON.stringify(value))
 function request(definition = blueprint, overrides = {}) {
-  return { id: 'r1', title: 'Annual leave', reason: 'Family trip', days: 2, applicantId: 'alice', approverId: 'bob', currentStepId: 'manager', status: 'PENDING', createdAt: '2026-10-02T12:00:00Z', processId: 'leave-approval', processVersion: definition.version, definition: clone(definition), history: [{ actorId: 'alice', action: 'SUBMIT', stepId: null, comment: '', at: '2026-10-02T12:00:00Z' }], ...overrides }
+  return { id: 'r1', title: 'Annual leave', reason: 'Family trip', days: 2, applicantId: 'alice', approverId: 'bob', currentStepId: 'manager', status: 'PENDING', createdAt: '2026-10-02T12:00:00Z', updatedAt: '2026-10-02T12:00:00Z', decision: null, comment: null, processId: 'leave-approval', processVersion: definition.version, definition: clone(definition), history: [{ actorId: overrides.applicantId || 'alice', action: 'SUBMIT', stepId: null, comment: '', at: '2026-10-02T12:00:00Z' }], ...overrides }
 }
 function setup(identity = 'alice', items = [], definition = blueprint) {
   const server = { identity, items: clone(items), definition: clone(definition) }
@@ -35,7 +35,7 @@ const button = (wrapper, id) => wrapper.find(`[data-testid="${id}"]`)
 const posts = () => api.request.mock.calls.filter(([, options]) => options?.method === 'POST')
 const payload = () => JSON.parse(posts().at(-1)[1].body)
 const deferred = () => { let resolve, reject; const promise = new Promise((yes, no) => { resolve = yes; reject = no }); return { promise, resolve, reject } }
-const decideResult = (item, stepId, actorId, status, currentStepId, approverId, action = 'APPROVE') => ({ ...item, status, currentStepId, approverId, history: [...item.history, { actorId, action, stepId, comment: 'Reviewed', at: '2026-10-02T13:00:00Z' }] })
+const decideResult = (item, stepId, actorId, status, currentStepId, approverId, action = 'APPROVE') => ({ ...item, status, currentStepId, approverId, updatedAt: '2026-10-02T13:00:00Z', decision: action, comment: 'Reviewed', history: [...item.history, { actorId, action, stepId, comment: 'Reviewed', at: '2026-10-02T13:00:00Z' }] })
 beforeEach(() => vi.resetAllMocks())
 
 describe('authentication and session isolation', () => {
@@ -227,6 +227,104 @@ describe('sequential process designer', () => {
 })
 
 describe('request submission and snapshots', () => {
+  it.each([
+    ['partial object with a valid id', () => ({ id: 'r1' })],
+    ['unknown status', () => request(blueprint, { status: 'UNKNOWN' })],
+    ['null history event', () => request(blueprint, { history: [null] })],
+    ['malformed definition', () => request(blueprint, { definition: { nodes: [null] } })],
+    ['wrong applicant', () => request(blueprint, { applicantId: 'carol' })],
+    ['wrong immutable intent', () => request(blueprint, { reason: 'Different' })],
+  ])('preserves input and retry key for %s before accepting a confirmed response', async (_, response) => {
+    const { wrapper } = setup(); await login(wrapper); await requestForm(wrapper)
+    api.request.mockResolvedValueOnce(response())
+    await wrapper.find('.new-request').trigger('submit'); await flushPromises()
+    const first = posts()[0][1]
+    expect(button(wrapper, 'request-title').element.value).toBe('Annual leave')
+    expect(wrapper.findAll('.request-item')).toHaveLength(0)
+    api.request.mockResolvedValueOnce(request())
+    await wrapper.find('.new-request').trigger('submit'); await flushPromises()
+    expect(posts()[1][1]).toEqual(first)
+    expect(wrapper.findAll('.request-item')).toHaveLength(1)
+  })
+  it('starts a new intent after explicit refresh following a definitive stale-version rejection', async () => {
+    const { wrapper, server } = setup(); await login(wrapper); await requestForm(wrapper)
+    api.request.mockRejectedValueOnce(Object.assign(new Error('The published process changed; reload before submitting'), { status: 409 }))
+    await wrapper.find('.new-request').trigger('submit'); await flushPromises()
+    const key = posts()[0][1].headers['Idempotency-Key']
+    server.definition = { ...clone(blueprint), version: 2 }
+    await button(wrapper, 'refresh').trigger('click'); await flushPromises()
+    expect(button(wrapper, 'request-title').element.value).toBe('Annual leave')
+    api.request.mockResolvedValueOnce(request(server.definition))
+    await wrapper.find('.new-request').trigger('submit'); await flushPromises()
+    expect(payload().processVersion).toBe(2)
+    expect(posts()[1][1].headers['Idempotency-Key']).not.toBe(key)
+  })
+  it('does not discard an attempt on generic or changed-intent conflict', async () => {
+    const { wrapper, server } = setup(); await login(wrapper); await requestForm(wrapper)
+    api.request.mockRejectedValueOnce(Object.assign(new Error('Idempotency-Key was already used for a different submission'), { status: 409 }))
+    await wrapper.find('.new-request').trigger('submit'); await flushPromises()
+    const first = posts()[0][1]
+    server.definition = { ...clone(blueprint), version: 2 }
+    await button(wrapper, 'refresh').trigger('click'); await flushPromises()
+    api.request.mockResolvedValueOnce(request())
+    await wrapper.find('.new-request').trigger('submit'); await flushPromises()
+    expect(posts()[1][1]).toEqual(first)
+  })
+  it('retains the key and original version across uncertain failure, refresh and replay', async () => {
+    const { wrapper, server } = setup('carol'); await login(wrapper); await requestForm(wrapper)
+    const pending = deferred(); api.request.mockImplementationOnce(() => pending.promise)
+    await wrapper.find('.new-request').trigger('submit'); await wrapper.find('.new-request').trigger('submit')
+    expect(posts()).toHaveLength(1)
+    const first = posts()[0][1]
+    expect(first.headers['Idempotency-Key']).toMatch(/^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/)
+    pending.reject(new TypeError('Connection lost after commit')); await flushPromises()
+    const accepted = request(blueprint, { applicantId: 'carol' })
+    server.items = [accepted]
+    // A new publication may even assign this applicant: retry uses the old snapshot.
+    server.definition = { ...clone(blueprint), version: 2, nodes: [start, { ...manager, assigneeId: 'carol' }, end] }
+    await button(wrapper, 'refresh').trigger('click'); await flushPromises()
+    expect(button(wrapper, 'submission-template').text()).toContain('Leave approval · v1')
+    expect(button(wrapper, 'submit-request').attributes('disabled')).toBeUndefined()
+    api.request.mockResolvedValueOnce(accepted)
+    await wrapper.find('.new-request').trigger('submit'); await flushPromises()
+    expect(posts()[1][1]).toEqual(first)
+    expect(wrapper.findAll('.request-item')).toHaveLength(1)
+    expect(button(wrapper, 'request-title').element.value).toBe('')
+    expect(button(wrapper, 'submission-template').text()).toContain('Leave approval · v2')
+  })
+  it.each(['network', 'server', 'malformed-success'])('keeps the key after %s and rotates it only for edited or completed intent', async failure => {
+    const { wrapper } = setup(); await login(wrapper); await requestForm(wrapper)
+    if (failure === 'malformed-success') api.request.mockResolvedValueOnce(null)
+    else api.request.mockRejectedValueOnce(Object.assign(new Error('Unconfirmed write'), failure === 'server' ? { status: 503 } : {}))
+    await wrapper.find('.new-request').trigger('submit'); await flushPromises()
+    const first = posts()[0][1]
+    api.request.mockRejectedValueOnce(new Error('Still offline'))
+    await wrapper.find('.new-request').trigger('submit'); await flushPromises()
+    expect(posts()[1][1]).toEqual(first)
+    await button(wrapper, 'request-reason').setValue('Changed reason')
+    api.request.mockResolvedValueOnce(request(blueprint, { reason: 'Changed reason' }))
+    await wrapper.find('.new-request').trigger('submit'); await flushPromises()
+    const editedKey = posts()[2][1].headers['Idempotency-Key']
+    expect(editedKey).not.toBe(first.headers['Idempotency-Key'])
+    expect(payload().reason).toBe('Changed reason')
+    await requestForm(wrapper)
+    api.request.mockResolvedValueOnce(request(blueprint, { id: 'r2' }))
+    await wrapper.find('.new-request').trigger('submit'); await flushPromises()
+    expect(posts()[3][1].headers['Idempotency-Key']).not.toBe(editedKey)
+  })
+  it('does not reuse an unresolved submission key after logout or accept its late response', async () => {
+    const { wrapper } = setup(); await login(wrapper); await requestForm(wrapper)
+    const pending = deferred(); api.request.mockImplementationOnce(() => pending.promise)
+    await wrapper.find('.new-request').trigger('submit')
+    const firstKey = posts()[0][1].headers['Idempotency-Key']
+    await button(wrapper, 'sign-out').trigger('click')
+    pending.resolve(request()); await flushPromises()
+    expect(wrapper.find('.workspace').exists()).toBe(false)
+    await login(wrapper); await requestForm(wrapper)
+    api.request.mockResolvedValueOnce(request(blueprint, { id: 'r2' }))
+    await wrapper.find('.new-request').trigger('submit'); await flushPromises()
+    expect(posts()[1][1].headers['Idempotency-Key']).not.toBe(firstKey)
+  })
   it('submits using the published version without a chosen approver and shows the snapshot', async () => {
     const { wrapper } = setup(); await login(wrapper); await requestForm(wrapper)
     expect(wrapper.find('.new-request select').exists()).toBe(false)
