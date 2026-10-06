@@ -1,5 +1,8 @@
 # MySQL implementation verification record
 
+> Submission-key schema revision 2 expands the inherited contract from 23 to 39 tests and MySQL from 29 to 45. The historical matrix below predates that change and is not acceptance evidence for it. Current acceptance requires the exact changed revision to pass all 45 MySQL tests and 39 PostgreSQL tests with zero skips, failures or errors, plus the H2/domain/core checks. Fresh and upgrade scripts must be checked separately from old revision-1 acceptance.
+
+
 ## Verified server acceptance (2026-10-05)
 
 Merged source: [`e1ee9c6bdb971949c4f8746fe88b9ff49e6d4c36`](https://github.com/JamesCube/ArcFlow/commit/e1ee9c6bdb971949c4f8746fe88b9ff49e6d4c36). The [JDBC workflow](https://github.com/JamesCube/ArcFlow/actions/runs/37258262111) completed successfully against real database services:
@@ -39,7 +42,7 @@ Compilation used `-source 17 -target 17` on Java 21. `--release 17` and a Java 1
 
 ## Authored but not executed
 
-`MysqlApprovalStoreTest` inherits 23 real-server contract tests and adds 6 MySQL-specific tests (29 total). They cover:
+`MysqlApprovalStoreTest` now inherits 39 real-server contract tests and adds 6 MySQL-specific tests (45 total). They cover:
 
 - Explicit schema installation, actual FK/CHECK enforcement and safe-schema rejection
 - Forced simultaneous first initialization with differing defaults
@@ -58,7 +61,7 @@ The dedicated CI adds MySQL 8.0/8.4 on Java 17/21 and rejects a missing/skipped 
 
 No usable Maven, JUnit/database-driver artifacts, MySQL server/client or Docker executable was present in the inspected local environment. No new software was installed and no system, credential or server security settings were changed. No remote push, PR or deployment was attempted.
 
-Run the [module's documented build and real-server commands](README.md#mysql-8-integration-target) on a disposable MySQL 8 server. Acceptance requires all 29 MySQL tests to execute with zero failures/errors/skips for the exact revision, plus the existing core/domain/H2/PostgreSQL checks. Physical restart/restore and deployment-specific capacity/security checks remain host acceptance work.
+Run the [module's documented build and real-server commands](README.md#mysql-8-integration-target) on a disposable MySQL 8 server. Acceptance requires all 45 MySQL tests to execute with zero failures/errors/skips for the exact revision, plus the existing core/domain/H2/PostgreSQL checks. Physical restart/restore and deployment-specific capacity/security checks remain host acceptance work.
 
 ## Reproducing the focused standalone checks
 

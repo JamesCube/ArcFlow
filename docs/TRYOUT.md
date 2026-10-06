@@ -143,7 +143,7 @@ python3 scripts/package-tryout.py --output-dir /tmp/arcflow-rc-two
 - **A port is already in use:** choose two unused ports using the launcher flags, or stop the process you own that uses the port. Do not change the server binding to a public interface.
 - **Dependency download/build fails:** inspect the reported error. Confirm access to your configured Maven/npm registries and correct proxy settings, then rerun. An extracted source bundle is not an offline installer. Never bypass TLS verification to fetch dependencies.
 - **Browser authentication fails:** use the credentials file for the current run and the exact printed URL. A password from a previous run will not work.
-- **Unexpected request result after a network interruption:** refresh before resubmitting. Submission has no idempotency key; repeating it may create a second request.
+- **Unexpected request result after a network interruption:** retry the unchanged form with its retained idempotency key. Page reload or logout loses that client key; inspect the request list before a new submission. See [durable retry boundaries](SUBMISSION_IDEMPOTENCY.md).
 - **Need production deployment:** this is not a supported deployment package. It uses demo identities and a single-writer local JSON store, and the backend's pinned Spring Boot 3 baseline has known support limitations described in its README. No production security, clustered persistence, RuoYi runtime, conditional/parallel approvals, timers or BPMN compatibility is promised.
 
 For a useful bug report, include the manifest's full commit (or checkout commit), OS, Python/Java/Maven/Node versions, command, error and expected result. Remove credentials and real personal information before sharing any log.

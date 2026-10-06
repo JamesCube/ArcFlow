@@ -19,6 +19,20 @@ public interface ApprovalStore extends AutoCloseable {
     /** Insert the request and submission event only if the active process version still matches. */
     boolean create(int expectedProcessVersion, ApprovalService.Request request) throws IOException;
 
+    /** Read a durable binding in the applicant's exact key scope. Never fall back to an in-memory cache. */
+    default ApprovalService.Request submission(String applicantId, String key) throws IOException {
+        throw new IOException("This approval store does not support durable submission keys");
+    }
+
+    /**
+     * Resolve an existing applicant/key binding BEFORE checking the active version, or atomically
+     * insert request, submission event and binding. Return null only for a process-version race.
+     * Existing bindings return the current request; the service checks the immutable intent.
+     */
+    default ApprovalService.Request create(int expectedProcessVersion, ApprovalService.Request request, String key) throws IOException {
+        throw new IOException("This approval store does not support durable submission keys");
+    }
+
     /** Append one decision and update its request atomically, or return false on a revision race. */
     boolean update(int expectedRevision, ApprovalService.Request next) throws IOException;
 

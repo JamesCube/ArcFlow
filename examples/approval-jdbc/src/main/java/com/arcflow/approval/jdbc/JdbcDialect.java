@@ -12,10 +12,10 @@ enum JdbcDialect {
     H2, POSTGRESQL, MYSQL8;
 
     private static final Set<String> TABLES = Set.of(
-        "arc_process_version", "arc_process_head", "arc_request", "arc_request_event");
+        "arc_process_version", "arc_process_head", "arc_request", "arc_request_event", "arc_submission_key");
     private static final Pattern MYSQL_VERSION = Pattern.compile("^(\\d+)\\.(\\d+)\\.(\\d+)(?:[-+].*)?$");
     private static final String TABLE_FILTER = "table_schema = DATABASE() AND table_name IN "
-        + "('arc_process_version', 'arc_process_head', 'arc_request', 'arc_request_event')";
+        + "('arc_process_version', 'arc_process_head', 'arc_request', 'arc_request_event', 'arc_submission_key')";
 
     static JdbcDialect inspect(Connection connection) throws SQLException, IOException {
         var metadata = connection.getMetaData();

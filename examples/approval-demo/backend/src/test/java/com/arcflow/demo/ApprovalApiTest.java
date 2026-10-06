@@ -235,6 +235,66 @@ class ApprovalApiTest {
         assertTrue(created.path("history").get(0).path("stepId").isNull());
     }
 
+    @Test void keyedSubmissionReplaysNormalizedIntentAndCurrentStateAfterPublication() throws Exception {
+        String key = "web:submission-001";
+        JsonNode initial = response(mvc.perform(write("/api/requests", "alice").header("Idempotency-Key", key)
+            .content(submission(1).toString())).andExpect(status().isCreated()));
+        assertFalse(initial.has("idempotencyKey"));
+        assertFalse(initial.toString().contains(key));
+        JsonNode replay = response(mvc.perform(write("/api/requests", "alice").header("Idempotency-Key", key)
+            .content(submission(1).put("title", "  Leave  ").put("reason", " Rest ").toString()))
+            .andExpect(status().isCreated()));
+        assertEquals(initial, replay);
+        for (ObjectNode changed : List.of(submission(1).put("title", "Different"), submission(1).put("reason", "Different"),
+                submission(1).put("days", 3), submission(2))) {
+            mvc.perform(write("/api/requests", "alice").header("Idempotency-Key", key).content(changed.toString()))
+                .andExpect(status().isConflict());
+        }
+        postJson("/api/process", "alice", publication(1, definition(1, "carol"))).andExpect(status().isOk());
+        assertEquals(initial, response(mvc.perform(write("/api/requests", "alice").header("Idempotency-Key", key)
+            .content(submission(1).toString())).andExpect(status().isCreated())));
+        JsonNode terminal = response(decide("bob", initial, "manager", "APPROVE", "done").andExpect(status().isOk()));
+        assertEquals(terminal, response(mvc.perform(write("/api/requests", "alice").header("Idempotency-Key", key)
+            .content(submission(1).toString())).andExpect(status().isCreated())));
+        assertEquals(1, getJson("/api/requests", "alice").size());
+        assertEquals(2, terminal.path("history").size());
+    }
+
+    @Test void submissionKeysAreScopedToTrustedApplicantAndAbsentHeaderRemainsNonIdempotent() throws Exception {
+        String key = "shared-client-key";
+        JsonNode alice = response(mvc.perform(write("/api/requests", "alice").header("Idempotency-Key", key)
+            .content(submission(1).toString())).andExpect(status().isCreated()));
+        JsonNode carol = response(mvc.perform(write("/api/requests", "carol").header("Idempotency-Key", key)
+            .content(submission(1).toString())).andExpect(status().isCreated()));
+        assertNotEquals(alice.path("id"), carol.path("id"));
+        assertEquals("carol", carol.path("applicantId").textValue());
+        assertEquals(carol, getJson("/api/requests", "carol").get(0));
+        mvc.perform(write("/api/requests", "bob").header("Idempotency-Key", key).content(submission(1).toString()))
+            .andExpect(status().isBadRequest()); // Same key cannot bypass self-assignment validation for another actor.
+        mvc.perform(write("/api/requests", "carol").header("Idempotency-Key", key)
+            .content(submission(1).put("applicantId", "alice").toString())).andExpect(status().isBadRequest());
+        mvc.perform(post("/api/requests").header("X-Arcflow-Client", "approval-demo").header("Idempotency-Key", key)
+            .contentType("application/json").content(submission(1).toString())).andExpect(status().isUnauthorized());
+        JsonNode firstUnkeyed = submit("alice", 1), secondUnkeyed = submit("alice", 1);
+        assertNotEquals(firstUnkeyed.path("id"), secondUnkeyed.path("id"));
+        assertNotEquals(alice.path("id"), firstUnkeyed.path("id"));
+    }
+
+    @Test void submissionHeaderRejectsEmptyMalformedOversizedAndDuplicateValuesWithoutWrites() throws Exception {
+        for (String key : List.of("", " ", " key", "key ", "a,b", "a/b", "_leading", "key\\nvalue", "密钥", "a".repeat(129))) {
+            mvc.perform(write("/api/requests", "alice").header("Idempotency-Key", key).content(submission(1).toString()))
+                .andExpect(status().isBadRequest());
+        }
+        mvc.perform(write("/api/requests", "alice").header("Idempotency-Key", "same", "same")
+            .content(submission(1).toString())).andExpect(status().isBadRequest());
+        mvc.perform(write("/api/requests", "alice").header("Idempotency-Key", "first", "second")
+            .content(submission(1).toString())).andExpect(status().isBadRequest());
+        assertEquals(0, getJson("/api/requests", "alice").size());
+        mvc.perform(write("/api/requests", "alice").header("Idempotency-Key", "A" + "x".repeat(127))
+            .content(submission(1).toString())).andExpect(status().isCreated());
+        assertEquals(1, getJson("/api/requests", "alice").size());
+    }
+
     @Test void staleSubmissionsAndSelfApprovalAtAnyPositionAreRejected() throws Exception {
         postJson("/api/requests", "bob", submission(1)).andExpect(status().isBadRequest());
         postJson("/api/requests", "alice", submission(2)).andExpect(status().isConflict());

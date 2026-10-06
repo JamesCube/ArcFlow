@@ -67,7 +67,7 @@ class MysqlApprovalStoreTest extends ServerApprovalStoreContract {
         assertThrows(IOException.class, this::open, "Constructor must never install missing tables");
         try (var input = JdbcApprovalStore.class.getResourceAsStream("schema-mysql.sql")) {
             assertNotNull(input);
-            // No allowMultiQueries or implicit driver rewriting: execute the four explicit DDL statements.
+            // No allowMultiQueries or implicit driver rewriting: execute the five explicit DDL statements.
             String ddl = new String(input.readAllBytes(), StandardCharsets.UTF_8).replaceAll("(?m)^\\s*--.*$", "");
             for (String statement : ddl.split(";")) if (!statement.isBlank()) sql(statement);
         }
@@ -174,6 +174,10 @@ class MysqlApprovalStoreTest extends ServerApprovalStoreContract {
         assertThrows(IOException.class, this::open);
         assertEquals(0, count("arc_process_version"));
         sql("ALTER TABLE arc_request MODIFY applicant_id VARCHAR(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_bin NOT NULL");
+        sql("ALTER TABLE arc_submission_key MODIFY submission_key VARCHAR(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL");
+        assertThrows(IOException.class, this::open);
+        assertEquals(0, count("arc_process_version"));
+        sql("ALTER TABLE arc_submission_key MODIFY submission_key VARCHAR(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_bin NOT NULL");
         sql("ALTER TABLE arc_request MODIFY request_json TEXT NOT NULL");
         assertThrows(IOException.class, this::open);
         assertEquals(0, count("arc_process_version"));

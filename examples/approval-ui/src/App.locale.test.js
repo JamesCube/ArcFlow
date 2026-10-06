@@ -9,7 +9,7 @@ const definition = { schemaVersion: 3, id: 'leave-approval', version: 2, name: '
   { id: 'team', type: 'parallelApproval', name: 'Original group', assigneeId: null, assigneeIds: ['bob', 'carol'], completionMode: 'ALL' },
   { id: 'end', type: 'end', name: 'Original end', assigneeId: null },
 ] }
-const item = { id: 'request-1', title: 'Original title', reason: 'Original reason', days: 1, applicantId: 'alice', approverId: 'bob', currentStepId: 'team', status: 'PENDING', processId: 'leave-approval', processVersion: 2, definition, history: [{ action: 'SUBMIT', actorId: 'alice', at: '2026-10-05T01:00:00Z', comment: '' }] }
+const item = { id: 'request-1', title: 'Original title', reason: 'Original reason', days: 1, applicantId: 'alice', approverId: 'bob', currentStepId: 'team', status: 'PENDING', createdAt: '2026-10-05T01:00:00Z', updatedAt: '2026-10-05T01:00:00Z', decision: null, comment: null, processId: 'leave-approval', processVersion: 2, definition, history: [{ action: 'SUBMIT', stepId: null, actorId: 'alice', at: '2026-10-05T01:00:00Z', comment: '' }] }
 const copy = value => structuredClone(value)
 const wrappers = []
 function setup(identity = 'bob', items = [item]) {

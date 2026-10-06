@@ -35,3 +35,12 @@ CREATE TABLE arc_request_event (
     event_json TEXT NOT NULL,
     PRIMARY KEY (request_id, event_index)
 );
+
+-- Durable submission retry keys; existing unkeyed requests intentionally have no mapping.
+CREATE TABLE arc_submission_key (
+    applicant_id VARCHAR(128) NOT NULL,
+    submission_key VARCHAR(128) NOT NULL,
+    request_id VARCHAR(128) NOT NULL UNIQUE,
+    PRIMARY KEY (applicant_id, submission_key),
+    FOREIGN KEY (request_id) REFERENCES arc_request (request_id)
+);

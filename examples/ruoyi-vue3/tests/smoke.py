@@ -6,6 +6,7 @@ No mock authentication or fabricated bearer tokens are used. Secrets stay in mem
 """
 import argparse
 import base64
+import http.client
 import redis
 import json
 import os
@@ -14,24 +15,46 @@ import secrets
 import subprocess
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 
-from fixture import actor_state, install
+from fixture import actor_state, connection, install
 
 BASE = os.getenv("ARCFLOW_TEST_URL", "http://127.0.0.1:8080").rstrip("/")
 
 
-def api(path, token=None, body=None, *, method=None, allowed=(200,)):
+def api(path, token=None, body=None, *, method=None, allowed=(200,), headers=None):
+    """Extra headers are ordered pairs so duplicate field lines reach the real host."""
+    payload = None if body is None else (body if isinstance(body, bytes) else json.dumps(body).encode())
+    method = method or ("POST" if body is not None else "GET")
+    extra_headers = headers
     headers = {"Content-Type": "application/json"}
     if token:
         headers["Authorization"] = "Bearer " + token
-    req = urllib.request.Request(BASE + path, data=None if body is None else (body if isinstance(body, bytes) else json.dumps(body).encode()),
-                                 headers=headers, method=method or ("POST" if body is not None else "GET"))
-    try:
-        with urllib.request.urlopen(req, timeout=15) as res:
+    if extra_headers is not None:
+        # urllib normalizes headers into a dictionary, which would silently drop
+        # duplicate Idempotency-Key lines and make that boundary test meaningless.
+        target = urllib.parse.urlsplit(BASE + path)
+        transport = http.client.HTTPSConnection if target.scheme == "https" else http.client.HTTPConnection
+        conn = transport(target.hostname, target.port, timeout=15)
+        try:
+            conn.putrequest(method, urllib.parse.urlunsplit(("", "", target.path, target.query, "")))
+            for name, value in [*headers.items(), *extra_headers]:
+                conn.putheader(name, value)
+            if payload is not None:
+                conn.putheader("Content-Length", str(len(payload)))
+            conn.endheaders(payload)
+            res = conn.getresponse()
             status, raw = res.status, res.read()
-    except urllib.error.HTTPError as err:
-        status, raw = err.code, err.read()
+        finally:
+            conn.close()
+    else:
+        req = urllib.request.Request(BASE + path, data=payload, headers=headers, method=method)
+        try:
+            with urllib.request.urlopen(req, timeout=15) as res:
+                status, raw = res.status, res.read()
+        except urllib.error.HTTPError as err:
+            status, raw = err.code, err.read()
     value = json.loads(raw)
     code = value.get("code", status)
     assert code in allowed, f"{path}: expected {allowed}, got HTTP {status}, application code {code}"
@@ -365,12 +388,69 @@ def run(server, password):
     api("/arcflow/requests", none, submission, allowed=(403,))
     api("/arcflow/requests", a, {**submission, "processVersion": definition["version"]}, allowed=(409,))
     api("/arcflow/requests", a, {**submission, "applicantId": "1"}, allowed=(400,))
+    api("/arcflow/requests", a, {**submission, "idempotencyKey": "body-is-not-authoritative"}, allowed=(400,))
     api("/arcflow/requests", a, {**submission, "days": "2"}, allowed=(400,))
     for malformed in (b'', b'{"days":2,"days":3}', b'{"title":null}', b'{invalid'):
         api("/arcflow/requests", a, malformed, allowed=(400,))
-    req = data("/arcflow/requests", a, submission)
+    key_headers = [("Idempotency-Key", "Native.Submit:retry-1")]
+    before = data("/arcflow/requests", a)
+    for malformed in ("", " ", ".invalid", "bad/key", "bad key", "a,b", "a" * 129, "é"):
+        api("/arcflow/requests", a, submission, headers=[("Idempotency-Key", malformed)], allowed=(400,))
+    for duplicate in (key_headers[0], ("idempotency-key", "another-key")):
+        api("/arcflow/requests", a, submission, headers=[*key_headers, duplicate], allowed=(400,))
+    assert data("/arcflow/requests", a) == before, "Invalid submission headers created a request"
+    # An invalid body must not reserve a valid key. Its corrected retry can succeed.
+    api("/arcflow/requests", a, {**submission, "days": 0}, headers=key_headers, allowed=(400,))
+    req = data("/arcflow/requests", a, submission, headers=key_headers)
     assert req["applicantId"] == "100" and req["currentStepId"] == "first"
     assert req["definition"] == published
+    assert_votes(req, [])
+    assert data("/arcflow/requests", a, submission, headers=key_headers) == req
+    assert data("/arcflow/requests", a, {**submission, "title": "  " + submission["title"] + "  ",
+                                       "reason": "  " + submission["reason"] + "  "}, headers=key_headers) == req
+    for changed in ({"title": "Changed title"}, {"reason": "Changed reason"}, {"days": 3},
+                    {"processVersion": published["version"] + 1}):
+        api("/arcflow/requests", a, {**submission, **changed}, headers=key_headers, allowed=(409,))
+        assert saved_request(a, req) == req, "A key conflict changed the original request"
+    assert len(data("/arcflow/requests", a)) == len(before) + 1, "Keyed retries created extra requests"
+    # A key is scoped to the authenticated applicant, never a body field or a
+    # shared lookup across users. Another applicant gets their own request only.
+    scoped = data("/arcflow/requests", outsider, submission, headers=key_headers)
+    assert scoped["id"] != req["id"] and scoped["applicantId"] == "103"
+    assert data("/arcflow/requests", outsider, submission, headers=key_headers) == scoped
+    assert all(item["id"] != scoped["id"] for item in data("/arcflow/requests", a))
+    assert all(item["id"] != req["id"] for item in data("/arcflow/requests", outsider))
+    api("/arcflow/requests", none, submission, headers=key_headers, allowed=(403,))
+    # Re-login after an official fixture role change, as RuoYi caches permissions
+    # in Redis sessions. Losing submit permission must also deny a previously used key.
+    with connection() as db, db.cursor() as cur:
+        assert cur.execute("UPDATE sys_user_role SET role_id=21001 WHERE user_id=103 AND role_id=21000") == 1
+    try:
+        denied = login("arcflow_outsider", password)
+        api("/arcflow/requests", denied, submission, headers=key_headers, allowed=(403,))
+    finally:
+        with connection() as db, db.cursor() as cur:
+            assert cur.execute("UPDATE sys_user_role SET role_id=21000 WHERE user_id=103 AND role_id=21001") == 1
+    outsider = login("arcflow_outsider", password)
+    assert data("/arcflow/requests", outsider, submission, headers=key_headers) == scoped
+    # Active-account checks apply before replay, including cached real sessions.
+    try:
+        for status, deleted in (("1", "0"), ("0", "2")):
+            actor_state(100, status=status, deleted=deleted)
+            api("/arcflow/requests", a, submission, headers=key_headers, allowed=(401, 403))
+            assert saved_request(first, req) == req
+    finally:
+        actor_state(100)
+    a = login("arcflow_applicant", password)
+    assert data("/arcflow/requests", a, submission, headers=key_headers) == req
+    # Replay precedes the current publication check: its original version still
+    # identifies the saved command after a newer process has been published.
+    published = data("/arcflow/process", admin, {"expectedVersion": published["version"],
+                                               "definition": {**published, "name": "CI later two-step process"}})
+    current_submission = {**submission, "processVersion": published["version"]}
+    assert data("/arcflow/requests", a, submission, headers=key_headers) == req
+    api("/arcflow/requests", a, current_submission, headers=key_headers, allowed=(409,))
+    api("/arcflow/requests", a, submission, allowed=(409,))
     api(f"/arcflow/requests/{req['id']}/decisions", body={"stepId": "first", "decision": "APPROVE", "comment": ""}, allowed=(401,))
     decision(outsider, req, "first", allowed=(403, 404))
     decision(admin, req, "first", allowed=(403, 404))
@@ -379,6 +459,8 @@ def run(server, password):
     assert all(r["id"] != req["id"] for r in data("/arcflow/requests", outsider))
     advanced = decision(first, req, "first")["data"]
     assert advanced["status"] == "PENDING" and advanced["currentStepId"] == "second"
+    assert data("/arcflow/requests", a, submission, headers=key_headers) == advanced, \
+        "Submission replay returned stale pre-decision state"
     replay = decision(first, req, "first")["data"]
     assert replay == advanced, "Replay changed request state/history"
     decision(first, req, "first", "REJECT", allowed=(409,))
@@ -386,7 +468,11 @@ def run(server, password):
     assert approved["status"] == "APPROVED" and approved["currentStepId"] is None
     assert [event["actorId"] for event in approved["history"]] == ["100", "101", "102"]
     assert len(approved["history"]) == 3
-    rejected_request = data("/arcflow/requests", a, submission)
+    assert data("/arcflow/requests", a, submission, headers=key_headers) == approved
+    # Requests without a key preserve create-on-every-call compatibility.
+    rejected_request = data("/arcflow/requests", a, current_submission)
+    separate_request = data("/arcflow/requests", a, current_submission)
+    assert len({req["id"], rejected_request["id"], separate_request["id"]}) == 3
     rejected = decision(first, rejected_request, "first", "REJECT")["data"]
     assert rejected["status"] == "REJECTED" and rejected["currentStepId"] is None
     decision(second, rejected_request, "second", allowed=(409,))
@@ -409,7 +495,9 @@ def run(server, password):
     # Existing Redis-backed sessions must not allow a disabled/deleted user through.
     actor_state(101, status="1")
     api("/arcflow/me", first, allowed=(401, 403))
-    api("/arcflow/requests", a, submission, allowed=(400,))
+    api("/arcflow/requests", a, current_submission, allowed=(400,))
+    assert data("/arcflow/requests", a, submission, headers=key_headers) == approved, \
+        "Historical submission replay incorrectly revalidated inactive assigned reviewers"
     api("/arcflow/process", admin, {"expectedVersion": published["version"], "definition": published}, allowed=(400,))
     api("/login", body={"username": "arcflow_first", "password": password}, allowed=(500, 401, 403))
     actor_state(101, status="0", deleted="2")
@@ -422,10 +510,15 @@ def run(server, password):
     restored = next(r for r in data("/arcflow/requests", a) if r["id"] == req["id"])
     assert restored == approved, "Restart did not preserve exact state/history"
     assert data("/arcflow/process", a) == published
+    restored_requests = data("/arcflow/requests", a)
+    assert data("/arcflow/requests", a, submission, headers=key_headers) == approved, \
+        "Restart lost the submission key or returned stale state"
+    api("/arcflow/requests", a, current_submission, headers=key_headers, allowed=(409,))
+    assert data("/arcflow/requests", a) == restored_requests, "Post-restart replay created a duplicate"
     actor_state(101)
     first = login("arcflow_first", password)
     assert decision(first, req, "first")["data"] == approved
-    print("PASS: official login/menu, RBAC, authoritative assignments, ordered approvals, replay/conflict, logout/expired Redis session, disabled/deleted identity, restart persistence")
+    print("PASS: official login/menu, RBAC, authoritative assignments, ordered approvals, keyed submission replay/conflict/header validation, applicant scope, current-state replay after publication/decisions, permission revocation, disabled/deleted identity, logout/expired Redis session, durable submission-key restart persistence")
     run_groups(server, password, published)
 
 

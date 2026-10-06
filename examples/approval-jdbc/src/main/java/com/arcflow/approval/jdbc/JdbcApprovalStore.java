@@ -45,6 +45,10 @@ public final class JdbcApprovalStore implements ApprovalStore {
             if (!connection.getAutoCommit())
                 throw new IOException("JdbcApprovalStore requires independently owned auto-commit connections; ambient transactions are unsupported");
             dialect = JdbcDialect.inspect(connection);
+            // An old installation must be explicitly migrated before any initializer can write.
+            try (var statement = connection.prepareStatement(
+                    "SELECT applicant_id, submission_key, request_id FROM arc_submission_key WHERE 1 = 0");
+                 var ignored = statement.executeQuery()) { /* schema probe only; never DDL */ }
         } catch (SQLException failure) { throw new IOException("Could not inspect approval JDBC dialect/schema", failure); }
         initialize(initialDefinition);
     }
@@ -96,14 +100,31 @@ public final class JdbcApprovalStore implements ApprovalStore {
         });
     }
 
+    @Override public Request submission(String actor, String key) throws IOException {
+        validateSubmissionKey(actor, key);
+        // Resolve the mapping and all request/audit/definition rows in one consistent snapshot.
+        return transaction(true, connection -> readSubmission(connection, actor, key, false));
+    }
+
     @Override public boolean create(int expectedProcessVersion, Request request) throws IOException {
+        return create(expectedProcessVersion, request, null) != null;
+    }
+
+    @Override public Request create(int expectedProcessVersion, Request request, String key) throws IOException {
         ApprovalService.validateRequest(request);
+        if (key != null) validateSubmissionKey(request.applicantId(), key);
         if (request.history().size() != 1 || request.processVersion() != expectedProcessVersion)
             throw new IllegalArgumentException("A new request must have only its submission event and the expected process version");
         return transaction(false, connection -> {
-            // Publication takes this same lock, so checking the active version and inserting are atomic.
+            // All creators and publishers share this lock, including across application instances.
             ProcessDefinition current = requireProcess(connection, true);
-            if (current.version() != expectedProcessVersion) return false;
+            if (key != null) {
+                // Lookup precedes the active-version check: publication cannot invalidate a retry.
+                // Lock the request so a concurrent decision cannot split its state/audit reads.
+                Request existing = readSubmission(connection, request.applicantId(), key, true);
+                if (existing != null) return existing;
+            }
+            if (current.version() != expectedProcessVersion) return null;
             if (!current.equals(request.definition()))
                 throw new IllegalArgumentException("Request definition differs from the published version");
             try (var statement = connection.prepareStatement("INSERT INTO arc_request (" + REQUEST_COLUMNS
@@ -112,8 +133,42 @@ public final class JdbcApprovalStore implements ApprovalStore {
                 statement.executeUpdate();
             }
             insertEvent(connection, request.id(), 0, request.history().get(0));
-            return true;
+            if (key != null) {
+                try (var statement = connection.prepareStatement("INSERT INTO arc_submission_key "
+                        + "(applicant_id, submission_key, request_id) VALUES (?, ?, ?)")) {
+                    statement.setString(1, request.applicantId());
+                    statement.setString(2, key);
+                    statement.setString(3, request.id());
+                    statement.executeUpdate();
+                }
+            }
+            return request;
         });
+    }
+
+    private static void validateSubmissionKey(String actor, String key) {
+        if (!ProcessDefinition.validActorId(actor) || !ApprovalService.validSubmissionKey(key))
+            throw new IllegalArgumentException("Submission lookup requires an actor and a valid exact submission key");
+    }
+
+    private Request readSubmission(Connection connection, String actor, String key, boolean lock) throws SQLException, IOException {
+        String id;
+        try (var statement = connection.prepareStatement("SELECT applicant_id, submission_key, request_id "
+                + "FROM arc_submission_key WHERE applicant_id = ? AND submission_key = ?")) {
+            statement.setString(1, actor);
+            statement.setString(2, key);
+            try (var rows = statement.executeQuery()) {
+                if (!rows.next()) return null;
+                if (!actor.equals(rows.getString(1)) || !key.equals(rows.getString(2)))
+                    throw new IOException("Submission key identity differs from its exact lookup");
+                id = rows.getString(3);
+                if (rows.next()) throw new IOException("Ambiguous persisted submission key");
+            }
+        }
+        Request result = readRequest(connection, id, lock);
+        if (result == null || !actor.equals(result.applicantId()))
+            throw new IOException("Submission key does not belong to its referenced request applicant");
+        return result;
     }
 
     @Override public boolean update(int expectedRevision, Request next) throws IOException {

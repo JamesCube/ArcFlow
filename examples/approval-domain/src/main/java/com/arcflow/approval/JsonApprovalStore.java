@@ -16,6 +16,10 @@ import com.arcflow.approval.ApprovalService.Snapshot;
 
 /** Single-process demonstration store retaining schema migration and atomic file replacement. */
 public final class JsonApprovalStore implements ApprovalStore {
+    private record SubmissionScope(String applicantId, String key) {}
+    private record SubmissionBinding(String applicantId, String key, String requestId) {}
+    private record KeyedSnapshot(int schemaVersion, ProcessDefinition definition, List<Request> requests,
+                                 List<SubmissionBinding> submissions) {}
     private record LegacyEvent(String actorId, String action, String comment, String at) {}
     private record LegacyRequest(String id, String title, String reason, int days, String applicantId, String approverId,
                                  String status, String createdAt, String updatedAt, String decision, String comment,
@@ -26,6 +30,7 @@ public final class JsonApprovalStore implements ApprovalStore {
     private final FileChannel lockChannel;
     private final FileLock lock;
     private Map<String, Request> requests = new LinkedHashMap<>();
+    private Map<SubmissionScope, String> submissions = new LinkedHashMap<>();
     private ProcessDefinition definition;
     private byte[] previousSchemaOriginal;
     private int snapshotSchema = 2;
@@ -58,6 +63,13 @@ public final class JsonApprovalStore implements ApprovalStore {
     @Override public synchronized List<Request> requests() throws IOException { ensureOpen(); return List.copyOf(requests.values()); }
     @Override public synchronized Request request(String id) throws IOException { ensureOpen(); return requests.get(id); }
 
+    @Override public synchronized Request submission(String applicantId, String key) throws IOException {
+        ensureOpen();
+        validateScope(applicantId, key);
+        String id = submissions.get(new SubmissionScope(applicantId, key));
+        return id == null ? null : requests.get(id);
+    }
+
     @Override public synchronized boolean publish(String actor, int expectedVersion, ProcessDefinition next) throws IOException {
         ensureOpen();
         if (definition.version() != expectedVersion) return false;
@@ -78,6 +90,27 @@ public final class JsonApprovalStore implements ApprovalStore {
         return true;
     }
 
+    @Override public synchronized Request create(int expectedProcessVersion, Request request, String key) throws IOException {
+        ensureOpen();
+        validateScope(request.applicantId(), key);
+        Request prior = submission(request.applicantId(), key);
+        if (prior != null) return prior;
+        if (definition.version() != expectedProcessVersion) return null;
+        ApprovalService.validateRequest(request);
+        if (request.history().size() != 1 || !definition.equals(request.definition()) || requests.containsKey(request.id()))
+            throw new IllegalArgumentException("Invalid new request");
+        var nextRequests = new LinkedHashMap<>(requests); nextRequests.put(request.id(), request);
+        var nextSubmissions = new LinkedHashMap<>(submissions);
+        nextSubmissions.put(new SubmissionScope(request.applicantId(), key), request.id());
+        commit(definition, nextRequests, nextSubmissions);
+        return request;
+    }
+
+    private static void validateScope(String applicantId, String key) {
+        if (!ProcessDefinition.validActorId(applicantId) || !ApprovalService.validSubmissionKey(key))
+            throw new IllegalArgumentException("Invalid submission key scope");
+    }
+
     @Override public synchronized boolean update(int expectedRevision, Request next) throws IOException {
         ensureOpen();
         Request old = requests.get(next.id());
@@ -96,6 +129,7 @@ public final class JsonApprovalStore implements ApprovalStore {
                 throw new IOException("Invalid snapshot schema");
             int schema = root.get("schemaVersion").intValue();
             List<Request> restored;
+            List<SubmissionBinding> bindings = List.of();
             if (schema == 1) {
                 exactFields(root, "schemaVersion", "requests");
                 validateStoredShapes(root, false);
@@ -111,22 +145,38 @@ public final class JsonApprovalStore implements ApprovalStore {
                 }
                 restored = migrated;
                 // No rewrite until a successful mutation is requested.
-            } else if (schema == 2 || schema == 3) {
-                exactFields(root, "schemaVersion", "definition", "requests");
+            } else if (schema == 2 || schema == 3 || schema == 4) {
+                if (schema == 4) exactFields(root, "schemaVersion", "definition", "requests", "submissions");
+                else exactFields(root, "schemaVersion", "definition", "requests");
                 validateStoredShapes(root, true);
-                Snapshot snapshot = mapper.treeToValue(root, Snapshot.class);
-                definition = snapshot.definition();
+                if (schema == 4) {
+                    if (!root.path("submissions").isArray()) throw new IOException("Invalid submission binding collection");
+                    for (JsonNode binding : root.get("submissions")) exactFields(binding, "applicantId", "key", "requestId");
+                    KeyedSnapshot snapshot = mapper.treeToValue(root, KeyedSnapshot.class);
+                    definition = snapshot.definition(); restored = snapshot.requests(); bindings = snapshot.submissions();
+                } else {
+                    Snapshot snapshot = mapper.treeToValue(root, Snapshot.class);
+                    definition = snapshot.definition(); restored = snapshot.requests();
+                }
                 ProcessDefinition.validate(definition);
-                restored = snapshot.requests();
                 if (definition.schemaVersion() > schema || restored.stream().anyMatch(r -> r.definition().schemaVersion() > schema))
                     throw new IOException("Definition exceeds snapshot schema");
             } else throw new IOException("Unsupported snapshot schema");
             snapshotSchema = schema;
-            if (schema < 3) previousSchemaOriginal = bytes.clone();
+            if (schema < 4) previousSchemaOriginal = bytes.clone();
             for (Request r : restored) {
                 ApprovalService.validateRequest(r);
                 if (r.processVersion() > definition.version() || requests.putIfAbsent(r.id(), r) != null)
                     throw new IllegalArgumentException("Duplicate request or future process version");
+            }
+            var boundRequests = new HashSet<String>();
+            for (SubmissionBinding binding : bindings) {
+                validateScope(binding.applicantId(), binding.key());
+                Request request = requests.get(binding.requestId());
+                if (request == null || !binding.applicantId().equals(request.applicantId()) ||
+                    !boundRequests.add(binding.requestId()) ||
+                    submissions.putIfAbsent(new SubmissionScope(binding.applicantId(), binding.key()), binding.requestId()) != null)
+                    throw new IllegalArgumentException("Invalid or duplicate submission binding");
             }
         } catch (RuntimeException e) { throw new IOException("Invalid snapshot entry", e); }
     }
@@ -170,10 +220,19 @@ public final class JsonApprovalStore implements ApprovalStore {
     }
 
     private void commit(ProcessDefinition nextDefinition, Map<String, Request> updated) throws IOException {
+        commit(nextDefinition, updated, submissions);
+    }
+
+    private void commit(ProcessDefinition nextDefinition, Map<String, Request> updated, Map<SubmissionScope, String> nextSubmissions) throws IOException {
         if (closed) throw new IOException("Approval store is closed");
         int nextSchema = Math.max(2, Math.max(snapshotSchema, nextDefinition.schemaVersion()));
-        if (updated.values().stream().anyMatch(r -> r.definition().schemaVersion() == 3)) nextSchema = 3;
-        byte[] json = mapper.writerWithDefaultPrettyPrinter().writeValueAsBytes(new Snapshot(nextSchema, nextDefinition, List.copyOf(updated.values())));
+        if (updated.values().stream().anyMatch(r -> r.definition().schemaVersion() == 3)) nextSchema = Math.max(3, nextSchema);
+        if (!nextSubmissions.isEmpty()) nextSchema = 4;
+        Object snapshot = nextSchema == 4
+            ? new KeyedSnapshot(4, nextDefinition, List.copyOf(updated.values()), nextSubmissions.entrySet().stream()
+                .map(e -> new SubmissionBinding(e.getKey().applicantId(), e.getKey().key(), e.getValue())).toList())
+            : new Snapshot(nextSchema, nextDefinition, List.copyOf(updated.values()));
+        byte[] json = mapper.writerWithDefaultPrettyPrinter().writeValueAsBytes(snapshot);
         if (previousSchemaOriginal != null && snapshotSchema < nextSchema && migrationBackup == null) {
             // Preserve the byte-exact original separately; never delete an existing migration backup.
             Path backup = file.resolveSibling(file.getFileName() + ".schema" + snapshotSchema + ".bak");
@@ -191,8 +250,9 @@ public final class JsonApprovalStore implements ApprovalStore {
             Files.move(temp, file, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
             definition = nextDefinition;
             requests = new LinkedHashMap<>(updated); // Publish only after persistence succeeds.
+            submissions = new LinkedHashMap<>(nextSubmissions);
             snapshotSchema = nextSchema;
-            previousSchemaOriginal = nextSchema < 3 ? json.clone() : null;
+            previousSchemaOriginal = nextSchema < 4 ? json.clone() : null;
             migrationBackup = null;
         } finally { Files.deleteIfExists(temp); }
     }

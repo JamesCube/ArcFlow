@@ -78,6 +78,16 @@ Each native editor stage offers **单人审批**, **全员同意（ALL）** or *
 
 The domain's JSON upgrade creates a private schema-2 backup on the first schema-3 write; see [migration and rollout boundaries](../../docs/PARALLEL_APPROVAL.md#persistence-and-rollout). Back up the data and upgrade the host before enabling groups; do not run an older sequential-only binary against schema-3 state. Approval storage remains single-writer JSON. This does not wire JDBC into RuoYi or add tenancy, conditional branches, delegation or production guarantees.
 
+## Durable submission retries / 持久化提交重试
+
+`POST /arcflow/requests` accepts one optional `Idempotency-Key` header, scoped to the authenticated numeric applicant ID. The native form now sends a random key and retains its original normalized fields/process version in page memory across uncertain failures. Same-key retries return the original request's current state, even after publication or approval; different intent conflicts. A successful Refresh clears a definitively rejected stale-version attempt, while ambiguous errors keep its key. Page reload, close or logout loses the client key; inspect saved requests before starting a fresh submission. The native keyed call bypasses only RuoYi's short time-window duplicate-submit interceptor so the durable server check can resolve retries; all authentication/RBAC stays active.
+
+原生表单已自动发送申请人作用域幂等键，网络不确定时在当前页面内存保留原意图和版本；同键重试返回原申请当前状态。整页重载、关闭或退出后先核对列表再新建。鉴权与若依权限校验不变。
+
+The first keyed creation upgrades the private JSON snapshot to schema 4 and saves a byte-exact backup of the preceding schema-1/2/3 snapshot. Process definitions and request/event payloads stay unchanged. Stop traffic, back up and upgrade all hosts before enabling these clients; old binaries cannot read schema 4 and old servers can ignore the new header. See [key semantics, retention and rollback limits](../../docs/SUBMISSION_IDEMPOTENCY.md). Approval persistence remains single-process local JSON unless the host explicitly adopts the JDBC module.
+
+首次带键创建将文件快照升级至 schema 4 并备份旧快照；流程定义仍为 schema 2/3。旧程序无法读取新快照，启用客户端前应停流、备份并完成全部服务端升级。默认仍是单进程本地 JSON。
+
 ## Verification
 
 `.github/workflows/ruoyi-integration.yml` builds both upstream applications and exercises official login/menu/permissions against disposable MySQL and Redis. Its test-only fixture creates temporary accounts and disables CAPTCHA only in the disposable CI database. It must not be applied to a real installation. The smoke includes authorization, ordered and ALL/ANY decisions, strict group shapes, replay/conflict, pinned snapshots, inactive/deleted group participants and restart persistence. Read the exact commit's CI result; the presence of a workflow alone is not proof it passed.

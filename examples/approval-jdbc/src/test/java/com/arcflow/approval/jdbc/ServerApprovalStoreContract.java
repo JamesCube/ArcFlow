@@ -387,4 +387,259 @@ abstract class ServerApprovalStoreContract {
         }
     }
 
+    @Test void simultaneousIdenticalSubmissionKeysCreateExactlyOneRequestAndSubmitEvent() throws Exception {
+        try (var first = open(); var second = open()) {
+            var calls = new ArrayList<Callable<ApprovalService.Request>>();
+            for (int i = 0; i < 12; i++) {
+                var service = i % 2 == 0 ? first : second;
+                calls.add(() -> service.submit("alice", "Leave", "Rest", 2, 1, "retry-1"));
+            }
+            var results = race(calls);
+            for (var request : results) assertEquals(results.get(0), request);
+            assertEquals(1, count("arc_request"));
+            assertEquals(1, count("arc_request_event"));
+            assertEquals(1, count("arc_submission_key"));
+        }
+    }
+
+    @Test void simultaneousChangedIntentForOneKeyHasOneWinnerAndOneConflict() throws Exception {
+        try (var first = open(); var second = open()) {
+            var results = race(List.of(
+                () -> result(() -> first.submit("alice", "First intent", "Rest", 2, 1, "changed")),
+                () -> result(() -> second.submit("alice", "Other intent", "Rest", 2, 1, "changed"))));
+            assertEquals(List.of(200, 409), results.stream().sorted().toList());
+            assertEquals(1, count("arc_request"));
+            assertEquals(1, count("arc_request_event"));
+            assertEquals(1, count("arc_submission_key"));
+        }
+    }
+
+    @Test void normalizedRetryReturnsCurrentGroupStateAfterPublicationAndStoreReopen() throws Exception {
+        ApprovalService.Request pending;
+        try (var first = openParallel("ALL")) {
+            var request = first.submit("alice", " Leave ", " Rest ", 2, 1, "normalized");
+            pending = first.decide("bob", request.id(), "review", "APPROVE", "partial approval");
+            first.publish("alice", 1, ProcessDefinition.legacy("carol"));
+        }
+        try (var reopened = open()) {
+            assertEquals(pending, reopened.submit("alice", "Leave", "Rest", 2, 1, "normalized"));
+            assertEquals(409, result(() -> reopened.submit("alice", "Leave", "Rest", 2, 2, "normalized")));
+            var approved = reopened.decide("carol", pending.id(), "review", "APPROVE", "done");
+            assertEquals(approved, reopened.submit("alice", "Leave", "Rest", 2, 1, "normalized"));
+            assertEquals(1, count("arc_request"));
+            assertEquals(3, count("arc_request_event"));
+            assertEquals(1, count("arc_submission_key"));
+        }
+    }
+
+    @Test void submissionKeysAreExactCaseSensitiveAndScopedToApplicant() throws Exception {
+        try (var service = open(); var store = new JdbcApprovalStore(dataSource, new ObjectMapper(), ProcessDefinition.legacy("bob"))) {
+            var upper = service.submit("alice", "Leave", "Rest", 1, 1, "Key-A");
+            var lower = service.submit("alice", "Leave", "Rest", 1, 1, "key-a");
+            var other = service.submit("carol", "Leave", "Rest", 1, 1, "Key-A");
+            assertNotEquals(upper.id(), lower.id());
+            assertNotEquals(upper.id(), other.id());
+            assertEquals(upper, store.submission("alice", "Key-A"));
+            assertEquals(lower, store.submission("alice", "key-a"));
+            assertEquals(other, store.submission("carol", "Key-A"));
+            assertNull(store.submission("alice", "KEY-A"));
+            assertNull(store.submission("bob", "Key-A"));
+            assertEquals(3, count("arc_submission_key"));
+        }
+    }
+
+    @Test void unkeyedSubmissionsStillCreateIndependentRequests() throws Exception {
+        try (var service = open()) {
+            assertNotEquals(service.submit("alice", "Leave", "Rest", 1, 1).id(),
+                service.submit("alice", "Leave", "Rest", 1, 1).id());
+            assertEquals(2, count("arc_request"));
+            assertEquals(2, count("arc_request_event"));
+            assertEquals(0, count("arc_submission_key"));
+        }
+    }
+
+    @Test void mappingToAnotherApplicantsRequestFailsClosed() throws Exception {
+        try (var service = open()) {
+            service.submit("alice", "Leave", "Rest", 1, 1, "owner");
+            var other = service.submit("carol", "Private", "Other applicant", 1, 1);
+            try (var connection = dataSource.getConnection(); var statement = connection.prepareStatement(
+                    "UPDATE arc_submission_key SET request_id = ? WHERE applicant_id = ?")) {
+                statement.setString(1, other.id()); statement.setString(2, "alice");
+                assertEquals(1, statement.executeUpdate());
+            }
+        }
+        try (var store = new JdbcApprovalStore(dataSource, new ObjectMapper(), ProcessDefinition.legacy("bob")); var service = open()) {
+            assertThrows(IOException.class, () -> store.submission("alice", "owner"));
+            assertThrows(IOException.class, () -> service.submit("alice", "Leave", "Rest", 1, 1, "owner"));
+            assertThrows(IOException.class, () -> store.create(1, candidate("new", "Leave"), "owner"));
+            assertEquals(2, count("arc_request"));
+        }
+    }
+
+    @Test void persistedAuditCorruptionAlsoFailsClosedOnSubmissionReplay() throws Exception {
+        try (var service = open()) { service.submit("alice", "Leave", "Rest", 1, 1, "corrupt"); }
+        sql("UPDATE arc_request_event SET event_json = '{}'");
+        try (var store = new JdbcApprovalStore(dataSource, new ObjectMapper(), ProcessDefinition.legacy("bob")); var service = open()) {
+            assertThrows(IOException.class, () -> store.submission("alice", "corrupt"));
+            assertThrows(IOException.class, () -> service.submit("alice", "Leave", "Rest", 1, 1, "corrupt"));
+            assertThrows(IOException.class, () -> store.create(1, candidate("new", "Leave"), "corrupt"));
+            assertEquals(1, count("arc_request"));
+        }
+    }
+
+    @Test void failureBeforeKeyInsertionRollsBackRequestAuditAndLeavesKeyReusable() throws Exception {
+        try (var service = open()) {
+            sql("ALTER TABLE arc_request_event ADD CONSTRAINT refuse_keyed_submit CHECK (event_index > 0)");
+            assertThrows(IOException.class, () -> service.submit("alice", "Leave", "Rest", 1, 1, "retry"));
+            assertEmptySubmissionTables();
+            dropCheck("arc_request_event", "refuse_keyed_submit");
+            service.submit("alice", "Leave", "Rest", 1, 1, "retry");
+            assertEquals(1, count("arc_submission_key"));
+        }
+    }
+
+    @Test void failedKeyInsertionRollsBackBothEarlierRequestAndAuditInsertions() throws Exception {
+        try (var service = open()) {
+            sql("ALTER TABLE arc_submission_key ADD CONSTRAINT refuse_key CHECK (submission_key <> 'retry')");
+            assertThrows(IOException.class, () -> service.submit("alice", "Leave", "Rest", 1, 1, "retry"));
+            assertEmptySubmissionTables();
+            dropCheck("arc_submission_key", "refuse_key");
+            service.submit("alice", "Leave", "Rest", 1, 1, "retry");
+            assertEquals(1, count("arc_submission_key"));
+        }
+    }
+
+    @Test void failureAfterRealKeyInsertionRollsBackAllThreeWritesAndKeyIsReusable() throws Exception {
+        var inserted = new java.util.concurrent.atomic.AtomicBoolean();
+        var failureSource = ServerTestSupport.failAfterStatement(dataSource, "INSERT INTO arc_submission_key", inserted);
+        try (var failing = new ApprovalService(new JdbcApprovalStore(failureSource, new ObjectMapper(), ProcessDefinition.legacy("bob")), USERS)) {
+            assertThrows(IOException.class, () -> failing.submit("alice", "Leave", "Rest", 1, 1, "retry"));
+            assertTrue(inserted.get(), "The failure must happen after the database executed the key INSERT");
+            assertEmptySubmissionTables();
+        }
+        try (var service = open()) {
+            service.submit("alice", "Leave", "Rest", 1, 1, "retry");
+            assertEquals(1, count("arc_submission_key"));
+        }
+    }
+
+    @Test void lostCommitAcknowledgementCanRetryDurablyWithoutAnotherRequestOrSubmitEvent() throws Exception {
+        var lost = new java.util.concurrent.atomic.AtomicBoolean();
+        var uncertainSource = ServerTestSupport.loseKeyedCommitAcknowledgement(dataSource, lost);
+        try (var uncertain = new ApprovalService(new JdbcApprovalStore(uncertainSource, new ObjectMapper(), ProcessDefinition.legacy("bob")), USERS)) {
+            assertThrows(IOException.class, () -> uncertain.submit("alice", "Leave", "Rest", 1, 1, "lost-ack"));
+            assertTrue(lost.get(), "The real COMMIT must succeed before its acknowledgement is lost");
+            assertEquals(1, count("arc_request"));
+            assertEquals(1, count("arc_request_event"));
+            assertEquals(1, count("arc_submission_key"));
+        }
+        try (var reopened = open()) {
+            var committed = reopened.list("alice").get(0);
+            var approved = reopened.decide("bob", committed.id(), "manager", "APPROVE", "after uncertain commit");
+            reopened.publish("alice", 1, ProcessDefinition.legacy("carol"));
+            assertEquals(approved, reopened.submit("alice", "Leave", "Rest", 1, 1, "lost-ack"));
+            assertEquals(1, count("arc_request"));
+            assertEquals(2, count("arc_request_event"));
+            assertEquals(1, count("arc_submission_key"));
+        }
+    }
+
+    @Test void submissionKeyForeignKeyAndBothUniquenessConstraintsAreEnforced() throws Exception {
+        try (var service = open()) {
+            var request = service.submit("alice", "Leave", "Rest", 1, 1, "key");
+            assertThrows(java.sql.SQLException.class, () -> sql("INSERT INTO arc_submission_key VALUES ('alice', 'missing', 'missing')"));
+            try (var connection = dataSource.getConnection(); var statement = connection.prepareStatement(
+                    "INSERT INTO arc_submission_key (applicant_id, submission_key, request_id) VALUES (?, ?, ?)")) {
+                statement.setString(1, "alice"); statement.setString(2, "other"); statement.setString(3, request.id());
+                assertThrows(java.sql.SQLException.class, statement::executeUpdate);
+            }
+            assertThrows(java.sql.SQLException.class, () -> sql("INSERT INTO arc_submission_key SELECT * FROM arc_submission_key"));
+            assertEquals(1, count("arc_submission_key"));
+        }
+    }
+
+    @Test void submissionLookupUsesOneSnapshotAcrossConcurrentDecisionCommit() throws Exception {
+        var gate = new GateDataSource(dataSource, "SELECT event_index, event_json FROM arc_request_event");
+        var executor = Executors.newSingleThreadExecutor();
+        try (var writer = open(); var reader = new JdbcApprovalStore(gate, new ObjectMapper(), ProcessDefinition.legacy("bob"))) {
+            var original = writer.submit("alice", "Leave", "Rest", 1, 1, "snapshot");
+            var reading = executor.submit(() -> reader.submission("alice", "snapshot"));
+            assertTrue(gate.entered.await(5, TimeUnit.SECONDS));
+            var approved = writer.decide("bob", original.id(), "manager", "APPROVE", "concurrent commit");
+            gate.release.countDown();
+            assertEquals(original, reading.get(10, TimeUnit.SECONDS));
+            assertEquals(approved, reader.submission("alice", "snapshot"));
+        } finally { gate.release.countDown(); executor.shutdownNow(); assertTrue(executor.awaitTermination(10, TimeUnit.SECONDS)); }
+    }
+
+    @Test void keyedCreateReplayLocksCurrentRequestUntilAuditValidationCompletes() throws Exception {
+        var gate = new GateDataSource(dataSource, "SELECT event_index, event_json FROM arc_request_event");
+        var executor = Executors.newFixedThreadPool(2);
+        try (var writer = open(); var replaying = new JdbcApprovalStore(gate, new ObjectMapper(), ProcessDefinition.legacy("bob"))) {
+            var original = writer.submit("alice", "Leave", "Rest", 1, 1, "locked");
+            var replay = executor.submit(() -> replaying.create(1, candidate("another-id", "Other intent"), "locked"));
+            assertTrue(gate.entered.await(5, TimeUnit.SECONDS));
+            var decision = executor.submit(() -> writer.decide("bob", original.id(), "manager", "APPROVE", "concurrent update"));
+            assertThrows(TimeoutException.class, () -> decision.get(150, TimeUnit.MILLISECONDS));
+            gate.release.countDown();
+            assertEquals(original, replay.get(10, TimeUnit.SECONDS));
+            assertEquals("APPROVED", decision.get(10, TimeUnit.SECONDS).status());
+            assertEquals(1, count("arc_request"));
+        } finally { gate.release.countDown(); executor.shutdownNow(); assertTrue(executor.awaitTermination(10, TimeUnit.SECONDS)); }
+    }
+
+    @Test void keyedCreateReplaysBeforeVersionCheckButFreshKeyCannotUseStaleVersion() throws Exception {
+        try (var store = new JdbcApprovalStore(dataSource, new ObjectMapper(), ProcessDefinition.legacy("bob"))) {
+            var original = store.create(1, candidate("original", "Leave"), "old-version");
+            var initial = ProcessDefinition.legacy("carol");
+            assertTrue(store.publish("alice", 1, new ProcessDefinition(initial.schemaVersion(), initial.id(), 2, initial.name(), initial.nodes())));
+            assertEquals(original, store.create(1, candidate("new-id", "Changed intent"), "old-version"));
+            assertNull(store.create(1, candidate("fresh-id", "Leave"), "fresh-key"));
+            assertEquals(1, count("arc_request"));
+            assertEquals(1, count("arc_request_event"));
+            assertEquals(1, count("arc_submission_key"));
+        }
+    }
+
+    @Test void explicitRevisionTwoUpgradePreservesLegacyRequestsAndDoesNotBackfillKeys() throws Exception {
+        ApprovalService.Request legacy;
+        try (var service = open()) { legacy = service.submit("alice", "Leave", "Rest", 1, 1); }
+        sql("DROP TABLE arc_submission_key");
+        assertThrows(IOException.class, this::open, "Missing migration must fail before initialization writes");
+        String dialect;
+        try (var connection = dataSource.getConnection()) {
+            dialect = switch (connection.getMetaData().getDatabaseProductName()) {
+                case "MySQL" -> "mysql"; case "PostgreSQL" -> "postgresql"; case "H2" -> "h2";
+                default -> throw new AssertionError("Unexpected test database");
+            };
+        }
+        try (var input = JdbcApprovalStore.class.getResourceAsStream("upgrade-" + dialect + "-v1-to-v2.sql")) {
+            assertNotNull(input);
+            String ddl = new String(input.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8).replaceAll("(?m)^\\s*--.*$", "");
+            for (String statement : ddl.split(";")) if (!statement.isBlank()) sql(statement);
+        }
+        try (var service = open()) {
+            assertEquals(legacy, service.list("alice").get(0));
+            assertEquals(0, count("arc_submission_key"));
+            var keyed = service.submit("alice", "Leave", "Rest", 1, 1, "after-upgrade");
+            assertNotEquals(legacy.id(), keyed.id());
+            assertEquals(keyed, service.submit("alice", "Leave", "Rest", 1, 1, "after-upgrade"));
+            assertEquals(2, count("arc_request"));
+        }
+    }
+
+    private void assertEmptySubmissionTables() throws Exception {
+        assertEquals(0, count("arc_request"));
+        assertEquals(0, count("arc_request_event"));
+        assertEquals(0, count("arc_submission_key"));
+    }
+
+    private static ApprovalService.Request candidate(String id, String title) {
+        var definition = ProcessDefinition.legacy("bob");
+        String now = "2026-10-05T12:00:00Z";
+        return new ApprovalService.Request(id, title, "Rest", 1, "alice", "bob", "PENDING", now, now,
+            null, null, definition.id(), definition.version(),
+            List.of(new ApprovalService.Event("alice", "SUBMIT", "", now, null)), definition, "manager");
+    }
+
 }

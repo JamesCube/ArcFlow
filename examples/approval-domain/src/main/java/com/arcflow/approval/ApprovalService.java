@@ -80,24 +80,63 @@ public class ApprovalService implements AutoCloseable {
     }
 
     public Request submit(String actor, String title, String reason, int days, int processVersion) throws IOException {
+        return submit(actor, title, reason, days, processVersion, null);
+    }
+
+    /** Optional, durable applicant-scoped submission key. Replays return the current saved request. */
+    public Request submit(String actor, String title, String reason, int days, int processVersion, String idempotencyKey) throws IOException {
         requirePerson(actor);
-        var definition = store.process();
-        if (processVersion != definition.version()) throw conflict("The published process changed; reload before submitting");
-        requireActiveAssignees(definition);
-        if (definition.approvals().stream().anyMatch(n -> n.participants().contains(actor)))
-            throw badRequest("You cannot submit to a process that assigns you any approval step");
-        if (!validText(title, 120) || !validText(reason, 2000) || days < 1 || days > 365)
+        if (idempotencyKey != null && !validSubmissionKey(idempotencyKey))
+            throw badRequest("Idempotency-Key must be 1-128 ASCII letters, digits, dots, underscores, colons or hyphens, starting with a letter or digit");
+        if (!validText(title, 120) || !validText(reason, 2000) || days < 1 || days > 365 || processVersion < 1)
             throw badRequest("Invalid leave submission");
-        // The real, unchanged ArcFlow core still performs the validate → normalize DAG.
+        // The real, unchanged ArcFlow core performs the validate → normalize DAG on every command.
         var normalized = SubmissionWorkflow.execute(title, reason, days);
+        if (idempotencyKey != null) {
+            Request prior = store.submission(actor, idempotencyKey);
+            if (prior != null) return submissionReplay(actor, normalized, days, processVersion, prior);
+        }
+        var definition = store.process();
+        try {
+            if (processVersion != definition.version()) throw conflict("The published process changed; reload before submitting");
+            requireActiveAssignees(definition);
+            if (definition.approvals().stream().anyMatch(n -> n.participants().contains(actor)))
+                throw badRequest("You cannot submit to a process that assigns you any approval step");
+        } catch (ResponseStatusException changed) {
+            // A winner can commit after our optimistic lookup and before a new publication or
+            // directory change. Historical replay must not depend on current routing eligibility.
+            if (idempotencyKey != null) {
+                Request winner = store.submission(actor, idempotencyKey);
+                if (winner != null) return submissionReplay(actor, normalized, days, processVersion, winner);
+            }
+            throw changed;
+        }
         String now = Instant.now().toString();
         var first = definition.approvals().get(0);
         Request r = new Request(UUID.randomUUID().toString(), normalized.get("title"), normalized.get("reason"), days, actor, first.participants().get(0),
             "PENDING", now, now, null, null, definition.id(), definition.version(),
             List.of(new Event(actor, "SUBMIT", "", now, null)), definition, first.id());
-        if (!store.create(processVersion, r))
-            throw conflict("The published process changed; reload before submitting");
-        return r;
+        if (idempotencyKey != null) {
+            Request saved = store.create(processVersion, r, idempotencyKey);
+            if (saved != null) return submissionReplay(actor, normalized, days, processVersion, saved);
+        } else if (store.create(processVersion, r)) return r;
+        // A competing keyed submit may have committed before the process was republished.
+        // The store must resolve its binding before rejecting an outdated process version.
+        throw conflict("The published process changed; reload before submitting");
+    }
+
+    /** Exact and case-sensitive; bounded for portable database indexes and HTTP transports. */
+    public static boolean validSubmissionKey(String key) {
+        return key != null && key.matches("[A-Za-z0-9][A-Za-z0-9._:-]{0,127}");
+    }
+
+    private Request submissionReplay(String actor, Map<String,String> normalized, int days, int processVersion, Request saved) throws IOException {
+        requirePerson(actor); // Recheck live authorization after storage/racing commands.
+        if (!actor.equals(saved.applicantId())) throw new IOException("Submission binding has an invalid owner");
+        if (!normalized.get("title").equals(saved.title()) || !normalized.get("reason").equals(saved.reason()) ||
+            days != saved.days() || processVersion != saved.processVersion())
+            throw conflict("Idempotency-Key was already used for a different submission");
+        return saved;
     }
 
     public Request decide(String actor, String id, String stepId, String decision, String comment) throws IOException {

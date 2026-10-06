@@ -55,7 +55,7 @@ jobs:
           mvn --batch-mode --no-transfer-progress -f "$RUNNER_TEMP/ruoyi/backend/pom.xml" package
       - name: Build official Vue 3 application with mounted ArcFlow views
         run: |
-          node --test examples/ruoyi-vue3/frontend/src/views/arcflow/approval/process.test.mjs
+          node --test examples/ruoyi-vue3/frontend/src/views/arcflow/approval/*.test.mjs
           cd "$RUNNER_TEMP/ruoyi/frontend"
           npm ci
           npm run build:prod

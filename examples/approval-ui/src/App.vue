@@ -1,6 +1,8 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { api } from './api'
+import { createSubmissionIntent, isRejectedSubmissionVersion } from './submission-intent'
+import { validateSubmissionResponse } from './submission-response'
 import ProcessDesigner from './ProcessDesigner.vue'
 import UiIcon from './UiIcon.vue'
 import { appCopy, translate, validationText, apiFailure } from './locale'
@@ -15,6 +17,15 @@ const people = ref([]), process = ref(null), draft = ref(null), draftBaseline = 
 const busy = ref(false), publishing = ref(false), error = ref(null), notice = ref(null), tab = ref('requests')
 const publishConflict = ref(false)
 const title = ref(''), reason = ref(''), days = ref(1)
+const submissionIntent = createSubmissionIntent(), submissionAttempt = ref(null), submissionDefinition = ref(null)
+let submissionVersionRejected = false
+const submissionFields = () => ({ title: title.value, reason: reason.value, days: days.value })
+function clearSubmission() { submissionIntent.clear(); submissionAttempt.value = null; submissionDefinition.value = null; submissionVersionRejected = false }
+watch([() => me.value?.id, title, reason, days], () => {
+  submissionIntent.invalidate(me.value?.id, submissionFields())
+  if (!submissionIntent.current(me.value?.id, submissionFields())) clearSubmission()
+}, { flush: 'sync' })
+const submissionProcess = computed(() => submissionAttempt.value ? submissionDefinition.value : process.value)
 const selectedId = ref(null), comment = ref('')
 const errorText = computed(() => !error.value ? '' : error.value.kind === 'api' ? apiFailure(error.value.cause, error.value.operation, locale.value) : error.value.kind === 'validation' ? error.value.messages.map(message => validationText(message, locale.value)).join(' ') : tr(error.value.key, error.value.values))
 const noticeText = computed(() => notice.value ? tr(notice.value.key, notice.value.values) : '')
@@ -35,7 +46,8 @@ const draftDirty = computed(() => !!draft.value && JSON.stringify(draft.value) !
 const draftErrors = computed(() => validateDefinition(draft.value))
 const publishedApprovals = computed(() => approvalNodes(process.value))
 const staleDraft = computed(() => publishConflict.value || draft.value?.version !== process.value?.version)
-const selfAssigned = computed(() => publishedApprovals.value.some(node => participants(node).includes(me.value?.id)))
+const submissionApprovals = computed(() => approvalNodes(submissionProcess.value))
+const selfAssigned = computed(() => submissionApprovals.value.some(node => participants(node).includes(me.value?.id)))
 const canDecide = computed(() => pendingParticipants(selected.value).includes(me.value?.id))
 const currentNode = computed(() => selected.value?.definition?.nodes.find(node => node.id === selected.value.currentStepId))
 const followingNode = computed(() => {
@@ -88,6 +100,7 @@ async function login() {
   finally { if (generation === current) busy.value = false }
 }
 function logout() {
+  clearSubmission()
   generation++; api.logout(); me.value = null; people.value = []; process.value = null; draft.value = null; draftBaseline.value = ''; requests.value = []
   selectedId.value = null; title.value = ''; reason.value = ''; days.value = 1; comment.value = ''; password.value = ''
   error.value = null; notice.value = null; busy.value = false; publishing.value = false; publishConflict.value = false; tab.value = 'requests'
@@ -101,6 +114,9 @@ async function refresh() {
     requireValidDefinition(blueprint)
     const previousStep = selected.value?.currentStepId
     requests.value = items; setPublished(blueprint)
+    // Refresh is an explicit recovery step only after the server proved no
+    // submission was created. Uncertain writes retain their original intent.
+    if (submissionVersionRejected) clearSubmission()
     if (previousStep !== selected.value?.currentStepId) comment.value = ''
     showNotice(draftDirty.value ? 'refreshedDraft' : 'refreshed')
   } catch (e) { if (current === generation) showFailure(e, 'refresh') }
@@ -140,17 +156,27 @@ async function submit() {
   if (!title.value.trim() || !reason.value.trim() || !Number.isInteger(Number(days.value)) || Number(days.value) < 1 || Number(days.value) > 365) {
     localError('invalidFields'); return
   }
-  if (validateDefinition(process.value).length || selfAssigned.value) {
+  if (validateDefinition(submissionProcess.value).length || selfAssigned.value) {
     localError(selfAssigned.value ? 'selfAssignedError' : 'validTemplateNeeded'); return
   }
   const current = generation; busy.value = true
   try {
-    const item = await api.request('/requests', { method: 'POST', body: JSON.stringify({ title: title.value.trim(), reason: reason.value.trim(), days: Number(days.value), processVersion: process.value.version }) })
+    if (!submissionAttempt.value) submissionDefinition.value = cloneDefinition(process.value)
+    const attempt = submissionIntent.prepare(me.value.id, submissionFields(), process.value.version)
+    submissionAttempt.value = attempt
+    const item = await api.request('/requests', { method: 'POST', headers: { 'Idempotency-Key': attempt.key }, body: JSON.stringify(attempt.payload) })
     if (current !== generation) return
-    requests.value = [item, ...requests.value]; selectedId.value = item.id; tab.value = 'requests'; comment.value = ''
+    validateSubmissionResponse(item, me.value.id, attempt.payload, submissionDefinition.value)
+    clearSubmission()
+    requests.value = [item, ...requests.value.filter(existing => existing.id !== item.id)]; selectedId.value = item.id; tab.value = 'requests'; comment.value = ''
     title.value = ''; reason.value = ''; days.value = 1
-    showNotice('submitted', { names: pendingNames(item) })
-  } catch (e) { if (current === generation) showFailure(e, 'submit') }
+    showNotice(item.status === 'PENDING' ? 'submitted' : item.status === 'APPROVED' ? 'requestApproved' : 'requestRejected', { names: pendingNames(item) })
+  } catch (e) {
+    if (current === generation) {
+      submissionVersionRejected = isRejectedSubmissionVersion(e)
+      showFailure(e, 'submit')
+    }
+  }
   finally { if (current === generation) busy.value = false }
 }
 async function decide(decision) {
@@ -228,7 +254,7 @@ function select(item) { selectedId.value = item.id; comment.value = ''; error.va
           <section class="request-column">
             <form v-if="tab === 'requests'" class="card new-request" @submit.prevent="submit">
               <div class="card-heading"><div><p class="eyebrow">{{ t.startHere }}</p><h2>{{ t.newRequest }}</h2></div><span class="small-icon"><UiIcon name="arrow" /></span></div>
-              <div class="submission-template" data-testid="submission-template"><strong>{{ process?.name }} · v{{ process?.version }}</strong><p>{{ publishedApprovals.map(node => `${node.name} (${nodeSummary(node)})`).join(' → ') }}</p><small>{{ t.savedTemplate }}<template v-if="draftDirty"> {{ t.draftNotUsed }}</template></small></div>
+              <div class="submission-template" data-testid="submission-template"><strong>{{ submissionProcess?.name }} · v{{ submissionProcess?.version }}</strong><p>{{ submissionApprovals.map(node => `${node.name} (${nodeSummary(node)})`).join(' → ') }}</p><small>{{ t.savedTemplate }}<template v-if="draftDirty"> {{ t.draftNotUsed }}</template></small></div>
               <p v-if="selfAssigned" class="warning">{{ t.selfAssignedWarning }}</p>
               <div class="request-form-fields"><label class="request-title-field">{{ t.title }}<input v-model="title" data-testid="request-title" maxlength="120" :placeholder="t.titlePlaceholder" required :disabled="busy"></label>
               <label class="request-days-field">{{ t.days }}<input v-model="days" data-testid="request-days" type="number" min="1" max="365" step="1" required :disabled="busy"></label></div>
