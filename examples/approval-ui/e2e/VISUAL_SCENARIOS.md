@@ -1,8 +1,8 @@
 # Real-backend visual scenarios
 
-`visual-scenarios.spec.mjs` is a single ordered Chromium journey against the actual
-Spring Boot API and Vue workspace. Its title starts with `visual showcase:` so CI
-can capture a clean gallery in a separate Playwright invocation:
+`visual-scenarios.spec.mjs` runs one ordered Chromium test against the Spring Boot
+API and Vue workspace. Its title starts with `visual showcase:` so CI can run the
+screenshot gallery separately from the other Playwright tests:
 
 ```sh
 # Run the existing functional journeys first.
@@ -15,20 +15,20 @@ Build the backend and install Playwright first, as described in the
 [UI run guide](../README.md#real-browser-first-run-check). Each invocation refuses
 to reuse existing servers, generates disposable passwords and creates a new
 single-writer store. The existing configuration runs one worker. Do not override
-that setting or run competing publications against the same backend. The visual
-journey reads the current version before every seeded publication; it never rewrites
-version numbers or existing request snapshots. Playwright stops the disposable servers after the run; the isolated temporary
-data directory can remain until the runner is cleaned up. No cleanup publication
-can mask the original failure. Run it
-in the separate invocation shown above, keeping gallery data and functional fixtures
-isolated.
+that setting or run competing publications against the same backend. The gallery
+test reads the current version before publishing each setup definition; it never
+rewrites version numbers or existing request snapshots. Playwright stops the
+disposable servers after the run; the temporary data directory can remain until
+the runner is cleaned up. The test does not publish cleanup data after a failure,
+so that extra operation cannot hide the original error. Run the gallery separately
+as shown above to keep its data apart from the functional-test fixtures.
 
 ## Captures and evidence
 
 Desktop captures use a 1440 × 1000 viewport and retain the full document. Mobile
 captures use a 390 × 844 Chromium viewport and retain the visible viewport. The
-latter deliberately show separate flow, inspector, decision, snapshot and activity
-views rather than pretending an excessively long page is one phone screen.
+mobile captures show the flow, inspector, decision, snapshot and activity views
+separately, so each image matches what fits on the screen.
 
 | PNG prefix | Scene | Locales |
 | --- | --- | --- |
@@ -54,16 +54,17 @@ version-checked API; ALL/ANY edits, publication, applicant submission and group
 votes go through the browser UI. After ANY completes, another actual publication
 changes the current template. API assertions verify the earlier ALL and ANY
 request definitions remain unchanged and that the partial ALL request remains
-pending. Request IDs, versions and recorded timestamps come from the server; they
-are not painted over or fabricated, so this is a scenario gallery rather than a
-pixel-stable golden-image suite.
+pending. Request IDs, versions and timestamps come from the server and remain
+visible. They can change between runs, so this gallery is for reviewing scenarios
+rather than pixel-for-pixel golden-image comparison.
 
 Every capture checks document and body horizontal overflow. Mobile inspector
 fields must remain inside the viewport width, at least 44px tall, and at least
 16px in computed font size. Decision buttons must be at least 44px tall with
-15px text. Insert, add-step and step-control targets are also checked at 44px. Both localized UI labels and group participant states are checked.
-The journey also rejects browser page errors. These checks are not a formal
-accessibility audit, physical-phone verification or a real 200% zoom test.
+15px text. Insert, add-step and step-control targets are also checked at 44px.
+The test checks localized UI labels and group participant states, and rejects
+browser page errors. It does not cover a full accessibility audit, physical
+phones or actual 200% browser zoom.
 
 ## Honest comparison and scope
 
@@ -73,22 +74,22 @@ The first scene reconstructs the original workbench input and edit sequence:
 and unpublished; Carol was unchecked and restored with Undo before capture, just
 as in the historical `02-workbench-any-inspector.png`. The locale now applies to
 the entire workspace. Backend version numbers can differ because this gallery
-starts a fresh store; the topology, configured names, people, selection and draft
-state are the comparison target. Keep the historical original image unchanged
-and label its capture commit when presenting a before/after pair.
+starts a fresh store; compare the process structure, names, people, selection
+and draft state. Keep the historical original image unchanged and label its
+capture commit when presenting a before/after pair.
 
-All names, requests, reasons and comments are synthetic demo content. The compact
-Chinese/English process and step names are configured user data; the language
+All names, requests, reasons and comments are synthetic demo content. The
+Chinese/English process and step names are saved user data; the language
 switch translates interface copy, not saved business data. “Manager review” and
 “HR review” are step names only. The demo still assigns stable account IDs `bob`
 and `carol` directly; it does not discover managers, resolve organizational roles,
-or integrate an HR directory. These screenshots prove only the standalone demo,
-not the separately developed native RuoYi integration or production readiness.
+or integrate an HR directory. These screenshots cover the standalone demo.
+RuoYi integration and production readiness need their own checks.
 
 No password-form screenshots, trace, HAR, video or saved authentication state
-are produced. Explicit progress logs contain no credential values. Gallery API
-transport and password-entry errors are replaced with bounded summaries because
+are produced. Progress logs contain no credential values. Gallery API
+transport and password-entry errors use short, sanitized summaries because
 Playwright’s raw failure logs can contain headers or filled values; do not add raw
-error/cause logging. CI uploads only the PNG directories. Runtime
-and visual acceptance require a successful current CI run and inspection of its
-artifacts; static syntax checks alone do not establish either.
+error/cause logging. CI uploads only the PNG directories. To verify a revision,
+check its completed CI run and inspect the screenshots. Static syntax checks
+alone do not show whether it runs or renders correctly.

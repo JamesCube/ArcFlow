@@ -1,6 +1,6 @@
-# Arcflow approval UI prototype
+# ArcFlow approval UI prototype
 
-Vue 3 + Vite UI for the companion Spring Boot approval example. This is an original, deliberately narrow demonstration: edit and publish a sequence → submit leave → complete assigned steps → visible status and activity. Alice can add, remove, reorder, name and assign 1–8 approval steps, each with a single approver or an ALL/ANY participant group. Existing requests show their own **read-only definition snapshot**, separate from the current editable template. Groups execute in an ordered sequence; this is not a general graph editor. The fixed-account demo offers Bob and Carol as participants. The reusable domain supports 2–16 stable participant IDs, but this demo does not provide an enterprise identity picker. No DingTalk assets or RuoYi integration are included.
+A Vue 3 + Vite UI for the Spring Boot approval example. Publish a process, submit a sample leave request, decide its assigned steps, and see the result and activity history. As Alice, you can add, remove, reorder, name and assign 1–8 approval steps. Each step has one approver or an ALL/ANY group. Each submitted request keeps a **read-only definition snapshot**, so later template edits do not change it. Steps run in order, including group steps. The editor does not support arbitrary graphs. The demo offers Bob and Carol as approvers. The shared domain supports groups of 2–16 stable participant IDs; this UI only uses the fixed demo accounts. It includes no DingTalk assets or RuoYi integration.
 
 ## Run
 
@@ -36,7 +36,7 @@ npm run build
 
 ## Automated coverage
 
-Component and pure-model tests cover edit/reorder/reset/publish, role restrictions, 1–8 limits, malformed definitions, stale versions and interrupted requests, refresh with a dirty draft, repeated clicks, logout races, per-step decisions, and immutable instance snapshots. Parallel-specific tests cover mode conversion, distinct membership, partial ALL approval/ANY rejection, early termination, repeated participants, group draft conflicts, non-first-member eligibility, and per-participant status. A production build is a compilation check, not browser visual verification.
+Component and pure-model tests cover edit/reorder/reset/publish, role restrictions, 1–8 limits, malformed definitions, stale versions and interrupted requests, refresh with a dirty draft, repeated clicks, logout races, per-step decisions, and immutable instance snapshots. Parallel-specific tests cover mode conversion, distinct membership, partial ALL approval/ANY rejection, early termination, repeated participants, group draft conflicts, non-first-member eligibility, and per-participant status. The production build checks compilation. Use the browser tests and their screenshots to check rendering.
 
 ## Real-browser first-run check
 
@@ -56,7 +56,7 @@ npm run test:e2e
 
 On a clean Linux machine, Playwright may also require system browser dependencies (`npx playwright install --with-deps chromium`, which can need administrator permission). Stop other servers on ports 8080 and 5173 first: the test deliberately refuses to reuse an existing app or store. It generates disposable demo passwords and a fresh temporary data directory, and binds both servers to loopback. Test data is synthetic. The temporary `arcflow-e2e-*` directory in your OS temporary folder may be removed after the run; it is not your normal demo store.
 
-Only successful authenticated workspace views are captured under ignored `test-results/` directories; no password-form screenshots, authentication traces, HAR, videos or saved browser sessions are recorded. CI retains screenshot artifacts for seven days. These are proof of the standalone demo only, not visual verification of the RuoYi integration, production readiness, or backend restart persistence (covered separately by backend tests).
+Only successful authenticated workspace views are captured under ignored `test-results/` directories; no password-form screenshots, authentication traces, HAR, videos or saved browser sessions are recorded. CI retains screenshot artifacts for seven days. These screenshots cover the standalone demo. They do not verify RuoYi rendering or production readiness. Backend restart persistence has separate backend tests.
 
 To use an already installed Chromium for local verification, set `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` to its absolute path. CI continues to use Playwright’s managed browser by default.
 
@@ -68,6 +68,6 @@ The previous desktop and 390px stacked layouts passed the real Chromium workbenc
 
 ## Workspace visual redesign
 
-The current source uses a restrained navy navigation rail, shared typography/status tokens, compact stage cards, a focused inspector, and a mobile flow/settings switch instead of stacking the full editor. Escape returns to the selected card, including read-only reviewers; switching views or languages preserves the draft and undo history. The request overview counts only records actually returned for the signed-in user.
+The workspace has a navy navigation rail, shared text and status styles, compact stage cards and one inspector. On mobile, you can switch between the flow and its settings. Escape returns to the selected card, including read-only reviewers; switching views or languages preserves the draft and undo history. The request overview counts only records actually returned for the signed-in user.
 
-The [real scenario suite](e2e/VISUAL_SCENARIOS.md) adds Chinese/English leave-request, sequential, ALL, ANY, immutable-snapshot and mobile captures. It runs against a fresh real backend in a separate CI invocation. New screenshots are evidence only after the exact revision passes that browser job; unit tests and the production build do not establish visual quality. The examples remain localhost-only synthetic leave workflows, with fixed Bob/Carol identities, not expense/contract forms, role resolution, tenant isolation, arbitrary branching or production readiness.
+The [scenario suite](e2e/VISUAL_SCENARIOS.md) captures Chinese and English leave-request forms, sequential steps, ALL/ANY groups, saved snapshots and mobile views. It uses a fresh backend in a separate CI run. Check that the browser job passed for your revision, then inspect its screenshots; unit tests and a successful build do not show how the UI renders. Keep the example on localhost with synthetic leave requests and the fixed Bob/Carol accounts. Expense and contract forms, role resolution, tenant isolation and arbitrary branching are not included, and production use has not been verified.

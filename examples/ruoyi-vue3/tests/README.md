@@ -1,22 +1,22 @@
 # Official RuoYi integration smoke
 
-`smoke.py` exercises a packaged official RuoYi backend against **real MySQL and Redis**.
-It never mocks authentication: all tokens come from upstream `/login`, and the test
-checks upstream `/getInfo`, `/getRouters`, and `/logout` as well as ArcFlow endpoints.
+`smoke.py` runs a packaged official RuoYi backend with **MySQL and Redis**.
+It signs in through upstream `/login` and checks `/getInfo`, `/getRouters` and
+`/logout` alongside the ArcFlow endpoints. Authentication is not mocked.
 
-Only use a new disposable database. Before running, import the pinned upstream
+Use a new disposable database for every run. Before running, import the pinned upstream
 `sql/ry_20260417.sql`, `sql/quartz.sql`, then this overlay's `sql/menu.sql`.
 The fixture creates five test users and two roles, disables the captcha in the
 fixture database, and replaces upstream demo passwords with a freshly generated
 random password and BCrypt hash. No test password or JWT signing secret is stored
 in the repository. The smoke process generates both in memory on each run.
 
-The fixture deliberately grants ordinary participants read/submit/decide but not
-publish. A fifth account has no ArcFlow permissions. Admin may publish but cannot
+The fixture gives ordinary participants read/submit/decide permission, without
+publish permission. A fifth account has no ArcFlow permissions. Admin may publish but cannot
 approve a request on behalf of its assigned user.
 
-Submission checks exercise the optional `Idempotency-Key` header through the real
-native endpoint, retaining its existing `AjaxResult` response envelope:
+The submission tests send the optional `Idempotency-Key` header through the native
+endpoint and check responses in RuoYi’s existing `AjaxResult` envelope:
 
 - Identical and whitespace-normalized retries return the same request with one
   `SUBMIT` event; changed title, reason, days or process version return conflict.
@@ -34,8 +34,8 @@ native endpoint, retaining its existing `AjaxResult` response envelope:
   existing server restart, even with a historical reviewer deleted, without
   adding history or another request.
 
-The API smoke retains the schema-2 ordered two-step approval checks and adds
-schema-3 group coverage through the same native `/arcflow` endpoints:
+The API smoke tests schema-2 two-step approvals and schema-3 groups through the
+same native `/arcflow` endpoints:
 
 - Publish both `ALL` and `ANY` definitions with official admin authentication;
   reject unauthorized publishers and stale versions.
@@ -46,10 +46,10 @@ schema-3 group coverage through the same native `/arcflow` endpoints:
 - `ALL`: retain partial approval, require every member before the next sequential
   step, and terminate on either an immediate rejection or rejection after another
   member approved. A participant assigned to the following stage votes separately
-  there, proving retries are scoped to both actor and step.
+  there, checking that retries are scoped to both actor and step.
 - `ANY`: retain an individual rejection until another member approves or every
-  member rejects; one immediate approval closes the group without fabricated
-  votes from unvoted members.
+  member rejects; one immediate approval closes the group without recording
+  votes for members who have not voted.
 - Read and decide as a non-first participant, whose membership comes from the
   request's pinned definition even when `approverId` names someone else. After a
   vote, the request remains visible but drops out of that actor's pending worklist.
@@ -66,10 +66,10 @@ schema-3 group coverage through the same native `/arcflow` endpoints:
   and partial histories remain readable by other participants and survive restart
   exactly, while the group definition still references the deleted member.
 
-`approverId` is only the compatibility first-pending-member field. The HTTP smoke
+`approverId` names the first pending member for compatibility with older clients. The HTTP smoke
 derives pending membership from each real response's current step and history,
 and checks the corresponding participant's actual read/decision endpoints. The
-native Chromium journey additionally checks the rendered worklist and controls.
+native Chromium test also checks the rendered worklist and controls.
 After the API group checks, the original two-step definition and both active
 fixture approvers are restored for that browser journey.
 
@@ -84,11 +84,11 @@ python3 examples/ruoyi-vue3/tests/smoke.py \
 Use local MySQL on port 3306 (`ry-vue` database), Redis on port 6379, and an unused
 backend port 8080. The smoke starts the backend, performs the test, stops it,
 restarts with the same state file and Redis after the sequential checks and again
-after the group checks, and verifies exact history persistence. It also proves
-deleted historical actors do not invalidate saved history. Processes
+after the group checks, and verifies exact history persistence. It also checks that deleting a historical actor does not make the saved history
+unreadable. Processes
 are terminated in `finally`; logs remain in the state directory for diagnosis.
 
 The GitHub workflow `.github/workflows/ruoyi-integration.yml` provisions disposable
 MySQL 8.4.4 / Redis 7.4.2 services, builds both official upstream applications, and
-runs this smoke. A successful local Python syntax check is **not** evidence that
-this real-service test passed; use the workflow result for runtime verification.
+runs this smoke. Python syntax checks cannot verify this runtime behavior. Check the workflow
+result for the commit you are testing.
