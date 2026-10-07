@@ -254,7 +254,7 @@ def run(frontend_directory, output_directory, password):
             page.get_by_role("tab", name=re.compile("待我审批")).click()
             select_request(page)
             page.get_by_role("button", name="投同意票", exact=True).click()
-            expect(page.get_by_text("本节点已通过，已流转至下一审批人。", exact=True)).to_be_visible()
+            expect(page.get_by_text("当前节点已通过，等待下一节点审批。", exact=True)).to_be_visible()
             expect(page.get_by_role("button", name="投同意票", exact=True)).to_have_count(0)
             logout(page)
             login(page, "second", password)
@@ -373,7 +373,7 @@ def run(frontend_directory, output_directory, password):
             assert group["history"][-1]["actorId"] == "101"
             assert group["status"] == "PENDING" and group["currentStepId"] == any_step["id"]
             assert group["approverId"] == "102" and len(group["history"]) == 3
-            expect(page.get_by_text("本节点已通过，已流转至下一审批人。", exact=True)).to_be_visible()
+            expect(page.get_by_text("当前节点已通过，等待下一节点审批。", exact=True)).to_be_visible()
             expect(snapshot_step(page, ALL_STAGE)).to_contain_text("已通过")
             group_current(page, ANY_STAGE)
             for actor in ("first", "second"):
