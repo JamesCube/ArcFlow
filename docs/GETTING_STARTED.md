@@ -6,11 +6,42 @@
 
 ### 1. Start the standalone demo
 
-Follow the commands in the [English README](../README.en.md#try-one-leave-approval) to install the core and shared domain, start the API at `127.0.0.1:8080`, and serve the Vue UI at **http://localhost:5173**. Leave both terminals running.
+These steps start the demo in two terminals and keep its data between runs. For a temporary demo that cleans up when you stop it, use the [one-command launcher](TRYOUT.md).
 
 Requirements: Git, Bash, a full JDK 17+, Maven 3.9+, Node 22.22.2 or later within 22.x, and npm. Supported alternatives for the standalone UI are Node 24.15+ within 24.x or Node 26+, as declared in its [package.json](../examples/approval-ui/package.json). This setup needs no MySQL, Redis or RuoYi installation.
 
 Choose a new private data path and three different demo-only passwords, each at least 12 characters long. Use test data instead of real leave, health or personnel information. A fresh store starts with **Alice submits → Bob reviews → complete**.
+
+In terminal 1:
+
+```bash
+git clone https://github.com/JamesCube/ArcFlow.git
+cd ArcFlow
+mvn install
+mvn -f examples/approval-domain/pom.xml install
+
+# Private local demo state; reuse this absolute path when restarting.
+umask 077
+mkdir -p "$PWD/examples/approval-demo/backend/data"
+export APPROVAL_DATA_FILE="$PWD/examples/approval-demo/backend/data/requests.json"
+
+# Choose three different demo-only passwords, each at least 12 characters.
+read -rs -p 'Alice demo password: ' APPROVAL_ALICE_PASSWORD; echo
+read -rs -p 'Bob demo password: ' APPROVAL_BOB_PASSWORD; echo
+read -rs -p 'Carol demo password: ' APPROVAL_CAROL_PASSWORD; echo
+export APPROVAL_ALICE_PASSWORD APPROVAL_BOB_PASSWORD APPROVAL_CAROL_PASSWORD
+mvn -f examples/approval-demo/backend/pom.xml spring-boot:run
+```
+
+In terminal 2, from the same repository root:
+
+```bash
+cd examples/approval-ui
+npm ci
+npm run dev
+```
+
+Keep both terminals running. Open [http://localhost:5173](http://localhost:5173) after the backend and UI are ready.
 
 ### 2. Complete a request
 
@@ -59,11 +90,42 @@ If you open a new terminal, set the passwords again and set `APPROVAL_DATA_FILE`
 
 ### 1. 启动独立演示
 
-执行 [中文 README](../README.md#先完成一笔请假审批) 中的命令：先安装内核与共享领域库，再启动 `127.0.0.1:8080` 上的 API 和 **http://localhost:5173** 上的 Vue 界面。两个终端都保持运行。
+下面分两个终端启动演示，停止后保留数据。如果只想临时试用、结束后删除数据，可以用[一键启动脚本](TRYOUT.md)。
 
 需要 Git、Bash、完整 JDK 17+、Maven 3.9+、Node 22.22.2 或更高的 22.x 版本及 npm。独立界面也接受 24.15+ 的 Node 24.x 或 Node 26+，以 [package.json](../examples/approval-ui/package.json) 为准。这套启动方式不需要 MySQL、Redis 或若依。
 
 选择一个新的私有数据路径，设置三个不同的演示专用密码，每个至少 12 个字符。请使用测试数据，不要输入真实请假、健康或人员信息。初始流程为 **Alice 发起 → Bob 审批 → 完成**。
+
+在终端 1 运行：
+
+```bash
+git clone https://github.com/JamesCube/ArcFlow.git
+cd ArcFlow
+mvn install
+mvn -f examples/approval-domain/pom.xml install
+
+# 私有本地演示数据；重启时复用这个绝对路径。
+umask 077
+mkdir -p "$PWD/examples/approval-demo/backend/data"
+export APPROVAL_DATA_FILE="$PWD/examples/approval-demo/backend/data/requests.json"
+
+# 设置三个不同的、至少 12 个字符的演示专用密码。
+read -rs -p 'Alice demo password: ' APPROVAL_ALICE_PASSWORD; echo
+read -rs -p 'Bob demo password: ' APPROVAL_BOB_PASSWORD; echo
+read -rs -p 'Carol demo password: ' APPROVAL_CAROL_PASSWORD; echo
+export APPROVAL_ALICE_PASSWORD APPROVAL_BOB_PASSWORD APPROVAL_CAROL_PASSWORD
+mvn -f examples/approval-demo/backend/pom.xml spring-boot:run
+```
+
+在终端 2，从同一个仓库根目录运行：
+
+```bash
+cd examples/approval-ui
+npm ci
+npm run dev
+```
+
+保持两个终端运行。后端和界面都启动后，打开 [http://localhost:5173](http://localhost:5173)。
 
 ### 2. 完成一次审批
 
