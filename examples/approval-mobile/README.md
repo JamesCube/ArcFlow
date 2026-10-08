@@ -57,8 +57,9 @@ mvn install
 mvn -f examples/approval-domain/pom.xml install
 ```
 
-Set your own three passwords (at least 12 characters each) in your local shell,
-without committing them. In the backend terminal:
+Set your own three passwords (at least 12 characters and at most 72 UTF-8 bytes each)
+in your local shell, without committing them. Multibyte characters can reach the
+byte limit sooner. In the backend terminal:
 
 ```sh
 export APPROVAL_ALICE_PASSWORD='your-unique-local-alice-password'

@@ -15,7 +15,7 @@ export APPROVAL_CAROL_PASSWORD='replace-with-your-unique-carol-password'
 mvn -f examples/approval-demo/backend/pom.xml spring-boot:run
 ```
 
-There are no default passwords. Choose three different demo-only passwords of at least 12 characters; startup rejects shorter ones. Set them locally and do not commit them. The backend binds to 127.0.0.1:8080, and the frontend’s Vite proxy forwards `/api`. The UI keeps credentials in page memory and sends them explicitly with each call. Keep the demo local; any non-loopback deployment would also require HTTPS.
+There are no default passwords. Choose three different demo-only passwords of at least 12 characters and at most 72 UTF-8 bytes; startup rejects passwords outside these limits. Multibyte characters can reach the byte limit sooner. Set them locally and do not commit them. The backend binds to 127.0.0.1:8080, and the frontend’s Vite proxy forwards `/api`. The UI keeps credentials in page memory and sends them explicitly with each call. Keep the demo local; any non-loopback deployment would also require HTTPS.
 
 `APPROVAL_DATA_FILE` defaults to `./data/requests.json` relative to the backend working directory; set an absolute path for predictable restarts. `APPROVAL_UI_ORIGIN` defaults to `http://localhost:5173`; set it to the exact frontend origin if using another port/hostname. No wildcard origins or CORS are enabled.
 
