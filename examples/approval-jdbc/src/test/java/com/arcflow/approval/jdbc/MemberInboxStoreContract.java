@@ -4,20 +4,24 @@ import com.arcflow.approval.ActorDirectory;
 import com.arcflow.approval.ApprovalService;
 import com.arcflow.approval.ApprovalService.Event;
 import com.arcflow.approval.ApprovalService.Request;
+import com.arcflow.approval.BusinessDocument;
 import com.arcflow.approval.InboxQuery;
 import com.arcflow.approval.InboxQuery.Bucket;
 import com.arcflow.approval.ProcessDefinition;
 import com.arcflow.approval.ProcessDefinition.ProcessNode;
+import com.arcflow.approval.QuoteDiscountCase;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Proxy;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -457,6 +461,158 @@ abstract class MemberInboxStoreContract extends ServerApprovalStoreContract {
             sql("UPDATE arc_request SET request_json = 'corrupt' WHERE process_id = 'procurement-approval'");
             assertEquals(List.of(leave), leaves.inbox(query("bob", Bucket.PENDING, 1)));
         }
+    }
+
+    private static BusinessDocument.QuoteDiscount quote() {
+        return new BusinessDocument.QuoteDiscount("quote:contract/001", "Quote discount", "Synthetic equipment quote",
+            "CUSTOMER-DEMO-A", 7, "Equipment set", 10, new BigDecimal("1E+3"), new BigDecimal("849.95"),
+            "CNY", "2099-12-31");
+    }
+
+    private JdbcApprovalStore quoteStore() throws IOException {
+        return new JdbcApprovalStore(dataSource, new ObjectMapper(), QuoteDiscountCase.definition("bob", "carol"));
+    }
+
+    @Test void quoteSnapshotAndTwoStepInboxProgressionSurvivePublicationAndReopen() throws Exception {
+        Request partial;
+        Request approved;
+        var definition = QuoteDiscountCase.definition("bob", "carol");
+        try (var indexed = quoteStore(); var service = new ApprovalService(indexed, USERS)) {
+            var original = service.submitDocument("alice", quote(), 1, "quote-snapshot");
+            assertEquals(quote(), original.business());
+            assertEquals(definition, original.definition());
+            assertEquals("quote-discount", original.processId());
+            assertEquals("salesManager", original.currentStepId());
+            assertEquals(List.of(original), indexed.inbox(query("bob", Bucket.PENDING, 10)));
+            assertEquals(List.of(), indexed.inbox(query("carol", Bucket.PENDING, 10)));
+            assertEquals(List.of(), indexed.inbox(query("bob", Bucket.HANDLED, 10)));
+            assertEquals(List.of(), indexed.inbox(query("carol", Bucket.HANDLED, 10)));
+            assertEquals(2, count("arc_request_member"));
+            // Publication must not replace the submitted quote's retained routing or business revision.
+            service.publish("alice", 1, QuoteDiscountCase.definition("carol", "bob"));
+            partial = service.decide("bob", original.id(), "salesManager", "APPROVE", "Sales checked");
+            assertEquals("PENDING", partial.status());
+            assertEquals("finance", partial.currentStepId());
+            assertEquals(quote(), partial.business());
+            assertEquals(definition, partial.definition());
+            assertEquals(List.of(), indexed.inbox(query("bob", Bucket.PENDING, 10)));
+            assertEquals(List.of(partial), indexed.inbox(query("bob", Bucket.HANDLED, 10)));
+            assertEquals(List.of(partial), indexed.inbox(query("carol", Bucket.PENDING, 10)));
+            assertEquals(List.of(), indexed.inbox(query("carol", Bucket.HANDLED, 10)));
+        }
+        try (var indexed = quoteStore(); var service = new ApprovalService(indexed, USERS)) {
+            assertEquals(2, indexed.process().version());
+            assertEquals(partial, indexed.request(partial.id()));
+            assertEquals(List.of(partial), indexed.inbox(query("bob", Bucket.HANDLED, 10)));
+            assertEquals(List.of(partial), indexed.inbox(query("carol", Bucket.PENDING, 10)));
+            approved = service.decide("carol", partial.id(), "finance", "APPROVE", "Finance checked");
+            assertEquals("APPROVED", approved.status());
+            assertNull(approved.currentStepId());
+            assertEquals(List.of("SUBMIT", "APPROVE", "APPROVE"), approved.history().stream().map(Event::action).toList());
+            assertEquals(List.of("alice", "bob", "carol"), approved.history().stream().map(Event::actorId).toList());
+        }
+        try (var indexed = quoteStore(); var service = new ApprovalService(indexed, USERS)) {
+            assertEquals(approved, indexed.request(approved.id()));
+            assertEquals(quote(), indexed.request(approved.id()).business());
+            assertEquals(definition, approved.definition());
+            var restored = (BusinessDocument.QuoteDiscount) indexed.request(approved.id()).business();
+            assertEquals(new BigDecimal("1E+3"), restored.listUnitPrice());
+            assertEquals(new BigDecimal("849.95"), restored.requestedUnitPrice());
+            assertEquals(0, new BigDecimal("10000").compareTo(restored.listTotal()));
+            assertEquals(new BigDecimal("8499.50"), restored.requestedTotal());
+            assertEquals(new BigDecimal("1500.50"), restored.reductionTotal());
+            for (String actor : List.of("bob", "carol")) {
+                assertEquals(List.of(), indexed.inbox(query(actor, Bucket.PENDING, 10)));
+                assertEquals(List.of(approved), indexed.inbox(query(actor, Bucket.HANDLED, 10)));
+            }
+            assertEquals(approved, service.submitDocument("alice", quote(), 1, "quote-snapshot"));
+            assertEquals(approved, service.decide("bob", approved.id(), "salesManager", "APPROVE", "Retry"));
+            assertEquals(approved, service.decide("carol", approved.id(), "finance", "APPROVE", "Retry"));
+            assertEquals(1, count("arc_request")); assertEquals(3, count("arc_request_event"));
+            assertEquals(1, count("arc_submission_key")); assertEquals(2, count("arc_request_member"));
+        }
+    }
+
+    @Test void quoteSubmissionKeysRemainApplicantGlobalAcrossIsolatedProcesses() throws Exception {
+        try (var quotes = quoteStore(); var leaves = store();
+             var purchases = new JdbcApprovalStore(dataSource, new ObjectMapper(), procurementDefinition("bob"));
+             var quoteService = new ApprovalService(quotes, USERS); var leaveService = new ApprovalService(leaves, USERS);
+             var purchaseService = new ApprovalService(purchases, USERS)) {
+            var saved = quoteService.submitDocument("alice", quote(), 1, "shared-key");
+            assertEquals(409, result(() -> leaveService.submit("alice", "Leave", "Rest", 1, 1, "shared-key")));
+            assertEquals(409, result(() -> purchaseService.submitDocument("alice", procurement(), 1, "shared-key")));
+            assertEquals(List.of(), leaves.requests()); assertEquals(List.of(), purchases.requests());
+            var leave = leaveService.submit("alice", "Leave", "Rest", 1, 1, "leave-key");
+            var purchase = purchaseService.submitDocument("alice", procurement(), 1, "purchase-key");
+            assertEquals(409, result(() -> quoteService.submitDocument("alice", quote(), 1, "leave-key")));
+            assertEquals(409, result(() -> quoteService.submitDocument("alice", quote(), 1, "purchase-key")));
+            assertEquals(List.of(saved), quotes.requests());
+            assertEquals(List.of(saved), quotes.inbox(query("bob", Bucket.PENDING, 10)));
+            assertEquals(List.of(leave), leaves.inbox(query("bob", Bucket.PENDING, 10)));
+            assertEquals(List.of(purchase), purchases.inbox(query("bob", Bucket.PENDING, 10)));
+            assertNull(leaves.request(saved.id())); assertNull(purchases.request(saved.id()));
+            assertNull(quotes.request(leave.id())); assertNull(quotes.request(purchase.id()));
+            assertEquals(404, result(() -> leaveService.decide("bob", saved.id(), "salesManager", "APPROVE", "Foreign")));
+            assertEquals(404, result(() -> purchaseService.decide("bob", saved.id(), "salesManager", "APPROVE", "Foreign")));
+            assertEquals(404, result(() -> quoteService.decide("bob", leave.id(), "manager", "APPROVE", "Foreign")));
+            assertEquals(404, result(() -> quoteService.decide("bob", purchase.id(), "manager", "APPROVE", "Foreign")));
+            // Global means across processes for one applicant, not a key shared by all applicants.
+            var otherApplicant = leaveService.submit("carol", "Leave", "Rest", 1, 1, "shared-key");
+            assertNotEquals(saved.id(), otherApplicant.id());
+            assertEquals(saved, quoteService.submitDocument("alice", quote(), 1, "shared-key"));
+            assertEquals(otherApplicant, leaveService.submit("carol", "Leave", "Rest", 1, 1, "shared-key"));
+            assertEquals(4, count("arc_request")); assertEquals(4, count("arc_request_event"));
+            assertEquals(4, count("arc_submission_key")); assertEquals(5, count("arc_request_member"));
+        }
+    }
+
+    @Test void concurrentQuoteRetriesAndMixedProcessBackfillPreserveSnapshotsAndMembership() throws Exception {
+        Request partial;
+        Request leave;
+        Request purchase;
+        try (var first = new ApprovalService(quoteStore(), USERS); var second = new ApprovalService(quoteStore(), USERS);
+             var leaveService = open();
+             var purchaseService = new ApprovalService(new JdbcApprovalStore(dataSource, new ObjectMapper(), procurementDefinition("bob")), USERS)) {
+            var retries = new ArrayList<Callable<Request>>();
+            for (int i = 0; i < 12; i++) {
+                var service = i % 2 == 0 ? first : second;
+                retries.add(() -> service.submitDocument("alice", quote(), 1, "quote-retry"));
+            }
+            var results = race(retries);
+            var saved = results.get(0);
+            for (var replay : results) assertEquals(saved, replay);
+            assertEquals(quote(), saved.business());
+            assertEquals(1, count("arc_request")); assertEquals(1, count("arc_request_event"));
+            assertEquals(1, count("arc_submission_key")); assertEquals(2, count("arc_request_member"));
+            partial = first.decide("bob", saved.id(), "salesManager", "APPROVE", "Sales checked");
+            leave = leaveService.submit("alice", "Leave", "Rest", 1, 1, "mixed-leave");
+            purchase = purchaseService.submitDocument("alice", procurement(), 1, "mixed-purchase");
+        }
+        // Stop all writers before applying the dialect's actual revision-3 migration and bounded backfill.
+        migrateRevisionThree();
+        assertThrows(IOException.class, this::quoteStore);
+        for (int i = 0; i < 3; i++) {
+            var progress = JdbcApprovalStore.backfillMembers(dataSource, new ObjectMapper(), 1);
+            assertEquals(1, progress.processed());
+            assertEquals(i == 2, progress.ready());
+        }
+        try (var quotes = quoteStore(); var leaves = store();
+             var purchases = new JdbcApprovalStore(dataSource, new ObjectMapper(), procurementDefinition("bob"))) {
+            assertEquals(partial, quotes.request(partial.id()));
+            assertEquals(quote(), quotes.request(partial.id()).business());
+            assertEquals(List.of(partial), quotes.inbox(query("bob", Bucket.HANDLED, 10)));
+            assertEquals(List.of(partial), quotes.inbox(query("carol", Bucket.PENDING, 10)));
+            assertEquals(List.of(), quotes.inbox(query("bob", Bucket.PENDING, 10)));
+            assertEquals(List.of(), quotes.inbox(query("carol", Bucket.HANDLED, 10)));
+            assertEquals(List.of(leave), leaves.inbox(query("bob", Bucket.PENDING, 10)));
+            assertEquals(List.of(purchase), purchases.inbox(query("bob", Bucket.PENDING, 10)));
+            assertEquals(partial, quotes.submission("alice", "quote-retry"));
+            assertEquals(leave, leaves.submission("alice", "mixed-leave"));
+            assertEquals(purchase, purchases.submission("alice", "mixed-purchase"));
+        }
+        assertEquals(3, count("arc_request")); assertEquals(4, count("arc_request_event"));
+        assertEquals(3, count("arc_submission_key")); assertEquals(4, count("arc_request_member"));
+        assertEquals(0, JdbcApprovalStore.backfillMembers(dataSource, new ObjectMapper(), 1).processed());
     }
 
     private void migrateRevisionThree() throws Exception {

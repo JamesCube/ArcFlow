@@ -27,3 +27,6 @@ examples/approval-ui/visual-results/
 # Mobile H5 acceptance output
 examples/approval-mobile/test-results/
 examples/approval-mobile/playwright-report/
+
+# CRM synthetic browser screenshots are retained through CI artifacts only.
+examples/approval-ui/crm-visual-results/

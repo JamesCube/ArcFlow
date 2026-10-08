@@ -163,7 +163,7 @@ public final class JsonApprovalStore implements ApprovalStore {
                 }
                 restored = migrated;
                 // No rewrite until a successful mutation is requested.
-            } else if (schema == 2 || schema == 3 || schema == 4 || schema == 5) {
+            } else if (schema == 2 || schema == 3 || schema == 4 || schema == 5 || schema == 6) {
                 if (schema >= 4) exactFields(root, "schemaVersion", "definition", "requests", "submissions");
                 else exactFields(root, "schemaVersion", "definition", "requests");
                 validateStoredShapes(root, true);
@@ -181,7 +181,7 @@ public final class JsonApprovalStore implements ApprovalStore {
                     throw new IOException("Definition exceeds snapshot schema");
             } else throw new IOException("Unsupported snapshot schema");
             snapshotSchema = schema;
-            if (schema < 5) previousSchemaOriginal = bytes.clone();
+            if (schema < 6) previousSchemaOriginal = bytes.clone();
             for (Request r : restored) {
                 ApprovalService.validateRequest(r);
                 if (!r.processId().equals(definition.id()) || r.processVersion() > definition.version() || requests.putIfAbsent(r.id(), r) != null)
@@ -210,6 +210,8 @@ public final class JsonApprovalStore implements ApprovalStore {
             if (current) { fields.add("definition"); fields.add("currentStepId"); validateDefinitionShape(r.get("definition")); }
             if (root.path("schemaVersion").intValue() >= 5 && r.has("business")) {
                 if (!r.get("business").isObject()) throw new IOException("Invalid business document");
+                if (root.path("schemaVersion").intValue() < 6 && "quoteDiscount".equals(r.get("business").path("type").asText()))
+                    throw new IOException("Quote discounts require snapshot schema 6");
                 fields.add("business");
             }
             exactFields(r, fields.toArray(String[]::new));
@@ -251,7 +253,8 @@ public final class JsonApprovalStore implements ApprovalStore {
         int nextSchema = Math.max(2, Math.max(snapshotSchema, nextDefinition.schemaVersion()));
         if (updated.values().stream().anyMatch(r -> r.definition().schemaVersion() == 3)) nextSchema = Math.max(3, nextSchema);
         if (!nextSubmissions.isEmpty()) nextSchema = Math.max(4, nextSchema);
-        if (updated.values().stream().anyMatch(r -> r.business() != null)) nextSchema = 5;
+        if (updated.values().stream().anyMatch(r -> r.business() != null)) nextSchema = Math.max(5, nextSchema);
+        if (updated.values().stream().anyMatch(r -> r.business() instanceof BusinessDocument.QuoteDiscount)) nextSchema = Math.max(6, nextSchema);
         Object snapshot = nextSchema >= 4
             ? new KeyedSnapshot(nextSchema, nextDefinition, List.copyOf(updated.values()), nextSubmissions.entrySet().stream()
                 .map(e -> new SubmissionBinding(e.getKey().applicantId(), e.getKey().key(), e.getValue())).toList())
@@ -283,7 +286,7 @@ public final class JsonApprovalStore implements ApprovalStore {
             requests = new LinkedHashMap<>(updated); // Publish only after persistence succeeds.
             submissions = new LinkedHashMap<>(nextSubmissions);
             snapshotSchema = nextSchema;
-            previousSchemaOriginal = nextSchema < 5 ? json.clone() : null;
+            previousSchemaOriginal = nextSchema < 6 ? json.clone() : null;
             migrationBackup = null;
         } finally { Files.deleteIfExists(temp); }
     }

@@ -39,11 +39,11 @@ The leave demo is the starting point for applying approvals to other business ta
 
 | Application | What gets reviewed | Status |
 | --- | --- | --- |
-| **Smart CRM** | Quote discounts: sales submits a quote, a manager checks the discount, and finance reviews the amount | Planned; no runnable example yet |
+| **Smart CRM** | Quote discounts: sales submits a quote, a manager checks the discount, and finance reviews the amount | [Runnable isolated synthetic case](docs/CRM_QUOTE_CASE.md) with its own Chinese/English page; shared workspaces and a real CRM are not connected |
 | **Office automation (OA)** | Leave requests: an employee enters the duration and reason; assigned reviewers decide in order | [Runnable](docs/GETTING_STARTED.md#english), including the RuoYi example |
 | **ERP** | Purchase requests: enter the item, quantity and unit price, then review the need and cost | [Runnable API and standalone/RuoYi forms](docs/PROCUREMENT_UI.md), with procurement review on H5 |
 
-The Smart CRM forms and AI features aren't implemented.
+The quote case uses synthetic customer data and fixed sales-manager → finance human review through a separate `/api/crm` service and `/quote-discount.html` page. The shared standalone, RuoYi and H5 workspaces do not support quotes yet. AI features, a real CRM connection, customer notifications and business writeback aren't implemented. See [CRM compatibility and release gates](docs/CRM_COMPATIBILITY_READINESS.md) for verification status.
 
 ## Design and review
 
@@ -65,7 +65,7 @@ Pending and handled tabs page through every ALL/ANY member’s work. See the [me
 
 The RuoYi example adds approval pages to its native menus and reuses existing accounts and permissions. For another Java application, start with the approval domain and storage interfaces.
 
-The domain accepts typed leave and procurement documents through Java and HTTP, sharing approval rules, permissions, audit history and submission retries. Standalone and RuoYi forms submit leave or procurement documents; business snapshots remain immutable during review. See the [business-document contract](docs/BUSINESS_DOCUMENTS.md) for fields, endpoints and upgrade limits.
+The domain supports typed leave, procurement and quote-discount documents with a shared approval state machine, audit history and submission retries. General Java/HTTP examples and standalone/RuoYi workspaces retain leave and procurement support. Quote HTTP submission is available only through the dedicated host, which also checks the source revision, business read access and quote owner; generic document endpoints reject quotes. Business snapshots remain immutable during review. See the [business-document contract](docs/BUSINESS_DOCUMENTS.md) for fields, endpoints and upgrade limits.
 
 | Module or example | What it covers |
 | --- | --- |
@@ -74,7 +74,7 @@ The domain accepts typed leave and procurement documents through Java and HTTP, 
 | [RuoYi integration](examples/ruoyi-vue3/README.md) | Setup for RuoYi-Vue + RuoYi-Vue3 |
 | [JDBC storage](examples/approval-jdbc/README.md) | Database persistence for approval data and audit history |
 
-Typed writes use JSON snapshot schema 5. Upgrade all readers before enabling them; older binaries cannot read the new payloads, and mixed-version writers are unsupported. Member worklists use SQL revision 3; existing databases need an explicit migration and bounded backfill.
+Typed leave and procurement writes require at least JSON snapshot schema 5. The first quote write upgrades the snapshot to schema 6, which later writes retain. Upgrade all readers and stop old writers before enabling quotes; schema-5-only binaries cannot read them, and mixed-version writers are unsupported. Member worklists retain SQL revision 3; CRM adds no SQL migration. Existing databases still need the explicit migration and bounded backfill.
 
 Both demos store approval data in local JSON and support one instance. RuoYi's MySQL database holds users, roles and menus; it doesn't automatically store approvals. JDBC needs explicit setup and migrations. Actor-scoped pending/handled pagination is available. Tenant isolation, transactions spanning business tables, and an outbox aren't implemented yet.
 

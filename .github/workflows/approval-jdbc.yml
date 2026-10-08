@@ -43,9 +43,19 @@ jobs:
           python3 - <<'PY'
           import xml.etree.ElementTree as ET
           report = ET.parse('examples/approval-jdbc/target/surefire-reports/TEST-com.arcflow.approval.jdbc.PostgresqlApprovalStoreTest.xml').getroot()
-          assert int(report.attrib['tests']) >= 74, report.attrib
+          assert int(report.attrib['tests']) >= 77, report.attrib
           for key in ('skipped', 'errors', 'failures'):
               assert int(report.attrib[key]) == 0, report.attrib
+          required_quote_tests = {
+              'quoteSnapshotAndTwoStepInboxProgressionSurvivePublicationAndReopen',
+              'quoteSubmissionKeysRemainApplicantGlobalAcrossIsolatedProcesses',
+              'concurrentQuoteRetriesAndMixedProcessBackfillPreserveSnapshotsAndMembership',
+          }
+          for name in sorted(required_quote_tests):
+              cases = [case for case in report.findall('testcase') if case.attrib['name'] == name]
+              assert len(cases) == 1, f'Expected exactly one quote testcase: {name}'
+              assert all(cases[0].find(tag) is None for tag in ('skipped', 'error', 'failure')), name
+          print('Required quote contract cases executed:', ', '.join(sorted(required_quote_tests)))
           print('Real PostgreSQL contract executed:', report.attrib)
           PY
       - name: Retain verification reports
@@ -96,9 +106,19 @@ jobs:
           python3 - <<'PY'
           import xml.etree.ElementTree as ET
           report = ET.parse('examples/approval-jdbc/target/surefire-reports/TEST-com.arcflow.approval.jdbc.MysqlApprovalStoreTest.xml').getroot()
-          assert int(report.attrib['tests']) >= 80, report.attrib
+          assert int(report.attrib['tests']) >= 83, report.attrib
           for key in ('skipped', 'errors', 'failures'):
               assert int(report.attrib[key]) == 0, report.attrib
+          required_quote_tests = {
+              'quoteSnapshotAndTwoStepInboxProgressionSurvivePublicationAndReopen',
+              'quoteSubmissionKeysRemainApplicantGlobalAcrossIsolatedProcesses',
+              'concurrentQuoteRetriesAndMixedProcessBackfillPreserveSnapshotsAndMembership',
+          }
+          for name in sorted(required_quote_tests):
+              cases = [case for case in report.findall('testcase') if case.attrib['name'] == name]
+              assert len(cases) == 1, f'Expected exactly one quote testcase: {name}'
+              assert all(cases[0].find(tag) is None for tag in ('skipped', 'error', 'failure')), name
+          print('Required quote contract cases executed:', ', '.join(sorted(required_quote_tests)))
           print('Real MySQL contract executed:', report.attrib)
           PY
       - name: Retain MySQL verification reports
