@@ -48,8 +48,8 @@ class ApprovalController {
     }
     @PostMapping("/documents") @ResponseStatus(HttpStatus.CREATED) ApprovalService.Request submitDocument(Principal p,
             @Valid @RequestBody DocumentSubmission input, @RequestHeader HttpHeaders headers) throws IOException {
-        if (input.business() instanceof BusinessDocument.QuoteDiscount)
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Quote discounts require the CRM host submission endpoint");
+        if (!(input.business() instanceof BusinessDocument.Leave || input.business() instanceof BusinessDocument.Procurement))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "This document requires its dedicated business host submission endpoint");
         return service.submitDocument(p.getName(), input.business(), input.processVersion(), submissionKey(headers));
     }
     private static String submissionKey(HttpHeaders headers) {

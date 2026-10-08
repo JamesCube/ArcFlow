@@ -174,9 +174,10 @@ def main():
             print('\nREADY: ' + url
                   + '\nOA leave / ERP procurement: ' + url
                   + '\nCRM quote discount (separate page): ' + url + '/quote-discount.html'
+                  + '\nScenario library / OA expense (separate page): ' + url + '/scenarios.html'
                   + '\nOpen the private credentials file in your editor: ' + str(credentials)
-                  + '\nUse the same demo accounts on either page; sign in separately. Passwords are never printed.'
-                  + '\nStart as alice; see docs/GETTING_STARTED.md for all three case walkthroughs.'
+                  + '\nUse the same demo accounts on each page; sign in separately. Passwords are never printed.'
+                  + '\nStart as alice; see docs/GETTING_STARTED.md for existing walkthroughs and docs/EXPENSE_SCENARIO.md for expense review.'
                   + '\nCtrl-C stops both services and deletes this run\'s credentials, logs and demo data.', flush=True)
             while True:
                 if backend.poll() is not None or ui.poll() is not None:

@@ -3,15 +3,21 @@
 ## 本轮边界 / Scope
 
 审批的路由、参与人、ALL/ANY 表决、状态、审计和并发控制继续共用原状态机。
-不可变 `BusinessDocument` 边界明确支持 `leave`、`procurement` 和 `quoteDiscount` 三类业务；
+不可变 `BusinessDocument` 边界明确支持 `leave`、`procurement`、`quoteDiscount` 和 `expense` 四类业务；
 不把任意 JSON 当作已经通过业务验证的单据。核心 DAG 仍执行公共标题/理由的 validate → normalize。
 业务规则在类型化单据中验证，存储恢复时再次验证，审批期间禁止重写。
 报价只通过专用 `/api/crm` 宿主和独立合成页面暴露；共享独立端、若依及 H5 工作区尚不支持报价。
 
 The approval lifecycle remains independent of business fields: routing, participants, votes,
 status, audit and optimistic concurrency use the same reducer. A sealed `BusinessDocument`
-boundary supports three explicit, validated document schemas. This is a bounded extraction,
+boundary supports four explicit, validated document schemas. This is a bounded extraction,
 not an arbitrary-schema plugin framework or a rewrite of the workflow engine.
+
+Expense is exposed only by the dedicated `/api/scenarios/oa-expense` host and `/scenarios.html`.
+It has versioned form metadata, real line-item validation and immutable expense data; receipt references
+are synthetic and approval never pays. See [Expense scenario](EXPENSE_SCENARIO.md). First Expense
+write requires JSON snapshot schema7; upgrade all readers and stop incompatible writers first.
+SQL revision3 is unchanged. Generic standalone/native document endpoints allow only leave/procurement.
 
 - `BusinessDocument.Leave(businessId, title, reason, days)` retains the 1–365 day rule.
 - `BusinessDocument.Procurement(businessId, title, reason, item, quantity, unitPrice, currency)`
@@ -120,7 +126,7 @@ submission event is committed.
 
 - JSON snapshots 1–4 retain their strict existing shape and remain readable. Reads do not
   rewrite files. The first typed leave/procurement mutation requires snapshot schema 5;
-  a quote mutation requires schema 6. Process definitions still use schema 2 (sequential)
+  a quote mutation requires schema 6; an Expense mutation requires schema 7. Process definitions still use schema 2 (sequential)
   or 3 (parallel).
 - Schema 5 has `schemaVersion`, `definition`, `requests`, and `submissions`; unkeyed documents
   use an empty submissions array. It can contain unchanged legacy requests and typed leave
@@ -144,6 +150,8 @@ submission event is committed.
   definitions and request snapshots are checked against each request's own process/version.
 
 After writing typed documents, old application binaries cannot read the new payloads.
+Schema6 readers cannot read Expense/schema7. Schema7 never downgrades after later legacy writes;
+pre-upgrade byte backups are historical recovery and cannot provide a lossless downgrade.
 Schema-5 readers do not understand quote documents or schema-6 files. Deploy quote-compatible
 readers everywhere before enabling quote writes or backfilling rows containing quotes,
 and stop old writers. A JSON backup is a historical recovery aid,

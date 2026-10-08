@@ -276,6 +276,7 @@ class MainTests(unittest.TestCase):
         self.assertIn('\nREADY: http://127.0.0.1:35173\n', output)
         self.assertIn('OA leave / ERP procurement: http://127.0.0.1:35173\n', output)
         self.assertIn('CRM quote discount (separate page): http://127.0.0.1:35173/quote-discount.html\n', output)
+        self.assertIn('Scenario library / OA expense (separate page): http://127.0.0.1:35173/scenarios.html\n', output)
         self.assertIn('sign in separately', output)
         self.assertIn('docs/GETTING_STARTED.md', output)
         self.assertTrue((tryout.UI / 'public/quote-discount.html').is_file())
