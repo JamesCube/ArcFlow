@@ -60,4 +60,28 @@ public final class ScenarioCatalog {
             return expense.total().setScale("JPY".equals(expense.currency()) ? 0 : 2).toPlainString();
         });
     }
+    public static Entry travel(String managerId,String financeId) {
+        var template = new Template("oa-travel","OA","travel",1,1,t("出差申请审批","Business travel review"),
+            t("合成行程与预算，审批通过不会预订、报销或付款。","Synthetic itinerary and budget. Approval does not book travel, reimburse expenses or issue a payment."),
+            List.of(new Section("identity",t("申请信息","Request details"),List.of(
+                f("businessId","text","出差单号","Travel reference",128),f("title","text","申请标题","Title",120),
+                f("costCenter","select","成本中心","Cost center",0,o("ENGINEERING","研发","Engineering"),o("SALES","销售","Sales"),o("OPERATIONS","运营","Operations")),
+                f("currency","select","币种","Currency",0,o("CNY","人民币 CNY","CNY"),o("USD","美元 USD","USD"),o("EUR","欧元 EUR","EUR"),o("GBP","英镑 GBP","GBP"),o("JPY","日元 JPY","JPY")))),
+                new Section("itinerary",t("行程与预算","Itinerary and budget"),List.of(
+                    f("destination","text","目的地","Destination",160),f("startDate","date","开始日期","Start date",10),
+                    f("endDate","date","结束日期","End date",10),
+                    f("purpose","select","出差用途","Travel purpose",0,o("CUSTOMER_VISIT","客户拜访","Customer visit"),o("PROJECT_DELIVERY","项目交付","Project delivery"),
+                        o("TRAINING","培训","Training"),o("CONFERENCE","会议","Conference"),o("OTHER","其他","Other")),
+                    f("estimatedCost","money","预计费用","Estimated cost",0))),
+                new Section("reason",t("出差说明","Business justification"),List.of(f("reason","textarea","出差事由与说明","Business justification",2000)))),null);
+        var process = new ProcessDefinition(2,"oa-travel",1,"出差申请审批 / Business travel review",List.of(
+            new ProcessDefinition.ProcessNode("start","start","提交出差申请 / Submit travel",null),
+            new ProcessDefinition.ProcessNode("tripReview","approval","行程审核 / Trip review",managerId),
+            new ProcessDefinition.ProcessNode("budget","approval","预算复核 / Budget review",financeId),
+            new ProcessDefinition.ProcessNode("end","end","审批完成 / Review complete",null)));
+        return new Entry(template,BusinessDocument.Travel.class,process,document -> {
+            var travel=(BusinessDocument.Travel)document;
+            return travel.estimatedCost().setScale("JPY".equals(travel.currency()) ? 0 : 2).toPlainString();
+        });
+    }
 }

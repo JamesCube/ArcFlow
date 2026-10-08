@@ -163,7 +163,7 @@ public final class JsonApprovalStore implements ApprovalStore {
                 }
                 restored = migrated;
                 // No rewrite until a successful mutation is requested.
-            } else if (schema >= 2 && schema <= 7) {
+            } else if (schema >= 2 && schema <= 8) {
                 if (schema >= 4) exactFields(root, "schemaVersion", "definition", "requests", "submissions");
                 else exactFields(root, "schemaVersion", "definition", "requests");
                 validateStoredShapes(root, true);
@@ -181,7 +181,7 @@ public final class JsonApprovalStore implements ApprovalStore {
                     throw new IOException("Definition exceeds snapshot schema");
             } else throw new IOException("Unsupported snapshot schema");
             snapshotSchema = schema;
-            if (schema < 7) previousSchemaOriginal = bytes.clone();
+            if (schema < 8) previousSchemaOriginal = bytes.clone();
             for (Request r : restored) {
                 ApprovalService.validateRequest(r);
                 if (!r.processId().equals(definition.id()) || r.processVersion() > definition.version() || requests.putIfAbsent(r.id(), r) != null)
@@ -214,6 +214,8 @@ public final class JsonApprovalStore implements ApprovalStore {
                     throw new IOException("Quote discounts require snapshot schema 6");
                 if (root.path("schemaVersion").intValue() < 7 && "expense".equals(r.get("business").path("type").asText()))
                     throw new IOException("Expense documents require snapshot schema 7");
+                if (root.path("schemaVersion").intValue() < 8 && "travel".equals(r.get("business").path("type").asText()))
+                    throw new IOException("Travel documents require snapshot schema 8");
                 fields.add("business");
             }
             exactFields(r, fields.toArray(String[]::new));
@@ -258,6 +260,7 @@ public final class JsonApprovalStore implements ApprovalStore {
         if (updated.values().stream().anyMatch(r -> r.business() != null)) nextSchema = Math.max(5, nextSchema);
         if (updated.values().stream().anyMatch(r -> r.business() instanceof BusinessDocument.QuoteDiscount)) nextSchema = Math.max(6, nextSchema);
         if (updated.values().stream().anyMatch(r -> r.business() instanceof BusinessDocument.Expense)) nextSchema = Math.max(7, nextSchema);
+        if (updated.values().stream().anyMatch(r -> r.business() instanceof BusinessDocument.Travel)) nextSchema = Math.max(8, nextSchema);
         Object snapshot = nextSchema >= 4
             ? new KeyedSnapshot(nextSchema, nextDefinition, List.copyOf(updated.values()), nextSubmissions.entrySet().stream()
                 .map(e -> new SubmissionBinding(e.getKey().applicantId(), e.getKey().key(), e.getValue())).toList())
@@ -289,7 +292,7 @@ public final class JsonApprovalStore implements ApprovalStore {
             requests = new LinkedHashMap<>(updated); // Publish only after persistence succeeds.
             submissions = new LinkedHashMap<>(nextSubmissions);
             snapshotSchema = nextSchema;
-            previousSchemaOriginal = nextSchema < 7 ? json.clone() : null;
+            previousSchemaOriginal = nextSchema < 8 ? json.clone() : null;
             migrationBackup = null;
         } finally { Files.deleteIfExists(temp); }
     }

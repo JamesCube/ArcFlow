@@ -54,6 +54,8 @@ jobs:
         run: python3 examples/crm-quote/http_smoke.py --inbox --jar examples/approval-demo/backend/target/approval-demo-0.1.0-SNAPSHOT.jar
       - name: Verify isolated expense approval and schema7 restart on a live backend
         run: python3 examples/scenarios/http_smoke.py --jar examples/approval-demo/backend/target/approval-demo-0.1.0-SNAPSHOT.jar
+      - name: Verify isolated travel dates budget and schema8 restart on a live backend
+        run: python3 examples/scenarios/travel_http_smoke.py --jar examples/approval-demo/backend/target/approval-demo-0.1.0-SNAPSHOT.jar
       - name: Verify authenticated member inbox on a live disposable backend
         run: python3 examples/approval-demo/verify-parallel-http.py
   frontend:
@@ -118,6 +120,9 @@ jobs:
       - name: Capture expense designer form pending approved and rejected states
         run: ARCFLOW_CAPTURE_SCENARIOS=1 npm run test:e2e -- e2e/scenarios.spec.mjs --output=scenario-visual-results
         working-directory: examples/approval-ui
+      - name: Capture travel designer form pending approved and rejected states
+        run: ARCFLOW_CAPTURE_TRAVEL_SCENARIOS=1 npm run test:e2e -- e2e/travel-scenarios.spec.mjs --output=travel-scenario-visual-results
+        working-directory: examples/approval-ui
       - name: Capture the CRM rejection branch on another fresh backend
         run: ARCFLOW_GALLERY=1 GALLERY_CRM_REJECT=1 npm run test:e2e -- e2e/gallery.spec.mjs --grep "isolated CRM" --output=gallery-rejection-results
         working-directory: examples/approval-ui
@@ -136,5 +141,7 @@ jobs:
             examples/approval-ui/gallery-rejection-results/**/*.png
             examples/approval-ui/scenario-visual-results/**/*.png
             examples/approval-ui/scenario-visual-results/**/*.json
+            examples/approval-ui/travel-scenario-visual-results/**/*.png
+            examples/approval-ui/travel-scenario-visual-results/**/*.json
           if-no-files-found: error
           retention-days: 7

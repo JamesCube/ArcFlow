@@ -103,3 +103,37 @@ Returning to an unchanged document form reuses its unresolved submission key
 and original process snapshot, even after a publication refresh. A successful
 submission clears only that form. Sign-out clears both forms and retry slots;
 editing a form's normalized payload starts a new intent for that form.
+
+## Expense and Travel scenario library
+
+`/scenarios.html` has two compiled typed templates: OA Expense and OA Travel.
+It has its own in-memory sign-in, shared across both scenario cards. The reusable
+form renderer shows Expense line items or Travel destination, dates, purpose and
+estimated budget. Travel's inclusive 1–90-day duration is display-only, derived
+from its validated dates. Estimated cost uses exact decimal text internally and
+numeric JSON on the wire; JPY is whole yen.
+
+Switching cards preserves each scenario's form, designer draft/undo history,
+selected records, original-step retained notes and unresolved submission key.
+An unchanged retry keeps its original process snapshot/version even after a
+refresh sees a newer publication. Requests, comments and delayed responses stay
+in their originating scenario. A successful submission clears only that form;
+sign-out or browser reload clears both in-memory workspaces. The list and counts
+are scoped to the selected scenario, not a cross-scenario inbox.
+
+All data is synthetic. Travel approval does not book travel, reimburse expenses,
+issue payments, send notifications or write back to another system. Neither
+scenario adds seal use or arbitrary user-defined schema execution.
+
+The Travel browser source uses the same fresh real-backend launcher:
+
+```sh
+npm run test:e2e -- e2e/travel-scenarios.spec.mjs
+```
+
+Set `ARCFLOW_CAPTURE_TRAVEL_SCENARIOS=1` to opt into authenticated bilingual
+original captures and per-image revision/run/hash sidecars (20 planned images across
+10 bilingual states, including validation errors and narrow reviewer controls). Capture output is
+isolated under unique `capture-travel-<UUID>/` directories and is not publication.
+A successful unit/build run is not browser, backend, database or visual proof;
+use the reports for the exact source revision being evaluated.

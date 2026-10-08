@@ -1876,3 +1876,19 @@
 @media(max-width:640px) {
   .sf-retained-index { align-items:flex-start; flex-direction:column; gap:7px; }
 }
+
+/* Travel adds a distinct itinerary preview without changing Expense styling. */
+.sf-template-card + .sf-template-card { margin-top:24px; }
+.sf-travel-art { background:linear-gradient(145deg,#e4f0f0,#d8e7ec); }
+.sf-itinerary { width:218px; padding:25px 23px; background:#fff; border:1px solid #d8e5e8; border-radius:12px; box-shadow:0 16px 35px #324c6320; transform:rotate(-3deg); }
+.sf-itinerary>span { font-size:9px; letter-spacing:1.4px; color:#647b85; }
+.sf-itinerary>strong { display:block; margin:14px 0 20px; font-size:21px; color:#25465a; }
+.sf-itinerary>div { display:flex; gap:12px; margin-top:17px; align-items:center; }
+.sf-itinerary b { display:grid; place-items:center; width:29px; height:29px; border-radius:50%; background:#e8f1f1; color:#416d73; font-size:10px; }
+.sf-itinerary div span { font-size:11px; font-weight:700; color:#345467; }
+.sf-itinerary i { display:block; margin-top:4px; font-size:9px; font-style:normal; font-weight:400; color:#71848f; }
+.sf-derived-summary { padding:20px 25px; background:#edf4f4; border:1px solid #d8e6e7; border-radius:10px; margin-bottom:20px; }
+.sf-derived-summary>span { font-size:12px; color:#47606e; }
+.sf-derived-summary strong { display:block; margin-top:8px; font-size:24px; color:#21475a; }
+.sf-derived-summary p { color:#566e7a; font-size:11px; line-height:1.6; margin:8px 0 0; }
+@media(max-width:600px) { .sf-itinerary { width:205px; padding:18px 20px; } .sf-derived-summary { padding:18px; } }

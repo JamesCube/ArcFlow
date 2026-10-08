@@ -43,10 +43,12 @@ jobs:
           python3 - <<'PY'
           import xml.etree.ElementTree as ET
           report = ET.parse('examples/approval-jdbc/target/surefire-reports/TEST-com.arcflow.approval.jdbc.PostgresqlApprovalStoreTest.xml').getroot()
-          assert int(report.attrib['tests']) >= 79, report.attrib
+          assert int(report.attrib['tests']) >= 81, report.attrib
           for key in ('skipped', 'errors', 'failures'):
               assert int(report.attrib[key]) == 0, report.attrib
           required_business_tests = {
+              "travelTypedSnapshotGlobalKeysAndMemberProjectionRemainProcessIsolated",
+              "travelConcurrentRetryCreatesOneRequestBindingAndExactAudit",
               "expenseTypedSnapshotGlobalKeysAndMemberProjectionRemainProcessIsolated",
               "expenseConcurrentRetryCreatesOneRequestBindingAndExactAudit",
               'quoteSnapshotAndTwoStepInboxProgressionSurvivePublicationAndReopen',
@@ -108,10 +110,12 @@ jobs:
           python3 - <<'PY'
           import xml.etree.ElementTree as ET
           report = ET.parse('examples/approval-jdbc/target/surefire-reports/TEST-com.arcflow.approval.jdbc.MysqlApprovalStoreTest.xml').getroot()
-          assert int(report.attrib['tests']) >= 85, report.attrib
+          assert int(report.attrib['tests']) >= 87, report.attrib
           for key in ('skipped', 'errors', 'failures'):
               assert int(report.attrib[key]) == 0, report.attrib
           required_business_tests = {
+              "travelTypedSnapshotGlobalKeysAndMemberProjectionRemainProcessIsolated",
+              "travelConcurrentRetryCreatesOneRequestBindingAndExactAudit",
               "expenseTypedSnapshotGlobalKeysAndMemberProjectionRemainProcessIsolated",
               "expenseConcurrentRetryCreatesOneRequestBindingAndExactAudit",
               'quoteSnapshotAndTwoStepInboxProgressionSurvivePublicationAndReopen',

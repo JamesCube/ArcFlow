@@ -97,6 +97,61 @@ abstract class ServerApprovalStoreContract {
         }
     }
 
+    protected static BusinessDocument.Travel travelDocument() {
+        return new BusinessDocument.Travel(1,"TRIP-SQL-1","Customer visit","Synthetic itinerary only"," Shanghai ",
+            "2026-10-08","2026-10-10","CUSTOMER_VISIT",new BigDecimal("1234.50"),"CNY","SALES");
+    }
+    protected ApprovalService travelService() throws IOException {
+        return new ApprovalService(new JdbcApprovalStore(dataSource,new ObjectMapper(),com.arcflow.approval.ScenarioCatalog.travel("bob","carol").initialProcess()),USERS);
+    }
+    @Test void travelTypedSnapshotGlobalKeysAndMemberProjectionRemainProcessIsolated() throws Exception {
+        ApprovalService.Request approved;
+        try(var travel=travelService(); var leave=open(); var expenses=expenseService()) {
+            var created=travel.submitDocument("alice",travelDocument(),1,"travel-shared");
+            var document=(BusinessDocument.Travel)created.business(); assertEquals("Shanghai",document.destination());
+            assertEquals(new BigDecimal("1234.5"),document.estimatedCost()); assertEquals(3,document.durationDays()); assertEquals(0,created.days());
+            assertEquals(409,result(()->leave.submit("alice","Leave","Rest",1,1,"travel-shared")));
+            assertEquals(409,result(()->expenses.submitDocument("alice",expenseDocument(),1,"travel-shared")));
+            assertTrue(leave.list("alice").isEmpty()); assertTrue(expenses.list("alice").isEmpty());
+            assertEquals(404,result(()->leave.decide("bob",created.id(),"tripReview","APPROVE","")));
+            assertEquals(404,result(()->expenses.decide("bob",created.id(),"tripReview","APPROVE","")));
+            var pending=Map.of("box",List.of("PENDING")); var handled=Map.of("box",List.of("HANDLED"));
+            assertEquals(List.of(created),travel.inbox("bob",pending).items()); assertTrue(travel.inbox("carol",pending).items().isEmpty());
+            var first=travel.decide("bob",created.id(),"tripReview","APPROVE","Reviewed itinerary");
+            assertTrue(travel.inbox("bob",pending).items().isEmpty()); assertEquals(List.of(first),travel.inbox("bob",handled).items());
+            assertEquals(List.of(first),travel.inbox("carol",pending).items());
+            assertTrue(leave.inbox("carol",pending).items().isEmpty()); assertTrue(expenses.inbox("carol",pending).items().isEmpty());
+            travel.publish("alice",1,com.arcflow.approval.ScenarioCatalog.travel("carol","bob").initialProcess());
+            assertEquals(409,result(()->travel.submitDocument("alice",travelDocument(),1,"stale-fresh")));
+            approved=travel.decide("carol",created.id(),"budget","APPROVE","Reviewed budget");
+            assertEquals(created.business(),approved.business()); assertEquals(created.definition(),approved.definition());
+            assertEquals(1,approved.processVersion()); assertEquals("APPROVED",approved.status());
+            assertTrue(travel.inbox("carol",pending).items().isEmpty()); assertEquals(List.of(approved),travel.inbox("carol",handled).items());
+            assertEquals(List.of(approved),travel.inbox("bob",handled).items());
+            assertEquals(1,count("arc_request")); assertEquals(1,count("arc_submission_key")); assertEquals(3,count("arc_request_event")); assertEquals(2,count("arc_request_member"));
+        }
+        try(var reopened=travelService()) {
+            assertEquals(2,reopened.process().version()); assertEquals(List.of(approved),reopened.list("alice"));
+            assertEquals(approved,reopened.submitDocument("alice",travelDocument(),1,"travel-shared"));
+            var changed=new BusinessDocument.Travel(1,"TRIP-SQL-1","Customer visit","Synthetic itinerary only","Beijing",
+                "2026-10-08","2026-10-10","CUSTOMER_VISIT",new BigDecimal("1234.50"),"CNY","SALES");
+            assertEquals(409,result(()->reopened.submitDocument("alice",changed,1,"travel-shared")));
+            assertEquals(3,count("arc_request_event"));
+        }
+    }
+    @Test void travelConcurrentRetryCreatesOneRequestBindingAndExactAudit() throws Exception {
+        ApprovalService.Request saved;
+        try(var first=travelService(); var second=travelService()) {
+            var commands=new ArrayList<Callable<ApprovalService.Request>>();
+            var canonical=new BusinessDocument.Travel(1,"TRIP-SQL-1","Customer visit","Synthetic itinerary only","Shanghai",
+                "2026-10-08","2026-10-10","CUSTOMER_VISIT",new BigDecimal("1234.5"),"CNY","SALES");
+            for(int i=0;i<8;i++) { var service=i%2==0?first:second; var document=i%2==0?travelDocument():canonical; commands.add(()->service.submitDocument("alice",document,1,"travel-race")); }
+            var results=race(commands); saved=results.get(0); assertTrue(results.stream().allMatch(saved::equals));
+            assertEquals(1,count("arc_request")); assertEquals(1,count("arc_submission_key")); assertEquals(1,count("arc_request_event")); assertEquals(2,count("arc_request_member"));
+        }
+        try(var reopened=travelService()) { assertEquals(List.of(saved),reopened.list("alice")); assertEquals(saved,reopened.submitDocument("alice",travelDocument(),1,"travel-race")); }
+    }
+
     @Test void concurrentInitializationCreatesOneConsistentHead() throws Exception {
         var constructors = new ArrayList<Callable<Integer>>();
         for (int i = 0; i < 8; i++) constructors.add(() -> { try (var service = open()) { return service.process().version(); } });

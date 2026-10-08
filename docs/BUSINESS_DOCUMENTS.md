@@ -3,14 +3,14 @@
 ## 本轮边界 / Scope
 
 审批的路由、参与人、ALL/ANY 表决、状态、审计和并发控制继续共用原状态机。
-不可变 `BusinessDocument` 边界明确支持 `leave`、`procurement`、`quoteDiscount` 和 `expense` 四类业务；
+不可变 `BusinessDocument` 边界明确支持 `leave`、`procurement`、`quoteDiscount`、`expense` 和 `travel` 五类业务；
 不把任意 JSON 当作已经通过业务验证的单据。核心 DAG 仍执行公共标题/理由的 validate → normalize。
 业务规则在类型化单据中验证，存储恢复时再次验证，审批期间禁止重写。
 报价只通过专用 `/api/crm` 宿主和独立合成页面暴露；共享独立端、若依及 H5 工作区尚不支持报价。
 
 The approval lifecycle remains independent of business fields: routing, participants, votes,
 status, audit and optimistic concurrency use the same reducer. A sealed `BusinessDocument`
-boundary supports four explicit, validated document schemas. This is a bounded extraction,
+boundary supports five explicit, validated document schemas. This is a bounded extraction,
 not an arbitrary-schema plugin framework or a rewrite of the workflow engine.
 
 Expense is exposed only by the dedicated `/api/scenarios/oa-expense` host and `/scenarios.html`.
@@ -18,6 +18,12 @@ It has versioned form metadata, real line-item validation and immutable expense 
 are synthetic and approval never pays. See [Expense scenario](EXPENSE_SCENARIO.md). First Expense
 write requires JSON snapshot schema7; upgrade all readers and stop incompatible writers first.
 SQL revision3 is unchanged. Generic standalone/native document endpoints allow only leave/procurement.
+
+Travel is a distinct itinerary-and-budget document, exposed only by `/api/scenarios/oa-travel`
+and the shared scenario page. It has required destination, start/end calendar dates, purpose,
+exact estimated cost, currency and cost center; inclusive duration is 1–90 days. It performs
+no booking, reimbursement or payment. First Travel write requires schema8-compatible readers.
+See [Travel scenario, validation and rollout](TRAVEL_SCENARIO.md).
 
 - `BusinessDocument.Leave(businessId, title, reason, days)` retains the 1–365 day rule.
 - `BusinessDocument.Procurement(businessId, title, reason, item, quantity, unitPrice, currency)`
@@ -31,7 +37,7 @@ SQL revision3 is unchanged. Generic standalone/native document endpoints allow o
   (≤128 characters), a positive integer revision and a real `YYYY-MM-DD` date. The host
   checks ownership, source fields, current read access and validity on new submission.
   Exact totals are derived rather than accepted as input; see the [quote case](CRM_QUOTE_CASE.md).
-- All three require a stable business ID of 1–128 ASCII letters/digits and `._:/-`, beginning
+- All document types require a stable business ID of 1–128 ASCII letters/digits and `._:/-`, beginning
   with a letter/digit; title ≤120 and reason ≤2,000 characters remain mandatory.
 - Common text and the item are trimmed. Prices are normalized with exact decimal arithmetic;
   no binary-floating rounding, currency conversion, purchase order transmission or payment occurs.
@@ -52,8 +58,8 @@ participants. Routing does not infer business policy from the process name.
 Generic endpoints accept typed leave and procurement: standalone `POST /api/documents`
 and RuoYi `POST /arcflow/documents`, with the existing `arcflow:request:submit` permission.
 Both use the authenticated principal and optional `Idempotency-Key` header exactly as the
-leave endpoint does. Both reject `quoteDiscount`; domain type support does not bypass the
-quote host's business authorization checks. Procurement example body:
+leave endpoint does. Both reject `quoteDiscount`, `expense` and `travel`; domain type support does not bypass
+the dedicated hosts and their authorization boundaries. Procurement example body:
 
 ```json
 {
@@ -73,7 +79,7 @@ quote host's business authorization checks. Procurement example body:
 
 The returned request has an immutable `business` snapshot. Existing list/decision routes and
 participant authorization apply. For source/wire compatibility, `title` and `reason` remain
-flat projections and `days` is 0 for procurement and quote discounts, or the actual leave
+flat projections and `days` is 0 for all non-leave documents, or the actual leave
 days for typed leave.
 Storage rejects inconsistent projections. Business consumers must inspect `business.type`;
 `days: 0` alone is never accepted as a valid legacy leave submission.
@@ -126,7 +132,7 @@ submission event is committed.
 
 - JSON snapshots 1–4 retain their strict existing shape and remain readable. Reads do not
   rewrite files. The first typed leave/procurement mutation requires snapshot schema 5;
-  a quote mutation requires schema 6; an Expense mutation requires schema 7. Process definitions still use schema 2 (sequential)
+  a quote mutation requires schema 6; an Expense mutation requires schema 7; a Travel mutation requires schema 8. Process definitions still use schema 2 (sequential)
   or 3 (parallel).
 - Schema 5 has `schemaVersion`, `definition`, `requests`, and `submissions`; unkeyed documents
   use an empty submissions array. It can contain unchanged legacy requests and typed leave
@@ -150,7 +156,9 @@ submission event is committed.
   definitions and request snapshots are checked against each request's own process/version.
 
 After writing typed documents, old application binaries cannot read the new payloads.
-Schema6 readers cannot read Expense/schema7. Schema7 never downgrades after later legacy writes;
+Schema6 readers cannot read Expense/schema7; schema7 readers cannot read Travel/schema8.
+Upgrade all readers and stop incompatible writers before enabling Travel writes. Schema8
+never downgrades after later legacy/Expense writes;
 pre-upgrade byte backups are historical recovery and cannot provide a lossless downgrade.
 Schema-5 readers do not understand quote documents or schema-6 files. Deploy quote-compatible
 readers everywhere before enabling quote writes or backfilling rows containing quotes,
