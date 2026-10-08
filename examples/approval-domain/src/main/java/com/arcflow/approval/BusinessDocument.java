@@ -13,8 +13,9 @@ import java.time.format.DateTimeParseException;
 @JsonSubTypes({@JsonSubTypes.Type(value = BusinessDocument.Leave.class, name = "leave"),
     @JsonSubTypes.Type(value = BusinessDocument.Procurement.class, name = "procurement"),
     @JsonSubTypes.Type(value = BusinessDocument.QuoteDiscount.class, name = "quoteDiscount"),
-    @JsonSubTypes.Type(value = BusinessDocument.Expense.class, name = "expense")})
-public sealed interface BusinessDocument permits BusinessDocument.Leave, BusinessDocument.Procurement, BusinessDocument.QuoteDiscount, BusinessDocument.Expense {
+    @JsonSubTypes.Type(value = BusinessDocument.Expense.class, name = "expense"),
+    @JsonSubTypes.Type(value = BusinessDocument.Travel.class, name = "travel")})
+public sealed interface BusinessDocument permits BusinessDocument.Leave, BusinessDocument.Procurement, BusinessDocument.QuoteDiscount, BusinessDocument.Expense, BusinessDocument.Travel {
     String businessId();
     String title();
     String reason();
@@ -133,6 +134,48 @@ public sealed interface BusinessDocument permits BusinessDocument.Leave, Busines
                 throw new IllegalArgumentException("Expense date must use YYYY-MM-DD");
             try { if (LocalDate.parse(spentOn).getYear() < 1) throw new IllegalArgumentException("Expense date year must be positive"); }
             catch (DateTimeParseException invalid) { throw new IllegalArgumentException("Expense date must be a real calendar date", invalid); }
+        }
+    }
+
+    /** A synthetic itinerary and budget request. Approval never books, reimburses or pays. */
+    record Travel(@JsonProperty(required = true) int documentVersion,
+                  @JsonProperty(required = true) String businessId, @JsonProperty(required = true) String title,
+                  @JsonProperty(required = true) String reason, @JsonProperty(required = true) String destination,
+                  @JsonProperty(required = true) String startDate, @JsonProperty(required = true) String endDate,
+                  @JsonProperty(required = true) String purpose, @JsonProperty(required = true) BigDecimal estimatedCost,
+                  @JsonProperty(required = true) String currency, @JsonProperty(required = true) String costCenter) implements BusinessDocument {
+        @Override public void validate() {
+            validateCommon(this);
+            if (documentVersion != 1 || !validText(destination,160) || destination.trim().isBlank() ||
+                title.trim().isBlank() || reason.trim().isBlank() ||
+                !java.util.Set.of("ENGINEERING","SALES","OPERATIONS").contains(costCenter == null ? "" : costCenter) ||
+                !java.util.Set.of("CUSTOMER_VISIT","PROJECT_DELIVERY","TRAINING","CONFERENCE","OTHER").contains(purpose == null ? "" : purpose))
+                throw new IllegalArgumentException("请填写有效的出差信息、目的地、用途和成本中心 / Travel requires version 1, valid text, destination, purpose and cost center");
+            if (!java.util.Set.of("CNY","USD","EUR","GBP","JPY").contains(currency == null ? "" : currency))
+                throw new IllegalArgumentException("请选择支持的币种 / Choose a supported currency: CNY, USD, EUR, GBP or JPY");
+            if (estimatedCost == null || estimatedCost.signum() <= 0 || estimatedCost.scale() > 2 || estimatedCost.compareTo(new BigDecimal("1000000000")) > 0)
+                throw new IllegalArgumentException("预计费用须大于 0、不超过 1,000,000,000，最多两位小数 / Estimated cost must be positive, at most 1,000,000,000 and have at most two decimal places");
+            if ("JPY".equals(currency) && estimatedCost.stripTrailingZeros().scale() > 0)
+                throw new IllegalArgumentException("日元预计费用须为整数 / Estimated cost in JPY must be a whole amount");
+            long days = durationDays();
+            if (days < 1 || days > 90)
+                throw new IllegalArgumentException("结束日期不能早于开始日期，含首尾最多 90 天 / End date must not precede start date; the trip may span at most 90 days inclusive");
+        }
+        public long durationDays() { return java.time.temporal.ChronoUnit.DAYS.between(travelDate(startDate),travelDate(endDate)) + 1; }
+        private static LocalDate travelDate(String value) {
+            if (value == null || !value.matches("[0-9]{4}-[0-9]{2}-[0-9]{2}"))
+                throw new IllegalArgumentException("日期须为 YYYY-MM-DD 格式 / Dates must use YYYY-MM-DD");
+            try {
+                LocalDate date=LocalDate.parse(value);
+                if (date.getYear() < 1) throw new DateTimeParseException("Year must be positive",value,0);
+                return date;
+            } catch (DateTimeParseException invalid) {
+                throw new IllegalArgumentException("请输入 0001–9999 年的有效日历日期 / Enter a real calendar date in years 0001–9999",invalid);
+            }
+        }
+        @Override public Travel withText(String title,String reason) {
+            return new Travel(documentVersion,businessId,title,reason,destination.trim(),startDate,endDate,purpose,
+                estimatedCost.stripTrailingZeros(),currency,costCenter);
         }
     }
 

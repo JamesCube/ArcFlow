@@ -3,15 +3,15 @@ import { validateDefinition, participants } from '../process.js'
 import { parseScenarioInstant } from './scenario-instant.js'
 const stableText = (value, limit) => typeof value === 'string' && !!value.trim() && value.length <= limit && !/[\u0000-\u001f\u007f-\u009f]/.test(value)
 const timestamp = value => parseScenarioInstant(value) !== null
-function validateRequest(item, actor, payload, snapshot) {
+function validateRequest(item, actor, payload, snapshot, handler) {
   const expectedFields = ['id', 'title', 'reason', 'days', 'applicantId', 'approverId', 'status', 'createdAt', 'updatedAt', 'decision', 'comment', 'processId', 'processVersion', 'definition', 'currentStepId', 'history', 'business']
-  if (!exactKeys(item, expectedFields) || expenseErrors(item.business).length || expenseErrors(payload.business).length ||
-      !same(normalizeExpense(item.business), normalizeExpense(payload.business)) || !same(item.business, normalizeExpense(item.business))) invalid()
+  if (!exactKeys(item, expectedFields) || handler.errors(item.business).length || handler.errors(payload.business).length ||
+      !same(handler.normalize(item.business), handler.normalize(payload.business)) || !same(item.business, handler.normalize(item.business))) invalid()
   if (typeof item.id !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/.test(item.id) || !stableText(item.applicantId, 128) || item.applicantId !== actor ||
       ['title', 'reason'].some(key => item[key] !== serverTrim(payload.business[key])) || item.days !== 0 || item.processVersion !== payload.processVersion ||
       !['PENDING', 'APPROVED', 'REJECTED'].includes(item.status) || !timestamp(item.createdAt) || !timestamp(item.updatedAt) || !isRecord(item.definition)) invalid()
   const definition = item.definition
-  if (validateDefinition(definition, TEMPLATE_ID).length || definition.version > 2147483647 || item.processId !== definition.id || definition.version !== payload.processVersion || !same(definition, snapshot)) invalid()
+  if (validateDefinition(definition, handler.id).length || definition.version > 2147483647 || item.processId !== definition.id || definition.version !== payload.processVersion || !same(definition, snapshot)) invalid()
   const steps = definition.nodes.slice(1, -1)
   if (steps.some(node => participants(node).includes(actor)) || !Array.isArray(item.history) || !item.history.length || item.history.length > 129) invalid()
   let stepIndex = 0, derivedStatus = 'PENDING', voted = new Set()
@@ -37,27 +37,35 @@ function validateRequest(item, actor, payload, snapshot) {
   } else if (item.currentStepId !== null || item.history.length < 2 || item.approverId !== last.actorId || last.action !== (item.status === 'APPROVED' ? 'APPROVE' : 'REJECT')) invalid()
   return item
 }
-export function validateScenarioView(view, expected = null) {
-  if (!exactKeys(view, ['request', 'total'])) invalid()
-  const item = view.request
-  if (!isRecord(item)) invalid()
-  validateRequest(item, expected?.actor ?? item.applicantId, expected?.payload ?? { business: item.business, processVersion: item.processVersion }, expected?.definition ?? item.definition)
-  if (typeof view.total !== 'string' || view.total !== expenseTotal(item.business)) invalid()
-  return view
-}
-export function validateScenarioDecision(view, original, actor, stepId, decision, expectedComment) {
-  validateScenarioView(original)
-  validateScenarioView(view, { actor: original.request.applicantId, payload: { business: original.request.business, processVersion: original.request.processVersion }, definition: original.request.definition })
-  const item = view.request, before = original.request
-  if (item.id !== before.id || item.createdAt !== before.createdAt || !same(item.history.slice(0, before.history.length), before.history) ||
-      !item.history.slice(before.history.length).some(event => event.actorId === actor && event.stepId === stepId && event.action === decision)) invalid()
-  const vote = item.history.slice(before.history.length).find(event => event.actorId === actor && event.stepId === stepId && event.action === decision)
-  if (expectedComment !== undefined && vote.comment !== expectedComment) {
-    throw Object.assign(new InvalidScenarioPayload(), { code: 'DECISION_COMMENT_MISMATCH' })
+export function createScenarioValidators(handler) {
+  function validateScenarioView(view, expected = null) {
+    if (!exactKeys(view, ['request', 'total'])) invalid()
+    const item = view.request
+    if (!isRecord(item)) invalid()
+    validateRequest(item, expected?.actor ?? item.applicantId, expected?.payload ?? { business: item.business, processVersion: item.processVersion }, expected?.definition ?? item.definition, handler)
+    if (typeof view.total !== 'string' || view.total !== handler.total(item.business)) invalid()
+    return view
   }
-  return view
+  function validateScenarioDecision(view, original, actor, stepId, decision, expectedComment) {
+    validateScenarioView(original)
+    validateScenarioView(view, { actor: original.request.applicantId, payload: { business: original.request.business, processVersion: original.request.processVersion }, definition: original.request.definition })
+    const item = view.request, before = original.request
+    if (item.id !== before.id || item.createdAt !== before.createdAt || !same(item.history.slice(0, before.history.length), before.history) ||
+        !item.history.slice(before.history.length).some(event => event.actorId === actor && event.stepId === stepId && event.action === decision)) invalid()
+    const vote = item.history.slice(before.history.length).find(event => event.actorId === actor && event.stepId === stepId && event.action === decision)
+    if (expectedComment !== undefined && vote.comment !== expectedComment) {
+      throw Object.assign(new InvalidScenarioPayload(), { code: 'DECISION_COMMENT_MISMATCH' })
+    }
+    return view
+  }
+  function validateScenarioList(items) {
+    if (!Array.isArray(items) || new Set(items.map(item => item?.request?.id)).size !== items.length) invalid()
+    items.forEach(item => validateScenarioView(item)); return items
+  }
+
+  return { validateView: validateScenarioView, validateDecision: validateScenarioDecision, validateList: validateScenarioList }
 }
-export function validateScenarioList(items) {
-  if (!Array.isArray(items) || new Set(items.map(item => item?.request?.id)).size !== items.length) invalid()
-  items.forEach(item => validateScenarioView(item)); return items
-}
+const expenseValidators = createScenarioValidators({ id: TEMPLATE_ID, errors: expenseErrors, normalize: normalizeExpense, total: expenseTotal })
+export const validateScenarioView = expenseValidators.validateView
+export const validateScenarioDecision = expenseValidators.validateDecision
+export const validateScenarioList = expenseValidators.validateList

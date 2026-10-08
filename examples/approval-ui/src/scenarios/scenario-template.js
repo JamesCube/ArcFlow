@@ -1,7 +1,8 @@
 import { CURRENCIES, COST_CENTERS, CATEGORIES, exactKeys, invalid } from './expense-document.js'
+import { TRAVEL_PURPOSES } from './travel-document.js'
 import { getScenarioHandler, scenarioHandlers } from './scenario-registry.js'
 const translated = value => exactKeys(value, ['zh', 'en']) && ['zh', 'en'].every(key => typeof value[key] === 'string' && value[key].trim() && value[key].length <= 2000)
-const enums = { currency: CURRENCIES, costCenter: COST_CENTERS, category: CATEGORIES }
+const enums = { currency: CURRENCIES, costCenter: COST_CENTERS, category: CATEGORIES, purpose: TRAVEL_PURPOSES }
 function fields(items, kinds) {
   if (!Array.isArray(items)) invalid()
   for (const field of items) {
@@ -23,6 +24,7 @@ export function validateScenarioCatalog(catalog) {
     }
     if (new Set(template.sections.map(section => section.id)).size !== template.sections.length || rootFields.length !== Object.keys(rootKinds).length || new Set(rootFields.map(field => field.path)).size !== rootFields.length) invalid()
     const lineItems = template.lineItems
+    if (lineKinds === null) { if (lineItems !== null) invalid(); continue }
     if (!exactKeys(lineItems, ['path', 'label', 'minItems', 'maxItems', 'fields']) || lineItems.path !== 'lines' || !translated(lineItems.label) || lineItems.minItems !== 1 || lineItems.maxItems !== 20) invalid()
     fields(lineItems.fields, lineKinds)
     if (lineItems.fields.length !== Object.keys(lineKinds).length || new Set(lineItems.fields.map(field => field.path)).size !== lineItems.fields.length) invalid()

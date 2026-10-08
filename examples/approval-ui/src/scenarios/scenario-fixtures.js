@@ -16,7 +16,7 @@ export function catalogFixture() {
       field('spentOn', 'date'), field('category', 'select', 0, ['TRAVEL', 'MEALS', 'OFFICE', 'OTHER']),
       field('description', 'text', 240), field('amount', 'money'), field('receiptRef', 'text', 128),
     ] },
-  }]
+  }, travelTemplateFixture()]
 }
 export function expenseFixture(overrides = {}) {
   return { type: 'expense', documentVersion: 1, businessId: 'EXP-2026-001', title: 'Client visit expenses', reason: 'Synthetic expense fixture; no personal information.', costCenter: 'ENGINEERING', currency: 'CNY', lines: [
@@ -61,4 +61,32 @@ export function decidedFixture(original, actor = 'bob', decision = 'APPROVE', co
     item.currentStepId = steps[index + 1].id; item.approverId = members(steps[index + 1])[0]
   } else item.approverId = members(current).find(member => !votes.some(event => event.actorId === member))
   return view
+}
+
+export function travelTemplateFixture() {
+  return {
+    id: 'oa-travel', domain: 'OA', documentType: 'travel', documentVersion: 1, formVersion: 1,
+    title: translated('Business travel review', '出差申请审批'), description: translated('Synthetic itinerary and budget. Approval does not book travel, reimburse expenses or issue a payment.', '合成行程与预算，审批通过不会预订、报销或付款。'),
+    sections: [
+      { id: 'identity', title: translated('Request details', '申请信息'), fields: [field('businessId', 'text', 128), field('title', 'text', 120), field('costCenter', 'select', 0, ['ENGINEERING', 'SALES', 'OPERATIONS']), field('currency', 'select', 0, ['CNY', 'USD', 'EUR', 'GBP', 'JPY'])] },
+      { id: 'itinerary', title: translated('Itinerary and budget', '行程与预算'), fields: [field('destination', 'text', 160), field('startDate', 'date', 10), field('endDate', 'date', 10), field('purpose', 'select', 0, ['CUSTOMER_VISIT', 'PROJECT_DELIVERY', 'TRAINING', 'CONFERENCE', 'OTHER']), field('estimatedCost', 'money')] },
+      { id: 'reason', title: translated('Business purpose', '出差事由'), fields: [field('reason', 'textarea', 2000)] },
+    ], lineItems: null,
+  }
+}
+export function travelFixture(overrides = {}) {
+  return { type: 'travel', documentVersion: 1, businessId: 'TRIP-2026-001', title: 'Synthetic project delivery', reason: 'Synthetic itinerary for testing only.', destination: 'Shanghai', startDate: '2026-10-12', endDate: '2026-10-14', purpose: 'PROJECT_DELIVERY', estimatedCost: '2800.00', currency: 'CNY', costCenter: 'ENGINEERING', ...overrides }
+}
+export function travelProcessFixture(overrides = {}) {
+  return { schemaVersion: 2, id: 'oa-travel', version: 1, name: 'Business travel review', nodes: [
+    { id: 'start', type: 'start', name: 'Submit travel request', assigneeId: null },
+    { id: 'tripReview', type: 'approval', name: 'Trip review', assigneeId: 'bob' },
+    { id: 'budget', type: 'approval', name: 'Budget review', assigneeId: 'carol' },
+    { id: 'end', type: 'end', name: 'Complete', assigneeId: null },
+  ], ...overrides }
+}
+export function travelViewFixture(overrides = {}) {
+  const business = travelFixture(), definition = travelProcessFixture()
+  const view = viewFixture({ id: 'travel-1', title: business.title, reason: business.reason, processId: 'oa-travel', definition, currentStepId: 'tripReview', business, ...overrides })
+  return { ...view, total: business.estimatedCost }
 }
