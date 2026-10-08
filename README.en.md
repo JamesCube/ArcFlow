@@ -4,11 +4,33 @@ Add approval flows to a Java application. Set up steps and reviewers in the Vue 
 
 Start with the leave-request demo: submit a request, switch accounts to approve it, and check the result. The RuoYi example shows how to connect approvals to an existing application.
 
-[简体中文](README.md) · [Quick start](#quick-start) · [Business examples](#business-examples) · [RuoYi setup](examples/ruoyi-vue3/README.md) · [Docs](#docs-and-source)
+[简体中文](README.md) · [Capabilities](#approval-capabilities-at-a-glance) · [Quick start](#quick-start) · [Business examples](#business-examples) · [RuoYi setup](examples/ruoyi-vue3/README.md) · [Docs](#docs-and-source)
 
 [![Java CI](https://github.com/JamesCube/ArcFlow/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/JamesCube/ArcFlow/actions/workflows/ci.yml)
 [![Approval demo CI](https://github.com/JamesCube/ArcFlow/actions/workflows/approval-demo.yml/badge.svg?branch=main)](https://github.com/JamesCube/ArcFlow/actions/workflows/approval-demo.yml)
 [![RuoYi integration](https://github.com/JamesCube/ArcFlow/actions/workflows/ruoyi-integration.yml/badge.svg?branch=main)](https://github.com/JamesCube/ArcFlow/actions/workflows/ruoyi-integration.yml)
+
+<a id="design-and-review"></a>
+
+## Approval capabilities at a glance
+
+For teams adding fixed-reviewer, multi-stage approvals to an existing Java or RuoYi application. The repository has three layers: **a synchronous DAG core, approval domain/storage modules, and runnable examples**. Human approvals and persistence live in the latter two.
+
+✅ Implemented · 🟡 Bounded support · — Not implemented. This describes the current source; verify the preview against your own use case.
+
+| Capability | Status | Current scope |
+| --- | --- | --- |
+| **Single, ALL and ANY review** | ✅ | 1–8 ordered stages; ALL requires every approval and rejects on any rejection; ANY passes on the first approval and rejects only when everyone rejects |
+| **Visual designer and versions** | ✅ | Edit, insert, reorder, assign, validate and publish; each request keeps its submitted process and business snapshots |
+| **Worklists and decision history** | ✅ | Actor-scoped pending/handled pages include every ALL/ANY member; retain each person's note, decision and timestamp |
+| **Retries and concurrency** | ✅ | Optional submission keys, per-stage/member decision retries and revision CAS; no exactly-once guarantee for external business operations |
+| **Persistence** | 🟡 | Single-writer JSON by default; optional transactional JDBC with PostgreSQL, MySQL 8.0/8.4 and H2 tests; explicit integration and migration required |
+| **Business documents** | 🟡 | Submit and review leave/procurement; quote discounts run in an isolated synthetic CRM case, outside shared workspaces |
+| **Desktop, RuoYi and mobile** | 🟡 | Runnable standalone Vue and native RuoYi workspaces; H5 is review-only, with no mobile submission, designer or enterprise SSO |
+| **Zero-dependency Java DAG core** | ✅ | No third-party runtime dependencies; validates dependencies and runs synchronously, one node at a time, without durable execution state or human waits |
+| **Advanced workflow features** | — | No conditional routing, timed reminders/escalation, withdrawal, delegation, tenant isolation, outbox or BPMN compatibility |
+
+[Full checklist, limits and code/test evidence](docs/CAPABILITIES.md#en) · [Run the demo](#quick-start) · [See the screens](#see-the-cases)
 
 <a id="try-one-leave-approval"></a>
 <a id="fast-local-tryout-one-terminal"></a>
@@ -56,15 +78,6 @@ The quote case uses synthetic customer data and fixed sales-manager → finance 
 
 Actual running-app captures with synthetic data. [Open the gallery](docs/CASE_GALLERY.md) for full-size images, the designer, RuoYi and H5. [Capture versions and sources](docs/CASE_GALLERY.md#provenance).
 
-## Design and review
-
-- **Single reviewers, ALL and ANY groups.** A process has 1–8 steps. ALL requires everyone's approval and rejects on the first rejection. ANY passes on the first approval and rejects only when everyone rejects.
-- **A saved process for each request.** Publishing a new version doesn't reroute requests already submitted.
-- **Worklists, notes and history.** The server checks who can view and review requests, saves decisions, and lets you retry the same decision for the same step without adding another history entry. See [submission idempotency](docs/SUBMISSION_IDEMPOTENCY.md) for retrying a failed submission.
-- **Desktop and H5.** The standalone UI supports English and Chinese. There's also a separate [mobile-browser approval client](examples/approval-mobile/README.md).
-
-Pending and handled tabs page through every ALL/ANY member’s work. See the [member inbox contract](docs/MEMBER_INBOX.md) and [business documents](docs/BUSINESS_DOCUMENTS.md).
-
 ## Connect an application
 
 The RuoYi example adds approval pages to its native menus and reuses existing accounts and permissions. For another Java application, start with the approval domain and storage interfaces.
@@ -106,3 +119,4 @@ For a pinned version, download a Source code archive from the [`v0.1.0-alpha.3` 
 The earlier [`v0.1.0-alpha.2`](https://github.com/JamesCube/ArcFlow/releases/tag/v0.1.0-alpha.2) does not include alpha.3's standalone-host dependency upgrade, post-read identity-check fixes, or root build changes. [`v0.1.0-alpha.1`](https://github.com/JamesCube/ArcFlow/releases/tag/v0.1.0-alpha.1) is an older sequential-approval version without the current designer, ALL/ANY, JDBC or typed business documents.
 
 [Apache License 2.0](LICENSE). Separately downloaded RuoYi projects keep their MIT licenses. This project isn't endorsed by RuoYi upstream.
+

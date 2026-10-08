@@ -4,11 +4,33 @@
 
 先从仓库里的请假示例跑起：发起申请、切换账号审批，再查看结果。需要接到现有系统时，可以参考若依集成。
 
-[English](README.en.md) · [快速开始](#快速开始) · [业务案例](#业务案例) · [接入若依](examples/ruoyi-vue3/README.md) · [文档](#文档与源码)
+[English](README.en.md) · [能力清单](#审批能力一览) · [快速开始](#快速开始) · [业务案例](#业务案例) · [接入若依](examples/ruoyi-vue3/README.md) · [文档](#文档与源码)
 
 [![Java CI](https://github.com/JamesCube/ArcFlow/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/JamesCube/ArcFlow/actions/workflows/ci.yml)
 [![Approval demo CI](https://github.com/JamesCube/ArcFlow/actions/workflows/approval-demo.yml/badge.svg?branch=main)](https://github.com/JamesCube/ArcFlow/actions/workflows/approval-demo.yml)
 [![RuoYi integration](https://github.com/JamesCube/ArcFlow/actions/workflows/ruoyi-integration.yml/badge.svg?branch=main)](https://github.com/JamesCube/ArcFlow/actions/workflows/ruoyi-integration.yml)
+
+<a id="设计流程与处理审批"></a>
+
+## 审批能力一览
+
+适合给现有 Java／若依业务系统接入固定人员、多级人工审批。仓库分为**同步 DAG 内核、审批领域与存储、可运行示例**；人工审批和持久化由后两层提供。
+
+✅ 已实现 · 🟡 有明确边界 · — 未实现。以下描述当前源码，预览版仍需按实际场景验证。
+
+| 能力 | 状态 | 目前支持到哪里 |
+| --- | --- | --- |
+| **单人／会签／或签** | ✅ | 1–8 级顺序审批；ALL 全员同意、任一拒绝即驳回；ANY 任一同意即通过、全员拒绝才驳回 |
+| **可视化设计与版本** | ✅ | 编辑、插入、排序、配置审批人、校验并发布；每份申请保留提交时的流程与业务快照 |
+| **待办、已办与审批记录** | ✅ | 按登录成员分页，覆盖 ALL／ANY 每位参与人；保存逐人意见、决定和时间 |
+| **重复请求与并发保护** | ✅ | 可选提交幂等键、同一步骤／成员的决定重试、修订号 CAS；不代表外部业务操作只执行一次 |
+| **持久化存储** | 🟡 | 默认 JSON 单写者；可选 JDBC 事务存储，已有 PostgreSQL、MySQL 8.0／8.4、H2 测试，须显式接入与迁移 |
+| **业务单据** | 🟡 | 请假、采购可提交和审批；报价折扣在隔离的合成 CRM 案例中运行，共享工作区暂不支持报价 |
+| **桌面、若依与移动端** | 🟡 | 独立 Vue 与原生若依工作台可运行；H5 仅查看与审批，不提供手机发起、设计器或企业 SSO |
+| **零依赖 Java DAG 内核** | ✅ | 无第三方运行时依赖；校验依赖图并同步串行执行，不保存运行状态或等待人工任务 |
+| **高级流程与企业能力** | — | 条件路由、定时催办／升级、撤回、转办、租户隔离、outbox、BPMN 兼容性均未实现 |
+
+[查看完整能力清单、限制与代码／测试依据](docs/CAPABILITIES.md#zh) · [直接运行示例](#快速开始) · [看看实际页面](#看看实际页面)
 
 <a id="先完成一笔请假审批"></a>
 <a id="先完成一次请假审批"></a>
@@ -57,15 +79,6 @@ python3 scripts/tryout.py
 
 以上为运行中应用的真实截图，使用合成数据。[打开图集](docs/CASE_GALLERY.md)可看原图、设计器、若依和 H5 页面。[截图版本与来源](docs/CASE_GALLERY.md#provenance)。
 
-## 设计流程与处理审批
-
-- **单人审批、会签和或签。** 一个流程支持 1–8 个步骤。ALL 需全员同意，任一人拒绝就驳回；ANY 有一人同意就通过，所有人拒绝才驳回。
-- **每份申请保留自己的流程。** 发布新版本后，已提交申请继续按原版本审批。
-- **待办、意见和记录。** 服务端检查谁能看、谁能审批，保存处理结果。重复提交同一步骤的相同决定，不会新增审批记录。提交失败后的重试方式见[幂等说明](docs/SUBMISSION_IDEMPOTENCY.md)。
-- **桌面和 H5。** 独立界面可以切换中英文，也有单独的[手机浏览器审批页面](examples/approval-mobile/README.md)。
-
-待办和已办使用服务端成员分页，包含 ALL／ANY 分组中的每位参与人。采购单展示数量、单价、币种和精确金额，H5 只负责审批。[成员查询](docs/MEMBER_INBOX.md) · [业务单据](docs/BUSINESS_DOCUMENTS.md)。
-
 ## 接到你的应用
 
 若依示例把审批页面放进原生菜单，复用现有账号和权限。接其他 Java 应用时，可以从审批领域库及存储接口开始。
@@ -107,3 +120,4 @@ java -cp target/classes com.arcflow.example.QuickStart
 [`v0.1.0-alpha.2`](https://github.com/JamesCube/ArcFlow/releases/tag/v0.1.0-alpha.2) 不包含 alpha.3 的独立宿主依赖升级、读取后身份复核修订和根构建修订。[`v0.1.0-alpha.1`](https://github.com/JamesCube/ArcFlow/releases/tag/v0.1.0-alpha.1) 是早期顺序审批版本，不包含当前设计器、ALL/ANY、JDBC 和类型化业务单据。
 
 [Apache License 2.0](LICENSE)。另行下载的若依项目保留 MIT 许可证；本项目未获得若依上游背书。
+
