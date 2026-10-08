@@ -81,3 +81,36 @@ test('logout clears source details and applicant draft rather than carrying them
   assert.notEqual(ui.$('title').value,'Private applicant draft'); assert.notEqual(ui.$('reason').value,'Unsubmitted reason'); assert.equal(ui.$('requested').value,'850.00');
   ui.dom.window.close();
 });
+
+test('validation feedback translates with the UI and clears after the whole draft becomes valid',async()=>{
+  const ui=await mount('alice'); await ui.login();
+  ui.$('language').value='en'; ui.$('language').dispatchEvent(new ui.dom.window.Event('change'));
+  ui.$('requested').value='1000'; ui.submit('quote-form');
+  assert.equal(ui.$('message').textContent,'Requested unit price must be below list unit price.');
+  ui.$('language').value='zh'; ui.$('language').dispatchEvent(new ui.dom.window.Event('change'));
+  assert.equal(ui.$('message').textContent,'申请单价须低于目录单价。');
+  ui.$('requested').value='850.00'; ui.$('requested').dispatchEvent(new ui.dom.window.Event('input'));
+  assert.equal(ui.$('message').textContent,''); assert.match(ui.$('preview').textContent,/8500.00/); ui.dom.window.close();
+});
+test('editing a valid price never dismisses an unconfirmed server result, and that message also translates',async()=>{
+  const ui=await mount('alice'); await ui.login(); const original=globalThis.fetch;
+  globalThis.fetch=async(path,options)=>{if(options.method==='POST')throw new Error('lost acknowledgement');return original(path,options)};
+  ui.submit('quote-form'); await ui.tick(); await ui.tick();
+  assert.match(ui.$('message').textContent,/暂时无法确认/);
+  ui.$('requested').value='800.00'; ui.$('requested').dispatchEvent(new ui.dom.window.Event('input'));
+  assert.match(ui.$('message').textContent,/暂时无法确认/);
+  const draft=[ui.$('title').value,ui.$('reason').value,ui.$('requested').value];
+  ui.$('language').value='en'; ui.$('language').dispatchEvent(new ui.dom.window.Event('change'));
+  assert.match(ui.$('message').textContent,/could not be confirmed/);
+  assert.deepEqual([ui.$('title').value,ui.$('reason').value,ui.$('requested').value],draft); ui.dom.window.close();
+});
+
+test('language changes never fill intentionally empty authenticated draft fields',async()=>{
+  const ui=await mount('alice'); await ui.login();
+  ui.$('requested').value='1000'; ui.submit('quote-form');
+  ui.$('title').value=''; ui.$('reason').value='';
+  ui.$('requested').value='850.00'; ui.$('requested').dispatchEvent(new ui.dom.window.Event('input'));
+  ui.$('language').value='en'; ui.$('language').dispatchEvent(new ui.dom.window.Event('change'));
+  assert.equal(ui.$('title').value,''); assert.equal(ui.$('reason').value,'');
+  assert.equal(ui.$('message').textContent,'Enter a title and a reason for the discount.'); ui.dom.window.close();
+});

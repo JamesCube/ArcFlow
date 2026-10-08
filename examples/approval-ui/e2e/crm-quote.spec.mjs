@@ -91,7 +91,17 @@ test('crm quote: real source checks, lost acknowledgement, immutable revision, t
     await expect(page.locator('#message')).not.toBeEmpty()
     expect(posts).toBe(0)
   }
+  await page.locator('#language').selectOption('zh')
+  await expect(page.locator('#message')).toHaveText('申请单价须低于目录单价。')
+  await page.locator('#language').selectOption('en')
+  await expect(page.locator('#message')).toHaveText('Requested unit price must be below list unit price.')
   await page.locator('#requested').fill('850.00')
+  await expect(page.locator('#message')).toBeEmpty()
+  await page.locator('#title').fill('')
+  await page.locator('#language').selectOption('zh')
+  await expect(page.locator('#title')).toHaveValue('')
+  await page.locator('#title').fill(title)
+  await page.locator('#language').selectOption('en')
   await expect(page.locator('#preview')).toContainText('CNY 8500.00')
   await expect(page.locator('#preview')).toContainText('CNY 1500.00')
   await page.locator('#requested').focus()
@@ -99,6 +109,7 @@ test('crm quote: real source checks, lost acknowledgement, immutable revision, t
   await expect(page.locator('#quote-form button')).toBeFocused()
   for (const language of ['zh', 'en']) {
     await page.locator('#language').selectOption(language)
+    await expect(page.locator('#message')).toBeEmpty()
     await capture(page, testInfo, `crm-form-${language}-desktop`)
   }
   await page.locator('#language').selectOption('en')
@@ -117,6 +128,12 @@ test('crm quote: real source checks, lost acknowledgement, immutable revision, t
     } else await route.continue()
   })
   await page.locator('#quote-form button').click()
+  await expect(page.locator('#message')).toContainText('could not be confirmed')
+  await page.locator('#language').selectOption('zh')
+  await expect(page.locator('#message')).toContainText('暂时无法确认')
+  await expect(page.locator('#title')).toHaveValue(title)
+  await expect(page.locator('#reason')).toHaveValue(reason)
+  await page.locator('#language').selectOption('en')
   await expect(page.locator('#message')).toContainText('could not be confirmed')
   await readRecord(page)
   expect(committed.request.business.type).toBe('quoteDiscount')
@@ -208,6 +225,7 @@ test('crm quote: real source checks, lost acknowledgement, immutable revision, t
   await backend(request, 'carol', `/crm/requests/${id}/decisions`, { stepId: 'finance', decision: 'REJECT', comment: 'Opposite retry' }, 409)
   for (const language of ['zh', 'en']) {
     await page.locator('#language').selectOption(language)
+    await expect(page.locator('#message')).toHaveText(language === 'zh' ? '审批意见已保存。' : 'Your review is saved.')
     await capture(page, testInfo, `crm-approved-${language}-desktop`)
   }
 

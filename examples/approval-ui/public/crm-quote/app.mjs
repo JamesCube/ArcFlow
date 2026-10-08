@@ -1,9 +1,15 @@
 import { copy } from './copy.mjs';
 import { authorization, preview, submissionBody, canDecide, validateViews } from './model.mjs';
 const $ = id => document.getElementById(id);
-let language = 'zh', auth = '', actor = '', process = null, quotes = [], views = [], busy = false, loaded = false, generation = 0;
+let language = 'zh', auth = '', actor = '', process = null, quotes = [], views = [], busy = false, loaded = false, generation = 0, messageKey = null;
 const t = key => copy[language][key] || key;
-function message(key) { $('message').textContent = t(key); }
+function message(key = null) { messageKey = key; $('message').textContent = key ? t(key) : ''; }
+function draftError(error) { return error.message === 'discount' ? 'discountError' : ['price', 'jpy', 'text'].includes(error.message) ? error.message : 'error'; }
+function refreshDraftFeedback() {
+  if (!loaded || !['price', 'jpy', 'discountError', 'text'].includes(messageKey)) return;
+  try { submissionBody(selected(), {title: $('title').value, reason: $('reason').value, requested: $('requested').value}, process.version); message(); }
+  catch (error) { message(draftError(error)); }
+}
 function element(tag, value, className) { const node = document.createElement(tag); if (value != null) node.textContent = value; if (className) node.className = className; return node; }
 function details(target, pairs) { target.replaceChildren(); for (const [label, value] of pairs) target.append(element('dt', label), element('dd', String(value))); }
 function selected() { return quotes[Number($('quote-select').value)]; }
@@ -59,7 +65,7 @@ async function refresh({ clearMessage = true } = {}) {
     actor = me.id; process = nextProcess; quotes = nextQuotes; views = nextViews; loaded = true;
     $('identity').textContent = me.displayName; $('login-panel').hidden = true; $('workspace').hidden = false;
     $('quote-select').replaceChildren(...quotes.map((quote, index) => { const option = element('option', `${quote.businessId} · v${quote.revision}`); option.value = String(index); return option; }));
-    renderSource(); if (clearMessage) $('message').textContent = '';
+    renderSource(); if (clearMessage) message();
   } catch { if (token === generation) { views = []; quotes = []; process = null; renderSource(); message(auth && actor ? 'error' : 'loginError'); } }
   finally { if (token === generation) setBusy(false); }
 }
@@ -80,21 +86,23 @@ function clearSession({ focus = false } = {}) {
   $('identity').textContent = ''; $('quote-select').replaceChildren();
   $('title').value = t('defaultTitle'); $('reason').value = t('defaultReason'); $('requested').value = '850.00';
   setBusy(false); renderSource(); $('workspace').hidden = true; $('login-panel').hidden = false;
-  $('message').textContent = ''; $('password').value = ''; if (focus) $('password').focus();
+  message(); $('password').value = ''; if (focus) $('password').focus();
 }
 $('logout').addEventListener('click', () => clearSession({ focus: true }));
 // Do not retain Basic credentials or authorized snapshots in a back/forward-cache entry.
 window.addEventListener('pagehide', () => clearSession());
 window.addEventListener('pageshow', event => { if (event.persisted) clearSession(); });
-$('refresh').addEventListener('click', () => refresh()); $('quote-select').addEventListener('change', renderSource); $('requested').addEventListener('input', renderPreview);
+$('refresh').addEventListener('click', () => refresh()); $('quote-select').addEventListener('change', renderSource); $('requested').addEventListener('input', () => { renderPreview(); refreshDraftFeedback(); });
+for (const id of ['title', 'reason']) $(id).addEventListener('input', refreshDraftFeedback);
 $('quote-form').addEventListener('submit', event => {
   event.preventDefault(); if (busy || !loaded || matchMedia('(max-width:650px)').matches) return;
   try { mutate('/crm/documents', submissionBody(selected(), {title: $('title').value, reason: $('reason').value, requested: $('requested').value}, process.version), 'saved'); }
-  catch (error) { message(error.message === 'discount' ? 'discountError' : ['price', 'jpy', 'text'].includes(error.message) ? error.message : 'error'); }
+  catch (error) { message(draftError(error)); }
 });
 function renderCopy() {
   document.documentElement.lang = language === 'zh' ? 'zh-CN' : 'en'; document.title = `${t('title')} · ArcFlow`;
   document.querySelectorAll('[data-copy]').forEach(node => node.textContent = t(node.dataset.copy));
-  if (!$('title').value || Object.values(copy).some(c => c.defaultTitle === $('title').value)) $('title').value = t('defaultTitle'); if (!$('reason').value || Object.values(copy).some(c => c.defaultReason === $('reason').value)) $('reason').value = t('defaultReason'); renderSource(); renderRequests();
+  if (messageKey) message(messageKey);
+  if (!actor && (!$('title').value || Object.values(copy).some(c => c.defaultTitle === $('title').value))) $('title').value = t('defaultTitle'); if (!actor && (!$('reason').value || Object.values(copy).some(c => c.defaultReason === $('reason').value))) $('reason').value = t('defaultReason'); renderSource(); renderRequests();
 }
 $('language').addEventListener('change', () => { language = $('language').value; renderCopy(); }); renderCopy();
