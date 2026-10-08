@@ -126,6 +126,17 @@ test('procurement: exact decimals, durable retry, immutable mixed documents, bil
   expect(committed.business.type).toBe('procurement')
   expect(committed.business.unitPrice).toBe(199.5)
   expect(committed.days).toBe(0)
+  // Visiting another document form must not turn an uncertain retry into a
+  // new request. The second form keeps its own unsent title and reason.
+  await page.getByTestId('request-type').selectOption('leave')
+  await expect(page.getByTestId('request-title')).toHaveValue('')
+  await page.getByTestId('request-title').fill('Unsubmitted leave draft')
+  await page.getByTestId('request-reason').fill('Separate leave reason')
+  await page.getByTestId('request-days').fill('4')
+  await page.getByTestId('request-type').selectOption('procurement')
+  await expect(page.getByTestId('request-title')).toHaveValue('Office seating · 办公座椅')
+  await expect(page.getByTestId('request-reason')).toHaveValue(reason)
+  await expect(page.getByTestId('request-unit-price')).toHaveValue('199.50')
   await publish(request)
   await page.getByTestId('refresh').click()
   await expect(page.getByTestId('refresh')).toBeEnabled()
@@ -146,6 +157,9 @@ test('procurement: exact decimals, durable retry, immutable mixed documents, bil
 
   // Existing leave authoring stays on the legacy route and mixed lists remain usable.
   await page.getByTestId('request-type').selectOption('leave')
+  await expect(page.getByTestId('request-title')).toHaveValue('Unsubmitted leave draft')
+  await expect(page.getByTestId('request-reason')).toHaveValue('Separate leave reason')
+  await expect(page.getByTestId('request-days')).toHaveValue('4')
   await page.getByTestId('request-title').fill('Mixed leave · 混合请假')
   await page.getByTestId('request-days').fill('2')
   await page.getByTestId('request-reason').fill('Synthetic leave regression / 合成请假回归')

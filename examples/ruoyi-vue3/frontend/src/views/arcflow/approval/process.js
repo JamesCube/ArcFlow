@@ -81,3 +81,17 @@ export function participantVotes(request, node) {
     return { actorId, state: event ? (event.action === 'APPROVE' ? '已同意' : '已拒绝') : ['已通过', '已拒绝'].includes(state) ? '无需再投票' : state === '当前审批' ? '待投票' : state === '等待中' ? '等待中' : '未到达', comment: event?.comment || '' }
   })
 }
+
+// Publication must acknowledge the exact ordered process sent by this editor.
+// Object key order is irrelevant; stage and participant order are preserved by
+// ApprovalService.publish and are part of the returned runtime definition.
+export function validatePublicationResponse(published, submitted, people) {
+  const content = definition => [definition.schemaVersion, definition.id, definition.name,
+    definition.nodes.map(node => [node.id, node.type, node.name, node.assigneeId,
+      ...(node.type === 'parallelApproval' ? [node.assigneeIds, node.completionMode] : [])])]
+  if (validateDefinition(published, people) || published.version !== submitted.version + 1
+    || JSON.stringify(content(published)) !== JSON.stringify(content(submitted))) {
+    throw Object.assign(new Error('The publication response did not confirm the submitted template and next version.'), { name: 'InvalidPublicationResponseError' })
+  }
+  return published
+}

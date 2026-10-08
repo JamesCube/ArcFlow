@@ -3,8 +3,8 @@ import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from
 import useUserStore from '@/store/modules/user'
 import { createInboxBoxes, createMemberInbox } from './inbox'
 import { getMe, getPeople, getProcess, getRequests, getInbox, publishProcess, submitRequest, submitDocument, decideRequest } from '@/api/arcflow/approval'
-import { approvals, approvalMode, canVote, clone, modeLabel, modeRule, participantVotes, participants, pendingParticipants, setApprovalMode, stepState, validText, validateDefinition } from './process'
-import { createSubmissionIntent, isRejectedSubmissionVersion } from './submission-intent'
+import { approvals, approvalMode, canVote, clone, modeLabel, modeRule, participantVotes, participants, pendingParticipants, setApprovalMode, stepState, validText, validateDefinition, validatePublicationResponse } from './process'
+import { createSubmissionForms, isRejectedSubmissionVersion } from './submission-intent'
 import { validateSubmissionResponse, validateDecisionResponse } from './submission-response'
 import { SUPPORTED_CURRENCIES, businessDocumentErrors, formatMoney, parseUnitPrice, procurementTotal, requestBusiness } from './business-document'
 import { nativeMessages, translateProcess } from './locale'
@@ -16,8 +16,15 @@ const requests = ref([]), selectedId = ref(null), selectedDetail = ref(null), ta
 const errorKey = ref(''), noticeKey = ref(''), noticeVersion = ref(null), refreshRequired = ref(false), publishUncertain = ref(false)
 const error = computed(() => t.value[errorKey.value] || tr(errorKey.value))
 const notice = computed(() => noticeKey.value === 'publishedNotice' ? t.value.publishedNotice(noticeVersion.value) : t.value[noticeKey.value] || '')
-const title = ref(''), reason = ref(''), days = ref(1), comment = ref('')
-const businessType = ref('leave'), businessId = ref(''), item = ref(''), quantity = ref('1'), unitPrice = ref(''), currency = ref('CNY')
+const businessType = ref('leave'), submissionForms = reactive(createSubmissionForms())
+const activeForm = computed(() => submissionForms[businessType.value] || submissionForms.leave)
+const formValue = (field, type) => computed({
+  get: () => (type ? submissionForms[type] : activeForm.value).fields[field],
+  set: value => { (type ? submissionForms[type] : activeForm.value).fields[field] = value },
+})
+const title = formValue('title'), reason = formValue('reason'), days = formValue('days', 'leave'), comment = ref('')
+const businessId = formValue('businessId', 'procurement'), item = formValue('item', 'procurement')
+const quantity = formValue('quantity', 'procurement'), unitPrice = formValue('unitPrice', 'procurement'), currency = formValue('currency', 'procurement')
 const submitTried = ref(false), errorsElement = ref(null)
 const business = computed(() => ({ type: 'procurement', businessId: businessId.value, title: title.value, reason: reason.value, item: item.value, quantity: quantity.value, unitPrice: unitPrice.value, currency: currency.value }))
 const fieldErrors = computed(() => {
@@ -32,17 +39,17 @@ const fieldErrors = computed(() => {
 const fieldError = field => submitTried.value && fieldErrors.value.includes(field) ? t.value.errors[field] : ''
 const total = computed(() => procurementTotal(quantity.value, unitPrice.value, currency.value))
 const money = (amount, code) => amount === null ? '—' : formatMoney(amount, code, locale.value)
-const submissionIntent = createSubmissionIntent(), submissionAttempt = ref(null), submissionDefinition = ref(null)
-let submissionVersionRejected = false
+const submissionAttempt = computed({ get: () => activeForm.value.attempt, set: value => { activeForm.value.attempt = value } })
+const submissionDefinition = computed({ get: () => activeForm.value.definition, set: value => { activeForm.value.definition = value } })
 const submissionFields = () => businessType.value === 'procurement' ? { business: business.value } : { title: title.value, reason: reason.value, days: days.value }
-function clearBusinessDraft() {
-  title.value = ''; reason.value = ''; days.value = 1; businessType.value = 'leave'
-  businessId.value = ''; item.value = ''; quantity.value = '1'; unitPrice.value = ''; currency.value = 'CNY'; submitTried.value = false
-}
-function clearSubmission() { submissionIntent.clear(); submissionAttempt.value = null; submissionDefinition.value = null; submissionVersionRejected = false }
-watch([() => me.value?.id, businessType, businessId, title, reason, days, item, quantity, unitPrice, currency], () => {
-  submissionIntent.invalidate(me.value?.id, submissionFields())
-  if (!submissionIntent.current(me.value?.id, submissionFields())) clearSubmission()
+function clearBusinessDraft() { Object.assign(submissionForms, createSubmissionForms()); businessType.value = 'leave'; submitTried.value = false }
+function clearSubmission(form = activeForm.value) { form.intent.clear(); form.attempt = null; form.definition = null; form.versionRejected = false }
+function clearAllSubmissions() { Object.values(submissionForms).forEach(clearSubmission) }
+function resetCurrentForm() { activeForm.value.fields = createSubmissionForms()[businessType.value].fields }
+watch(() => me.value?.id, clearAllSubmissions, { flush: 'sync' })
+watch([businessType, businessId, title, reason, days, item, quantity, unitPrice, currency], () => {
+  activeForm.value.intent.invalidate(me.value?.id, submissionFields())
+  if (!activeForm.value.intent.current(me.value?.id, submissionFields())) clearSubmission()
 }, { flush: 'sync' })
 const submissionProcess = computed(() => submissionAttempt.value ? submissionDefinition.value : process.value)
 const dirty = computed(() => draft.value && JSON.stringify(draft.value) !== baseline.value)
@@ -87,7 +94,7 @@ function currentView(generation, token) { return !disposed && generation === vie
 function resetSession() {
   viewGeneration++; refreshController?.abort(); refreshController = null; memberInbox.setIdentity(null); memberInbox.reset()
   me.value = null; requests.value = []; people.value = []; process.value = null; draft.value = null; baseline.value = ''
-  selectedId.value = null; selectedDetail.value = null; comment.value = ''; busy.value = false; clearSubmission()
+  selectedId.value = null; selectedDetail.value = null; comment.value = ''; busy.value = false; clearAllSubmissions()
   clearBusinessDraft(); resetInboxDrafts()
   noticeKey.value = ''; errorKey.value = ''; noticeVersion.value = null; refreshRequired.value = false; publishUncertain.value = false
 }
@@ -142,7 +149,7 @@ async function refresh() {
     if (!identity.data?.id) throw new Error('Missing authenticated identity')
     if (me.value && me.value.id !== identity.data.id) {
       requests.value = []; selectedId.value = null; selectedDetail.value = null; comment.value = ''
-      draft.value = null; baseline.value = ''; preserve = false; clearSubmission(); resetInboxDrafts()
+      draft.value = null; baseline.value = ''; preserve = false; clearAllSubmissions(); resetInboxDrafts()
     }
     me.value = identity.data; memberInbox.setIdentity(identity.data.id)
     const [persons, blueprint, items] = await Promise.all([
@@ -153,7 +160,7 @@ async function refresh() {
     if (!Array.isArray(items.data) || items.data.some(value => !value || typeof value !== 'object' || Array.isArray(value) || !Array.isArray(value.history))) throw new Error('Invalid request list')
     people.value = persons.data; process.value = blueprint.data; requests.value = memberInbox.remember(items.data)
     selectedDetail.value = requests.value.find(item => item.id === selectedId.value) || null
-    if (submissionVersionRejected) clearSubmission()
+    Object.values(submissionForms).filter(form => form.versionRejected).forEach(clearSubmission)
     if (!preserve) { draft.value = clone(blueprint.data); baseline.value = JSON.stringify(draft.value) }
     if (previousStep !== selected.value?.currentStepId) comment.value = ''
     refreshRequired.value = requiredAtStart && !!(boxes.PENDING.error || boxes.HANDLED.error)
@@ -204,6 +211,7 @@ async function publish() {
   try {
     const response = await publishProcess({ expectedVersion: definition.version, definition })
     if (!currentView(generation, token)) return
+    validatePublicationResponse(response.data, definition, people.value)
     process.value = response.data; draft.value = clone(response.data); baseline.value = JSON.stringify(draft.value)
     noticeVersion.value = response.data.version; noticeKey.value = 'publishedNotice'
   } catch (e) { if (currentView(generation, token)) mutationFailure('publish', e) }
@@ -217,7 +225,7 @@ async function submit() {
   const generation = viewGeneration, token = session()
   try {
     if (!submissionAttempt.value) submissionDefinition.value = clone(process.value)
-    const attempt = submissionIntent.prepare(me.value.id, submissionFields(), process.value.version)
+    const attempt = activeForm.value.intent.prepare(me.value.id, submissionFields(), process.value.version)
     submissionAttempt.value = attempt
     const transport = attempt.endpoint === '/documents' ? submitDocument : submitRequest
     const { data } = await transport(attempt.payload, attempt.key)
@@ -225,10 +233,10 @@ async function submit() {
     validateSubmissionResponse(data, me.value.id, attempt.payload, submissionDefinition.value)
     clearSubmission()
     requests.value = [memberInbox.remember([data])[0], ...requests.value.filter(value => value.id !== data.id)]
-    tab.value = 'mine'; selectedId.value = data.id; selectedDetail.value = data; title.value = ''; reason.value = ''; days.value = 1; comment.value = ''
-    businessId.value = ''; item.value = ''; quantity.value = '1'; unitPrice.value = ''; submitTried.value = false
+    tab.value = 'mine'; selectedId.value = data.id; selectedDetail.value = data; comment.value = ''
+    resetCurrentForm(); submitTried.value = false
     noticeKey.value = data.status === 'PENDING' ? 'submitted' : data.status === 'APPROVED' ? 'approved' : 'rejected'
-  } catch (e) { if (currentView(generation, token)) { submissionVersionRejected = isRejectedSubmissionVersion(e); mutationFailure('submit', e) } }
+  } catch (e) { if (currentView(generation, token)) { activeForm.value.versionRejected = isRejectedSubmissionVersion(e); mutationFailure('submit', e) } }
   finally { if (currentView(generation, token)) busy.value = false }
 }
 async function decide(decision) {
@@ -317,8 +325,8 @@ onUnmounted(() => { disposed = true; viewGeneration++; refreshController?.abort(
           <el-alert v-if="selfAssigned" :title="t.selfAssigned" type="warning" :closable="false" class="message" />
           <el-alert v-if="submissionAttempt" :title="t.retry" type="warning" :closable="false" class="message" />
           <p v-if="submitTried && fieldErrors.length" ref="errorsElement" data-testid="submission-errors" class="validation error-summary" role="alert" tabindex="-1">{{ t.reviewErrors }} {{ fieldErrors.map(field => t.errors[field]).join(' ') }}</p>
-          <el-form label-width="110px" :disabled="locked || selfAssigned" @submit.prevent="submit">
-            <fieldset :disabled="locked || selfAssigned" class="document-fields">
+          <el-form label-width="110px" :disabled="locked" @submit.prevent="submit">
+            <fieldset :disabled="locked" class="document-fields">
               <el-form-item :label="t.type" for="arcflow-type" required :error="fieldError('type')">
                 <select id="arcflow-type" v-model="businessType" data-testid="business-type" class="native-select"><option value="leave">{{ t.leave }}</option><option value="procurement">{{ t.procurement }}</option></select>
               </el-form-item>
@@ -336,7 +344,7 @@ onUnmounted(() => { disposed = true; viewGeneration++; refreshController?.abort(
               <el-form-item :label="t.reason" required :error="fieldError('reason')"><el-input v-model="reason" type="textarea" :rows="3" maxlength="2000" show-word-limit :aria-invalid="!!fieldError('reason')" /></el-form-item>
               <div v-if="businessType === 'procurement'" class="total-summary"><span>{{ t.total }}</span><output data-testid="exact-total" aria-live="polite">{{ money(total, currency) }}</output><p>{{ t.totalHelp }}</p></div>
               <p class="field-help synthetic-notice">{{ t.synthetic }}</p>
-              <el-form-item><el-button data-testid="submit-document" type="primary" native-type="submit" :loading="busy" :disabled="!process">{{ t.submit }} · v{{ submissionProcess?.version || '—' }}</el-button></el-form-item>
+              <el-form-item><el-button data-testid="submit-document" type="primary" native-type="submit" :loading="busy" :disabled="locked || selfAssigned || !process">{{ t.submit }} · v{{ submissionProcess?.version || '—' }}</el-button></el-form-item>
             </fieldset>
           </el-form>
         </el-card>

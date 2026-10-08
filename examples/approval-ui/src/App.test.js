@@ -356,9 +356,11 @@ describe('request submission and snapshots', () => {
   })
   it('keeps an existing request snapshot unchanged after publishing a different sequence', async () => {
     const original = request(); const { wrapper } = setup('alice', [original]); await login(wrapper); await designer(wrapper)
+    await button(wrapper, 'process-name').setValue('New process')
     await wrapper.find('[aria-label="Step 1 name"]').setValue('New team review')
     await button(wrapper, 'add-step').trigger('click')
-    api.request.mockResolvedValueOnce({ ...clone(sequence), version: 2, name: 'New process' })
+    // The server returns the submitted ordered definition with its next version.
+    api.request.mockImplementationOnce(async (_path, options) => ({ ...JSON.parse(options.body).definition, version: 2 }))
     await button(wrapper, 'publish').trigger('click'); await flushPromises()
     await wrapper.find('nav button').trigger('click'); await wrapper.find('.request-item').trigger('click')
     expect(button(wrapper, 'submission-template').text()).toContain('New process · v2')

@@ -1,14 +1,14 @@
 <script setup>
-import { computed, nextTick, ref, watch, onUnmounted } from 'vue'
+import { computed, nextTick, reactive, ref, watch, onUnmounted } from 'vue'
 import { api } from './api'
 import { createMemberInbox } from './member-inbox'
-import { createSubmissionIntent, isRejectedSubmissionVersion } from './submission-intent'
+import { createSubmissionForms, isRejectedSubmissionVersion } from './submission-intent'
 import { validateSubmissionResponse, validateDecisionResponse } from './submission-response'
 import { SUPPORTED_CURRENCIES, InvalidApprovalPayloadError, businessDocumentErrors, procurementTotal, formatMoney, requestBusiness } from './business-document'
 import ProcessDesigner from './ProcessDesigner.vue'
 import UiIcon from './UiIcon.vue'
 import { appCopy, translate, validationText, apiFailure } from './locale'
-import { approvalNodes, isApproval, participants, pendingParticipants, participantVotes, cloneDefinition, validateDefinition, stepState } from './process'
+import { approvalNodes, isApproval, participants, pendingParticipants, participantVotes, cloneDefinition, validateDefinition, validatePublicationResponse, stepState } from './process'
 
 const locale = ref('en')
 const t = computed(() => appCopy[locale.value] || appCopy.en)
@@ -18,22 +18,31 @@ const username = ref('alice'), password = ref(''), me = ref(null)
 const people = ref([]), process = ref(null), draft = ref(null), draftBaseline = ref(''), requests = ref([])
 const busy = ref(false), publishing = ref(false), error = ref(null), notice = ref(null), tab = ref('requests')
 const publishConflict = ref(false)
-const title = ref(''), reason = ref(''), days = ref(1)
-const requestType = ref('leave'), businessId = ref(''), itemName = ref(''), quantity = ref('1'), unitPrice = ref(''), currency = ref('CNY')
+const requestType = ref('leave'), submissionForms = reactive(createSubmissionForms())
+const activeForm = computed(() => submissionForms[requestType.value] || submissionForms.leave)
+const formValue = (field, type) => computed({
+  get: () => (type ? submissionForms[type] : activeForm.value).fields[field],
+  set: value => { (type ? submissionForms[type] : activeForm.value).fields[field] = value },
+})
+const title = formValue('title'), reason = formValue('reason'), days = formValue('days', 'leave')
+const businessId = formValue('businessId', 'procurement'), itemName = formValue('item', 'procurement')
+const quantity = formValue('quantity', 'procurement'), unitPrice = formValue('unitPrice', 'procurement'), currency = formValue('currency', 'procurement')
 const formAttempted = ref(false), requestFormElement = ref(null)
 const procurement = () => ({ type: 'procurement', businessId: businessId.value, title: title.value, reason: reason.value, item: itemName.value, quantity: quantity.value, unitPrice: unitPrice.value, currency: currency.value })
 const formErrors = computed(() => requestType.value === 'procurement' ? businessDocumentErrors(procurement()) : [])
 const fieldInvalid = key => formAttempted.value && formErrors.value.includes(key)
 const total = computed(() => procurementTotal(quantity.value, unitPrice.value, currency.value))
 const money = (amount, code) => formatMoney(amount, code, locale.value)
-function resetBusinessForm() { businessId.value = ''; itemName.value = ''; quantity.value = '1'; unitPrice.value = ''; currency.value = 'CNY'; formAttempted.value = false }
-const submissionIntent = createSubmissionIntent(), submissionAttempt = ref(null), submissionDefinition = ref(null)
-let submissionVersionRejected = false
+const submissionAttempt = computed({ get: () => activeForm.value.attempt, set: value => { activeForm.value.attempt = value } })
+const submissionDefinition = computed({ get: () => activeForm.value.definition, set: value => { activeForm.value.definition = value } })
 const submissionFields = () => requestType.value === 'procurement' ? { business: procurement() } : ({ title: title.value, reason: reason.value, days: days.value })
-function clearSubmission() { submissionIntent.clear(); submissionAttempt.value = null; submissionDefinition.value = null; submissionVersionRejected = false }
-watch([() => me.value?.id, title, reason, days, requestType, businessId, itemName, quantity, unitPrice, currency], () => {
-  submissionIntent.invalidate(me.value?.id, submissionFields())
-  if (!submissionIntent.current(me.value?.id, submissionFields())) clearSubmission()
+function clearSubmission(form = activeForm.value) { form.intent.clear(); form.attempt = null; form.definition = null; form.versionRejected = false }
+function clearAllSubmissions() { Object.values(submissionForms).forEach(clearSubmission) }
+function resetCurrentForm() { activeForm.value.fields = createSubmissionForms()[requestType.value].fields }
+watch(() => me.value?.id, clearAllSubmissions, { flush: 'sync' })
+watch([title, reason, days, requestType, businessId, itemName, quantity, unitPrice, currency], () => {
+  activeForm.value.intent.invalidate(me.value?.id, submissionFields())
+  if (!activeForm.value.intent.current(me.value?.id, submissionFields())) clearSubmission()
 }, { flush: 'sync' })
 const submissionProcess = computed(() => submissionAttempt.value ? submissionDefinition.value : process.value)
 const selectedId = ref(null), comment = ref(''), unconfirmedDecisionIds = ref(new Set())
@@ -145,9 +154,9 @@ async function login() {
   finally { if (generation === current) busy.value = false }
 }
 function logout() {
-  clearSubmission()
+  clearAllSubmissions()
   generation++; inbox.dispose(); api.logout(); me.value = null; people.value = []; process.value = null; draft.value = null; draftBaseline.value = ''; requests.value = []
-  selectedId.value = null; unconfirmedDecisionIds.value = new Set(); title.value = ''; reason.value = ''; days.value = 1; requestType.value = 'leave'; resetBusinessForm(); comment.value = ''; password.value = ''
+  selectedId.value = null; unconfirmedDecisionIds.value = new Set(); Object.assign(submissionForms, createSubmissionForms()); requestType.value = 'leave'; formAttempted.value = false; comment.value = ''; password.value = ''
   error.value = null; notice.value = null; busy.value = false; publishing.value = false; publishConflict.value = false; tab.value = 'requests'
 }
 async function refresh() {
@@ -168,7 +177,7 @@ async function refresh() {
     if (current !== generation) return
     // Refresh is an explicit recovery step only after the server proved no
     // submission was created. Uncertain writes retain their original intent.
-    if (submissionVersionRejected) clearSubmission()
+    Object.values(submissionForms).filter(form => form.versionRejected).forEach(clearSubmission)
     if (previousStep !== selected.value?.currentStepId) comment.value = ''
     showNotice(draftDirty.value ? 'refreshedDraft' : 'refreshed')
   } catch (e) { if (current === generation) {
@@ -194,12 +203,12 @@ async function publish() {
   try {
     const published = await api.request('/process', { method: 'POST', body: JSON.stringify({ expectedVersion: definition.version, definition }) })
     if (current !== generation) return
-    requireValidDefinition(published)
+    validatePublicationResponse(published, definition)
     process.value = published; loadDraft(published)
     showNotice('published', { version: published.version })
   } catch (e) {
     if (current !== generation) return
-    if (e.status === 409) {
+    if (e.status === 409 || e.name === 'InvalidPublicationResponseError') {
       publishConflict.value = true
       showFailure(e, 'publish')
     } else showFailure(e, 'publish')
@@ -224,7 +233,7 @@ async function submit() {
   const current = generation; busy.value = true
   try {
     if (!submissionAttempt.value) submissionDefinition.value = cloneDefinition(process.value)
-    const attempt = submissionIntent.prepare(me.value.id, submissionFields(), process.value.version)
+    const attempt = activeForm.value.intent.prepare(me.value.id, submissionFields(), process.value.version)
     submissionAttempt.value = attempt
     const item = await api.request(attempt.endpoint, { method: 'POST', headers: { 'Idempotency-Key': attempt.key }, body: JSON.stringify(attempt.payload) })
     if (current !== generation) return
@@ -232,11 +241,11 @@ async function submit() {
     clearSubmission()
     inbox.remember(item)
     requests.value = [item, ...requests.value.filter(existing => existing.id !== item.id)]; selectedId.value = item.id; tab.value = 'requests'; comment.value = ''
-    title.value = ''; reason.value = ''; days.value = 1; resetBusinessForm()
+    resetCurrentForm(); formAttempted.value = false
     showNotice(item.status === 'PENDING' ? 'submitted' : item.status === 'APPROVED' ? 'requestApproved' : 'requestRejected', { names: pendingNames(item) })
   } catch (e) {
     if (current === generation) {
-      submissionVersionRejected = isRejectedSubmissionVersion(e)
+      activeForm.value.versionRejected = isRejectedSubmissionVersion(e)
       showFailure(e, 'submit')
     }
   }

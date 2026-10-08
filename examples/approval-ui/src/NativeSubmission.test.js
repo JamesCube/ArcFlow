@@ -177,7 +177,7 @@ describe('native typed procurement authoring', () => {
   it('preserves a draft through type, locale and workspace navigation without misrouting leave', async () => {
     const { state } = await procurement()
     state.tab = 'process'; state.locale = 'en'; state.tab = 'mine'; state.businessType = 'leave'
-    expect(state.submissionFields()).toEqual({ title: ' Adapters ', reason: ' Synthetic only ', days: 2 })
+    expect(state.submissionFields()).toEqual({ title: ' Leave ', reason: ' Rest ', days: 2 })
     state.businessType = 'procurement'
     expect(state.unitPrice).toBe('0.10')
     expect(state.businessId).toBe('PO-NATIVE-001')
@@ -248,7 +248,7 @@ describe('native typed response and retry boundary', () => {
     await state.refresh(); state.businessType = 'leave'
     submitRequest.mockRejectedValueOnce(new Error('Offline')); await state.submit()
     expect(submitRequest.mock.calls[0][1]).not.toBe(second[1])
-    expect(submitRequest.mock.calls[0][0]).toEqual({ title: 'Adapters', reason: 'Synthetic only', days: 2, processVersion: 1 })
+    expect(submitRequest.mock.calls[0][0]).toEqual({ title: 'Leave', reason: 'Rest', days: 2, processVersion: 1 })
   })
   it('clears only a proven-uncreated typed stale-version attempt after successful refresh', async () => {
     const { state } = await procurement()
@@ -382,5 +382,198 @@ describe('native decision acknowledgement proof', () => {
     expect(state.requests).toEqual([procurementResult])
     await state.decide('APPROVE')
     expect(decideRequest).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('native independent form retry slots', () => {
+  it('preserves both form keys, distinct text and original process snapshots across type and language changes', async () => {
+    const { state } = await procurement()
+    submitDocument.mockRejectedValueOnce(new Error('Lost acknowledgement')); await state.submit()
+    const procurementAttempt = submitDocument.mock.calls[0]
+    await state.refresh(); state.businessType = 'leave'
+    expect(state.title).toBe(' Leave ')
+    submitRequest.mockRejectedValueOnce(new Error('Lost acknowledgement')); await state.submit()
+    const leaveAttempt = submitRequest.mock.calls[0]
+    getProcess.mockResolvedValue({ data: { ...definition, version: 2, nodes: [definition.nodes[0], { ...definition.nodes[1], assigneeId: '100' }, definition.nodes[2]] } })
+    await state.refresh(); state.locale = 'en'
+    submitRequest.mockRejectedValueOnce(new Error('Retry failed')); await state.submit()
+    expect(submitRequest.mock.calls[1]).toEqual(leaveAttempt)
+    await state.refresh(); state.businessType = 'procurement'
+    expect(state.title).toBe(' Adapters '); expect(state.reason).toBe(' Synthetic only ')
+    expect(state.submissionProcess.version).toBe(1); expect(state.selfAssigned).toBe(false)
+    submitDocument.mockRejectedValueOnce(new Error('Retry failed')); await state.submit()
+    expect(submitDocument.mock.calls[1]).toEqual(procurementAttempt)
+  })
+  it('successful procurement does not clear the leave draft or unresolved intent', async () => {
+    const { state } = await setup()
+    submitRequest.mockRejectedValueOnce(new Error('Lost acknowledgement')); await state.submit()
+    const leaveAttempt = submitRequest.mock.calls[0]
+    await state.refresh()
+    Object.assign(state, { businessType: 'procurement', businessId: procurementBusiness.businessId, title: 'Adapters', reason: 'Synthetic only', item: 'USB-C adapter', quantity: '3', unitPrice: '0.10', currency: 'USD' })
+    submitDocument.mockResolvedValueOnce({ data: procurementResult }); await state.submit()
+    expect(state.title).toBe(''); expect(state.businessId).toBe('')
+    state.businessType = 'leave'; expect(state.title).toBe(' Leave '); expect(state.days).toBe(2)
+    submitRequest.mockRejectedValueOnce(new Error('Retry failed')); await state.submit()
+    expect(submitRequest.mock.calls[1]).toEqual(leaveAttempt)
+  })
+  it('identity changes clear retry metadata for both the active and hidden document forms', async () => {
+    const { state } = await procurement()
+    submitDocument.mockRejectedValueOnce(new Error('Lost acknowledgement')); await state.submit()
+    const firstKey = submitDocument.mock.calls[0][1]
+    await state.refresh(); state.businessType = 'leave'
+    submitRequest.mockRejectedValueOnce(new Error('Lost acknowledgement')); await state.submit()
+    const secondKey = submitRequest.mock.calls[0][1]
+    getMe.mockResolvedValue({ data: { id: '102', displayName: 'Other applicant' } }); await state.refresh()
+    expect(state.submissionAttempt).toBeNull()
+    submitRequest.mockRejectedValueOnce(new Error('New identity attempt')); await state.submit()
+    expect(submitRequest.mock.calls[1][1]).not.toBe(secondKey)
+    await state.refresh(); state.businessType = 'procurement'; expect(state.submissionAttempt).toBeNull()
+    submitDocument.mockRejectedValueOnce(new Error('New identity attempt')); await state.submit()
+    expect(submitDocument.mock.calls[1][1]).not.toBe(firstKey)
+  })
+  it('session reset removes every draft and hidden retry', async () => {
+    const { state } = await procurement()
+    submitDocument.mockRejectedValueOnce(new Error('Lost acknowledgement')); await state.submit()
+    await state.refresh(); state.businessType = 'leave'
+    submitRequest.mockRejectedValueOnce(new Error('Lost acknowledgement')); await state.submit()
+    state.resetSession()
+    expect(state.title).toBe(''); expect(state.reason).toBe(''); expect(state.days).toBe(1); expect(state.submissionAttempt).toBeNull()
+    state.businessType = 'procurement'
+    expect(state.title).toBe(''); expect(state.reason).toBe(''); expect(state.businessId).toBe(''); expect(state.submissionAttempt).toBeNull()
+  })
+})
+
+describe('independent review: reachability of retained retry slots', () => {
+  it('allows returning to a safe retained retry after visiting a new self-assigned form', async () => {
+    const { wrapper, state } = await procurement({ render: true })
+    submitDocument.mockRejectedValueOnce(new Error('Lost acknowledgement')); await state.submit()
+    const first = submitDocument.mock.calls[0]
+    getProcess.mockResolvedValue({ data: { ...definition, version: 2, nodes: [definition.nodes[0], { ...definition.nodes[1], assigneeId: '100' }, definition.nodes[2]] } })
+    await state.refresh()
+    expect(state.selfAssigned).toBe(false)
+    expect(state.submissionProcess.version).toBe(1)
+    await wrapper.find('[data-testid="business-type"]').setValue('leave')
+    expect(state.selfAssigned).toBe(true)
+    expect(state.submissionProcess.version).toBe(2)
+    expect(wrapper.find('[data-testid="submit-document"]').attributes('disabled')).toBe('true')
+    await state.submit(); expect(submitRequest).not.toHaveBeenCalled()
+    // Browser disables descendants of fieldset[disabled], including the type
+    // selector needed to return to procurement's valid retained v1 attempt.
+    expect(wrapper.find('[data-testid="business-type"]').element.matches(':disabled')).toBe(false)
+    await wrapper.find('[data-testid="business-type"]').setValue('procurement')
+    submitDocument.mockRejectedValueOnce(new Error('Retry acknowledgement unavailable')); await state.submit()
+    expect(submitDocument.mock.calls[1]).toEqual(first)
+  })
+})
+
+describe('independent review: synchronous slots, resets and conflicts', () => {
+  async function uncertain(state, transport) { transport.mockRejectedValueOnce(new Error('Lost acknowledgement')); await state.submit(); const call = transport.mock.calls.at(-1); await state.refresh(); return call }
+  it('retains both differently named slots through rapid synchronous type switches and canonical-only edits', async () => {
+    const { state } = await procurement()
+    const procurementAttempt = await uncertain(state, submitDocument)
+    state.businessType = 'leave'
+    const leaveAttempt = await uncertain(state, submitRequest)
+    for (let i = 0; i < 100; i++) {
+      state.businessType = 'procurement'; expect(state.title).toBe(' Adapters '); expect(state.reason).toBe(' Synthetic only ')
+      expect(state.submissionAttempt.key).toBe(procurementAttempt[1]); expect(state.submissionFields().business.title).toBe(' Adapters ')
+      state.businessType = 'leave'; expect(state.title).toBe(' Leave '); expect(state.reason).toBe(' Rest ')
+      expect(state.submissionAttempt.key).toBe(leaveAttempt[1]); expect(state.submissionFields().title).toBe(' Leave ')
+    }
+    state.title = 'Leave'; state.reason = 'Rest'
+    expect(await uncertain(state, submitRequest)).toEqual(leaveAttempt)
+    state.businessType = 'procurement'; state.title = 'Adapters'; state.item = 'USB-C adapter'; state.unitPrice = '0.1'; state.quantity = 3
+    expect(await uncertain(state, submitDocument)).toEqual(procurementAttempt)
+  })
+  it('a changed leave payload rotates only leave and successful leave resets only leave', async () => {
+    const { state } = await procurement()
+    const procurementAttempt = await uncertain(state, submitDocument)
+    state.businessType = 'leave'; const leaveAttempt = await uncertain(state, submitRequest)
+    state.reason = 'Different reason'
+    expect(state.submissionAttempt).toBeNull()
+    const edited = await uncertain(state, submitRequest)
+    expect(edited[1]).not.toBe(leaveAttempt[1]); expect(edited[0].reason).toBe('Different reason')
+    submitRequest.mockResolvedValueOnce({ data: { ...result, reason: 'Different reason' } }); await state.submit()
+    expect(state.title).toBe(''); expect(state.reason).toBe(''); expect(state.days).toBe(1)
+    state.businessType = 'procurement'
+    expect(state.title).toBe(' Adapters '); expect(state.unitPrice).toBe('0.10'); expect(state.currency).toBe('USD')
+    expect(await uncertain(state, submitDocument)).toEqual(procurementAttempt)
+  })
+  it('a failed refresh keeps hidden rejected metadata and later success clears only that rejected slot', async () => {
+    const { state } = await procurement()
+    const rejected = { response: { status: 409, data: { msg: 'The published process changed; reload before submitting' } } }
+    submitDocument.mockRejectedValueOnce(rejected); await state.submit()
+    const procurementAttempt = submitDocument.mock.calls[0]
+    // Unlock by satisfying the normal mandatory refresh. Mark another genuine
+    // stale-version rejection while keeping a separate uncertain leave attempt.
+    await state.refresh(); state.businessType = 'leave'; const leaveAttempt = await uncertain(state, submitRequest)
+    state.businessType = 'procurement'
+    submitDocument.mockRejectedValueOnce(rejected); await state.submit()
+    const rejectedKey = submitDocument.mock.calls.at(-1)[1]
+    // Failed refresh must not erase confirmed rejection bookkeeping.
+    getRequests.mockRejectedValueOnce(new Error('Read unavailable')); await state.refresh()
+    expect(state.submissionAttempt.key).toBe(rejectedKey)
+    state.businessType = 'leave'
+    getProcess.mockResolvedValue({ data: { ...definition, version: 2 } }); await state.refresh()
+    expect(await uncertain(state, submitRequest)).toEqual(leaveAttempt)
+    state.businessType = 'procurement'
+    expect(state.submissionAttempt).toBeNull(); expect(state.title).toBe(' Adapters '); expect(state.unitPrice).toBe('0.10')
+    const next = await uncertain(state, submitDocument)
+    expect(next[1]).not.toBe(rejectedKey); expect(next[0].processVersion).toBe(2)
+  })
+})
+
+describe('independent review: synchronous slots, resets and conflicts', () => {
+  async function uncertain(state, transport) { transport.mockRejectedValueOnce(new Error('Lost acknowledgement')); await state.submit(); const call = transport.mock.calls.at(-1); await state.refresh(); return call }
+  it('retains both differently named slots through rapid synchronous type switches and canonical-only edits', async () => {
+    const { state } = await procurement()
+    const procurementAttempt = await uncertain(state, submitDocument)
+    state.businessType = 'leave'
+    const leaveAttempt = await uncertain(state, submitRequest)
+    for (let i = 0; i < 100; i++) {
+      state.businessType = 'procurement'; expect(state.title).toBe(' Adapters '); expect(state.reason).toBe(' Synthetic only ')
+      expect(state.submissionAttempt.key).toBe(procurementAttempt[1]); expect(state.submissionFields().business.title).toBe(' Adapters ')
+      state.businessType = 'leave'; expect(state.title).toBe(' Leave '); expect(state.reason).toBe(' Rest ')
+      expect(state.submissionAttempt.key).toBe(leaveAttempt[1]); expect(state.submissionFields().title).toBe(' Leave ')
+    }
+    state.title = 'Leave'; state.reason = 'Rest'
+    expect(await uncertain(state, submitRequest)).toEqual(leaveAttempt)
+    state.businessType = 'procurement'; state.title = 'Adapters'; state.item = 'USB-C adapter'; state.unitPrice = '0.1'; state.quantity = 3
+    expect(await uncertain(state, submitDocument)).toEqual(procurementAttempt)
+  })
+  it('a changed leave payload rotates only leave and successful leave resets only leave', async () => {
+    const { state } = await procurement()
+    const procurementAttempt = await uncertain(state, submitDocument)
+    state.businessType = 'leave'; const leaveAttempt = await uncertain(state, submitRequest)
+    state.reason = 'Different reason'
+    expect(state.submissionAttempt).toBeNull()
+    const edited = await uncertain(state, submitRequest)
+    expect(edited[1]).not.toBe(leaveAttempt[1]); expect(edited[0].reason).toBe('Different reason')
+    submitRequest.mockResolvedValueOnce({ data: { ...result, reason: 'Different reason' } }); await state.submit()
+    expect(state.title).toBe(''); expect(state.reason).toBe(''); expect(state.days).toBe(1)
+    state.businessType = 'procurement'
+    expect(state.title).toBe(' Adapters '); expect(state.unitPrice).toBe('0.10'); expect(state.currency).toBe('USD')
+    expect(await uncertain(state, submitDocument)).toEqual(procurementAttempt)
+  })
+  it('a failed refresh keeps hidden rejected metadata and later success clears only that rejected slot', async () => {
+    const { state } = await procurement()
+    const rejected = { response: { status: 409, data: { msg: 'The published process changed; reload before submitting' } } }
+    submitDocument.mockRejectedValueOnce(rejected); await state.submit()
+    const procurementAttempt = submitDocument.mock.calls[0]
+    // Unlock by satisfying the normal mandatory refresh. Mark another genuine
+    // stale-version rejection while keeping a separate uncertain leave attempt.
+    await state.refresh(); state.businessType = 'leave'; const leaveAttempt = await uncertain(state, submitRequest)
+    state.businessType = 'procurement'
+    submitDocument.mockRejectedValueOnce(rejected); await state.submit()
+    const rejectedKey = submitDocument.mock.calls.at(-1)[1]
+    // Failed refresh must not erase confirmed rejection bookkeeping.
+    getRequests.mockRejectedValueOnce(new Error('Read unavailable')); await state.refresh()
+    expect(state.submissionAttempt.key).toBe(rejectedKey)
+    state.businessType = 'leave'
+    getProcess.mockResolvedValue({ data: { ...definition, version: 2 } }); await state.refresh()
+    expect(await uncertain(state, submitRequest)).toEqual(leaveAttempt)
+    state.businessType = 'procurement'
+    expect(state.submissionAttempt).toBeNull(); expect(state.title).toBe(' Adapters '); expect(state.unitPrice).toBe('0.10')
+    const next = await uncertain(state, submitDocument)
+    expect(next[1]).not.toBe(rejectedKey); expect(next[0].processVersion).toBe(2)
   })
 })

@@ -1,7 +1,21 @@
 import { describe, expect, it, vi } from 'vitest'
-import { createSubmissionIntent, newSubmissionKey, isRejectedSubmissionVersion } from './submission-intent'
+import { createSubmissionIntent, createSubmissionForms, newSubmissionKey, isRejectedSubmissionVersion } from './submission-intent'
 
 const fields = { title: ' Leave ', reason: ' Rest ', days: '2' }
+it('creates isolated document drafts, keys and resettable retry metadata', () => {
+  let count = 0
+  const forms = createSubmissionForms(() => `key-${++count}`)
+  forms.leave.fields.title = 'Personal leave'
+  expect(forms.procurement.fields.title).toBe('')
+  const first = forms.leave.intent.prepare('alice', fields, 1)
+  const other = forms.procurement.intent.prepare('alice', fields, 1)
+  expect(other.key).not.toBe(first.key)
+  forms.procurement.intent.clear()
+  expect(forms.leave.intent.prepare('alice', fields, 2)).toBe(first)
+  expect(forms.leave.versionRejected).toBe(false)
+  expect(forms.procurement.attempt).toBeNull()
+  expect(createSubmissionForms().leave.fields.title).toBe('')
+})
 describe('submission intent identity', () => {
   it('only treats the exact authenticated stale-version response as definitive non-creation', () => {
     const message = 'The published process changed; reload before submitting'

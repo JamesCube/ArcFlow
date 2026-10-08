@@ -46,11 +46,13 @@ for the supported schema, exact fields, valid values and consistent compatibilit
 Unsupported or malformed business documents fail closed instead of appearing as a zero-day
 leave request. Approval permissions and audit remain the shared backend's responsibility.
 
-Each desktop form retains one unresolved submission key in memory. A retry after a lost or
+Each desktop document type retains its own draft and one unresolved submission key in memory. A retry after a lost or
 malformed acknowledgement uses the original endpoint, normalized business intent and frozen
-process version. A matching durable replay returns the existing request. Editing the intent,
-changing business type or signing out invalidates the previous client intent. A page reload
-loses the key; refresh and inspect existing requests before resubmitting after reload. See
+process version. A matching durable replay returns the existing request. Switching document
+types preserves both intents; returning to an unchanged form reuses its original key and
+process snapshot. Editing a normalized payload invalidates only that form's intent. A successful
+submission clears only its own form; signing out clears both drafts and keys. A page reload
+loses the keys; refresh and inspect existing requests before resubmitting after reload. See
 [the submission contract](SUBMISSION_IDEMPOTENCY.md).
 
 ## 验证方法 / Verification method
