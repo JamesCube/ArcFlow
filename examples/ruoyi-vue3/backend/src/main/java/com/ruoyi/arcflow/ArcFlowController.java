@@ -1,6 +1,7 @@
 package com.ruoyi.arcflow;
 
 import com.arcflow.approval.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.utils.SecurityUtils;
@@ -15,6 +16,8 @@ import org.springframework.web.server.ResponseStatusException;
 @RequestMapping("/arcflow")
 public class ArcFlowController {
     record Submission(String title, String reason, int days, int processVersion) {}
+    record DocumentSubmission(@JsonProperty(required=true) BusinessDocument business,
+                              @JsonProperty(required=true) int processVersion) {}
     record Decision(String stepId, String decision, String comment) {}
     record Publication(int expectedVersion, ProcessDefinition definition) {}
     private final ApprovalService service;
@@ -56,12 +59,19 @@ public class ArcFlowController {
     @PostMapping("/requests") @PreAuthorize("@ss.hasPermi('arcflow:request:submit')")
     public AjaxResult submit(@RequestBody byte[] bytes, @RequestHeader HttpHeaders headers) throws IOException {
         String id = actor(); var input = body(bytes, Submission.class);
+        return AjaxResult.success(service.submit(id, input.title(), input.reason(), input.days(), input.processVersion(), submissionKey(headers)));
+    }
+    @PostMapping("/documents") @PreAuthorize("@ss.hasPermi('arcflow:request:submit')")
+    public AjaxResult submitDocument(@RequestBody byte[] bytes, @RequestHeader HttpHeaders headers) throws IOException {
+        String id = actor(); var input = body(bytes, DocumentSubmission.class);
+        return AjaxResult.success(service.submitDocument(id, input.business(), input.processVersion(), submissionKey(headers)));
+    }
+    private static String submissionKey(HttpHeaders headers) {
         var keys = headers.get("Idempotency-Key");
         if (keys != null && keys.size() != 1)
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Supply exactly one Idempotency-Key header");
         // Preserve absence as null; an explicitly blank or malformed key is rejected by the domain.
-        String key = keys == null ? null : keys.get(0);
-        return AjaxResult.success(service.submit(id, input.title(), input.reason(), input.days(), input.processVersion(), key));
+        return keys == null ? null : keys.get(0);
     }
     @PostMapping("/requests/{id}/decisions") @PreAuthorize("@ss.hasPermi('arcflow:request:decide')")
     public AjaxResult decide(@PathVariable String id, @RequestBody byte[] bytes) throws IOException {

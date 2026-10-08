@@ -1,0 +1,127 @@
+# 业务单据与审批生命周期解耦 / Business documents and approval lifecycle
+
+## 本轮边界 / Scope
+
+审批的路由、参与人、ALL/ANY 表决、状态、审计和并发控制继续共用原状态机。
+新增不可变 `BusinessDocument` 边界，首批明确支持 `leave` 和 `procurement` 两类业务；
+不把任意 JSON 当作已经通过业务验证的单据。核心 DAG 仍执行公共标题/理由的 validate → normalize。
+业务规则在类型化单据中验证，存储恢复时再次验证，审批期间禁止重写。
+
+The approval lifecycle remains independent of business fields: routing, participants, votes,
+status, audit and optimistic concurrency use the same reducer. A sealed `BusinessDocument`
+boundary supports two explicit, validated document schemas. This is a bounded extraction,
+not an arbitrary-schema plugin framework or a rewrite of the workflow engine.
+
+- `BusinessDocument.Leave(businessId, title, reason, days)` retains the 1–365 day rule.
+- `BusinessDocument.Procurement(businessId, title, reason, item, quantity, unitPrice, currency)`
+  requires a nonblank item (≤240 characters), quantity 1–100,000, positive unit price
+  ≤1,000,000,000 with at most two decimal places, and CNY/USD/EUR/GBP/JPY. JPY prices
+  must be whole amounts. These are example business rules, not exchange-rate or payment logic.
+- Both require a stable business ID of 1–128 ASCII letters/digits and `._:/-`, beginning
+  with a letter/digit; title ≤120 and reason ≤2,000 characters remain mandatory.
+- Common text and the item are trimmed. Prices are normalized with exact decimal arithmetic;
+  no binary-floating rounding, currency conversion, purchase order transmission or payment occurs.
+- `businessId` is the host's document reference. It is not a uniqueness constraint or an
+  idempotency key. One document can have separate submissions with separate keys.
+
+## Java 与 HTTP / Java and HTTP
+
+Use `service.submitDocument(authenticatedActor, document, expectedProcessVersion, optionalKey)`.
+When decoding typed requests in a Java client, use `ApprovalService.strictMapper(mapper)`:
+its exact-decimal tree parsing is necessary before the strict request decoder runs. The
+built-in JSON/JDBC stores and HTTP hosts already configure it. A service/store has one configured process. Generic stable process IDs (letter followed by
+letters, digits, `_` or `-`, ≤128 characters) are accepted. The default demo continues to use
+its existing `leave-approval` routing; a host can initialize `procurement-approval` with its own
+participants. Routing does not infer business policy from the process name.
+
+Standalone: `POST /api/documents`. RuoYi: `POST /arcflow/documents`, with the existing
+`arcflow:request:submit` permission. Both use the authenticated principal and optional
+`Idempotency-Key` header exactly as the leave endpoint does. Example body:
+
+```json
+{
+  "business": {
+    "type": "procurement",
+    "businessId": "PO-2026-001",
+    "title": "Office chairs",
+    "reason": "Team expansion",
+    "item": "Ergonomic chair",
+    "quantity": 3,
+    "unitPrice": 199.50,
+    "currency": "CNY"
+  },
+  "processVersion": 1
+}
+```
+
+The returned request has an immutable `business` snapshot. Existing list/decision routes and
+participant authorization apply. For source/wire compatibility, `title` and `reason` remain
+flat projections and `days` is 0 for procurement, or the actual leave days for typed leave.
+Storage rejects inconsistent projections. Business consumers must inspect `business.type`;
+`days: 0` alone is never accepted as a valid legacy leave submission.
+
+旧 `POST .../requests` 请假 API 和原 Java 构造器不变，旧请求不新增 `business: null` 字段。
+新入口只增加能力，现有桌面/移动/RuoYi表单仍为请假表单；本轮未增加采购 UI。
+新增采购单可通过 API 或 Java 服务调用，再通过既有审批接口完成表决。
+
+The legacy leave API and 16-argument Request constructor are retained. Old responses keep
+exactly their previous fields; `business` is omitted entirely. Existing frontends remain
+leave-oriented; this release adds a Java/HTTP procurement path, not a procurement form.
+
+## 幂等与授权 / Idempotency and authorization
+
+Keys remain exact, case-sensitive and applicant-scoped. In JDBC, the scope remains global
+across all configured processes in the database: `(applicant_id, submission_key)`. No SQL
+schema/key migration is needed. Use a new key for a new business or process intent.
+
+Replay compares process ID, process version, normalized common fields, business type,
+business ID and every business field. A matching key returns the current durable request
+(including decisions); any different intent returns 409. This includes reusing a key between
+legacy leave and typed leave, or between different process heads. Business IDs alone do not
+deduplicate submissions. Missing keys keep the old opt-out behavior.
+
+Live applicant eligibility is rechecked before replay. Historical replay does not require
+current approvers or the latest process version to remain eligible. Publication cannot change
+the configured process ID. JDBC list/get/decision/update operations are bound to their store's
+process; an unrelated process request is not exposed through these APIs. Global key lookup
+exists only to detect/reconcile collisions; the service never replays a foreign-process request.
+
+Separate process-head locks can race on a global key. The loser is reconciled only after a
+clean duplicate from the binding insert, full rollback, and a fresh durable lookup. Other
+integrity, commit, rollback or connection-cleanup failures stay errors. No orphan request or
+submission event is committed.
+
+## 持久化兼容 / Storage compatibility
+
+- JSON snapshots 1–4 retain their strict existing shape and remain readable. Reads do not
+  rewrite files. The first typed-document mutation uses snapshot schema 5; its process
+  definitions still use schema 2 (sequential) or 3 (parallel).
+- Schema 5 has `schemaVersion`, `definition`, `requests`, and `submissions`; unkeyed documents
+  use an empty submissions array. It can contain unchanged legacy requests and typed requests.
+- Before the first upgrade, the byte-exact old file is retained in a private
+  `.schemaN.bak` backup (or a unique backup if that name exists). Atomic replacement failure
+  does not publish in-memory state/bindings; a retry preserves the original backup.
+- A schema-5 file never downgrades when a later legacy/keyed request is added.
+- A JSON file belongs to one process ID. Mixed-process historical rows or opening an existing
+  file using another configured process ID fail closed.
+- JDBC continues using SQL schema revision 2 and the same `request_json` column. No automatic
+  DDL or backfill runs. Old and new request JSON shapes are decoded strictly; explicit
+  `business: null`, missing/unknown fields and invalid projections are rejected.
+- Multiple JDBC store instances may bind different process IDs in one schema. Retained
+  definitions and request snapshots are checked against each request's own process/version.
+
+After writing typed documents, old application binaries cannot read the new payloads. Deploy
+compatible readers before enabling new writes. A JSON backup is a historical recovery aid,
+not a downgrade procedure: restoring it would discard later approvals/submissions. JDBC has
+no automatic rollback migration; retain normal database backups and avoid mixed-version
+writers after enabling typed documents.
+
+## Verification / 验证
+
+`BusinessDocumentTest` covers real procurement transitions, ALL/ANY behavior, authorization,
+restart, immutable intent, strict numeric/type validation, concurrent retries, JSON 2/3/4→5
+migration and failed writes. The shared JDBC contract runs procurement, per-process isolation,
+global key collisions and forced cross-process races on H2, PostgreSQL and MySQL. The standalone
+HTTP suite and RuoYi smoke flow exercise the additive endpoints without weakening old routes.
+CI retains Java 17/21, PostgreSQL and MySQL 8.0/8.4 verification; actual server jobs assert
+non-skipped contract counts. See the PR's exact-commit checks for execution results.

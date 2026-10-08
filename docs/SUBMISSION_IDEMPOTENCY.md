@@ -70,3 +70,10 @@ Standalone and native RuoYi forms retain an unresolved key and original payload/
 Tests cover canonical replay, changed-intent conflicts, applicant isolation, exact case, invalid keys, concurrent same/different intent, winner→publication races before validation and during creation, current-state replay, inactive applicants/approvers, lost acknowledgement, atomic rollback, old snapshot backups, malformed bindings and store reopen. The inherited JDBC contract runs on actual H2 and CI-provisioned PostgreSQL/MySQL; CI asserts zero skipped real-server cases. HTTP/client tests cover both envelopes and stable retry keys. Read the exact commit's workflow results before describing a candidate as verified.
 
 测试覆盖意图比较、身份隔离、并发、重放顺序、响应丢失、回滚、迁移备份、损坏数据与重开恢复。H2 与真实 PostgreSQL/MySQL 分开验证，CI 禁止把跳过服务器测试当作成功；最终证据以精确提交的工作流为准。
+
+## Typed business documents / 类型化业务单据
+
+The additive typed-document path retains the same applicant/key scope. JDBC keys remain
+global across configured process IDs; process identity and every immutable business field
+now participate in replay conflict checks. Legacy leave submissions retain schema 4; typed
+JSON writes use schema 5. See [business document compatibility](BUSINESS_DOCUMENTS.md).

@@ -49,7 +49,10 @@ public final class JsonApprovalStore implements ApprovalStore {
         try {
             acquired = lockChannel.tryLock();
             if (acquired == null) throw new IOException("Another process owns the approval data file");
-            if (Files.exists(file)) restore(Files.readAllBytes(file));
+            if (Files.exists(file)) {
+                restore(Files.readAllBytes(file));
+                if (!definition.id().equals(initialDefinition.id())) throw new IOException("Snapshot belongs to a different process");
+            }
         } catch (Exception e) {
             if (acquired != null) acquired.release();
             lockChannel.close();
@@ -145,11 +148,11 @@ public final class JsonApprovalStore implements ApprovalStore {
                 }
                 restored = migrated;
                 // No rewrite until a successful mutation is requested.
-            } else if (schema == 2 || schema == 3 || schema == 4) {
-                if (schema == 4) exactFields(root, "schemaVersion", "definition", "requests", "submissions");
+            } else if (schema == 2 || schema == 3 || schema == 4 || schema == 5) {
+                if (schema >= 4) exactFields(root, "schemaVersion", "definition", "requests", "submissions");
                 else exactFields(root, "schemaVersion", "definition", "requests");
                 validateStoredShapes(root, true);
-                if (schema == 4) {
+                if (schema >= 4) {
                     if (!root.path("submissions").isArray()) throw new IOException("Invalid submission binding collection");
                     for (JsonNode binding : root.get("submissions")) exactFields(binding, "applicantId", "key", "requestId");
                     KeyedSnapshot snapshot = mapper.treeToValue(root, KeyedSnapshot.class);
@@ -163,10 +166,10 @@ public final class JsonApprovalStore implements ApprovalStore {
                     throw new IOException("Definition exceeds snapshot schema");
             } else throw new IOException("Unsupported snapshot schema");
             snapshotSchema = schema;
-            if (schema < 4) previousSchemaOriginal = bytes.clone();
+            if (schema < 5) previousSchemaOriginal = bytes.clone();
             for (Request r : restored) {
                 ApprovalService.validateRequest(r);
-                if (r.processVersion() > definition.version() || requests.putIfAbsent(r.id(), r) != null)
+                if (!r.processId().equals(definition.id()) || r.processVersion() > definition.version() || requests.putIfAbsent(r.id(), r) != null)
                     throw new IllegalArgumentException("Duplicate request or future process version");
             }
             var boundRequests = new HashSet<String>();
@@ -189,6 +192,10 @@ public final class JsonApprovalStore implements ApprovalStore {
             var fields = new ArrayList<>(List.of("id", "title", "reason", "days", "applicantId", "approverId", "status", "createdAt",
                 "updatedAt", "decision", "comment", "processId", "processVersion", "history"));
             if (current) { fields.add("definition"); fields.add("currentStepId"); validateDefinitionShape(r.get("definition")); }
+            if (root.path("schemaVersion").intValue() >= 5 && r.has("business")) {
+                if (!r.get("business").isObject()) throw new IOException("Invalid business document");
+                fields.add("business");
+            }
             exactFields(r, fields.toArray(String[]::new));
             if (!r.path("history").isArray()) throw new IOException("Invalid history collection");
             for (JsonNode e : r.get("history")) {
@@ -227,9 +234,10 @@ public final class JsonApprovalStore implements ApprovalStore {
         if (closed) throw new IOException("Approval store is closed");
         int nextSchema = Math.max(2, Math.max(snapshotSchema, nextDefinition.schemaVersion()));
         if (updated.values().stream().anyMatch(r -> r.definition().schemaVersion() == 3)) nextSchema = Math.max(3, nextSchema);
-        if (!nextSubmissions.isEmpty()) nextSchema = 4;
-        Object snapshot = nextSchema == 4
-            ? new KeyedSnapshot(4, nextDefinition, List.copyOf(updated.values()), nextSubmissions.entrySet().stream()
+        if (!nextSubmissions.isEmpty()) nextSchema = Math.max(4, nextSchema);
+        if (updated.values().stream().anyMatch(r -> r.business() != null)) nextSchema = 5;
+        Object snapshot = nextSchema >= 4
+            ? new KeyedSnapshot(nextSchema, nextDefinition, List.copyOf(updated.values()), nextSubmissions.entrySet().stream()
                 .map(e -> new SubmissionBinding(e.getKey().applicantId(), e.getKey().key(), e.getValue())).toList())
             : new Snapshot(nextSchema, nextDefinition, List.copyOf(updated.values()));
         byte[] json = mapper.writerWithDefaultPrettyPrinter().writeValueAsBytes(snapshot);
@@ -252,7 +260,7 @@ public final class JsonApprovalStore implements ApprovalStore {
             requests = new LinkedHashMap<>(updated); // Publish only after persistence succeeds.
             submissions = new LinkedHashMap<>(nextSubmissions);
             snapshotSchema = nextSchema;
-            previousSchemaOriginal = nextSchema < 4 ? json.clone() : null;
+            previousSchemaOriginal = nextSchema < 5 ? json.clone() : null;
             migrationBackup = null;
         } finally { Files.deleteIfExists(temp); }
     }

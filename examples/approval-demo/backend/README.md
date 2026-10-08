@@ -35,6 +35,7 @@ JSON is strict: unknown properties, duplicate keys, trailing content, fractional
 - `POST /api/process`: `{expectedVersion, definition}`; Alice only; returns the newly published full definition (200)
 - `GET /api/requests`: requests visible to the applicant or **any** assignee in each request's immutable definition
 - `POST /api/requests`: `{title, reason, days, processVersion}`; starts from the exact current published version (201)
+- `POST /api/documents`: `{business:{type,...}, processVersion}`; typed leave or procurement, using the same configured process and approval lifecycle (201)
 - `POST /api/requests/{id}/decisions`: `{stepId, decision:"APPROVE"|"REJECT", comment?}`; authorizes the specified step against the request's saved definition
 
 ### Executable definition (schema 2, with schema-3 groups)
@@ -74,6 +75,32 @@ For a single-assignee step, APPROVE advances **one** step. Only the final approv
 A same-decision replay for an already decided step is authorized **before** the replay lookup against that step's saved assignee. It returns the **current request state**, adds no history, preserves the original step comment/time, and never advances another step. It may therefore include later decisions that were not in the original response. Opposite decisions return 409. Replays remain valid after later approvals/rejection and after restart. A new decision after a terminal state returns 409.
 
 Errors use `{message}`. Validation errors return 400, authorization failures 401/403, missing or concealed requests 404, version/state conflicts 409, and storage failures 503. Submission accepts one optional `Idempotency-Key` header, using the authenticated applicant ID as its scope. Same key plus normalized title/reason, days and original process version returns the current original request (201); changed intent returns 409. Missing keys still create on each call. Keep the original key and payload after an uncertain response. See [submission semantics and migration](../../../docs/SUBMISSION_IDEMPOTENCY.md).
+
+### Typed business documents
+
+The additive `POST /api/documents` endpoint separates business fields from approval state. It accepts a required `business` object and positive current `processVersion`; it uses the same Basic principal, `X-Arcflow-Client`, optional `Idempotency-Key`, list endpoint and `/api/requests/{id}/decisions` endpoint described above. For example:
+
+```json
+{
+  "business": {
+    "type": "procurement",
+    "businessId": "PO-001",
+    "title": "Equipment",
+    "reason": "New team member",
+    "item": "Laptop",
+    "quantity": 2,
+    "unitPrice": 1299.50,
+    "currency": "USD"
+  },
+  "processVersion": 1
+}
+```
+
+The closed business types are `leave` (`businessId,title,reason,days`) and `procurement` (`businessId,title,reason,item,quantity,unitPrice,currency`). Every field is required. IDs match `[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}`. Title/reason retain the existing limits. Procurement requires a nonblank item up to 240 characters, integer quantity 1–100000, a positive numeric unit price no greater than 1000000000.00 with at most two decimal places, and `CNY`, `USD`, `EUR`, `GBP` or `JPY`; JPY requires a whole amount. Decimal strings, fractional/overflowing integers, missing/null values, unknown types/fields and duplicate JSON keys are rejected.
+
+Typed responses append the immutable `business` object to the approval request. The top-level title/reason remain compatibility fields; typed leave also retains its days, while procurement uses top-level `days: 0`. Use `business.type` and its fields for business-aware presentation. The existing leave UI is unchanged. `/api/requests` keeps its original leave submission body, and legacy-created requests still omit `business` entirely. A key is scoped to the applicant across both submission endpoints: changing the business type, ID, any business field or original process version returns 409. Text and price representations are normalized before replay comparison.
+
+The configured process is reused; a caller cannot select or deploy an arbitrary process through this endpoint. Typed requests upgrade the JSON snapshot to schema 5, preserving a byte-exact backup of the preceding schema on its first upgrade write. Upgrade the host and back up the data before adoption; older binaries cannot read schema 5. Business records and approval history remain immutable across decisions, replays and restart.
 
 ## Persistence, restart and schema-1 migration
 

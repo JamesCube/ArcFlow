@@ -67,9 +67,9 @@ public record ProcessDefinition(
     public List<ProcessNode> approvals() { return nodes.subList(1, nodes.size() - 1); }
 
     public static void validate(ProcessDefinition d) {
-        if (d == null || (d.schemaVersion != 2 && d.schemaVersion != 3) || !"leave-approval".equals(d.id) || d.version < 1 ||
+        if (d == null || (d.schemaVersion != 2 && d.schemaVersion != 3) || !validProcessId(d.id) || d.version < 1 ||
             !validName(d.name) || d.nodes == null || d.nodes.size() < 3 || d.nodes.size() > 10)
-            throw new IllegalArgumentException("Use schema 2 or 3, the leave-approval process, a positive version, a name and 1–8 approval stages");
+            throw new IllegalArgumentException("Use schema 2 or 3, a stable process ID, a positive version, a name and 1–8 approval stages");
         var ids = new HashSet<String>();
         for (int i = 0; i < d.nodes.size(); i++) {
             var n = d.nodes.get(i);
@@ -94,6 +94,10 @@ public record ProcessDefinition(
                 } else throw new IllegalArgumentException("Unsupported approval type for this schema");
             }
         }
+    }
+
+    public static boolean validProcessId(String value) {
+        return value != null && value.matches("[A-Za-z][A-Za-z0-9_-]{0,127}");
     }
 
     /** Structural only: historical records remain readable after directory users are removed. */
