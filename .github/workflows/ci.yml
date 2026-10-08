@@ -8,6 +8,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         java: ['17', '21']
     steps:
@@ -16,6 +17,32 @@ jobs:
         with:
           distribution: temurin
           java-version: ${{ matrix.java }}
-          cache: maven
-      - run: mvn --batch-mode --no-transfer-progress verify
+      - name: Test build inventory checks
+        run: python3 -m unittest discover -s scripts -p 'test_maven_build.py' -v
+      - name: Verify with a fresh dependency cache
+        shell: bash
+        run: |
+          mkdir -p target/build-inventory
+          mvn --batch-mode --no-transfer-progress --show-version -Dstyle.color=never \
+            -Dmaven.repo.local="${RUNNER_TEMP}/arcflow-maven-${{ matrix.java }}" verify \
+            2>&1 | tee target/build-inventory/cold.log
+          python3 scripts/check_maven_build.py --java '${{ matrix.java }}' \
+            --log target/build-inventory/cold.log --output target/build-inventory/cold.json
+      - name: Verify with the same cache offline
+        shell: bash
+        run: |
+          mvn --offline --batch-mode --no-transfer-progress --show-version -Dstyle.color=never \
+            -Dmaven.repo.local="${RUNNER_TEMP}/arcflow-maven-${{ matrix.java }}" verify \
+            2>&1 | tee target/build-inventory/warm.log
+          python3 scripts/check_maven_build.py --java '${{ matrix.java }}' \
+            --log target/build-inventory/warm.log --output target/build-inventory/warm.json
+          diff -u target/build-inventory/cold.json target/build-inventory/warm.json
       - run: bash scripts/test.sh
+      - name: Preserve Maven toolchain and plugin evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: core-build-inventory-jdk-${{ matrix.java }}
+          path: target/build-inventory/
+          if-no-files-found: warn
+          retention-days: 14
