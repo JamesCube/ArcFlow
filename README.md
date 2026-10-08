@@ -10,6 +10,18 @@
 [![Approval demo CI](https://github.com/JamesCube/ArcFlow/actions/workflows/approval-demo.yml/badge.svg?branch=main)](https://github.com/JamesCube/ArcFlow/actions/workflows/approval-demo.yml)
 [![RuoYi integration](https://github.com/JamesCube/ArcFlow/actions/workflows/ruoyi-integration.yml/badge.svg?branch=main)](https://github.com/JamesCube/ArcFlow/actions/workflows/ruoyi-integration.yml)
 
+<a id="designer-preview"></a>
+
+## 先看流程设计器
+
+把主管审批、团队会签和最终复核放到一条流程里。选中节点就能设置人员与 ALL／ANY 规则，检查后发布；提交的申请保留自己的版本。
+
+[![真实流程设计器：在主管与复核之间插入团队会签，右侧配置 ALL 和参与人](docs/images/gallery/designer-02-insert-all-zh.png)](docs/images/gallery/designer-02-insert-all-zh.png)
+
+[多级与单人](docs/DESIGNER_GALLERY.md#sequential) · [插入与会签](docs/DESIGNER_GALLERY.md#all) · [排序](docs/DESIGNER_GALLERY.md#reorder) · [撤销](docs/DESIGNER_GALLERY.md#undo) · [或签](docs/DESIGNER_GALLERY.md#any) · [校验](docs/DESIGNER_GALLERY.md#validation) · [发布](docs/DESIGNER_GALLERY.md#publish) · [版本快照](docs/DESIGNER_GALLERY.md#versions)
+
+运行中的真实页面，使用合成数据。点击图片看原图，或打开[完整设计器图集](docs/DESIGNER_GALLERY.md)逐步看操作与结果。[本地试用](#快速开始)
+
 <a id="设计流程与处理审批"></a>
 
 ## 审批能力一览
@@ -20,13 +32,13 @@
 
 | 能力 | 状态 | 目前支持到哪里 |
 | --- | --- | --- |
-| **单人／会签／或签** | ✅ | 1–8 级顺序审批；ALL 全员同意、任一拒绝即驳回；ANY 任一同意即通过、全员拒绝才驳回 |
-| **可视化设计与版本** | ✅ | 编辑、插入、排序、配置审批人、校验并发布；每份申请保留提交时的流程与业务快照 |
-| **待办、已办与审批记录** | ✅ | 按登录成员分页，覆盖 ALL／ANY 每位参与人；保存逐人意见、决定和时间 |
+| **单人／会签／或签** | ✅ | 1–8 级顺序审批；ALL 全员同意、任一拒绝即驳回；ANY 任一同意即通过、全员拒绝才驳回  · [看截图](docs/DESIGNER_GALLERY.md#all) |
+| **可视化设计与版本** | ✅ | 编辑、插入、排序、配置审批人、校验并发布；每份申请保留提交时的流程与业务快照  · [看截图](docs/DESIGNER_GALLERY.md#publish) |
+| **待办、已办与审批记录** | ✅ | 按登录成员分页，覆盖 ALL／ANY 每位参与人；保存逐人意见、决定和时间  · [看截图](docs/CASE_GALLERY.md#oa-inbox) |
 | **重复请求与并发保护** | ✅ | 可选提交幂等键、同一步骤／成员的决定重试、修订号 CAS；不代表外部业务操作只执行一次 |
 | **持久化存储** | 🟡 | 默认 JSON 单写者；可选 JDBC 事务存储，已有 PostgreSQL、MySQL 8.0／8.4、H2 测试，须显式接入与迁移 |
-| **业务单据** | 🟡 | 请假、采购可提交和审批；报价折扣在隔离的合成 CRM 案例中运行，共享工作区暂不支持报价 |
-| **桌面、若依与移动端** | 🟡 | 独立 Vue 与原生若依工作台可运行；H5 仅查看与审批，不提供手机发起、设计器或企业 SSO |
+| **业务单据** | 🟡 | 请假、采购可提交和审批；报价折扣在隔离的合成 CRM 案例中运行，共享工作区暂不支持报价  · [看截图](docs/CASE_GALLERY.md#erp) |
+| **桌面、若依与移动端** | 🟡 | 独立 Vue 与原生若依工作台可运行；H5 仅查看与审批，不提供手机发起、设计器或企业 SSO  · [看截图](docs/CASE_GALLERY.md#other-clients) |
 | **零依赖 Java DAG 内核** | ✅ | 无第三方运行时依赖；校验依赖图并同步串行执行，不保存运行状态或等待人工任务 |
 | **高级流程与企业能力** | — | 条件路由、定时催办／升级、撤回、转办、租户隔离、outbox、BPMN 兼容性均未实现 |
 
@@ -70,14 +82,35 @@ python3 scripts/tryout.py
 
 报价案例使用合成客户和固定的销售经理 → 财务两步人工审批，通过专用 `/api/crm` 服务和 `/quote-discount.html` 页面运行。共享独立端、若依和 H5 工作区尚不支持报价；AI 功能、真实 CRM 连接、客户通知和业务回写均未实现。验收状态见 [CRM 兼容性与发布门槛](docs/CRM_COMPATIBILITY_READINESS.md)。
 
-### 看看实际页面
+<a id="看看实际页面"></a>
 
-| OA · 请假 | ERP · 采购 | CRM · 报价折扣 |
+### 每种业务都看完整过程
+
+#### OA · 请假
+
+| 填写 | 审批中 | 已通过 |
 | --- | --- | --- |
-| [![填写请假天数和事由，查看两步审批顺序](docs/images/cases/oa-leave-form-zh-caece22.png)](docs/CASE_GALLERY.md#oa) | [![采购审批中查看精确金额和提交时的业务快照](docs/images/cases/erp-procurement-review-zh-caece22.png)](docs/CASE_GALLERY.md#erp) | [![合成报价折扣申请，核对目录总额与申请金额](docs/images/cases/crm-quote-form-zh-878a565.png)](docs/CASE_GALLERY.md#crm) |
-| 填写天数和事由，按发布的流程审批。 | 核对数量、单价和合计，保留审批记录。 | 在独立页面完成两步人工报价审核。 |
+| [![OA · 请假填写页面](docs/images/gallery/oa-01-form-zh.png)](docs/images/gallery/oa-01-form-zh.png) | [![OA · 请假审批中页面](docs/images/gallery/oa-03-inbox-zh.png)](docs/images/gallery/oa-03-inbox-zh.png) | [![OA · 请假通过后的历史](docs/images/gallery/oa-05-approved-zh.png)](docs/images/gallery/oa-05-approved-zh.png) |
 
-以上为运行中应用的真实截图，使用合成数据。[打开图集](docs/CASE_GALLERY.md)可看原图、设计器、若依和 H5 页面。[截图版本与来源](docs/CASE_GALLERY.md#provenance)。
+[完整六步图集：填写、提交、待审、下一步、通过与驳回](docs/CASE_GALLERY.md#oa)
+
+#### ERP · 采购
+
+| 填写 | 审批中 | 已通过 |
+| --- | --- | --- |
+| [![ERP · 采购填写页面](docs/images/gallery/erp-01-form-zh.png)](docs/images/gallery/erp-01-form-zh.png) | [![ERP · 采购审批中页面](docs/images/gallery/erp-03-review-zh.png)](docs/images/gallery/erp-03-review-zh.png) | [![ERP · 采购通过后的历史](docs/images/gallery/erp-05-approved-zh.png)](docs/images/gallery/erp-05-approved-zh.png) |
+
+[完整六步图集：填写、提交、待审、下一步、通过与驳回](docs/CASE_GALLERY.md#erp)
+
+#### CRM · 报价折扣
+
+| 填写 | 审批中 | 已通过 |
+| --- | --- | --- |
+| [![CRM · 报价折扣填写页面](docs/images/gallery/crm-01-form-zh.png)](docs/images/gallery/crm-01-form-zh.png) | [![CRM · 报价折扣审批中页面](docs/images/gallery/crm-04-finance-review-zh.png)](docs/images/gallery/crm-04-finance-review-zh.png) | [![CRM · 报价折扣已通过的报价快照](docs/images/gallery/crm-05-approved-zh.png)](docs/images/gallery/crm-05-approved-zh.png) |
+
+[完整六步图集：填写、提交、待审、下一步、通过与驳回](docs/CASE_GALLERY.md#crm)
+
+以上都是不同实际状态的原始截图；报价仍使用独立页面。[若依与 H5](docs/CASE_GALLERY.md#other-clients) · [截图版本与来源](docs/CASE_GALLERY.md#provenance)
 
 ## 接到你的应用
 

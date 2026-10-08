@@ -10,6 +10,18 @@ Start with the leave-request demo: submit a request, switch accounts to approve 
 [![Approval demo CI](https://github.com/JamesCube/ArcFlow/actions/workflows/approval-demo.yml/badge.svg?branch=main)](https://github.com/JamesCube/ArcFlow/actions/workflows/approval-demo.yml)
 [![RuoYi integration](https://github.com/JamesCube/ArcFlow/actions/workflows/ruoyi-integration.yml/badge.svg?branch=main)](https://github.com/JamesCube/ArcFlow/actions/workflows/ruoyi-integration.yml)
 
+<a id="designer-preview"></a>
+
+## Start with the flow designer
+
+Arrange manager review, a team group and final review in one sequence. Select a stage to configure people and ALL/ANY rules, validate and publish. Submitted requests retain their own version.
+
+[![Real designer: insert an ALL team group between two review stages](docs/images/gallery/designer-02-insert-all-en.png)](docs/images/gallery/designer-02-insert-all-en.png)
+
+[Sequential / single](docs/DESIGNER_GALLERY.md#sequential) · [Insert / ALL](docs/DESIGNER_GALLERY.md#all) · [Reorder](docs/DESIGNER_GALLERY.md#reorder) · [Undo](docs/DESIGNER_GALLERY.md#undo) · [ANY](docs/DESIGNER_GALLERY.md#any) · [Validation](docs/DESIGNER_GALLERY.md#validation) · [Publish](docs/DESIGNER_GALLERY.md#publish) · [Saved versions](docs/DESIGNER_GALLERY.md#versions)
+
+Real application screens with synthetic data. Click for full resolution or follow the [designer gallery](docs/DESIGNER_GALLERY.md) through each operation and result. [Try locally](#quick-start)
+
 <a id="design-and-review"></a>
 
 ## Approval capabilities at a glance
@@ -20,13 +32,13 @@ For teams adding fixed-reviewer, multi-stage approvals to an existing Java or Ru
 
 | Capability | Status | Current scope |
 | --- | --- | --- |
-| **Single, ALL and ANY review** | ✅ | 1–8 ordered stages; ALL requires every approval and rejects on any rejection; ANY passes on the first approval and rejects only when everyone rejects |
-| **Visual designer and versions** | ✅ | Edit, insert, reorder, assign, validate and publish; each request keeps its submitted process and business snapshots |
-| **Worklists and decision history** | ✅ | Actor-scoped pending/handled pages include every ALL/ANY member; retain each person's note, decision and timestamp |
+| **Single, ALL and ANY review** | ✅ | 1–8 ordered stages; ALL requires every approval and rejects on any rejection; ANY passes on the first approval and rejects only when everyone rejects  · [Screens](docs/DESIGNER_GALLERY.md#all) |
+| **Visual designer and versions** | ✅ | Edit, insert, reorder, assign, validate and publish; each request keeps its submitted process and business snapshots  · [Screens](docs/DESIGNER_GALLERY.md#publish) |
+| **Worklists and decision history** | ✅ | Actor-scoped pending/handled pages include every ALL/ANY member; retain each person's note, decision and timestamp  · [Screens](docs/CASE_GALLERY.md#oa-inbox) |
 | **Retries and concurrency** | ✅ | Optional submission keys, per-stage/member decision retries and revision CAS; no exactly-once guarantee for external business operations |
 | **Persistence** | 🟡 | Single-writer JSON by default; optional transactional JDBC with PostgreSQL, MySQL 8.0/8.4 and H2 tests; explicit integration and migration required |
-| **Business documents** | 🟡 | Submit and review leave/procurement; quote discounts run in an isolated synthetic CRM case, outside shared workspaces |
-| **Desktop, RuoYi and mobile** | 🟡 | Runnable standalone Vue and native RuoYi workspaces; H5 is review-only, with no mobile submission, designer or enterprise SSO |
+| **Business documents** | 🟡 | Submit and review leave/procurement; quote discounts run in an isolated synthetic CRM case, outside shared workspaces  · [Screens](docs/CASE_GALLERY.md#erp) |
+| **Desktop, RuoYi and mobile** | 🟡 | Runnable standalone Vue and native RuoYi workspaces; H5 is review-only, with no mobile submission, designer or enterprise SSO  · [Screens](docs/CASE_GALLERY.md#other-clients) |
 | **Zero-dependency Java DAG core** | ✅ | No third-party runtime dependencies; validates dependencies and runs synchronously, one node at a time, without durable execution state or human waits |
 | **Advanced workflow features** | — | No conditional routing, timed reminders/escalation, withdrawal, delegation, tenant isolation, outbox or BPMN compatibility |
 
@@ -69,14 +81,35 @@ The leave demo is the starting point for applying approvals to other business ta
 
 The quote case uses synthetic customer data and fixed sales-manager → finance human review through a separate `/api/crm` service and `/quote-discount.html` page. The shared standalone, RuoYi and H5 workspaces do not support quotes yet. AI features, a real CRM connection, customer notifications and business writeback aren't implemented. See [CRM compatibility and release gates](docs/CRM_COMPATIBILITY_READINESS.md) for verification status.
 
-### See the cases
+### Follow each business case through the workflow
 
-| OA · Leave | ERP · Procurement | CRM · Quote discount |
+<a id="see-the-cases"></a>
+
+#### OA · Leave
+
+| Entry | In review | Approved |
 | --- | --- | --- |
-| [![Leave form with a published two-step approval sequence](docs/images/cases/oa-leave-form-en-caece22.png)](docs/CASE_GALLERY.md#oa) | [![Procurement review with exact amounts and a saved business snapshot](docs/images/cases/erp-procurement-review-en-caece22.png)](docs/CASE_GALLERY.md#erp) | [![Approved synthetic quote with its saved revision and 15% discount](docs/images/cases/crm-quote-approved-en-878a565.png)](docs/CASE_GALLERY.md#crm) |
-| Enter the duration and reason. | Check the quantity, unit price and total. | Review a quote through two fixed human steps. |
+| [![OA · Leave entry](docs/images/gallery/oa-01-form-en.png)](docs/images/gallery/oa-01-form-en.png) | [![OA · Leave in review](docs/images/gallery/oa-03-inbox-en.png)](docs/images/gallery/oa-03-inbox-en.png) | [![OA · Leave completed history](docs/images/gallery/oa-05-approved-en.png)](docs/images/gallery/oa-05-approved-en.png) |
 
-Actual running-app captures with synthetic data. [Open the gallery](docs/CASE_GALLERY.md) for full-size images, the designer, RuoYi and H5. [Capture versions and sources](docs/CASE_GALLERY.md#provenance).
+[Six-state journey: entry, submitted, pending, next stage, approved and rejected](docs/CASE_GALLERY.md#oa)
+
+#### ERP · Procurement
+
+| Entry | In review | Approved |
+| --- | --- | --- |
+| [![ERP · Procurement entry](docs/images/gallery/erp-01-form-en.png)](docs/images/gallery/erp-01-form-en.png) | [![ERP · Procurement in review](docs/images/gallery/erp-03-review-en.png)](docs/images/gallery/erp-03-review-en.png) | [![ERP · Procurement completed history](docs/images/gallery/erp-05-approved-en.png)](docs/images/gallery/erp-05-approved-en.png) |
+
+[Six-state journey: entry, submitted, pending, next stage, approved and rejected](docs/CASE_GALLERY.md#erp)
+
+#### CRM · Quote discounts
+
+| Entry | In review | Approved |
+| --- | --- | --- |
+| [![CRM · Quote discounts entry](docs/images/gallery/crm-01-form-en.png)](docs/images/gallery/crm-01-form-en.png) | [![CRM · Quote discounts in review](docs/images/gallery/crm-04-finance-review-en.png)](docs/images/gallery/crm-04-finance-review-en.png) | [![CRM · Quote discounts approved quote snapshot](docs/images/gallery/crm-05-approved-en.png)](docs/images/gallery/crm-05-approved-en.png) |
+
+[Six-state journey: entry, submitted, pending, next stage, approved and rejected](docs/CASE_GALLERY.md#crm)
+
+Each image shows its actual distinct state. Quotes retain their separate entry point. [RuoYi and H5](docs/CASE_GALLERY.md#other-clients) · [Versions and provenance](docs/CASE_GALLERY.md#provenance)
 
 ## Connect an application
 

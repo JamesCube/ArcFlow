@@ -110,6 +110,12 @@ jobs:
       - name: Capture bilingual leave scenarios against a fresh real backend
         run: npm run test:e2e -- --grep "visual showcase:" --output=visual-results
         working-directory: examples/approval-ui
+      - name: Capture designer and complete business galleries on a fresh backend
+        run: ARCFLOW_GALLERY=1 npm run test:e2e -- e2e/gallery.spec.mjs --output=gallery-results
+        working-directory: examples/approval-ui
+      - name: Capture the CRM rejection branch on another fresh backend
+        run: ARCFLOW_GALLERY=1 GALLERY_CRM_REJECT=1 npm run test:e2e -- e2e/gallery.spec.mjs --grep "isolated CRM" --output=gallery-rejection-results
+        working-directory: examples/approval-ui
       - name: Save authenticated synthetic workspace screenshots (no auth traces)
         # Capture helpers only run after successful authentication; retain partial
         # scene evidence when a later assertion fails so visual debugging is possible.
@@ -121,5 +127,7 @@ jobs:
             examples/approval-ui/test-results/**/*.png
             examples/approval-ui/visual-results/**/*.png
             examples/approval-ui/crm-visual-results/**/*.png
+            examples/approval-ui/gallery-results/**/*.png
+            examples/approval-ui/gallery-rejection-results/**/*.png
           if-no-files-found: error
           retention-days: 7

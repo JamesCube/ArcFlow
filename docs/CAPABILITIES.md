@@ -18,19 +18,21 @@
 | **审批领域与存储** | 顺序人工审批、固定成员组、版本快照、权限、幂等、历史及可替换存储 | 在独立的 `examples/approval-domain` 和 `approval-jdbc` 模块中；有各自的框架／序列化／数据库依赖。“零依赖”仅指 DAG 内核。[领域][domain] · [存储][jdbc] |
 | **宿主与界面示例** | Spring Boot + Vue、原生若依、H5、独立 CRM 报价页 | 演示如何接入身份、HTTP 和页面；各入口支持范围不同。默认持久化是单写者 JSON，当前没有完整生产服务的就绪保证。 |
 
+页面能力附真实截图链接；并发、幂等、JDBC 事务等非视觉能力仍以源码、契约与测试为依据，截图不能证明这些保证。
+
 ### 人工审批与流程设计
 
 | 能力 | 状态 | 精确范围与依据 |
 | --- | --- | --- |
-| 顺序多级审批 | ✅ | 固定开始 → 1–8 个审批步骤 → 固定结束。当前步骤完成后才进入下一步；同一人可出现在不同步骤，须逐步分别审批。[定义校验][definition] · [审批状态机][service] |
-| 单人审批（SINGLE） | ✅ | 每步一个指定用户；同意后推进，拒绝则整笔申请结束。SINGLE 是界面的模式名称；存储使用 `approval` 节点，不是 `completionMode: "SINGLE"`。[定义][definition] |
-| 会签（ALL） | ✅ | 每组 2–16 个不同的固定参与人；全员同意才推进，任一拒绝即结束。组内每个人各自投票，后续步骤仍按顺序执行。[规则][parallel] · [测试][parallel-tests] |
-| 或签（ANY） | ✅ | 任一参与人同意即推进；部分拒绝后仍可由其他人同意，只有全员拒绝才结束。提前完成后未投票成员无需再处理，不会为其补造已办记录。[规则][parallel] · [测试][parallel-tests] |
-| 可视化设计器 | ✅ | 独立 Vue 支持插入、删除、排序、名称／人员／ALL／ANY 配置、校验、发布与本地撤销／重做；若依提供原生流程编辑与真实用户选择。不是任意图形或 BPMN 编辑器。[设计器测试][designer-tests] · [若依编辑器][ruoyi-editor] |
-| 流程定义校验 | ✅ | 服务端校验 schema、版本、固定边界、节点 ID 唯一性、名称、步骤数及组成员；发布／提交还检查账号可用性，申请人不能同时是该流程的审批人。内核 DAG 另行检查未知依赖、重复节点与环。[定义][definition] · [服务][service] · [DAG 校验][workflow] |
-| 版本与业务快照 | ✅ | 申请固定提交时的流程版本、参与人、规则和业务数据；后续发布不改动已有申请。发布使用期望版本检查；不提供运行中实例迁移或审批中修改单据。[服务][service] · [业务单据测试][business-tests] |
-| 待办／已办分页 | ✅ | 按服务端当前登录人查询，覆盖每位组成员；每页 1–100 条，游标绑定成员及筛选条件。已办指真实保存的投票，一笔申请可仍在审批中；跨页是实时查询，不是冻结的全局快照。[契约][inbox] · [测试][inbox-tests] |
-| 审批意见与历史 | ✅ | 保存逐人决定、意见、步骤及时间；同一步骤的历史不可通过审批接口改写。意见随决定提交，不是独立评论／聊天；记录也不是密码学防篡改审计系统。[服务][service] · [存储契约][store] |
+| 顺序多级审批 | ✅ | 固定开始 → 1–8 个审批步骤 → 固定结束。当前步骤完成后才进入下一步；同一人可出现在不同步骤，须逐步分别审批。[定义校验][definition] · [审批状态机][service]  · [截图 / Screen](DESIGNER_GALLERY.md#sequential) |
+| 单人审批（SINGLE） | ✅ | 每步一个指定用户；同意后推进，拒绝则整笔申请结束。SINGLE 是界面的模式名称；存储使用 `approval` 节点，不是 `completionMode: "SINGLE"`。[定义][definition]  · [截图 / Screen](DESIGNER_GALLERY.md#sequential) |
+| 会签（ALL） | ✅ | 每组 2–16 个不同的固定参与人；全员同意才推进，任一拒绝即结束。组内每个人各自投票，后续步骤仍按顺序执行。[规则][parallel] · [测试][parallel-tests]  · [截图 / Screen](DESIGNER_GALLERY.md#all) |
+| 或签（ANY） | ✅ | 任一参与人同意即推进；部分拒绝后仍可由其他人同意，只有全员拒绝才结束。提前完成后未投票成员无需再处理，不会为其补造已办记录。[规则][parallel] · [测试][parallel-tests]  · [截图 / Screen](DESIGNER_GALLERY.md#any) |
+| 可视化设计器 | ✅ | 独立 Vue 支持插入、删除、排序、名称／人员／ALL／ANY 配置、校验、发布与本地撤销／重做；若依提供原生流程编辑与真实用户选择。不是任意图形或 BPMN 编辑器。[设计器测试][designer-tests] · [若依编辑器][ruoyi-editor]  · [截图 / Screen](DESIGNER_GALLERY.md#reorder) |
+| 流程定义校验 | ✅ | 服务端校验 schema、版本、固定边界、节点 ID 唯一性、名称、步骤数及组成员；发布／提交还检查账号可用性，申请人不能同时是该流程的审批人。内核 DAG 另行检查未知依赖、重复节点与环。[定义][definition] · [服务][service] · [DAG 校验][workflow]  · [截图 / Screen](DESIGNER_GALLERY.md#validation) |
+| 版本与业务快照 | ✅ | 申请固定提交时的流程版本、参与人、规则和业务数据；后续发布不改动已有申请。发布使用期望版本检查；不提供运行中实例迁移或审批中修改单据。[服务][service] · [业务单据测试][business-tests]  · [截图 / Screen](DESIGNER_GALLERY.md#versions) |
+| 待办／已办分页 | ✅ | 按服务端当前登录人查询，覆盖每位组成员；每页 1–100 条，游标绑定成员及筛选条件。已办指真实保存的投票，一笔申请可仍在审批中；跨页是实时查询，不是冻结的全局快照。[契约][inbox] · [测试][inbox-tests]  · [截图 / Screen](CASE_GALLERY.md#oa-inbox) |
+| 审批意见与历史 | ✅ | 保存逐人决定、意见、步骤及时间；同一步骤的历史不可通过审批接口改写。意见随决定提交，不是独立评论／聊天；记录也不是密码学防篡改审计系统。[服务][service] · [存储契约][store]  · [截图 / Screen](CASE_GALLERY.md#oa-approved) |
 | 身份与权限 | 🟡 | `ActorDirectory` 接口、活动账号检查、本人可见范围及当前步骤成员校验；若依复用其登录和菜单／按钮权限。人员组是固定 ID 列表，不会动态解析角色或部门，管理员通配权限也不能替别人投票。[身份测试][identity-tests] · [若依控制器][ruoyi-controller] |
 | 提交幂等 | ✅ | 通用提交接口可选申请人作用域的键；同键同内容返回原申请当前状态，同键不同内容冲突，无键仍每次新建。JSON／JDBC 持久化键绑定；页面刷新或退出会丢失内存中的客户端重试键。CRM 专用入口由报价版本生成绑定键。[契约][idempotency] · [测试][idempotency-tests] · [报价宿主][quote-host] |
 | 决定幂等与并发 | ✅ | 同一申请／步骤／参与人的相同决定重试返回已保存状态，不追加事件，也不改写原意见；相反决定冲突。修订号 CAS 与存储原子更新防止覆盖并发结果。保障限于审批状态，不涵盖付款、消息或业务回写的恰好一次执行。[重试测试][retry-tests] · [并发测试][race-tests] |
@@ -85,19 +87,21 @@ Use this checklist to decide whether ArcFlow fits your application and what inte
 | **Approval domain and storage** | Human stages, fixed groups, version snapshots, authorization, retries, history and replaceable storage | Separate `examples/approval-domain` and `approval-jdbc` modules have their own framework/serialization/database dependencies. “Zero dependencies” applies only to the DAG core. [Domain][domain] · [Storage][jdbc] |
 | **Hosts and UI examples** | Spring Boot + Vue, native RuoYi, H5 and a separate CRM quote page | Reference identity, HTTP and UI integrations with different scopes. Single-writer JSON is the default; no complete production-service readiness guarantee. |
 
+Visible features link to real captures. Concurrency, idempotency and JDBC transaction guarantees remain grounded in code, contracts and tests; screenshots cannot establish them.
+
 ### Human approvals and process design
 
 | Capability | Status | Exact scope and evidence |
 | --- | --- | --- |
-| Ordered stages | ✅ | Fixed start → 1–8 approval stages → fixed end. Only the current stage can act. A person may appear in multiple stages and must decide separately in each. [Validation][definition] · [State machine][service] |
-| Single reviewer (SINGLE) | ✅ | One assigned user per stage; approval advances, rejection ends the request. SINGLE is a UI label: storage uses an `approval` node, not `completionMode: "SINGLE"`. [Definition][definition] |
-| ALL groups | ✅ | 2–16 distinct fixed participants; every approval is required, and any rejection ends the request. Members vote individually; later stages remain sequential. [Rules][parallel] · [Tests][parallel-tests] |
-| ANY groups | ✅ | The first approval advances. Some rejections can still be followed by an approval; only unanimous rejection ends the request. Early completion does not fabricate votes or handled entries for remaining members. [Rules][parallel] · [Tests][parallel-tests] |
-| Visual designer | ✅ | Standalone Vue supports insert/delete/reorder, names, people, ALL/ANY rules, validation, publication and local undo/redo. RuoYi has a native process editor with real-user selection. No arbitrary graph or BPMN editor. [Designer tests][designer-tests] · [RuoYi editor][ruoyi-editor] |
-| Definition validation | ✅ | Server checks schema/version, fixed boundaries, unique node IDs, names, stage/member limits. Publication/submission also check active accounts; the applicant cannot be a reviewer anywhere in the process. The DAG core separately rejects missing dependencies, duplicate nodes and cycles. [Definition][definition] · [Service][service] · [DAG validation][workflow] |
-| Versions and business snapshots | ✅ | Each request retains the submitted definition, participants, rules and business data. Later publication cannot reroute it. Publication uses an expected-version check; no running-instance migration or in-review document editing. [Service][service] · [Business tests][business-tests] |
-| Pending/handled pagination | ✅ | Server-authenticated actor scope, including every group member; 1–100 items per page, with actor/filter-bound cursors. Handled means an actual saved vote, even if the request is still pending. Pages are live queries, not a frozen cross-page snapshot. [Contract][inbox] · [Tests][inbox-tests] |
-| Notes and history | ✅ | Per-person decision, note, stage and timestamp; decision endpoints cannot rewrite prior history. Notes accompany votes, rather than being standalone comments/chat. History is not a cryptographically tamper-proof audit system. [Service][service] · [Store contract][store] |
+| Ordered stages | ✅ | Fixed start → 1–8 approval stages → fixed end. Only the current stage can act. A person may appear in multiple stages and must decide separately in each. [Validation][definition] · [State machine][service]  · [截图 / Screen](DESIGNER_GALLERY.md#sequential) |
+| Single reviewer (SINGLE) | ✅ | One assigned user per stage; approval advances, rejection ends the request. SINGLE is a UI label: storage uses an `approval` node, not `completionMode: "SINGLE"`. [Definition][definition]  · [截图 / Screen](DESIGNER_GALLERY.md#sequential) |
+| ALL groups | ✅ | 2–16 distinct fixed participants; every approval is required, and any rejection ends the request. Members vote individually; later stages remain sequential. [Rules][parallel] · [Tests][parallel-tests]  · [截图 / Screen](DESIGNER_GALLERY.md#all) |
+| ANY groups | ✅ | The first approval advances. Some rejections can still be followed by an approval; only unanimous rejection ends the request. Early completion does not fabricate votes or handled entries for remaining members. [Rules][parallel] · [Tests][parallel-tests]  · [截图 / Screen](DESIGNER_GALLERY.md#any) |
+| Visual designer | ✅ | Standalone Vue supports insert/delete/reorder, names, people, ALL/ANY rules, validation, publication and local undo/redo. RuoYi has a native process editor with real-user selection. No arbitrary graph or BPMN editor. [Designer tests][designer-tests] · [RuoYi editor][ruoyi-editor]  · [截图 / Screen](DESIGNER_GALLERY.md#reorder) |
+| Definition validation | ✅ | Server checks schema/version, fixed boundaries, unique node IDs, names, stage/member limits. Publication/submission also check active accounts; the applicant cannot be a reviewer anywhere in the process. The DAG core separately rejects missing dependencies, duplicate nodes and cycles. [Definition][definition] · [Service][service] · [DAG validation][workflow]  · [截图 / Screen](DESIGNER_GALLERY.md#validation) |
+| Versions and business snapshots | ✅ | Each request retains the submitted definition, participants, rules and business data. Later publication cannot reroute it. Publication uses an expected-version check; no running-instance migration or in-review document editing. [Service][service] · [Business tests][business-tests]  · [截图 / Screen](DESIGNER_GALLERY.md#versions) |
+| Pending/handled pagination | ✅ | Server-authenticated actor scope, including every group member; 1–100 items per page, with actor/filter-bound cursors. Handled means an actual saved vote, even if the request is still pending. Pages are live queries, not a frozen cross-page snapshot. [Contract][inbox] · [Tests][inbox-tests]  · [截图 / Screen](CASE_GALLERY.md#oa-inbox) |
+| Notes and history | ✅ | Per-person decision, note, stage and timestamp; decision endpoints cannot rewrite prior history. Notes accompany votes, rather than being standalone comments/chat. History is not a cryptographically tamper-proof audit system. [Service][service] · [Store contract][store]  · [截图 / Screen](CASE_GALLERY.md#oa-approved) |
 | Identity and permissions | 🟡 | `ActorDirectory`, active-account checks, request visibility and current-stage membership. RuoYi reuses login and menu/button permissions. Groups contain fixed IDs, with no dynamic role/department resolution; administrator wildcard permissions do not allow voting for others. [Identity tests][identity-tests] · [RuoYi controller][ruoyi-controller] |
 | Submission idempotency | ✅ | Generic endpoints accept an optional applicant-scoped key. Same key/content returns the original request's current state; changed content conflicts; unkeyed calls create new requests. JSON/JDBC persist bindings, but reload/logout loses the browser's in-memory retry key. CRM's dedicated host binds the key to a quote revision. [Contract][idempotency] · [Tests][idempotency-tests] · [Quote host][quote-host] |
 | Decision retries and concurrency | ✅ | Repeating the same request/stage/member decision returns saved state without a new event or comment change; an opposite decision conflicts. Revision CAS and atomic store updates prevent lost updates. These guarantees cover approval state, not exactly-once payments, messages or business writeback. [Retry tests][retry-tests] · [Race tests][race-tests] |
