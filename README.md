@@ -30,9 +30,9 @@
 
 ✅ 已实现，限于所述范围 · 🟡 有限支持，仍需接入或有客户端限制 · — 尚未实现。当前为源码预览，没有生产就绪承诺。
 
-[先运行再看细节](#快速开始) · [完整能力、源码与测试](docs/CAPABILITIES.md#zh) · [现有三类场景与扩展顺序](docs/CAPABILITIES.md#zh-scenarios)
+[先运行再看细节](#快速开始) · [完整能力、源码与测试](docs/CAPABILITIES.md#zh) · [现有场景与扩展顺序](docs/CAPABILITIES.md#zh-scenarios)
 
-直接看业务：[OA 请假](docs/CASE_GALLERY.md#oa) · [ERP 采购](docs/CASE_GALLERY.md#erp) · [CRM 报价](docs/CASE_GALLERY.md#crm)
+直接看业务：[OA 请假](docs/CASE_GALLERY.md#oa) · [费用报销](docs/EXPENSE_SCENARIO.md#gallery) · [ERP 采购](docs/CASE_GALLERY.md#erp) · [CRM 报价](docs/CASE_GALLERY.md#crm)
 
 ### 流程设计与版本
 | 能力 | 状态 | 当前范围 |
@@ -89,6 +89,7 @@
 | [ERP 采购表单](docs/CASE_GALLERY.md#erp-form) | ✅ | 单项物品、数量、精确单价和币种；不执行下单／付款 |
 | [CRM 报价折扣表单](docs/CASE_GALLERY.md#crm-form) | 🟡 | 独立合成案例，固定经理 → 财务；共享工作区不支持 |
 | [不可变业务快照](docs/CASE_GALLERY.md#erp-submitted) | ✅ | 业务字段提交后只读，审批不改写原单 |
+| [费用报销](docs/EXPENSE_SCENARIO.md#gallery) | 🟡 | 独立场景工作区可配置流程、填写 1–20 行费用并审批；不付款、不上传凭证，未接入若依／H5 |
 | 可视化表单设计器 | — | 现有表单由代码定义，没有拖拽字段或表单 schema 发布 |
 
 [范围、缺失项和测试依据](docs/CAPABILITIES.md#zh-forms)
@@ -116,7 +117,7 @@
 
 [范围、缺失项和测试依据](docs/CAPABILITIES.md#zh-integration)
 
-除了上面标出的缺失项，完整目录还单列了任意分支／汇聚、多数表决、加签、领取、转办、抄送、批量审批、定时催办、逾期升级、附件、多行明细、租户隔离、异步执行和 BPMN 等能力，均未实现。新场景和表单设计器见[按阶段推进的建设顺序](docs/CAPABILITIES.md#zh-next)。
+除了上面标出的缺失项，完整目录还单列了任意分支／汇聚、多数表决、加签、领取、转办、抄送、批量审批、定时催办、逾期升级、附件、租户隔离、异步执行和 BPMN 等能力，均未实现。新场景和表单设计器见[按阶段推进的建设顺序](docs/CAPABILITIES.md#zh-next)。
 
 [本地运行](#快速开始) · [看三类业务的完整过程](#业务案例) · [完整能力目录](docs/CAPABILITIES.md#zh)
 
@@ -192,7 +193,7 @@ python3 scripts/tryout.py
 
 若依示例把审批页面放进原生菜单，复用现有账号和权限。接其他 Java 应用时，可以从审批领域库及存储接口开始。
 
-领域库支持类型化请假、采购和报价折扣单，共用审批状态机、历史记录和提交重试。通用 Java／HTTP 示例及独立与若依工作区保留请假、采购体验；报价 HTTP 入口仅由专用宿主提供，额外核对源报价版本、业务读权和归属销售，通用单据入口拒绝报价。审批期间业务快照保持不变。字段、接口和升级限制见[业务单据契约](docs/BUSINESS_DOCUMENTS.md)。
+领域库支持类型化请假、采购、报价折扣和费用报销单，共用审批状态机、历史记录和提交重试。通用 Java／HTTP 示例及独立与若依工作区保留请假、采购体验；报价 HTTP 入口仅由专用宿主提供，额外核对源报价版本、业务读权和归属销售，通用单据入口拒绝报价。审批期间业务快照保持不变。字段、接口和升级限制见[业务单据契约](docs/BUSINESS_DOCUMENTS.md)。
 
 | 从哪里看 | 用途 |
 | --- | --- |
@@ -200,6 +201,8 @@ python3 scripts/tryout.py
 | [Spring Boot 后端](examples/approval-demo/backend/README.md) | HTTP 接口、身份校验和宿主配置 |
 | [若依集成](examples/ruoyi-vue3/README.md) | RuoYi-Vue + RuoYi-Vue3 的接入步骤 |
 | [JDBC 存储](examples/approval-jdbc/README.md) | 用数据库保存审批数据和审计记录 |
+
+费用报销使用独立 `/scenarios.html` 页面和 `/api/scenarios/oa-expense` 宿主；通用单据入口不接受费用报销。首次费用写入升级为 schema 7，须先升级全部读取端并停止旧写者，回退不是无损操作。详见[费用报销及迁移说明](docs/EXPENSE_SCENARIO.md)。
 
 类型化请假与采购写入至少使用 JSON 快照 schema 5；首次报价写入升级到 schema 6，后续写入不会降级。启用报价前须升级全部读取端并停止旧写入端；只支持 schema 5 的程序不能读取报价，也不支持新旧版本混写。成员待办索引继续使用 SQL revision 3，CRM 不新增 SQL 迁移；旧数据库仍需要显式迁移与分批回填。
 

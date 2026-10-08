@@ -30,9 +30,9 @@ Explore seven groups, from process configuration and permissions to task handlin
 
 ✅ Implemented within the stated scope · 🟡 Bounded support with integration/client limits · — Not implemented. This remains a source preview, without a production-readiness guarantee.
 
-[Run first](#quick-start) · [Full capabilities with code/test evidence](docs/CAPABILITIES.md#en) · [Three existing cases and proposed expansion](docs/CAPABILITIES.md#en-scenarios)
+[Run first](#quick-start) · [Full capabilities with code/test evidence](docs/CAPABILITIES.md#en) · [Existing cases and proposed expansion](docs/CAPABILITIES.md#en-scenarios)
 
-Go straight to a case: [OA leave](docs/CASE_GALLERY.md#oa) · [ERP procurement](docs/CASE_GALLERY.md#erp) · [CRM quotes](docs/CASE_GALLERY.md#crm)
+Go straight to a case: [OA leave](docs/CASE_GALLERY.md#oa) · [Expense reimbursement](docs/EXPENSE_SCENARIO.md#gallery) · [ERP procurement](docs/CASE_GALLERY.md#erp) · [CRM quotes](docs/CASE_GALLERY.md#crm)
 
 ### Flow design and versions
 | Capability | Status | Current scope |
@@ -89,6 +89,7 @@ Go straight to a case: [OA leave](docs/CASE_GALLERY.md#oa) · [ERP procurement](
 | [ERP procurement form](docs/CASE_GALLERY.md#erp-form) | ✅ | One item, quantity, exact unit price and currency; no ordering/payment |
 | [CRM quote-discount form](docs/CASE_GALLERY.md#crm-form) | 🟡 | Isolated synthetic case with manager → finance review; outside shared workspaces |
 | [Immutable business snapshot](docs/CASE_GALLERY.md#erp-submitted) | ✅ | Business fields are read-only after submission |
+| [Expense reimbursement](docs/EXPENSE_SCENARIO.md#gallery) | 🟡 | Dedicated scenario workspace with a configurable flow and 1–20 expense lines; no payment, receipt upload or RuoYi/H5 screens |
 | Visual form designer | — | Forms are code-defined; no field drag/drop or form-schema publishing |
 
 [Limits, missing features and test evidence](docs/CAPABILITIES.md#en-forms)
@@ -116,7 +117,7 @@ Go straight to a case: [OA leave](docs/CASE_GALLERY.md#oa) · [ERP procurement](
 
 [Limits, missing features and test evidence](docs/CAPABILITIES.md#en-integration)
 
-The full catalog also lists each missing capability separately: arbitrary forks/joins, majority voting, added reviewers, claiming, delegation, CC, batch decisions, reminders, escalation, attachments, repeating line items, tenant isolation, asynchronous execution and BPMN. See the [proposed implementation sequence](docs/CAPABILITIES.md#en-next) for additional scenarios and form design.
+The full catalog also lists each missing capability separately: arbitrary forks/joins, majority voting, added reviewers, claiming, delegation, CC, batch decisions, reminders, escalation, attachments, tenant isolation, asynchronous execution and BPMN. See the [proposed implementation sequence](docs/CAPABILITIES.md#en-next) for additional scenarios and form design.
 
 [Run locally](#quick-start) · [Follow the three business journeys](#business-examples) · [Full capability catalog](docs/CAPABILITIES.md#en)
 
@@ -191,7 +192,7 @@ Each image shows its actual distinct state. Quotes retain their separate entry p
 
 The RuoYi example adds approval pages to its native menus and reuses existing accounts and permissions. For another Java application, start with the approval domain and storage interfaces.
 
-The domain supports typed leave, procurement and quote-discount documents with a shared approval state machine, audit history and submission retries. General Java/HTTP examples and standalone/RuoYi workspaces retain leave and procurement support. Quote HTTP submission is available only through the dedicated host, which also checks the source revision, business read access and quote owner; generic document endpoints reject quotes. Business snapshots remain immutable during review. See the [business-document contract](docs/BUSINESS_DOCUMENTS.md) for fields, endpoints and upgrade limits.
+The domain supports typed leave, procurement, quote-discount and expense documents with a shared approval state machine, audit history and submission retries. General Java/HTTP examples and standalone/RuoYi workspaces retain leave and procurement support. Quote HTTP submission is available only through the dedicated host, which also checks the source revision, business read access and quote owner; generic document endpoints reject quotes. Business snapshots remain immutable during review. See the [business-document contract](docs/BUSINESS_DOCUMENTS.md) for fields, endpoints and upgrade limits.
 
 | Module or example | What it covers |
 | --- | --- |
@@ -199,6 +200,8 @@ The domain supports typed leave, procurement and quote-discount documents with a
 | [Spring Boot backend](examples/approval-demo/backend/README.md) | HTTP endpoints, identity checks and host configuration |
 | [RuoYi integration](examples/ruoyi-vue3/README.md) | Setup for RuoYi-Vue + RuoYi-Vue3 |
 | [JDBC storage](examples/approval-jdbc/README.md) | Database persistence for approval data and audit history |
+
+Expenses use the separate `/scenarios.html` page and `/api/scenarios/oa-expense` host; generic document endpoints do not accept them. The first expense write upgrades to schema 7: upgrade all readers and stop old writers first; rollback is not lossless. See the [expense and migration guide](docs/EXPENSE_SCENARIO.md).
 
 Typed leave and procurement writes require at least JSON snapshot schema 5. The first quote write upgrades the snapshot to schema 6, which later writes retain. Upgrade all readers and stop old writers before enabling quotes; schema-5-only binaries cannot read them, and mixed-version writers are unsupported. Member worklists retain SQL revision 3; CRM adds no SQL migration. Existing databases still need the explicit migration and bounded backfill.
 
