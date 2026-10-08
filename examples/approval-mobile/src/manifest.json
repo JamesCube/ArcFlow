@@ -1,7 +1,7 @@
 {
   "name": "ArcFlow Mobile",
   "appid": "",
-  "description": "Local approval demo; H5 acceptance target",
+  "description": "A local mobile web demo for reviewing leave requests.",
   "versionName": "0.1.0",
   "versionCode": 1,
   "transformPx": false,

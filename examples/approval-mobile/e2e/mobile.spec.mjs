@@ -118,7 +118,7 @@ test("real ALL vote, decision note, cancel, back, durable history and reload", a
   await page.getByLabel("审批意见（选填）").fill("同意。阶段意见只记录一次。");
   await screenshot(page, testInfo, "decision-390");
   await page.getByRole("button", { name: "确认提交" }).click();
-  await expect(page.getByText("你的决策已由服务端确认")).toBeVisible();
+  await expect(page.getByText("你的审批决定已保存")).toBeVisible();
   await expect(page.locator(".detail-hero .status")).toHaveText("审批中");
   let saved = (await api("alice", "/requests")).find((x) => x.id === r.id);
   expect(saved.history.filter((x) => x.actorId === "bob")).toHaveLength(1);
@@ -148,7 +148,7 @@ test("ANY rejection remains pending until another member approves", async ({
   ).toBeVisible();
   await page.getByLabel("审批意见（选填）").fill("第一位成员驳回");
   await page.getByRole("button", { name: "确认提交" }).click();
-  await expect(page.getByText("你的决策已由服务端确认")).toBeVisible();
+  await expect(page.getByText("你的审批决定已保存")).toBeVisible();
   await expect(page.locator(".detail-hero .status")).toHaveText("审批中");
   await expect(page.locator(".action-dock")).toHaveCount(0);
   const partial = (await api("alice", "/requests")).find((x) => x.id === r.id);
@@ -184,7 +184,7 @@ test("network interruption gives no success and preserves the review note", asyn
   expect(
     (await api("alice", "/requests")).find((x) => x.id === r.id).history,
   ).toHaveLength(1);
-  await expect(page.getByText("你的决策已由服务端确认")).toHaveCount(0);
+  await expect(page.getByText("你的审批决定已保存")).toHaveCount(0);
 });
 for (const width of [360, 390, 430])
   test(`actual H5 viewport ${width} has no horizontal overflow`, async ({

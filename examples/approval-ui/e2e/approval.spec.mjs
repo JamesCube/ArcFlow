@@ -96,7 +96,7 @@ test('first run: single approval, designer, sequential approvals, replay guard, 
 
   // Reload intentionally clears in-memory credentials; persisted work survives login.
   await page.reload()
-  await expect(page.getByRole('heading', { name: 'Choose your perspective' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Choose a demo account' })).toBeVisible()
   await expect(page.getByLabel('Password', { exact: true })).toHaveValue('')
   await login(page, 'alice')
   await select(page, 'Sequential approval example')

@@ -73,7 +73,7 @@ describe("H5 native controls and view states (DOM tests, not browser acceptance)
   it("has matching English/Chinese runtime states and no missing labels", async () => {
     const { wrapper } = setup();
     await wrapper.get(".language").trigger("click");
-    expect(wrapper.text()).toContain("Every decision, clear and accountable.");
+    expect(wrapper.text()).toContain("Review requests on your phone.");
     await login(wrapper);
     expect(wrapper.text()).toContain("To review");
     expect(wrapper.text()).toContain("Local H5 demo");
@@ -82,7 +82,7 @@ describe("H5 native controls and view states (DOM tests, not browser acceptance)
   it("cannot show a confident empty inbox after the first read fails", async () => {
     const { wrapper } = setup({ failList: true });
     await login(wrapper);
-    expect(wrapper.text()).toContain("尚未获取完整待办");
+    expect(wrapper.text()).toContain("未能加载完整的申请列表");
     expect(wrapper.text()).not.toContain("当前没有待你审批的申请");
     wrapper.unmount();
   });

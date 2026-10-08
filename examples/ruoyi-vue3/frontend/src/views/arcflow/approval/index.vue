@@ -120,7 +120,7 @@ async function decide(decision) {
   try {
     const { data } = await decideRequest(id, { stepId, decision, comment: comment.value.trim() })
     requests.value = requests.value.map(item => item.id === data.id ? data : item); comment.value = ''
-    notice.value = data.status !== 'PENDING' ? `申请${status(data.status)}。` : data.currentStepId === stepId ? '投票已记录，等待本组其他参与人。' : '本节点已通过，已流转至下一审批人。'
+    notice.value = data.status !== 'PENDING' ? `申请${status(data.status)}。` : data.currentStepId === stepId ? '投票已记录，等待本组其他参与人。' : '当前节点已通过，等待下一节点审批。'
   } catch (e) { mutationFailure('decide') }
   finally { busy.value = false }
 }
@@ -143,7 +143,7 @@ onMounted(refresh)
       <el-tab-pane label="流程设计" name="process" />
     </el-tabs>
     <template v-if="tab === 'process'">
-      <el-alert title="有序阶段：开始 → 1–8 个单人 / ALL / ANY 节点 → 结束。分组同时开放投票，完成后进入下一阶段；发布仅影响新申请。" type="info" :closable="false" class="message" />
+      <el-alert title="流程包含 1–8 个审批节点，每个节点可选择单人、全员同意（ALL）或任一同意（ANY）。同一节点的参与人可以同时审批，通过后进入下一节点。发布的新版本只用于新申请。" type="info" :closable="false" class="message" />
       <el-alert v-if="stale" title="草稿版本已过期或发布结果未确认。请刷新后重置草稿，再重新应用需要的修改。" type="warning" :closable="false" class="message" />
       <el-card v-if="draft" shadow="never">
         <el-form label-width="100px" :disabled="locked || !me?.canPublish">
@@ -185,7 +185,7 @@ onMounted(refresh)
       <el-col :xs="24" :lg="14">
         <el-card v-if="tab === 'mine'" v-hasPermi="['arcflow:request:submit']" shadow="never" class="message">
           <template #header>提交请假申请</template>
-          <el-alert v-if="selfAssigned" title="当前流程包含由您审批的节点，不能提交由自己审批的申请。" type="warning" :closable="false" class="message" />
+          <el-alert v-if="selfAssigned" title="当前流程中有需要你审批的节点，因此你不能提交这份申请。" type="warning" :closable="false" class="message" />
           <el-form label-width="80px" :disabled="locked || selfAssigned" @submit.prevent="submit">
             <el-form-item label="标题" required><el-input v-model="title" maxlength="120" show-word-limit /></el-form-item>
             <el-form-item label="天数" required><el-input-number v-model="days" :min="1" :max="365" :precision="0" /></el-form-item>
