@@ -128,7 +128,11 @@ public class ApprovalService implements AutoCloseable {
 
     public List<Request> list(String actor) {
         requirePerson(actor);
-        try { return store.requests().stream().filter(r -> visibleTo(r, actor)).toList(); }
+        try {
+            var requests = store.requests();
+            requirePerson(actor); // A directory revocation during I/O must not release request data.
+            return requests.stream().filter(r -> visibleTo(r, actor)).toList();
+        }
         catch (IOException e) { throw new UncheckedIOException("Cannot read approval requests", e); }
     }
 
@@ -262,6 +266,7 @@ public class ApprovalService implements AutoCloseable {
         for (int attempt = 0; attempt <= maxWriteAttempts; attempt++) {
             requirePerson(actor);
             Request old = id == null ? null : store.request(id);
+            requirePerson(actor); // Reauthorize after I/O before returning a replay or attempting a write.
             // Conceal existence from unrelated users, then authorize this exact snapshotted step before replay lookup.
             if (old == null || !visibleTo(old, actor))
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Request not found");
