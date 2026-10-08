@@ -47,14 +47,16 @@ The leave demo is the starting point for applying approvals to other business ta
 
 The quote case uses synthetic customer data and fixed sales-manager → finance human review through a separate `/api/crm` service and `/quote-discount.html` page. The shared standalone, RuoYi and H5 workspaces do not support quotes yet. AI features, a real CRM connection, customer notifications and business writeback aren't implemented. See [CRM compatibility and release gates](docs/CRM_COMPATIBILITY_READINESS.md) for verification status.
 
+### See the cases
+
+| OA · Leave | ERP · Procurement | CRM · Quote discount |
+| --- | --- | --- |
+| [![Leave form with a published two-step approval sequence](docs/images/cases/oa-leave-form-en-caece22.png)](docs/CASE_GALLERY.md#oa) | [![Procurement review with exact amounts and a saved business snapshot](docs/images/cases/erp-procurement-review-en-caece22.png)](docs/CASE_GALLERY.md#erp) | [![Approved synthetic quote with its saved revision and 15% discount](docs/images/cases/crm-quote-approved-en-878a565.png)](docs/CASE_GALLERY.md#crm) |
+| Enter the duration and reason. | Check the quantity, unit price and total. | Review a quote through two fixed human steps. |
+
+Actual running-app captures with synthetic data. [Open the gallery](docs/CASE_GALLERY.md) for full-size images, the designer, RuoYi and H5. [Capture versions and sources](docs/CASE_GALLERY.md#provenance).
+
 ## Design and review
-
-| Vue designer | Approvals inside RuoYi |
-| --- | --- |
-| [![Approval steps and participant settings in the Vue designer](docs/images/designer-desktop-836e605.png)](docs/images/designer-desktop-836e605.png) | [![Approval configuration inside RuoYi's native navigation](docs/images/ruoyi-native-process-editor.png)](docs/images/ruoyi-native-process-editor.png) |
-| Choose the steps, reviewers and completion rules. [More screenshots](docs/DESIGNER_SHOWCASE.md#english) | Use RuoYi's login, users, menus and permissions. [Setup guide](examples/ruoyi-vue3/README.md) |
-
-These images show earlier versions. Click for the originals; capture versions and sources are listed in the [designer gallery](docs/DESIGNER_SHOWCASE.md#english) and [RuoYi gallery](docs/RUOYI_SHOWCASE.md#english).
 
 - **Single reviewers, ALL and ANY groups.** A process has 1–8 steps. ALL requires everyone's approval and rejects on the first rejection. ANY passes on the first approval and rejects only when everyone rejects.
 - **A saved process for each request.** Publishing a new version doesn't reroute requests already submitted.
