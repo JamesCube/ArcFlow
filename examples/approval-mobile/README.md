@@ -1,42 +1,46 @@
 # ArcFlow mobile approval client / 移动审批
 
-A bounded **uni-app Vue 3, H5-first** local demonstration on the existing
-standalone Spring approval backend. It is separate from the desktop authoring
-UI and from the unmerged visual redesign. Base: **549e8da**.
+A **uni-app Vue 3, H5-first** client for reviewing approvals on the standalone
+Spring backend. Use the desktop UI to create requests and edit processes, then
+use this client to review them. The initial implementation was based on
+**549e8da**; its verification records keep that baseline.
 
-本片交付真实后端驱动的移动审批工作台：待办 → 详情 → 同意/驳回及审批意见 →
-不可改写的历史记录 → 我已处理。页面文案支持中文、英文；服务端保存的流程名、
-申请内容和人名保持原文。没有伪造的业务 KPI、预置业务数据或假成功状态。
+这个移动端示例连接实际后端，可以查看待办和详情、填写审批意见、同意或驳回申请，
+再查看不可改写的历史记录和自己已处理的事项。界面支持中英文切换；流程名、申请内容和人名
+保留原文。列表和处理结果都来自服务端，没有预置业务数据或模拟成功状态。
 
 ## Scope / 边界
 
-- Real `/api/me`, `/api/people`, `/api/requests` and decision endpoints; Basic
+- Uses `/api/me`, `/api/people`, `/api/requests` and the decision endpoints; Basic
   credentials remain in page memory only. Reload requires sign-in again and
   preserves an opaque `?task=<id>` deep link. No default password.
-- Alice, Bob and Carol are explicitly labelled **demo identities**, not SSO.
-  Every actor, visibility check, step authorization, vote and audit event remains
-  authoritative on the server. UI action hints never grant permissions.
+- Alice, Bob and Carol are labelled **demo identities**. The server checks who
+  is signed in, which requests they can see and which steps they can decide. It
+  records the votes and history. UI hints do not grant permissions, and this
+  client does not provide SSO.
 - Server definition snapshots drive read-only sequential/ALL/ANY summaries.
   My decisions includes a participant's completed vote even while the overall
   request remains pending. A decision note is part of the vote, **not** a chat or
   standalone comment endpoint.
-- No mobile authoring or submission in this first slice. Create synthetic leave
+- Mobile authoring and submission are not supported. Create synthetic leave
   requests and publish processes in the existing desktop UI before reviewing
   them here. There are no attachment, pagination, due-date or tenant fields in
-  the existing API; none are fabricated. This demo's API returns the full visible
-  list; production pagination remains a backend project.
-- Browser, Feishu, WeCom and DingTalk adapter boundaries are present. All enterprise
-  identity and notification capabilities fail closed. `?host=feishu-web`,
+  the existing API; the UI does not add placeholders for them. The API returns
+  the full visible list. Pagination would need backend support.
+- The platform interfaces include browser, Feishu, WeCom and DingTalk adapters.
+  Enterprise identity and notifications remain unconfigured and reject use.
+  `?host=feishu-web`,
   `?host=wecom-web`, `?host=dingtalk-web` and unknown host values show an
   unconfigured page, **never** a fallback demo identity. No OAuth exchange,
   provider SDK, app, account, callback endpoint, actual notification or platform
-  integration has been created. Identity key design preserves provider/tenant/
-  application/subject scope; it does not prove a platform identity.
+  integration has been created. Identity keys keep provider, tenant, application
+  and subject scopes separate; they have not been connected to or verified by
+  a platform.
 - H5-native accessible button/input/textarea/label adapters live under
   `src/platform/h5-components.ts`. They intentionally avoid uni-H5's non-native
   keyboard/button and field-label behavior. App and mini-program controls,
-  transport/navigation adapters and builds require separate implementation and
-  acceptance. **No Android/iOS/mini-program build or device testing is claimed.**
+  transport/navigation adapters and builds still need to be implemented and
+  tested. **No Android/iOS/mini-program build or device testing is claimed.**
 
 ## Run locally / 本地运行
 
@@ -79,9 +83,10 @@ Origin values. Its mandatory write header remains `X-Arcflow-Client: approval-de
 
 For initial request creation via the existing desktop UI, run that UI on port
 5174 instead of this mobile server so its origin is the same, create synthetic
-requests as Alice, stop it, then start the mobile client (`npm run dev -- --port 5174` in the desktop UI selects that port). Never run two frontends
-on the same port simultaneously. A production multi-client origin policy is not
-introduced by this slice.
+requests as Alice, stop it, then start the mobile client. In the desktop UI,
+`npm run dev -- --port 5174` selects that port. Never run two frontends on the same
+port simultaneously. Supporting several frontend origins in production would
+require a separate backend policy.
 
 The compiler launcher uses upstream's CI mode to skip optional update/usage
 reporting and machine-identifier collection; app statistics are disabled.
@@ -96,9 +101,10 @@ npm run build:h5
 python3 examples/approval-mobile/scripts/verify-http.py
 ```
 
-See [HTTP_VERIFICATION.md](HTTP_VERIFICATION.md) for the executed real backend
-checks, [REVIEW.md](REVIEW.md) for independent review, and
-[ACCEPTANCE.md](ACCEPTANCE.md) for exact passed/unrun stages and dependency risk.
+See [HTTP_VERIFICATION.md](HTTP_VERIFICATION.md) for the backend test results,
+[REVIEW.md](REVIEW.md) for the independent review, and
+[ACCEPTANCE.md](ACCEPTANCE.md) for what passed, what is still untested and the
+remaining dependency risks.
 The HTTP harness creates its own isolated store and ephemeral test credentials;
 never point tests at personnel data. No credentials or data store are bundled.
 
@@ -106,25 +112,27 @@ never point tests at personnel data. No credentials or data store are bundled.
 
 - `src/domain/api.ts`: same-origin, allowlisted endpoint transport; sanitized
   error codes and explicit in-memory authorization.
-- `src/domain/model.ts`: pure display projection. Exhaustive reference tests
-  cover 2,304 reachable mixed three-stage states.
-- `src/domain/workspace.ts`: refresh generations, auth epochs, no optimistic
-  success, duplicate-click lock, frozen request/step/decision confirmation and
-  reconciliation after uncertain writes. Old responses cannot restore a signed
-  out identity; an old note cannot be applied to a later step.
-- `src/platform/*`: explicit H5 runtime boundaries and fail-closed enterprise
-  capability declarations. The query selector is an experience hint only.
-- `src/components/Workspace.vue`: task-focused, single-column mobile experience;
+- `src/domain/model.ts`: converts server data into display state. Exhaustive
+  reference tests cover 2,304 reachable mixed three-stage states.
+- `src/domain/workspace.ts`: tracks refresh and sign-in generations, waits for
+  server-confirmed success, blocks duplicate clicks, locks confirmation to its
+  original request/step/decision and checks the saved state after uncertain
+  writes. Old responses cannot restore a signed-out identity; an old note
+  cannot be applied to a later step.
+- `src/platform/*`: H5 adapters and unconfigured enterprise adapters. The host
+  query parameter selects a UI experience; it does not establish an identity.
+- `src/components/Workspace.vue`: single-column task screen with a
   read-only process path, immutable history, safe-area dock, keyboard-native
   controls and decision-sheet focus handling.
 
-本片没有多租户能力，不会将单租户演示的 404 掩蔽测试写成跨租户隔离验收。
-后续生产身份、租户权限、分页、浏览器/真机视觉验收和各平台联调须分别完成。
+这个示例不支持多租户。无权访问时返回 404 的测试，只覆盖当前单租户示例，
+不能说明不同租户之间已经隔离。生产身份认证、租户权限、分页、浏览器和真机测试，
+以及各平台接入，都还需要单独完成。
 
 ## Dependency note / 依赖说明
 
 The lockfile includes tested security overrides for the upstream uni compiler
-(Vite 6.4.3, Vitest 4.1.11 and selected transitive patches). The final audit still
-has 8 high, 4 moderate and 12 low affected package entries, no critical entry.
-See ACCEPTANCE.md before running or exposing any toolchain. This is a local
-verification slice; production readiness has not been established.
+(Vite 6.4.3, Vitest 4.1.11 and selected transitive patches). The audit recorded in
+ACCEPTANCE.md found 8 high, 4 moderate and 12 low affected package entries, with no critical entry. Read that record before running the
+toolchain, and check the current dependencies again before any deployment. Keep
+this demo local; it has not been verified for production use.

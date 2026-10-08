@@ -1,10 +1,10 @@
 # ArcFlow local tryout
 
-A single terminal starts the standalone Vue approval designer and Spring Boot demo backend. This is a **source tryout**, not a prebuilt application or production release. It builds the Java core, shared approval domain, backend and UI locally. Use synthetic data on localhost only.
+Run the standalone Vue approval designer and Spring Boot backend from one terminal. The launcher builds the Java core, shared approval domain, backend and UI from source. You’ll need the tools below; the bundle does not include a prebuilt app. This demo is for localhost and test data only.
 
-The launcher does not start RuoYi, MySQL or Redis. The RuoYi integration remains a separate example with its own prerequisites and setup.
+RuoYi has a separate example and setup guide. This launcher starts only the standalone app, without RuoYi, MySQL or Redis.
 
-For the [current designer gallery](DESIGNER_SHOWCASE.md), use `main` or verified source `e1ee9c6bdb971949c4f8746fe88b9ff49e6d4c36`. The existing `v0.1.0-alpha.1` source archives are the older sequential snapshot and do not contain the Chinese-first workbench, ALL/ANY groups or JDBC adapter.
+To try the designer shown in the [screenshots](DESIGNER_SHOWCASE.md), use `main` or tested commit `e1ee9c6bdb971949c4f8746fe88b9ff49e6d4c36`. The older `v0.1.0-alpha.1` source archives contain the earlier sequential demo, without the Chinese-first workbench, ALL/ANY groups or JDBC adapter.
 
 ## Requirements
 
@@ -16,7 +16,7 @@ For the [current designer gallery](DESIGNER_SHOWCASE.md), use `main` or verified
 - Network access for the initial Maven/npm dependency downloads and a writable checkout, Maven local repository and npm cache.
 - Two available loopback ports, defaulting to backend `8080` and UI `5173`.
 
-The launcher checks installed tools and reports actionable errors. It does not install Python, Java, Maven or Node, require administrator privileges, or download a RuoYi checkout. Maven dependencies and `npm ci` are ordinary application dependency downloads, not bundled offline dependencies. `npm ci` uses the committed lockfile and runs package install scripts as part of normal npm installation.
+The launcher checks the installed tools and tells you what needs fixing. It does not install Python, Java, Maven or Node, and needs no administrator privileges. It also leaves RuoYi setup to you. Maven and npm download application dependencies, so the first build needs network access. `npm ci` uses the committed lockfile and runs the packages’ install scripts.
 
 ## Start from a checkout or extracted source bundle
 
@@ -32,7 +32,7 @@ python3 scripts/tryout.py
 
 Keep that terminal open. The first build can take several minutes while dependencies download. Wait for the launcher's ready message, then open the exact UI URL it prints. The default UI address is `http://127.0.0.1:5173` and the default backend address is `http://127.0.0.1:8080`.
 
-The launcher creates three unique demo passwords in a private temporary `credentials.json` file and prints its local path. Open that file in a local text editor to find the passwords for `alice`, `bob` and `carol`. There are no shared/default passwords. Treat that file and its contents as local secrets; do not paste them into issues, chat, screenshots or source control. These are generated accounts for this disposable run only.
+The launcher generates a different password for `alice`, `bob` and `carol`, writes them to a private temporary `credentials.json` file, and prints its path. Open the file in a local text editor. These passwords work only for this run; there are no shared or default passwords. Keep the file private and leave its contents out of issues, chat, screenshots and source control.
 
 Custom ports or an existing Maven installation:
 
@@ -42,34 +42,34 @@ python3 scripts/tryout.py --maven /absolute/path/to/maven/bin/mvn
 python3 scripts/tryout.py --help
 ```
 
-Use the printed URL rather than substituting a different hostname or port: the backend's allowed UI origin and UI proxy are configured together. Both applications bind to loopback. Port conflicts fail instead of silently choosing another port.
+Open the printed URL exactly as shown. The launcher configures the backend’s allowed UI origin and the UI proxy together, so changing only the hostname or port can break requests. Both applications bind to loopback. If a port is busy, the launcher stops and reports it.
 
 ## What to try
 
-1. Sign in as `alice` with the generated Alice password. Open **Process designer**, assign the first approval to Bob, add a second approval assigned to Carol, then choose **发布流程** (or **Publish template** after switching the designer to English) to publish the Bob → Carol sequence.
+1. Sign in as `alice` with the generated Alice password. Open **Process designer**, assign the first approval to Bob, add a second approval assigned to Carol, then choose **Publish template** (**发布流程** in Chinese) to publish the Bob → Carol sequence.
 2. Submit a request with a synthetic title/reason and `1` day.
 3. Sign out and sign in as `bob`. Open **Needs my review** and approve the current step. The request remains pending and advances to Carol.
 4. Sign out and sign in as `carol`. Approve the final step. Sign back in as Alice to inspect the approved status, saved process definition and ordered activity history.
 5. Publish a different sequence and compare an existing request: its stored definition keeps the original version.
 
-To try groups, select a stage and choose **全员同意（ALL）** or **任一同意（ANY）**, keeping Bob and Carol selected. ALL requires both approvals and any rejection ends the request; ANY advances on one approval and rejects only after both reject. Publish, then submit a new synthetic request. These are fixed-participant stages in an ordered sequence, not conditional graph branches.
+To try groups, select a stage and choose **全员同意（ALL）** or **任一同意（ANY）**, keeping Bob and Carol selected. ALL needs both approvals, and either person can reject the request. ANY advances on one approval and rejects only after both reject. Publish, then submit a new test request. Participants are fixed for that request, and the stages still run in order.
 
-A fresh store initially has one Bob approval. Alice alone can publish. For the single-reviewer journey above, only the current assigned approver can make the next decision and a rejection is terminal. See [the sequential contract](SEQUENTIAL_APPROVAL.md) for exact behavior.
+A fresh store starts with one approval step assigned to Bob. Only Alice can publish. In the single-reviewer flow above, only the current assignee can decide the next step, and a rejection ends the request. See the [sequential contract](SEQUENTIAL_APPROVAL.md) for the full rules.
 
 ## Readiness and stopping
 
-- `--check` is a prerequisite check. It does not prove that dependency downloads, builds, application startup or browser interactions will succeed.
-- A successful build alone is not readiness. Wait until the launcher verifies the backend's authenticated API and the UI's HTTP response, then reports ready.
-- The manual journey above is the user-visible smoke test. A ready message is not a claim that the full test suite or browser tests have run.
+- `--check` checks prerequisites only. Dependency downloads, builds, startup and browser interactions can still fail.
+- Wait for the ready message after the build. The launcher first checks the backend’s authenticated API and the UI’s HTTP response.
+- Try the steps above to check the app in your browser. The ready message does not mean the full test suite or browser tests have run.
 - Press **Ctrl-C in the launching terminal** to stop both application processes and delete the private temporary credentials, runtime data and logs. Each new run starts with new credentials and a fresh, empty request store. The published process and requests from the previous tryout do not survive normal shutdown.
 - Build outputs, installed `node_modules`, the Maven local repository and npm cache remain available for later builds. They do not contain the tryout's generated password file or approval store.
 - A forced kill, OS crash or power loss can prevent cleanup. If that occurs, stop any remaining application processes, then remove the private temporary runtime directory whose location the launcher printed. Never expose that directory or use real employee, leave or health data in this demo.
 
-For intentionally retained data and normal restart testing, use the explicit manual setup in [Getting started](GETTING_STARTED.md#english) and the [backend instructions](../examples/approval-demo/backend/README.md). The disposable launcher intentionally does not offer data retention.
+To keep your data or test a normal restart, use the manual setup in [Getting started](GETTING_STARTED.md#english) and the [backend instructions](../examples/approval-demo/backend/README.md). The launcher always uses disposable data.
 
 ## Build a versioned source bundle
 
-Maintainers need Python 3.9+ and Git to produce a bundle from a committed checkout. Running the extracted bundle does not require Git.
+To package a committed version, you need Python 3.9+ and Git. People running the extracted bundle do not need Git.
 
 ```sh
 # Commit the intended sources before packaging HEAD.
@@ -90,7 +90,7 @@ arcflow-tryout-VERSION-COMMIT12-source.tar.gz.sha256
 
 The packager uses `git archive`, applies explicit exclusions, normalizes tar ownership/permissions/timestamps and fixes the gzip timestamp. Repeated packaging of the same commit with the same packaging implementation and Python/zlib toolchain produces identical bytes and SHA-256 checksums; output-directory names and the current wall clock do not enter the archive. Compression output can vary across zlib implementations, so record the toolchain if reproducing a published checksum on another machine. Symlinks and other unsupported archive entries are rejected rather than dereferenced.
 
-The source bundle includes the project's committed code, tests, docs, license and npm lockfile, including the separate RuoYi overlay source. It excludes `.git`, private `.env` files, runtime/data directories, generated build/test output, installed dependencies and disposable RuoYi upstream checkouts. It contains no prebuilt JAR, installed runtime, dependency cache, generated credentials or persisted approval data. A `SNAPSHOT` source version remains a snapshot; packaging does not promote it to a release or prove CI passed for that commit.
+The source bundle includes the project's committed code, tests, docs, license and npm lockfile, including the separate RuoYi overlay source. It excludes `.git`, private `.env` files, runtime/data directories, generated build/test output, installed dependencies and disposable RuoYi upstream checkouts. It contains no prebuilt JAR, installed runtime, dependency cache, generated credentials or persisted approval data. Packaging a `SNAPSHOT` version leaves it a snapshot. Release status and CI results must be checked separately.
 
 ### Verify and extract
 
@@ -110,11 +110,11 @@ python3 scripts/tryout.py --check
 python3 scripts/tryout.py
 ```
 
-Compare checksums obtained through a trusted source. A checksum detects byte changes; it is not a signature or proof of publisher identity. The packaging script cannot recreate a bundle from an extracted source directory because it deliberately contains no Git database; use the source repository and the full commit recorded in `TRYOUT_BUNDLE.json`.
+Get the expected checksum from a trusted source. It detects changed bytes but does not identify the publisher or replace a signature. To recreate a bundle, use the source repository and the full commit in `TRYOUT_BUNDLE.json`. The extracted directory has no Git database and cannot be repackaged by this script.
 
 ## Release-candidate checklist
 
-This checklist describes verification to perform; it is not a record of tests already passed. Run it against the exact committed candidate, with a clean tracked working tree and the documented toolchain:
+Before publishing a candidate, run the checks below against its exact commit with a clean tracked working tree and the documented tools. This is a checklist, not a test-results record:
 
 ```sh
 # Launcher and packaging regression checks.
@@ -134,8 +134,8 @@ python3 scripts/package-tryout.py --output-dir /tmp/arcflow-rc-two
 
 - Confirm the two archive SHA-256 values printed by the packaging commands match. Use new/empty output directories so old bundles do not obscure the result.
 - Verify the sidecar checksum, extract one archive into a new directory, and run `python3 scripts/tryout.py --check` followed by `python3 scripts/tryout.py` from that extracted root. Complete the Bob → Carol journey above and verify Ctrl-C stops both services and removes that run's private runtime directory.
-- Require the existing Java, approval-demo and browser journey CI checks to be green for the **same full commit** recorded in `TRYOUT_BUNDLE.json`. Inspect the actual jobs; a badge for `main`, successful compilation or launcher readiness alone is insufficient browser evidence.
-- Record the OS/tool versions, full commit and checksum with the candidate. State any checks that failed or were not run. A passing checklist does not change the experimental/local-only boundary.
+- Check that the Java, approval-demo and browser CI jobs passed for the **same full commit** listed in `TRYOUT_BUNDLE.json`. Open the jobs themselves: the `main` badge, a successful build or the launcher’s ready message does not verify browser behavior.
+- Record the OS and tool versions, full commit, checksum, and any failed or skipped checks. The demo remains experimental and local-only even when these checks pass.
 
 ## Troubleshooting and boundaries
 
@@ -144,6 +144,6 @@ python3 scripts/package-tryout.py --output-dir /tmp/arcflow-rc-two
 - **Dependency download/build fails:** inspect the reported error. Confirm access to your configured Maven/npm registries and correct proxy settings, then rerun. An extracted source bundle is not an offline installer. Never bypass TLS verification to fetch dependencies.
 - **Browser authentication fails:** use the credentials file for the current run and the exact printed URL. A password from a previous run will not work.
 - **Unexpected request result after a network interruption:** retry the unchanged form with its retained idempotency key. Page reload or logout loses that client key; inspect the request list before a new submission. See [durable retry boundaries](SUBMISSION_IDEMPOTENCY.md).
-- **Need production deployment:** this is not a supported deployment package. It uses demo identities and a single-writer local JSON store, and the backend's pinned Spring Boot 3 baseline has known support limitations described in its README. No production security, clustered persistence, RuoYi runtime, conditional/parallel approvals, timers or BPMN compatibility is promised.
+- **Need production deployment:** this package is intended for local trials. It uses demo identities and a single-writer JSON file, and the backend’s README describes the support limits of its pinned Spring Boot 3 baseline. Production security and clustered persistence have not been validated. The launcher does not include RuoYi, and the demo has no conditional routing, timers or BPMN compatibility. Single-reviewer and fixed-participant ALL/ANY stages are supported.
 
 For a useful bug report, include the manifest's full commit (or checkout commit), OS, Python/Java/Maven/Node versions, command, error and expected result. Remove credentials and real personal information before sharing any log.

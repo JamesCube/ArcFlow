@@ -1,4 +1,4 @@
-# First approval / 第一笔审批
+# First approval / 第一次审批
 
 [English](#english) · [简体中文](#简体中文) · [Repository home](../README.md)
 
@@ -6,11 +6,42 @@
 
 ### 1. Start the standalone demo
 
-Use the commands in the [English README](../README.en.md#try-one-leave-approval). They install the core and shared domain, start the API on `127.0.0.1:8080`, and start the Vue UI at **http://localhost:5173**. Keep both terminals running.
+These steps start the demo in two terminals and keep its data between runs. For a temporary demo that cleans up when you stop it, use the [one-command launcher](TRYOUT.md).
 
-Requirements: Git, Bash, a full JDK 17+, Maven 3.9+, Node 22.22.2 or later within 22.x, and npm. Supported alternatives for the standalone UI are Node 24.15+ within 24.x or Node 26+, as declared in its [package.json](../examples/approval-ui/package.json). You do not need MySQL, Redis or a RuoYi installation for this path.
+Requirements: Git, Bash, a full JDK 17+, Maven 3.9+, Node 22.22.2 or later within 22.x, and npm. Supported alternatives for the standalone UI are Node 24.15+ within 24.x or Node 26+, as declared in its [package.json](../examples/approval-ui/package.json). This setup needs no MySQL, Redis or RuoYi installation.
 
-Use a fresh private data path and three different demo-only passwords of at least 12 characters. Do not enter real leave, health or personnel information. The initial published process is **Alice submits → Bob reviews → complete**.
+Choose a new private data path and three different demo-only passwords, each at least 12 characters long. Use test data instead of real leave, health or personnel information. A fresh store starts with **Alice submits → Bob reviews → complete**.
+
+In terminal 1:
+
+```bash
+git clone https://github.com/JamesCube/ArcFlow.git
+cd ArcFlow
+mvn install
+mvn -f examples/approval-domain/pom.xml install
+
+# Private local demo state; reuse this absolute path when restarting.
+umask 077
+mkdir -p "$PWD/examples/approval-demo/backend/data"
+export APPROVAL_DATA_FILE="$PWD/examples/approval-demo/backend/data/requests.json"
+
+# Choose three different demo-only passwords, each at least 12 characters.
+read -rs -p 'Alice demo password: ' APPROVAL_ALICE_PASSWORD; echo
+read -rs -p 'Bob demo password: ' APPROVAL_BOB_PASSWORD; echo
+read -rs -p 'Carol demo password: ' APPROVAL_CAROL_PASSWORD; echo
+export APPROVAL_ALICE_PASSWORD APPROVAL_BOB_PASSWORD APPROVAL_CAROL_PASSWORD
+mvn -f examples/approval-demo/backend/pom.xml spring-boot:run
+```
+
+In terminal 2, from the same repository root:
+
+```bash
+cd examples/approval-ui
+npm ci
+npm run dev
+```
+
+Keep both terminals running. Open [http://localhost:5173](http://localhost:5173) after the backend and UI are ready.
 
 ### 2. Complete a request
 
@@ -19,23 +50,23 @@ Use a fresh private data path and three different demo-only passwords of at leas
 3. Sign out. Choose **Bob · approver** and use Bob's password. Open **Needs my review**, select the request, and approve it.
 4. Sign back in as Alice. Open the request in **Requests**. Expect **approved**, the saved one-step definition, and submission/approval activity.
 
-The demo has no public server or shared credentials. Signing out clears the UI's in-memory credentials. Reloading the page requires signing in again.
+The demo runs locally with the passwords you configure. Credentials stay in page memory and are cleared when you sign out or reload, so you’ll need to sign in again.
 
 ### 3. Try the designer
 
-As Alice, open **Process designer**. Keep Bob as the first approver, add Carol as the second, and publish. You can name, remove and reorder 1–8 approval steps. Submit a **new** request, then:
+As Alice, open **Process designer**, keep Bob as the first approver, add Carol as the second, and publish. You can add, name, remove and reorder 1–8 approval steps. Submit a **new** request, then try the two steps:
 
 - Bob approves the first step: the request remains **pending**, now assigned to Carol.
 - Carol approves the final step: it becomes **approved**. Rejecting a current step ends it as **rejected**.
 - The earlier request keeps its original one-step snapshot. Publishing never changes a running or completed request.
 
-Only Alice can publish in this demo. Bob and Carol cannot skip ahead or decide another person's step. Unsaved designer edits are lost on sign-out or page reload; publish before leaving. A stale version requires refresh, review, reset and reapplication of your draft.
+Only Alice can publish. Bob and Carol can decide only their current step. Signing out or reloading the page loses unpublished edits, so publish before leaving. If another publication makes your draft stale, refresh, review the new version, reset your draft and reapply the changes you still want.
 
 ### 4. Check restart persistence
 
 Stop the backend with Ctrl+C, then rerun its `spring-boot:run` command in the same terminal, keeping the same `APPROVAL_DATA_FILE` and password variables. Sign in again and verify that the published process, requests and history remain. A pending request should continue at the same step.
 
-If you open a new terminal, set the passwords again and set `APPROVAL_DATA_FILE` to the **same absolute path** before starting. Do not run two backends against one data file. This is a local single-writer snapshot, not a clustered database or a power-loss guarantee.
+If you open a new terminal, set the passwords again and set `APPROVAL_DATA_FILE` to the **same absolute path** before starting. Do not run two backends against one data file. The file store supports one local writer. It has no clustering or power-loss durability guarantee.
 
 ### Troubleshooting
 
@@ -51,44 +82,75 @@ If you open a new terminal, set the passwords again and set `APPROVAL_DATA_FILE`
 
 ### Next steps
 
-- For real RuoYi users, login, menu routes and role permissions, follow the [official upstream overlay guide](../examples/ruoyi-vue3/README.md). It requires disposable local MySQL/Redis and extra setup; approval data still remains in a JSON file.
-- For API details, tests and security/persistence limits, read the [backend guide](../examples/approval-demo/backend/README.md), [UI guide](../examples/approval-ui/README.md) and [sequential contract](SEQUENTIAL_APPROVAL.md).
+- To use RuoYi’s users, login, menus and role permissions, follow the [official upstream overlay guide](../examples/ruoyi-vue3/README.md). It needs disposable local MySQL/Redis and additional setup. Approval data still goes into a JSON file.
+- The [backend guide](../examples/approval-demo/backend/README.md), [UI guide](../examples/approval-ui/README.md) and [sequential contract](SEQUENTIAL_APPROVAL.md) explain the APIs, tests, security and storage limits.
 - To run the non-browser standalone checks: `mvn verify`, `bash scripts/test.sh`, `mvn install`, `mvn -f examples/approval-domain/pom.xml install`, `mvn -f examples/approval-demo/backend/pom.xml verify`, then `(cd examples/approval-ui && npm ci && npm test && npm run build)` from the repository root. The root build alone does not test the examples. For the actual Chromium journey, see [real-browser first-run checks](../examples/approval-ui/README.md#real-browser-first-run-check).
 
 ## 简体中文
 
 ### 1. 启动独立演示
 
-执行 [中文 README](../README.md#先完成一笔请假审批) 中的命令：先安装内核与共享领域库，再启动 `127.0.0.1:8080` 上的 API 和 **http://localhost:5173** 上的 Vue 界面。两个终端都保持运行。
+下面分两个终端启动演示，停止后保留数据。如果只想临时试用、结束后删除数据，可以用[一键启动脚本](TRYOUT.md)。
 
-需要 Git、Bash、完整 JDK 17+、Maven 3.9+、Node 22.22.2 或更高的 22.x 版本及 npm。独立界面也接受 24.15+ 的 Node 24.x 或 Node 26+，以 [package.json](../examples/approval-ui/package.json) 为准。此路径不需要 MySQL、Redis 或若依。
+需要 Git、Bash、完整 JDK 17+、Maven 3.9+、Node 22.22.2 或更高的 22.x 版本及 npm。独立界面也接受 24.15+ 的 Node 24.x 或 Node 26+，以 [package.json](../examples/approval-ui/package.json) 为准。这套启动方式不需要 MySQL、Redis 或若依。
 
-使用全新的私有数据路径，设置三个不同的、至少 12 个字符的演示专用密码。不要输入真实请假、健康或人员信息。初始已发布流程为 **Alice 发起 → Bob 审批 → 完成**。
+选择一个新的私有数据路径，设置三个不同的演示专用密码，每个至少 12 个字符。请使用测试数据，不要输入真实请假、健康或人员信息。初始流程为 **Alice 发起 → Bob 审批 → 完成**。
 
-### 2. 完成一笔申请
+在终端 1 运行：
+
+```bash
+git clone https://github.com/JamesCube/ArcFlow.git
+cd ArcFlow
+mvn install
+mvn -f examples/approval-domain/pom.xml install
+
+# 私有本地演示数据；重启时复用这个绝对路径。
+umask 077
+mkdir -p "$PWD/examples/approval-demo/backend/data"
+export APPROVAL_DATA_FILE="$PWD/examples/approval-demo/backend/data/requests.json"
+
+# 设置三个不同的、至少 12 个字符的演示专用密码。
+read -rs -p 'Alice demo password: ' APPROVAL_ALICE_PASSWORD; echo
+read -rs -p 'Bob demo password: ' APPROVAL_BOB_PASSWORD; echo
+read -rs -p 'Carol demo password: ' APPROVAL_CAROL_PASSWORD; echo
+export APPROVAL_ALICE_PASSWORD APPROVAL_BOB_PASSWORD APPROVAL_CAROL_PASSWORD
+mvn -f examples/approval-demo/backend/pom.xml spring-boot:run
+```
+
+在终端 2，从同一个仓库根目录运行：
+
+```bash
+cd examples/approval-ui
+npm ci
+npm run dev
+```
+
+保持两个终端运行。后端和界面都启动后，打开 [http://localhost:5173](http://localhost:5173)。
+
+### 2. 完成一次审批
 
 1. 打开界面，选择 **Alice · process designer**，输入配置的 Alice 密码，点击 **Enter workspace →**。
 2. 提交标题 `Demo leave`、原因 `Synthetic test`、天数 `1`。应显示 **pending**，当前审批人为 Bob。
 3. 退出登录，选择 **Bob · approver**，输入 Bob 密码。打开 **Needs my review**，选中申请并同意。
 4. 重新登录 Alice，在 **Requests** 中打开申请。应显示 **approved**，可查看原始单步骤流程快照与提交、审批记录。
 
-没有公共演示服务器或共享密码。退出登录会清除界面内存中的凭据；刷新页面后需要重新登录。
+演示在本地运行，使用你自己配置的密码。凭据只保存在页面内存中，退出登录或刷新页面后都会清除，需要重新登录。
 
 ### 3. 体验顺序设计器
 
-以 Alice 打开 **Process designer**，保留 Bob 为第一位审批人，新增 Carol 作为第二位审批人并发布。可为 1–8 个审批步骤命名、增删和排序。提交一笔**新**申请后：
+以 Alice 打开 **Process designer**，保留 Bob 为第一位审批人，新增 Carol 作为第二位审批人并发布。可为 1–8 个审批步骤命名、增删和排序。提交一份**新**申请后：
 
 - Bob 同意第一步：仍为 **pending**，当前审批人变为 Carol。
-- Carol 同意最后一步：变为 **approved**；当前步骤拒绝则直接进入 **rejected** 终态。
+- Carol 同意最后一步：变为 **approved**。如果当前步骤的审批人拒绝，申请就以 **rejected** 结束。
 - 原来的申请仍保留单步骤快照，后续发布不会改变运行中或已完成的申请。
 
-演示中只有 Alice 可以发布；Bob、Carol 不能越过前置步骤或替他人审批。未发布的草稿在退出或刷新页面后丢失，离开前请发布。版本冲突时需刷新、检查、重置并重新应用草稿修改。
+只有 Alice 可以发布流程。Bob 和 Carol 只能处理当前轮到自己的步骤。退出登录或刷新页面会丢失未发布的草稿，离开前请先发布。遇到版本冲突时，刷新并查看新版本，重置草稿后再重新添加需要保留的修改。
 
 ### 4. 验证重启恢复
 
 用 Ctrl+C 停止后端，在同一个终端重新运行后端 `spring-boot:run` 命令，保留原来的 `APPROVAL_DATA_FILE` 和密码变量。重新登录，检查流程、申请及历史仍在；未完成申请应停留在原步骤。
 
-如果换了新终端，请重新设置密码，并把 `APPROVAL_DATA_FILE` 指向**同一个绝对路径**。不要让两个后端同时使用一个文件。这只是本地单写者快照，不是集群数据库，也不提供断电持久性保证。
+如果换了新终端，请重新设置密码，并把 `APPROVAL_DATA_FILE` 指向**同一个绝对路径**。不要让两个后端同时使用一个文件。文件存储只支持一个本地写入进程，不支持集群，也不保证断电后的数据恢复。
 
 ### 常见问题
 
@@ -102,6 +164,6 @@ If you open a new terminal, set the passwords again and set `APPROVAL_DATA_FILE`
 
 ### 下一步
 
-需要真实若依用户、登录、菜单和角色权限时，查看 [官方上游参考集成](../examples/ruoyi-vue3/README.md)。该路径需要一次性的本地 MySQL / Redis 等额外配置；审批仍存储于 JSON 文件。
+需要真实若依用户、登录、菜单和角色权限时，查看 [官方上游参考集成](../examples/ruoyi-vue3/README.md)。需要额外准备可丢弃的本地 MySQL / Redis 测试环境；审批仍保存在 JSON 文件中。
 
-API、测试以及安全和持久化边界详见 [后端说明](../examples/approval-demo/backend/README.md)、[界面说明](../examples/approval-ui/README.md) 和 [顺序审批契约](SEQUENTIAL_APPROVAL.md)。非浏览器验证命令见本页英文部分；真实 Chromium 流程见[浏览器验证](../examples/approval-ui/README.md#real-browser-first-run-check)。仅在根目录运行 Maven 不会验证示例模块。
+API、测试、安全和存储限制详见 [后端说明](../examples/approval-demo/backend/README.md)、[界面说明](../examples/approval-ui/README.md) 和 [顺序审批契约](SEQUENTIAL_APPROVAL.md)。非浏览器验证命令见本页英文部分；真实 Chromium 流程见[浏览器验证](../examples/approval-ui/README.md#real-browser-first-run-check)。仅在根目录运行 Maven 不会验证示例模块。

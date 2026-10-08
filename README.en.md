@@ -1,180 +1,100 @@
 # ArcFlow
 
-A small Java DAG core, a runnable Vue single-reviewer / ALL / ANY approval designer, and a reference integration with the official RuoYi applications.
+Add approval flows to a Java application. Set up steps and reviewers in the Vue designer, then track each request with its original process version and decision history.
 
-[简体中文](README.md) · [First approval](docs/GETTING_STARTED.md#english) · [RuoYi setup](examples/ruoyi-vue3/README.md) · [Contributing](CONTRIBUTING.md)
+Start with the leave-request demo: submit a request, switch accounts to approve it, and check the result. The RuoYi example shows how to connect approvals to an existing application.
+
+[简体中文](README.md) · [Quick start](#quick-start) · [Business examples](#business-examples) · [RuoYi setup](examples/ruoyi-vue3/README.md) · [Docs](#docs-and-source)
 
 [![Java CI](https://github.com/JamesCube/ArcFlow/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/JamesCube/ArcFlow/actions/workflows/ci.yml)
 [![Approval demo CI](https://github.com/JamesCube/ArcFlow/actions/workflows/approval-demo.yml/badge.svg?branch=main)](https://github.com/JamesCube/ArcFlow/actions/workflows/approval-demo.yml)
 [![RuoYi integration](https://github.com/JamesCube/ArcFlow/actions/workflows/ruoyi-integration.yml/badge.svg?branch=main)](https://github.com/JamesCube/ArcFlow/actions/workflows/ruoyi-integration.yml)
 
-**Experimental, `0.1.0-SNAPSHOT`. APIs may change. Run the examples on localhost with synthetic data only; they are not production approval services.**
+<a id="try-one-leave-approval"></a>
+<a id="fast-local-tryout-one-terminal"></a>
 
-## Start with the designer: real desktop and mobile views
+## Quick start
 
-Insert at a connector, configure a single reviewer, ALL or ANY group in one inspector, then publish an executable approval sequence.
-
-[![ArcFlow Chinese-first designer with stage cards, an ANY participant inspector and publication state](docs/images/designer-desktop-836e605.png)](docs/DESIGNER_SHOWCASE.md#english)
-
-- **Design and run:** ordered stages support single reviewers or ALL/ANY groups; submitted requests retain their original definition snapshots.
-- **Focus on one stage:** connector insertion, one inspector and local undo/redo; narrow screens use a stacked layout.
-- **Choose persistence explicitly:** the standalone demo defaults to JSON; optional JDBC passed real MySQL **8.0.46 / 8.4.11 × Java 17 / 21** tests. [Exact evidence](examples/approval-jdbc/MYSQL_VERIFICATION.md#verified-server-acceptance-2026-10-05)
-
-[Desktop / 390px mobile gallery and evidence →](docs/DESIGNER_SHOWCASE.md#english) · [One-command local tryout →](#fast-local-tryout-one-terminal)
-
-Captured by [Chromium CI at `836e605`](https://github.com/JamesCube/ArcFlow/actions/runs/37257554086), whose source tree matches merged [`e1ee9c6`](https://github.com/JamesCube/ArcFlow/commit/e1ee9c6bdb971949c4f8746fe88b9ff49e6d4c36). Chinese-first labels cover the designer; the surrounding demo remains English. The current native RuoYi host also supports [ALL/ANY groups](examples/ruoyi-vue3/README.md#configure-and-vote-in-groups); the older RuoYi captures below show its sequential journey. Neither demo automatically switches to JDBC.
-
-## Open-source integration in action: RuoYi × ArcFlow
-
-Design, publish and complete a two-step approval inside the official RuoYi menu and permission system.
-
-[![ArcFlow two-step process editor inside the official RuoYi workspace](docs/images/ruoyi-native-process-editor.png)](docs/images/ruoyi-native-process-editor.png)
-
-**Native workspace · Process design.** RuoYi navigation surrounds the ArcFlow page. Team review → Final review uses assignees from RuoYi users. Actual Chromium capture with synthetic test accounts.
-
-[![Completed approval with its saved process snapshot and activity history inside RuoYi](docs/images/ruoyi-native-approved-history.png)](docs/images/ruoyi-native-approved-history.png)
-
-**Complete approval · Saved snapshot and history.** Both assigned reviewers have approved in order. The request retains its submitted v3 definition and step-by-step history. Click either image for the original 1440 px capture.
-
-[Explore the case and test evidence →](docs/RUOYI_SHOWCASE.md#english) · [Set up the pinned integration →](examples/ruoyi-vue3/README.md)
-
-Captured by the [native browser CI at `48f9b68`](https://github.com/JamesCube/ArcFlow/actions/runs/37091568795), not a concept mockup. RuoYi owns login, users, menus and permissions; ArcFlow owns approval definitions and state. This RuoYi example still uses single-writer local JSON approval persistence. This localhost, synthetic-data example is neither production-ready nor endorsed by upstream.
-
-## Choose your starting point
-
-| You want to… | Start here | Requirements |
-| --- | --- | --- |
-| Try a leave request and single / ALL / ANY designer | [Standalone demo](#try-one-leave-approval) | JDK 17+, Maven 3.9+, Node 22.22.2+ within 22.x, npm; no database |
-| Add the example to real RuoYi login, menus and permissions | [Official RuoYi overlay](examples/ruoyi-vue3/README.md) | Git, Python 3, Java 17, Maven 3.9+, Node 22, MySQL 8.4, Redis 7.4 |
-| Inspect or embed the synchronous Java DAG | [Core example](#run-just-the-java-core) | Full JDK 17+; Maven 3.9+ for a normal build |
-
-Start with the standalone demo if you only want to evaluate the approval flow. The RuoYi example downloads exact pinned upstream commits and uses native RuoYi identity; it is a separate host of the same approval domain, not another skin for the demo login.
-
-## Try one leave approval
-
-### Fast local tryout (one terminal)
-
-With Python 3.9+ and the build tools installed, run:
-
-```bash
-python3 scripts/tryout.py
-```
-
-It checks prerequisites and ports, builds the demo, generates private demo passwords, then prints the loopback URL and credentials-file path. Ctrl-C stops both services and deletes this run’s data. No database or system-tool installation. See [TRYOUT](docs/TRYOUT.md) for exact versions, port overrides, source bundles and troubleshooting. This launches the standalone host; [RuoYi setup](examples/ruoyi-vue3/README.md) remains separate.
-
-The existing [`v0.1.0-alpha.1`](https://github.com/JamesCube/ArcFlow/releases/tag/v0.1.0-alpha.1) remains the older sequential snapshot. It does not include the new designer, ALL/ANY or JDBC. Use current `main` or the gallery’s verified commit for these capabilities.
-
-### Manual startup (keep local data)
-
-Use Bash (Linux, macOS, or WSL), Git, and the prerequisites above. Initial dependency downloads require network access. From a new checkout, run in terminal 1:
+On Linux, macOS or WSL, the recommended setup is Git, Python 3.9+, a full JDK 17+, Maven 3.9+, and Node 22.22.2+ within 22.x, including npm. The [full version ranges](docs/TRYOUT.md#requirements) include other supported versions. No database is needed.
 
 ```bash
 git clone https://github.com/JamesCube/ArcFlow.git
 cd ArcFlow
-mvn install
-mvn -f examples/approval-domain/pom.xml install
-
-# Private local demo state; reuse this absolute path when restarting.
-umask 077
-mkdir -p "$PWD/examples/approval-demo/backend/data"
-export APPROVAL_DATA_FILE="$PWD/examples/approval-demo/backend/data/requests.json"
-
-# Choose three different demo-only passwords, each at least 12 characters.
-read -rs -p 'Alice demo password: ' APPROVAL_ALICE_PASSWORD; echo
-read -rs -p 'Bob demo password: ' APPROVAL_BOB_PASSWORD; echo
-read -rs -p 'Carol demo password: ' APPROVAL_CAROL_PASSWORD; echo
-export APPROVAL_ALICE_PASSWORD APPROVAL_BOB_PASSWORD APPROVAL_CAROL_PASSWORD
-mvn -f examples/approval-demo/backend/pom.xml spring-boot:run
+python3 scripts/tryout.py
 ```
 
-In terminal 2, from the same checkout:
+Open the URL printed in your terminal. The launcher also tells you where to find the local file containing the demo passwords.
 
-```bash
-cd examples/approval-ui
-npm ci
-npm run dev
-```
+1. **Submit as Alice.** Create a leave request with test data.
+2. **Review as Bob.** Sign out, sign in as Bob, and approve the request in **Needs my review**.
+3. **Check as Alice.** Sign back in to see the result, saved process and decision history.
 
-Open **http://localhost:5173**:
+To try two steps, use Alice's designer to add Carol after Bob, publish, and submit a new request.
 
-1. Sign in as **Alice** with the password you just set. Submit a request titled `Demo leave`, reason `Synthetic test`, for `1` day.
-2. Sign out, sign in as **Bob**, open **Needs my review**, select the request, and approve it.
-3. Sign back in as Alice. The request is **approved**, with its definition snapshot and activity history.
+Ctrl-C stops the services and deletes that run's data. Use the [manual setup](docs/GETTING_STARTED.md#english) if you want to keep the data. The current version is `0.1.0-SNAPSHOT`; run it locally with test data. APIs may change.
 
-A fresh data file starts with one Bob approval. To explore the designer, sign in as Alice, open **Process designer**, add a Carol step after Bob, and publish. Submit a new request: Bob's approval advances it to Carol; Carol's approval completes it. Existing requests keep their original version.
+## Business examples
 
-[Full walkthrough, restart checks and troubleshooting →](docs/GETTING_STARTED.md#english)
+The leave demo is the starting point for applying approvals to other business tasks. Here's where each example stands:
 
-## What works today
-
-| Capability | Java core | Standalone / RuoYi examples |
+| Application | What gets reviewed | Status |
 | --- | --- | --- |
-| Validated DAG, synchronous sequential handlers | Implemented | Used to validate and normalize submissions |
-| Add, remove, reorder and assign 1–8 approval steps | Not a core feature | Implemented in Vue |
-| Versioned publication and immutable request definitions | Not a core feature | Implemented in the shared approval domain |
-| Ordered human decisions, rejection, per-step retry protection | Not a core feature | Implemented; only the current assigned approver can act |
-| Identity and authorization | Supplied by the embedding app | Demo accounts / native RuoYi users, roles and permissions |
-| Restart persistence | None | Demo defaults to single-writer JSON; optional [JDBC adapter](examples/approval-jdbc/README.md) adds database transactions and persisted audit |
-| Fixed-participant ALL / ANY groups | Outside the core | [Domain + JSON/JDBC implemented](docs/PARALLEL_APPROVAL.md); standalone and native RuoYi support group editing and participant votes |
-| Conditional routes, timers, delegation | Not implemented | Not implemented |
-| BPMN XML / BPMN 2.0 compatibility | Not implemented | Not implemented |
+| **Smart CRM** | Quote discounts: sales submits a quote, a manager checks the discount, and finance reviews the amount | Planned; no runnable example yet |
+| **Office automation (OA)** | Leave requests: an employee enters the duration and reason; assigned reviewers decide in order | [Runnable](docs/GETTING_STARTED.md#english), including the RuoYi example |
+| **ERP** | Purchase requests: enter the item, quantity and unit price, then review the need and cost | [Java and HTTP API available](docs/BUSINESS_DOCUMENTS.md), merged in [PR #16](https://github.com/JamesCube/ArcFlow/pull/16); no purchase form on `main` yet |
 
-The core has no third-party runtime dependencies and does not require Spring. Approval HTTP APIs and Vue screens live in the examples; there is no published Spring Boot Starter or Maven Central artifact.
+The Smart CRM forms and AI features aren't implemented.
 
-## Architecture and boundaries
+## Design and review
 
-```text
-Standalone Vue UI → Spring Boot demo host ─┐
-                                         ├→ approval-domain → ArcFlow Java DAG
-Official RuoYi Vue UI → RuoYi host ────────┘        │            (submission checks)
-                                                  └→ ApprovalStore: JSON / optional JDBC
-```
+| Vue designer | Approvals inside RuoYi |
+| --- | --- |
+| [![Approval steps and participant settings in the Vue designer](docs/images/designer-desktop-836e605.png)](docs/images/designer-desktop-836e605.png) | [![Approval configuration inside RuoYi's native navigation](docs/images/ruoyi-native-process-editor.png)](docs/images/ruoyi-native-process-editor.png) |
+| Choose the steps, reviewers and completion rules. [More screenshots](docs/DESIGNER_SHOWCASE.md#english) | Use RuoYi's login, users, menus and permissions. [Setup guide](examples/ruoyi-vue3/README.md) |
 
-- `approval-domain` owns human waiting, ordered transitions, definition snapshots and the persistence SPI. The core never waits for a person.
-- See [transactional approval storage](examples/approval-jdbc/README.md) for JDBC wiring, `arc_` migrations, PostgreSQL / H2 verification, and the experimental MySQL adapter’s passing real 8.0 / 8.4 tests. This optional module does not automatically change either demonstration.
-- RuoYi's MySQL database stores users, roles and menus. Approval state still uses a private local JSON file. Multiple instances and network filesystems are unsupported.
-- The first JDBC slice covers competing service instances, revision checks, per-step idempotent retries, rollback and pinned process versions. Tenant isolation, pagination, joint business-data transactions and outbox are absent. No general production-readiness, high-throughput, distributed-transaction or exactly-once claim is made. The standalone demo's pinned framework/support limitations are documented in its [README](examples/approval-demo/README.md).
-- Core DAG branches express dependencies, not parallel execution or conditional routes. All roots run; ready nodes run in declaration order. String variables share one namespace, and later writes win.
-- Every core execution starts fresh. Re-execution reruns all nodes; failed handlers or listeners do not roll back external side effects. Synchronous event callbacks are not a persistence mechanism. Handlers/listeners must manage their own thread safety and business idempotency.
-- Submission supports [durable applicant-scoped idempotency keys](docs/SUBMISSION_IDEMPOTENCY.md). Retry the original key and intent; changed intent conflicts. Missing keys retain legacy duplicate-creation behavior. After losing the client key on a page reload, inspect saved requests before resubmitting. Same-decision retries are protected per saved approval step; see the [sequential contract](docs/SEQUENTIAL_APPROVAL.md).
+These images show earlier versions. Click for the originals; capture versions and sources are listed in the [designer gallery](docs/DESIGNER_SHOWCASE.md#english) and [RuoYi gallery](docs/RUOYI_SHOWCASE.md#english).
+
+- **Single reviewers, ALL and ANY groups.** A process has 1–8 steps. ALL requires everyone's approval and rejects on the first rejection. ANY passes on the first approval and rejects only when everyone rejects.
+- **A saved process for each request.** Publishing a new version doesn't reroute requests already submitted.
+- **Worklists, notes and history.** The server checks who can view and review requests, saves decisions, and lets you retry the same decision for the same step without adding another history entry. See [submission idempotency](docs/SUBMISSION_IDEMPOTENCY.md) for retrying a failed submission.
+- **Desktop and H5.** The standalone UI supports English and Chinese. There's also a separate [mobile-browser approval client](examples/approval-mobile/README.md).
+
+## Connect an application
+
+The RuoYi example adds approval pages to its native menus and reuses existing accounts and permissions. For another Java application, start with the approval domain and storage interfaces.
+
+The domain accepts typed leave and procurement documents through Java and HTTP, sharing approval rules, permissions, audit history and submission retries. Existing forms still submit leave requests. See the [business-document contract](docs/BUSINESS_DOCUMENTS.md) for fields, endpoints and upgrade limits.
+
+| Module or example | What it covers |
+| --- | --- |
+| [approval-domain](examples/approval-domain/README.md) | Approval rules, process versions, state transitions and the `ApprovalStore` interface |
+| [Spring Boot backend](examples/approval-demo/backend/README.md) | HTTP endpoints, identity checks and host configuration |
+| [RuoYi integration](examples/ruoyi-vue3/README.md) | Setup for RuoYi-Vue + RuoYi-Vue3 |
+| [JDBC storage](examples/approval-jdbc/README.md) | Database persistence for approval data and audit history |
+
+Typed writes use JSON snapshot schema 5. Upgrade all readers before enabling them; older binaries cannot read the new payloads, and mixed-version writers are unsupported. SQL stays at revision 2.
+
+Both demos store approval data in local JSON and support one instance. RuoYi's MySQL database holds users, roles and menus; it doesn't automatically store approvals. JDBC needs explicit setup and migrations. Tenant isolation, pagination, transactions spanning business tables, and an outbox aren't implemented yet.
+
+Conditional routing, dynamic role resolution, timers, withdrawal and delegation are also missing. Native apps, mini-programs, Feishu, WeCom and DingTalk integrations are unfinished. There's no production-readiness guarantee or BPMN compatibility. See the [roadmap](docs/ROADMAP.md) for planned work.
 
 ## Run just the Java core
 
-From the repository root:
+The synchronous DAG runner works on its own, with no third-party runtime dependencies or Spring requirement:
 
 ```bash
 mvn verify
 java -cp target/classes com.arcflow.example.QuickStart
 ```
 
-Expected output:
+[QuickStart.java](src/main/java/com/arcflow/example/QuickStart.java) runs handlers in dependency order. The core doesn't persist execution state or wait for people. Running it again reruns every node, and external actions aren't automatically rolled back.
 
-```text
-[validate, price, summary]
-Order DEMO-001: 120
-```
+## Docs and source
 
-With a full JDK, `bash scripts/test.sh` runs the core checks and example without Maven or dependency downloads. It does **not** start or verify the approval applications. See the complete [QuickStart.java](src/main/java/com/arcflow/example/QuickStart.java).
+[First approval and troubleshooting](docs/GETTING_STARTED.md#english) · [Group approval rules](docs/PARALLEL_APPROVAL.md) · [Submission idempotency](docs/SUBMISSION_IDEMPOTENCY.md) · [Integration design](docs/INTEGRATION_DESIGN.md) · [Contributing](CONTRIBUTING.md)
 
-## Explore and contribute
+[Open an issue](https://github.com/JamesCube/ArcFlow/issues) with the commit, environment, command and error details if something fails. Remove credentials and real personal data first.
 
-- [Core and handler/event SPI](src/main/java/com/arcflow/) · [Core tests](src/test/java/com/arcflow/)
-- [Shared approval domain](examples/approval-domain/) · [Standalone backend](examples/approval-demo/backend/README.md) · [Vue UI](examples/approval-ui/README.md)
-- [Official RuoYi integration and attribution](examples/ruoyi-vue3/README.md) · [Sequential contract](docs/SEQUENTIAL_APPROVAL.md)
-- [Contributing](CONTRIBUTING.md) · [Roadmap](docs/ROADMAP.md) · [Integration design](docs/INTEGRATION_DESIGN.md)
+The published [`v0.1.0-alpha.1`](https://github.com/JamesCube/ArcFlow/releases/tag/v0.1.0-alpha.1) is an older sequential-approval version. It doesn't include the current designer, ALL/ANY, JDBC or typed business documents. Use current source to try those features.
 
-Useful contributions include reproducible first-run reports, regression tests for permission/retry boundaries, and focused documentation fixes. Include your commit, OS, Java/Node versions, command, expected result and actual result in [bug reports](https://github.com/JamesCube/ArcFlow/issues). Discuss new state-machine or persistence behavior before implementing it. Do not attach credentials or real personnel data.
-
-CI badges track `main`; inspect the workflow run for the exact commit you are evaluating. Builds and API tests are not proof of browser coverage or production readiness.
-
-## License
-
-[Apache License 2.0](LICENSE). The separately fetched official RuoYi projects retain their MIT licenses. This integration does not imply upstream endorsement.
-
-## Mobile approvals (H5 first slice)
-
-The separate uni-app Vue 3 [mobile approval client](examples/approval-mobile/README.md) uses the real backend for worklists, decision notes and audit history. Build, unit/HTTP and Chromium mobile journeys have passed; [acceptance and screenshot provenance](examples/approval-mobile/ACCEPTANCE.md) list exact coverage. Native/mini-program targets, real devices and enterprise-platform integration remain separate acceptance work.
-
-## Business document boundary
-
-Typed leave/procurement Java and HTTP submission paths share approval, authorization, audit, idempotency and JSON/JDBC persistence. The legacy leave API remains compatible; procurement UI is outside this change. See [the business and compatibility contract](docs/BUSINESS_DOCUMENTS.md).
+[Apache License 2.0](LICENSE). Separately downloaded RuoYi projects keep their MIT licenses. This project isn't endorsed by RuoYi upstream.
