@@ -32,7 +32,7 @@
 
 [先运行再看细节](#快速开始) · [完整能力、源码与测试](docs/CAPABILITIES.md#zh) · [现有场景与扩展顺序](docs/CAPABILITIES.md#zh-scenarios)
 
-直接看业务：[OA 请假](docs/CASE_GALLERY.md#oa) · [ERP 采购](docs/CASE_GALLERY.md#erp) · [CRM 报价](docs/CASE_GALLERY.md#crm) · [OA 费用报销](docs/EXPENSE_SCENARIO.md#gallery)
+直接看业务：[OA 请假](docs/CASE_GALLERY.md#oa) · [费用报销](docs/EXPENSE_SCENARIO.md#gallery) · [ERP 采购](docs/CASE_GALLERY.md#erp) · [CRM 报价](docs/CASE_GALLERY.md#crm)
 
 ### 流程设计与版本
 | 能力 | 状态 | 当前范围 |
@@ -88,8 +88,8 @@
 | [OA 请假表单](docs/CASE_GALLERY.md#oa-form) | ✅ | 标题、理由、1–365 个整天；独立与若依可发起 |
 | [ERP 采购表单](docs/CASE_GALLERY.md#erp-form) | ✅ | 单项物品、数量、精确单价和币种；不执行下单／付款 |
 | [CRM 报价折扣表单](docs/CASE_GALLERY.md#crm-form) | 🟡 | 独立合成案例，固定经理 → 财务；共享工作区不支持 |
-| [OA 费用报销表单](docs/EXPENSE_SCENARIO.md) | 🟡 | 已合并的独立合成案例；1–20 行类型化明细、精确合计和可配置固定人员流程 |
 | [不可变业务快照](docs/CASE_GALLERY.md#erp-submitted) | ✅ | 业务字段提交后只读，审批不改写原单 |
+| [费用报销](docs/EXPENSE_SCENARIO.md#gallery) | 🟡 | 独立场景工作区可配置流程、填写 1–20 行费用并审批；不付款、不上传凭证，未接入若依／H5 |
 | 可视化表单设计器 | — | 现有表单由代码定义，没有拖拽字段或表单 schema 发布 |
 
 [范围、缺失项和测试依据](docs/CAPABILITIES.md#zh-forms)
@@ -162,7 +162,7 @@ python3 scripts/tryout.py
 
 费用报销使用编译期版本化 `ScenarioCatalog`、专用 `/api/scenarios/oa-expense` 路由和独立数据文件；表单字段固定，设计器可配置 1–8 个固定人员审批步骤。它不接入共享工作区、若依或 H5，也不连接真实财务系统。
 
-[出差申请](docs/TRAVEL_SCENARIO.md)已有当前分支实现，含独立日期、目的地、用途、预算及专用宿主；尚未合并到 main，仍待新一轮宿主／数据库／浏览器验收及真实截图。用印等后续场景尚未实现。
+[出差申请](docs/TRAVEL_SCENARIO.md)已有当前分支实现，含独立日期、目的地、用途、预算及专用宿主；尚未合并到 main。原候选 `2de59ed` 的宿主／数据库／浏览器 CI 已通过，但本次冲突解决后的提交仍须重新验收；原始截图、来源与逐图视觉验收尚未完成。用印等后续场景尚未实现。
 
 <a id="看看实际页面"></a>
 
@@ -211,7 +211,7 @@ python3 scripts/tryout.py
 | [若依集成](examples/ruoyi-vue3/README.md) | RuoYi-Vue + RuoYi-Vue3 的接入步骤 |
 | [JDBC 存储](examples/approval-jdbc/README.md) | 用数据库保存审批数据和审计记录 |
 
-类型化请假与采购写入至少使用 JSON 快照 schema 5；首次报价写入升级到 schema 6，首次报销写入升级到 schema 7，后续写入不会降级。启用新类型前先升级全部读取端、停止不兼容写入端并备份；schema 6 读取端不能读取报销／schema 7。报销使用 `approval.data-file + ".scenario-oa-expense.json"`。成员待办索引继续使用 SQL revision 3，CRM 和报销均不新增 SQL 迁移；旧数据库仍需要显式迁移与分批回填。当前分支的出差候选需另按 [schema 8 升级契约](docs/TRAVEL_SCENARIO.md#schema-8-rollout-and-recovery)验收，不能套用报销的验证结论。
+类型化请假与采购写入至少使用 JSON 快照 schema 5；首次报价写入升级到 schema 6，首次报销写入升级到 schema 7，后续写入不会降级。启用新类型前先升级全部读取端、停止不兼容写入端并备份；schema 6 读取端不能读取报销／schema 7。报销使用 `approval.data-file + ".scenario-oa-expense.json"`；升级前的逐字节备份只保存历史状态，回退不能无损保留升级后的新写入，详见[费用报销及迁移说明](docs/EXPENSE_SCENARIO.md)。成员待办索引继续使用 SQL revision 3，CRM 和报销均不新增 SQL 迁移；旧数据库仍需要显式迁移与分批回填。当前分支的出差候选需另按 [schema 8 升级契约](docs/TRAVEL_SCENARIO.md#schema-8-rollout-and-recovery)验收，不能套用报销的验证结论。
 
 两个演示默认把审批数据写进本地 JSON，只支持单实例。若依的 MySQL 保存的是用户、角色和菜单，审批不会自动改用数据库。JDBC 需要显式接入和迁移；已提供成员待办／已办分页。租户隔离、业务表联合事务及 outbox 仍未实现。
 

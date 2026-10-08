@@ -6,7 +6,7 @@
 
 ## 简体中文
 
-这份清单把“可运行”“需接入”和“尚未实现”逐项分开，方便判断能否用于你的业务。按 `0.1.0-SNAPSHOT` 源码核对，原始 91 项能力核对基线为 [`4ff4bcf`](https://github.com/JamesCube/ArcFlow/commit/4ff4bcf0b90cc07ac26d5483847e8b41fd25ed08)，本次保留全部条目并按已合并的 [`9e0f2a2`](https://github.com/JamesCube/ArcFlow/commit/9e0f2a2801fdd09c472466a57dac92ada4d77f10)更新费用报销与场景库范围。出差仅单列为当前分支候选，不属于 main 已交付内容。源码／测试链接用于定位依据；有测试文件不代表任意提交都已通过，使用前仍须查看对应提交的 CI。
+这份清单把“可运行”“需接入”和“尚未实现”逐项分开，方便判断能否用于你的业务。按 `0.1.0-SNAPSHOT` 源码核对，原始 91 项能力核对基线为 [`4ff4bcf`](https://github.com/JamesCube/ArcFlow/commit/4ff4bcf0b90cc07ac26d5483847e8b41fd25ed08)，本次保留全部条目，并以 main 的 [`71910bfc`](https://github.com/JamesCube/ArcFlow/commit/71910bfc2ac1b9d58e0f7f1b85e6bbb206321ec1)为费用报销已交付状态及文案核对基线。出差仅单列为当前分支候选，不属于 main 已交付内容。源码／测试链接用于定位依据；有测试文件不代表任意提交都已通过，使用前仍须查看对应提交的 CI。
 
 ✅ 已实现，限于写明的范围；🟡 有限支持，仍有宿主接线、客户端或验证范围限制；— 尚未实现。下文建议顺序不改变这些状态，也没有交付日期。
 
@@ -115,7 +115,7 @@
 | 字段联动与节点字段权限 | — | 没有配置式显隐、跨字段公式或按审批步骤编辑字段的规则；已提交业务字段始终只读。 | [业务契约 / Contract][business] |
 | 场景模板库 | 🟡 | 已合并编译期版本化 ScenarioCatalog 与 /scenarios.html 报销入口；模板结构由代码定义，无运行时安装、复制或任意表单发布。出差仍是当前分支候选。 | [业务契约 / Contract][business] · [目录源码 / Catalog][scenario-catalog] · [报销契约 / Expense][expense] |
 | 附件 | — | 没有上传、权限下载、病毒扫描或附件留存服务。 | [字段定义 / Fields][business-model] · [H5 范围 / H5 scope][mobile] |
-| 多行明细 | ✅ | 报销支持 1–20 行类型化明细、增删、逐行校验及精确合计；行号与合成票据引用在单内唯一。采购与报价仍为单行，不提供通用明细设计器。 | [字段定义 / Fields][business-model] · [报销测试 / Tests][expense-tests] · [Screen][expense-gallery] |
+| 多行明细 | 🟡 | 报销支持 1–20 行类型化明细、增删、逐行校验及精确合计；行号与合成票据引用在单内唯一。采购与报价仍为单行，不提供通用明细设计器。 | [字段定义 / Fields][business-model] · [报销测试 / Tests][expense-tests] · [Screen][expense-gallery] |
 | 审批后业务回写 | — | 通过仅保存审批状态；不创建采购订单、更新真实 CRM、发货、开票或付款。 | [采购边界 / Procurement](PROCUREMENT_UI.md) · [报价边界 / Quotes](CRM_QUOTE_CASE.md) |
 
 <a id="zh-reliability"></a>
@@ -135,7 +135,7 @@
 | H2 契约测试 | ✅ | H2 存储契约用于本地测试，不代替 PostgreSQL／MySQL 服务器兼容性结果。 | [测试 / Tests][h2-tests] |
 | PostgreSQL 验证范围 | 🟡 | 真实 PostgreSQL 17.6 CI；核对所用提交中未跳过的结果，不能泛化到全部版本和配置。 | [CI][jdbc-ci] · [测试 / Tests][postgres-tests] |
 | MySQL 验证范围 | 🟡 | 实验性 MySQL 8.0／8.4 真服务器矩阵；不涵盖 MariaDB、5.7、9 或全部 8.x 配置。 | [CI][jdbc-ci] · [测试 / Tests][mysql-tests] |
-| JSON schema 升级 | 🟡 | 类型化请假／采购至少 schema 5，报价 schema 6，报销 schema 7；先升级全部读取端、停止不兼容写者再启用，升级保留旧字节备份且后续写入不降级。出差 schema 8 仅属当前分支候选。 | [契约 / Contract][business] · [测试 / Tests][json-tests] · [报销契约 / Expense][expense] |
+| JSON schema 升级 | 🟡 | 类型化请假／采购至少 schema 5，报价 schema 6，报销 schema 7；先升级全部读取端、停止不兼容写者再启用，升级保留旧字节备份且后续写入不降级；历史备份不能无损恢复升级后的新写入。出差 schema 8 仅属当前分支候选。 | [契约 / Contract][business] · [测试 / Tests][json-tests] · [报销契约 / Expense][expense] |
 | SQL 迁移与回填 | 🟡 | 成员索引仍为 SQL revision 3，报销不新增 DDL；已有迁移与分批回填须显式完成，无自动 JSON→SQL 导入或混合版本写者支持。 | [迁移契约 / Migration][jdbc] |
 | 业务表联合事务 | — | JdbcApprovalStore 不自动加入宿主业务表事务或 Spring @Transactional。 | [事务契约 / Contract][jdbc] |
 | 事务 outbox | — | 没有事务消息表、投递确认或消息重放服务。 | [存储边界 / Storage][jdbc] |
@@ -167,7 +167,7 @@
 
 ### 已有场景与逐步截图
 
-原有请假、采购、报价三类案例及其设计器、人员组、若依、H5 图集包含 33 个不同场景、61 张中英文原始截图；这不是 33 种业务模板，语言变体不重复算场景。该历史计数不含已合并的报销图集，后者单独为 8 个状态／视口组合、16 张中英文原图。
+主线已交付请假、采购、报价和费用报销四类业务案例。原有前三类案例及其设计器、人员组、若依、H5 图集包含 33 个不同场景、61 张中英文原始截图；这不是 33 种业务模板，语言变体不重复算场景。该历史计数不含已合并的报销图集，后者单独为 8 个状态／视口组合、16 张中英文原图。
 
 | 业务 | 配置与表单 | 提交／待审／下一步 | 通过／驳回 | 边界 |
 | --- | --- | --- | --- | --- |
@@ -214,7 +214,7 @@
 | CRM | 信用额度申请 | — | 后续候选；客户主数据、额度来源和版本策略未定义 |
 | CRM | 退款申请 | — | 后续候选；原交易、可退余额及重复退款边界未定义，不执行退款 |
 
-当前 main 已提供报销的可运行表单、流程发布及真实图集。出差候选的本地验证为 941 项 UI、131 项领域、81 项 H2 测试通过；新的宿主／数据库／浏览器 CI 尚未运行，计划的 20 张出差图也尚未拍摄，不能宣称已交付。用印及其余候选均尚未实现。首批六类以固定、版本化的结构化表单为方向；可编辑流程步骤不能代替任意字段的表单设计器。
+当前 main 已提供报销的可运行表单、流程发布及真实图集。出差候选的本地验证为 941 项 UI、131 项领域、81 项 H2 测试通过；原候选 `2de59ed` 的 12 组宿主／数据库／浏览器 CI 已通过，本次冲突解决后的提交仍须重新核对 CI。浏览器用例计划生成 20 张出差图，但原始图片下载遇到 HTTP 403／1010，未取得图片字节，逐图哈希、来源与独立视觉验收均未完成，不能宣称已交付。用印及其余候选均尚未实现。首批六类以固定、版本化的结构化表单为方向；可编辑流程步骤不能代替任意字段的表单设计器。
 
 **每个新增场景的交付清单：** 可解释的字段与状态契约、服务端验证、身份／业务读权、可配置的固定人员流程、不可变快照、重复操作与失败测试，以及中英文的“流程配置 → 填写 → 待审 → 通过 → 驳回”真实截图。六个首批场景至少需要 60 张不同场景／语言状态图；这是完整场景组的验收要求，不是已完成数量，当前报销 16 张单独记录。新能力还应补相应冲突、权限拒绝与恢复证据。
 
@@ -224,7 +224,7 @@
 
 ## English
 
-This checklist separates runnable features, bounded integrations and missing capabilities so you can assess a concrete use case. The original 91 capabilities were checked against `0.1.0-SNAPSHOT` at [`4ff4bcf`](https://github.com/JamesCube/ArcFlow/commit/4ff4bcf0b90cc07ac26d5483847e8b41fd25ed08). All entries are retained, with Expense/scenario scope refreshed against merged [`9e0f2a2`](https://github.com/JamesCube/ArcFlow/commit/9e0f2a2801fdd09c472466a57dac92ada4d77f10). Travel is separately labeled as a current-branch candidate, not a main-delivered feature. Code/test links identify evidence; a test file does not mean every revision passed. Check CI for the commit you use.
+This checklist separates runnable features, bounded integrations and missing capabilities so you can assess a concrete use case. The original 91 capabilities were checked against `0.1.0-SNAPSHOT` at [`4ff4bcf`](https://github.com/JamesCube/ArcFlow/commit/4ff4bcf0b90cc07ac26d5483847e8b41fd25ed08). All entries are retained, with main commit [`71910bfc`](https://github.com/JamesCube/ArcFlow/commit/71910bfc2ac1b9d58e0f7f1b85e6bbb206321ec1) as the baseline for shipped Expense support and its corrected documentation. Travel is separately labeled as a current-branch candidate, not a main-delivered feature. Code/test links identify evidence; a test file does not mean every revision passed. Check CI for the commit you use.
 
 ✅ Implemented within the stated scope; 🟡 bounded support with integration, client or verification limits; — not implemented. The proposed sequence below does not change these statuses or promise release dates.
 
@@ -333,7 +333,7 @@ The flow designer configures approval stages. A business-form designer is still 
 | Field dependencies/stage permissions | — | No configurable visibility, cross-field formulas or stage-specific field editing; submitted fields remain read-only. | [业务契约 / Contract][business] |
 | Scenario template library | 🟡 | Merged compiled/versioned ScenarioCatalog and /scenarios.html Expense entry; code-defined templates, without runtime installation, cloning or arbitrary-form publishing. Travel remains a current-branch candidate. | [业务契约 / Contract][business] · [目录源码 / Catalog][scenario-catalog] · [报销契约 / Expense][expense] |
 | Attachments | — | No upload, authorized download, malware scanning or attachment-retention service. | [字段定义 / Fields][business-model] · [H5 范围 / H5 scope][mobile] |
-| Repeating line items | ✅ | Expense supports 1–20 typed lines, add/remove, per-line validation and exact totals; line IDs and synthetic receipt references are unique within a claim. Procurement/quotes remain single-item; no generic line-item designer. | [字段定义 / Fields][business-model] · [报销测试 / Tests][expense-tests] · [Screen][expense-gallery] |
+| Repeating line items | 🟡 | Expense supports 1–20 typed lines, add/remove, per-line validation and exact totals; line IDs and synthetic receipt references are unique within a claim. Procurement/quotes remain single-item; no generic line-item designer. | [字段定义 / Fields][business-model] · [报销测试 / Tests][expense-tests] · [Screen][expense-gallery] |
 | Business writeback | — | Approval records a workflow state; it does not create orders, update a real CRM, ship, invoice or pay. | [采购边界 / Procurement](PROCUREMENT_UI.md) · [报价边界 / Quotes](CRM_QUOTE_CASE.md) |
 
 <a id="en-reliability"></a>
@@ -353,7 +353,7 @@ The flow designer configures approval stages. A business-form designer is still 
 | H2 contracts | ✅ | H2 storage contracts support local verification; they do not establish PostgreSQL/MySQL server compatibility. | [测试 / Tests][h2-tests] |
 | PostgreSQL verification scope | 🟡 | Real PostgreSQL 17.6 CI; inspect non-skipped results for your commit, without generalizing to every version/configuration. | [CI][jdbc-ci] · [测试 / Tests][postgres-tests] |
 | MySQL verification scope | 🟡 | Experimental real-server MySQL 8.0/8.4 matrix; excludes MariaDB, 5.7, 9 and blanket coverage of 8.x configurations. | [CI][jdbc-ci] · [测试 / Tests][mysql-tests] |
-| JSON schema upgrades | 🟡 | Typed leave/procurement require at least schema 5, quotes 6 and Expense 7. Upgrade all readers and stop incompatible writers before enabling writes; retain byte-exact upgrade backups and never downgrade. Travel/schema 8 is current-branch only. | [契约 / Contract][business] · [测试 / Tests][json-tests] · [报销契约 / Expense][expense] |
+| JSON schema upgrades | 🟡 | Typed leave/procurement require at least schema 5, quotes 6 and Expense 7. Upgrade all readers and stop incompatible writers before enabling writes; retain byte-exact upgrade backups and never downgrade. Historical backups cannot losslessly recover later writes. Travel/schema 8 is current-branch only. | [契约 / Contract][business] · [测试 / Tests][json-tests] · [报销契约 / Expense][expense] |
 | SQL migration and backfill | 🟡 | Member indexes retain SQL revision 3; Expense adds no DDL. Existing migration/bounded backfill remain explicit; no automatic JSON→SQL import or mixed-version writers. | [迁移契约 / Migration][jdbc] |
 | Transactions with business tables | — | JdbcApprovalStore does not automatically join host business-table or Spring @Transactional transactions. | [事务契约 / Contract][jdbc] |
 | Transactional outbox | — | No transactional message table, delivery acknowledgement or message replay service. | [存储边界 / Storage][jdbc] |
@@ -385,7 +385,7 @@ The flow designer configures approval stages. A business-form designer is still 
 
 ### Existing cases and step-by-step screens
 
-The original leave, procurement and quote galleries, including their designer, group, RuoYi and H5 coverage, contain 33 distinct scenes and 61 original Chinese/English captures. These are not 33 business templates; language variants are not new scenes. This historical count excludes the merged Expense gallery, separately counted as 8 state/viewport combinations and 16 Chinese/English originals.
+Main provides four business cases: leave, procurement, quotes and expenses. The original leave, procurement and quote galleries, including their designer, group, RuoYi and H5 coverage, contain 33 distinct scenes and 61 original Chinese/English captures. These are not 33 business templates; language variants are not new scenes. This historical count excludes the merged Expense gallery, separately counted as 8 state/viewport combinations and 16 Chinese/English originals.
 
 | Case | Configuration and form | Submit / pending / next stage | Approved / rejected | Boundary |
 | --- | --- | --- | --- | --- |
@@ -432,7 +432,7 @@ The sequence now records progress: the first Expense slice is merged; Travel has
 | CRM | Credit-limit request | — | Later candidate; customer master data, limit source and revision policy remain undefined |
 | CRM | Refund request | — | Later candidate; source transaction, refundable balance and duplicate-refund boundaries remain undefined; no refund execution |
 
-Current main provides the Expense form, process publication and real gallery. The Travel candidate has local passes for 941 UI, 131 domain and 81 H2 tests; fresh host/database/browser CI and the planned 20 Travel captures have not run. It is not delivered. Seal-use and all other candidates remain unimplemented. The first six are scoped around fixed, versioned structured forms; editable workflow stages do not substitute for an arbitrary-field form designer.
+Current main provides the Expense form, process publication and real gallery. The Travel candidate has local passes for 941 UI, 131 domain and 81 H2 tests; all 12 host/database/browser CI workflows passed for the previous candidate `2de59ed`, while the conflict-resolution commit still requires its own CI verification. The browser journey plans 20 Travel captures, but the original image download returned HTTP 403 / 1010 and no PNG bytes were received. Per-image hashes, provenance and independent pixel review remain unverified. It is not delivered. Seal-use and all other candidates remain unimplemented. The first six are scoped around fixed, versioned structured forms; editable workflow stages do not substitute for an arbitrary-field form designer.
 
 **Completion checklist for every new case:** clear field/state contracts, server validation, identity/business access, configurable fixed-reviewer stages, immutable snapshots, repeat-operation/failure tests, and real Chinese/English captures of configuration → entry → pending → approved → rejected. Six initial cases require at least 60 distinct scenario/language-state images; that is an acceptance target for the complete set, not a completed count. Expense currently has 16 originals recorded separately. Add conflict, authorization-denial and recovery evidence where applicable.
 

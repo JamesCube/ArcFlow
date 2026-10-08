@@ -32,7 +32,7 @@ Explore seven groups, from process configuration and permissions to task handlin
 
 [Run first](#quick-start) · [Full capabilities with code/test evidence](docs/CAPABILITIES.md#en) · [Existing cases and proposed expansion](docs/CAPABILITIES.md#en-scenarios)
 
-Go straight to a case: [OA leave](docs/CASE_GALLERY.md#oa) · [ERP procurement](docs/CASE_GALLERY.md#erp) · [CRM quotes](docs/CASE_GALLERY.md#crm) · [OA expenses](docs/EXPENSE_SCENARIO.md#gallery)
+Go straight to a case: [OA leave](docs/CASE_GALLERY.md#oa) · [Expense reimbursement](docs/EXPENSE_SCENARIO.md#gallery) · [ERP procurement](docs/CASE_GALLERY.md#erp) · [CRM quotes](docs/CASE_GALLERY.md#crm)
 
 ### Flow design and versions
 | Capability | Status | Current scope |
@@ -88,8 +88,8 @@ Go straight to a case: [OA leave](docs/CASE_GALLERY.md#oa) · [ERP procurement](
 | [OA leave form](docs/CASE_GALLERY.md#oa-form) | ✅ | Title, reason and 1–365 whole days; standalone/RuoYi authoring |
 | [ERP procurement form](docs/CASE_GALLERY.md#erp-form) | ✅ | One item, quantity, exact unit price and currency; no ordering/payment |
 | [CRM quote-discount form](docs/CASE_GALLERY.md#crm-form) | 🟡 | Isolated synthetic case with manager → finance review; outside shared workspaces |
-| [OA expense form](docs/EXPENSE_SCENARIO.md) | 🟡 | Merged standalone synthetic case; 1–20 typed lines, exact totals and configurable fixed-reviewer stages |
 | [Immutable business snapshot](docs/CASE_GALLERY.md#erp-submitted) | ✅ | Business fields are read-only after submission |
+| [Expense reimbursement](docs/EXPENSE_SCENARIO.md#gallery) | 🟡 | Dedicated scenario workspace with a configurable flow and 1–20 expense lines; no payment, receipt upload or RuoYi/H5 screens |
 | Visual form designer | — | Forms are code-defined; no field drag/drop or form-schema publishing |
 
 [Limits, missing features and test evidence](docs/CAPABILITIES.md#en-forms)
@@ -161,7 +161,7 @@ The quote case uses synthetic customer data and fixed sales-manager → finance 
 
 Expense uses compiled, versioned `ScenarioCatalog` metadata, dedicated `/api/scenarios/oa-expense` routes and its own data file. The form fields are fixed; the designer configures 1–8 fixed-reviewer stages. Shared workspaces, RuoYi, H5 and real finance systems are not connected to this case.
 
-[Travel](docs/TRAVEL_SCENARIO.md) has a current-branch implementation with distinct dates, destination, purpose, budget and a dedicated host. It is not merged into main; fresh host/database/browser acceptance and real captures are still pending. Seal-use and other future cases remain unimplemented.
+[Travel](docs/TRAVEL_SCENARIO.md) has a current-branch implementation with distinct dates, destination, purpose, budget and a dedicated host. It is not merged into main. Host/database/browser CI passed for the previous candidate `2de59ed`, but the conflict-resolution commit still needs its own verification; original images, provenance and independent pixel acceptance remain pending. Seal-use and other future cases remain unimplemented.
 
 ### Follow each business case through the workflow
 
@@ -210,7 +210,7 @@ The main-branch domain supports typed leave, procurement, quote-discount and exp
 | [RuoYi integration](examples/ruoyi-vue3/README.md) | Setup for RuoYi-Vue + RuoYi-Vue3 |
 | [JDBC storage](examples/approval-jdbc/README.md) | Database persistence for approval data and audit history |
 
-Typed leave/procurement writes require at least JSON snapshot schema 5; the first quote write upgrades to schema 6 and the first Expense write to schema 7. Later writes never downgrade. Upgrade all readers, stop incompatible writers and back up before enabling new types; schema-6 readers cannot read Expense/schema 7. Expense uses `approval.data-file + ".scenario-oa-expense.json"`. Member worklists retain SQL revision 3; CRM and Expense add no SQL migration. Existing databases still need explicit migration and bounded backfill. The current-branch Travel candidate needs separate acceptance under its [schema 8 rollout contract](docs/TRAVEL_SCENARIO.md#schema-8-rollout-and-recovery); Expense verification does not establish Travel readiness.
+Typed leave/procurement writes require at least JSON snapshot schema 5; the first quote write upgrades to schema 6 and the first Expense write to schema 7. Later writes never downgrade. Upgrade all readers, stop incompatible writers and back up before enabling new types; schema-6 readers cannot read Expense/schema 7. Expense uses `approval.data-file + ".scenario-oa-expense.json"`; byte-exact pre-upgrade backups preserve historical state, so rollback cannot losslessly retain later writes. See the [expense and migration guide](docs/EXPENSE_SCENARIO.md). Member worklists retain SQL revision 3; CRM and Expense add no SQL migration. Existing databases still need explicit migration and bounded backfill. The current-branch Travel candidate needs separate acceptance under its [schema 8 rollout contract](docs/TRAVEL_SCENARIO.md#schema-8-rollout-and-recovery); Expense verification does not establish Travel readiness.
 
 Both demos store approval data in local JSON and support one instance. RuoYi's MySQL database holds users, roles and menus; it doesn't automatically store approvals. JDBC needs explicit setup and migrations. Actor-scoped pending/handled pagination is available. Tenant isolation, transactions spanning business tables, and an outbox aren't implemented yet.
 
