@@ -8,7 +8,7 @@ import { SUPPORTED_CURRENCIES, InvalidApprovalPayloadError, businessDocumentErro
 import ProcessDesigner from './ProcessDesigner.vue'
 import UiIcon from './UiIcon.vue'
 import { appCopy, translate, validationText, apiFailure } from './locale'
-import { approvalNodes, isApproval, participants, pendingParticipants, participantVotes, cloneDefinition, validateDefinition, stepState } from './process'
+import { approvalNodes, isApproval, participants, pendingParticipants, participantVotes, cloneDefinition, validateDefinition, validatePublicationResponse, stepState } from './process'
 
 const locale = ref('en')
 const t = computed(() => appCopy[locale.value] || appCopy.en)
@@ -194,12 +194,12 @@ async function publish() {
   try {
     const published = await api.request('/process', { method: 'POST', body: JSON.stringify({ expectedVersion: definition.version, definition }) })
     if (current !== generation) return
-    requireValidDefinition(published)
+    validatePublicationResponse(published, definition)
     process.value = published; loadDraft(published)
     showNotice('published', { version: published.version })
   } catch (e) {
     if (current !== generation) return
-    if (e.status === 409) {
+    if (e.status === 409 || e.name === 'InvalidPublicationResponseError') {
       publishConflict.value = true
       showFailure(e, 'publish')
     } else showFailure(e, 'publish')

@@ -3,7 +3,7 @@ import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from
 import useUserStore from '@/store/modules/user'
 import { createInboxBoxes, createMemberInbox } from './inbox'
 import { getMe, getPeople, getProcess, getRequests, getInbox, publishProcess, submitRequest, submitDocument, decideRequest } from '@/api/arcflow/approval'
-import { approvals, approvalMode, canVote, clone, modeLabel, modeRule, participantVotes, participants, pendingParticipants, setApprovalMode, stepState, validText, validateDefinition } from './process'
+import { approvals, approvalMode, canVote, clone, modeLabel, modeRule, participantVotes, participants, pendingParticipants, setApprovalMode, stepState, validText, validateDefinition, validatePublicationResponse } from './process'
 import { createSubmissionIntent, isRejectedSubmissionVersion } from './submission-intent'
 import { validateSubmissionResponse, validateDecisionResponse } from './submission-response'
 import { SUPPORTED_CURRENCIES, businessDocumentErrors, formatMoney, parseUnitPrice, procurementTotal, requestBusiness } from './business-document'
@@ -204,6 +204,7 @@ async function publish() {
   try {
     const response = await publishProcess({ expectedVersion: definition.version, definition })
     if (!currentView(generation, token)) return
+    validatePublicationResponse(response.data, definition, people.value)
     process.value = response.data; draft.value = clone(response.data); baseline.value = JSON.stringify(draft.value)
     noticeVersion.value = response.data.version; noticeKey.value = 'publishedNotice'
   } catch (e) { if (currentView(generation, token)) mutationFailure('publish', e) }
