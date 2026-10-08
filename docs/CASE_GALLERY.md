@@ -1,91 +1,127 @@
-# 业务案例图集 / Cases in action
+# 业务案例图集 / Business journeys in pictures
 
-[README 中文](../README.md) · [English README](../README.en.md) · [本地试用 / Try locally](GETTING_STARTED.md)
+[README 中文](../README.md) · [English README](../README.en.md) · [先看流程设计器](DESIGNER_GALLERY.md) · [本地试用](GETTING_STARTED.md)
 
-先看一笔业务如何发起、审批和留档。下面都是 2026-10-08 在运行中的应用里拍摄的原始截图，使用测试账号和合成业务数据。点击图片可查看原始尺寸；每张图的版本、来源和校验值见[截图来源](#provenance)。
+[OA 请假](#oa) · [ERP 采购](#erp) · [CRM 报价](#crm) · [若依与 H5](#other-clients) · [截图来源](#provenance)
 
-These are original screenshots from running applications, captured on 2026-10-08 with test accounts and synthetic data. Click an image to read it at full size. Each capture has its own version and source; see [provenance](#provenance).
+每种业务都按“填写 → 提交 → 待办 → 下一步 → 通过／驳回”展开。小图用于比较状态，点击可看完整原图；前三组业务流程均提供中英文版本，若依与 H5 补充图为中文。所有图片来自真实应用和合成数据，没有用一张图重复充当不同状态。
+
+Each case follows entry, submission, pending review, the next stage and approval/rejection. Click a thumbnail for the full-size screenshot; English variants are linked for the three business journeys; the RuoYi/H5 supplement is Chinese-only. All are real UI captures with synthetic data.
 
 <a id="oa"></a>
 
-## OA · 从请假开始 / Start with leave
+## OA · 请假：从发起到结束 / Leave, end to end
 
-[![Alice 填写三天请假，提交前可看到 Bob → Carol 的审批顺序](images/cases/oa-leave-form-zh-caece22.png)](images/cases/oa-leave-form-zh-caece22.png)
+先让 Alice 提交三天年假，再由 Bob 主管审批、Carol 复核。下面第 1–5 张是同一份申请的连续状态，第 6 张是另一次驳回分支。
 
-Alice 填写天数和事由，提交时保存已发布的流程。审批人按顺序处理，之后发布新版本不会改变这份申请。[英文原图](images/cases/oa-leave-form-en-caece22.png) · [操作步骤](GETTING_STARTED.md#简体中文)
+Alice requests three days; Bob reviews first and Carol follows. Images 1–5 follow one request. Image 6 shows a separate rejection branch.
 
-Alice enters the duration and reason; submission saves the published flow. Reviewers act in order, and later flow changes do not reroute this request. [English screenshot](images/cases/oa-leave-form-en-caece22.png) · [Walkthrough](GETTING_STARTED.md#english)
+| <a id="oa-form"></a>1 · 填写三天请假与交接事由 | <a id="oa-submitted"></a>2 · Alice 已提交，等待主管 Bob |
+| --- | --- |
+| [![填写三天请假与交接事由](images/gallery/oa-01-form-zh.png)](images/gallery/oa-01-form-zh.png) | [![Alice 已提交，等待主管 Bob](images/gallery/oa-02-submitted-zh.png)](images/gallery/oa-02-submitted-zh.png) |
+| Enter three days and the handover reason. [English](images/gallery/oa-01-form-en.png) | Alice has submitted; Bob is the current reviewer. [English](images/gallery/oa-02-submitted-en.png) |
 
-<details>
-<summary>查看流程设计器 / See the flow designer</summary>
+| <a id="oa-inbox"></a>3 · Bob 的待办：查看原单并填写意见 | <a id="oa-pending-next"></a>4 · Bob 已办，整笔仍等待 Carol |
+| --- | --- |
+| [![Bob 的待办：查看原单并填写意见](images/gallery/oa-03-inbox-zh.png)](images/gallery/oa-03-inbox-zh.png) | [![Bob 已办，整笔仍等待 Carol](images/gallery/oa-04-pending-next-zh.png)](images/gallery/oa-04-pending-next-zh.png) |
+| Bob’s pending inbox shows the request and review controls. [English](images/gallery/oa-03-inbox-en.png) | Bob’s handled entry remains pending at Carol’s stage. [English](images/gallery/oa-04-pending-next-en.png) |
 
-[![请假流程设计器：Bob 主管审批后由 Carol 人事复核](images/cases/oa-designer-zh-caece22.png)](images/cases/oa-designer-zh-caece22.png)
+| <a id="oa-approved"></a>5 · 两级通过，保留两位审批人的记录 | <a id="oa-rejected"></a>6 · 另一份申请被驳回，保留拒绝理由 |
+| --- | --- |
+| [![两级通过，保留两位审批人的记录](images/gallery/oa-05-approved-zh.png)](images/gallery/oa-05-approved-zh.png) | [![另一份申请被驳回，保留拒绝理由](images/gallery/oa-06-rejected-zh.png)](images/gallery/oa-06-rejected-zh.png) |
+| Both stages have passed, with each saved decision and note. [English](images/gallery/oa-05-approved-en.png) | A separate request is rejected, with its reason retained. [English](images/gallery/oa-06-rejected-en.png) |
 
-在右侧选择审批人和通过规则，检查后发布。这里是两个顺序节点；流程也支持 ALL 会签和 ANY 或签。[分组规则 / Group rules](PARALLEL_APPROVAL.md)
-
-Choose reviewers and completion rules in the right-hand panel, then publish. This example has two sequential steps; ALL and ANY groups are also available.
-
-</details>
+真实待办按登录成员查询。Bob 审批后出现在“我已审批”，即使 Carol 尚未处理；这不是“已办=申请全部结束”。[待办契约 / Worklist semantics](MEMBER_INBOX.md) · [操作步骤 / Walkthrough](GETTING_STARTED.md)
 
 <a id="erp"></a>
 
-## ERP · 核对采购金额 / Review a purchase request
+## ERP · 采购：先核金额，再看结果 / Procurement, from amount to outcome
 
-[![Bob 查看采购单的只读快照、CNY 598.50 合计、审批意见和流程记录](images/cases/erp-procurement-review-zh-caece22.png)](images/cases/erp-procurement-review-zh-caece22.png)
+3 把人体工学椅，单价 CNY 199.50，合计 CNY 598.50。第 1–5 张跟随同一张采购单；第 6 张是独立的追加采购驳回单。
 
-3 把椅子，每把 CNY 199.50，合计 CNY 598.50。审批人看到提交时保存的数量、单价和币种，并留下处理记录。[新建表单](images/cases/erp-procurement-form-zh-caece22.png) · [英文原图](images/cases/erp-procurement-review-en-caece22.png) · [采购说明](PROCUREMENT_UI.md)
+Three ergonomic chairs at CNY 199.50 total CNY 598.50. Images 1–5 follow one purchase request; image 6 is a separate rejected purchase.
 
-Three chairs at CNY 199.50 total CNY 598.50. The reviewer sees the saved quantity, unit price and currency, then records a decision. [Entry form](images/cases/erp-procurement-form-zh-caece22.png) · [English screenshot](images/cases/erp-procurement-review-en-caece22.png) · [Procurement guide](PROCUREMENT_UI.md)
+| <a id="erp-form"></a>1 · 填写物品、数量、单价与币种 | <a id="erp-submitted"></a>2 · 采购单已保存，业务快照不可改写 |
+| --- | --- |
+| [![填写物品、数量、单价与币种](images/gallery/erp-01-form-zh.png)](images/gallery/erp-01-form-zh.png) | [![采购单已保存，业务快照不可改写](images/gallery/erp-02-submitted-zh.png)](images/gallery/erp-02-submitted-zh.png) |
+| Enter the item, quantity, unit price and currency. [English](images/gallery/erp-01-form-en.png) | The submitted purchase request has a saved business snapshot. [English](images/gallery/erp-02-submitted-en.png) |
 
-这里只记录审批，不向供应商下单、不预留资金，也不付款或回写业务系统。
+| <a id="erp-review"></a>3 · 主管核对 3 × CNY 199.50 = CNY 598.50 | <a id="erp-final-review"></a>4 · 主管已通过，Carol 继续复核 |
+| --- | --- |
+| [![主管核对 3 × CNY 199.50 = CNY 598.50](images/gallery/erp-03-review-zh.png)](images/gallery/erp-03-review-zh.png) | [![主管已通过，Carol 继续复核](images/gallery/erp-04-final-review-zh.png)](images/gallery/erp-04-final-review-zh.png) |
+| The manager checks three chairs at CNY 199.50, total CNY 598.50. [English](images/gallery/erp-03-review-en.png) | After the manager’s approval, Carol performs the final review. [English](images/gallery/erp-04-final-review-en.png) |
 
-This records an approval; it does not order from a supplier, reserve funds, pay or write back to another system.
+| <a id="erp-approved"></a>5 · 两级通过后保留金额、流程和审批意见 | <a id="erp-rejected"></a>6 · 追加采购被驳回：先使用现有库存 |
+| --- | --- |
+| [![两级通过后保留金额、流程和审批意见](images/gallery/erp-05-approved-zh.png)](images/gallery/erp-05-approved-zh.png) | [![追加采购被驳回：先使用现有库存](images/gallery/erp-06-rejected-zh.png)](images/gallery/erp-06-rejected-zh.png) |
+| The completed request retains its exact amounts, flow and notes. [English](images/gallery/erp-05-approved-en.png) | A separate purchase is rejected in favor of existing stock. [English](images/gallery/erp-06-rejected-en.png) |
+
+采购与请假共用演示工作区里已发布的流程。本页使用两级人工审批；真实宿主须自行定义路由与资格策略。审批不会向供应商下单、预留资金、付款或回写业务系统。
+
+Leave and procurement use the demo workspace’s published flow; this capture uses two human stages. Hosts must define routing and eligibility. Approval does not place an order, reserve funds, pay or write back. [采购说明 / Procurement guide](PROCUREMENT_UI.md)
 
 <a id="crm"></a>
 
-## CRM · 两步核对报价折扣 / Review a quote discount in two steps
+## CRM · 报价折扣：销售经理 → 财务 / Quote discount, manager to finance
 
-[![Alice 为合成报价申请折扣：目录总额 CNY 10000.00，申请总额 CNY 8500.00](images/cases/crm-quote-form-zh-878a565.png)](images/cases/crm-quote-form-zh-878a565.png)
+10 套设备，目录单价 CNY 1,000.00，申请单价 CNY 850.00；申请总额 CNY 8,500.00，优惠 CNY 1,500.00（15%）。第 1–5 张是同一份报价申请，第 6 张在全新临时后端重走驳回分支，不是修改已通过结果。
 
-10 套设备，单价从 CNY 1,000.00 申请降到 CNY 850.00。Bob 销售经理审核后，由 Carol 财务复核；已通过的记录保留报价版本、原始理由和 15% 折扣。[英文审批结果](images/cases/crm-quote-approved-en-878a565.png) · [报价案例](CRM_QUOTE_CASE.md)
+Ten equipment sets go from a CNY 1,000.00 list unit price to a requested CNY 850.00: CNY 8,500.00 total and CNY 1,500.00 savings (15%). Images 1–5 follow one request. Image 6 uses a fresh disposable backend for an alternative rejection; it does not alter the approved request.
 
-For ten equipment sets, Alice requests a unit-price reduction from CNY 1,000.00 to CNY 850.00. Bob reviews first, then Carol; the approved record retains the quote revision, original reason and 15% discount. [English approval result](images/cases/crm-quote-approved-en-878a565.png) · [Quote case](CRM_QUOTE_CASE.md)
+| <a id="crm-form"></a>1 · 源报价、申请单价与减少金额一起核对 | <a id="crm-submitted"></a>2 · 销售已提交，等待销售经理 |
+| --- | --- |
+| [![源报价、申请单价与减少金额一起核对](images/gallery/crm-01-form-zh.png)](images/gallery/crm-01-form-zh.png) | [![销售已提交，等待销售经理](images/gallery/crm-02-submitted-zh.png)](images/gallery/crm-02-submitted-zh.png) |
+| Review the source quote, requested price and CNY 1,500 reduction together. [English](images/gallery/crm-01-form-en.png) | The salesperson has submitted and is awaiting the manager. [English](images/gallery/crm-02-submitted-en.png) |
 
-这是 `/quote-discount.html` 和 `/api/crm` 上的隔离合成案例，固定两步人工审批。没有接入真实 CRM、LLM、客户通知或业务回写；共享独立端、若依和 H5 工作区尚不支持报价。窄屏只查看和审批，新建使用桌面窗口。
+| <a id="crm-manager-review"></a>3 · Bob 审核源报价与折扣理由 | <a id="crm-finance-review"></a>4 · Bob 已同意，Carol 复核金额 |
+| --- | --- |
+| [![Bob 审核源报价与折扣理由](images/gallery/crm-03-manager-review-zh.png)](images/gallery/crm-03-manager-review-zh.png) | [![Bob 已同意，Carol 复核金额](images/gallery/crm-04-finance-review-zh.png)](images/gallery/crm-04-finance-review-zh.png) |
+| Bob reviews the source quotation and discount rationale. [English](images/gallery/crm-03-manager-review-en.png) | After Bob’s approval, Carol checks the amount. [English](images/gallery/crm-04-finance-review-en.png) |
 
-This isolated synthetic case runs at `/quote-discount.html` and `/api/crm` with two fixed human review steps. It has no real CRM connection, LLM, customer notifications or business writeback. Quotes are not supported in the shared standalone, RuoYi or H5 workspaces. Narrow screens support viewing and review; authoring uses a desktop window.
+| <a id="crm-approved"></a>5 · 两级通过，保存报价版本和原始理由 | <a id="crm-rejected"></a>6 · 独立驳回分支：经理拒绝后的状态 |
+| --- | --- |
+| [![两级通过，保存报价版本和原始理由](images/gallery/crm-05-approved-zh.png)](images/gallery/crm-05-approved-zh.png) | [![独立驳回分支：经理拒绝后的状态](images/gallery/crm-06-rejected-zh.png)](images/gallery/crm-06-rejected-zh.png) |
+| Both stages pass; the quote revision and original rationale remain. [English](images/gallery/crm-05-approved-en.png) | A separate run shows the manager-rejected result. The saved review reason is verified through the API; this page does not display it. [English](images/gallery/crm-06-rejected-en.png) |
+
+报价是 `/quote-discount.html` 与 `/api/crm` 上的隔离合成案例，固定销售经理 → 财务两步。这里的申请清单不是共享待办。结果卡片显示状态、当前步骤及业务快照，不展示逐人审批意见或完整历史；这些记录由接口校验。共享独立端、若依和 H5 工作区尚不支持报价；没有真实 CRM／LLM 连接、客户通知、付款或业务回写。窄屏只查看和审批，新建使用桌面窗口。
+
+Quotes run on the separate `/quote-discount.html` and `/api/crm` entry points, with fixed manager → finance steps. The quote list is not the shared inbox. Result cards show status, current stage and business fields, but not individual review notes or full history; the capture tests verify those through the API. Shared standalone, RuoYi and H5 workspaces do not support quotes. There is no real CRM/LLM connection, customer notification, payment or writeback. Narrow-screen quote UI supports review only. [报价案例 / Quote case](CRM_QUOTE_CASE.md)
 
 <a id="other-clients"></a>
 
-## 若依与 H5 / RuoYi and H5
+## 若依与 H5：同一规则，不同入口 / Other supported clients
 
-<details>
-<summary>若依：在原生菜单里查看采购单 / RuoYi: procurement in native navigation</summary>
+原生若依 ANY 组部分拒绝图与 H5 已办图是滚动后的视口截图，顶部导航或账号栏可能不在画面内；其他截图可能为全页截图。
 
-[![若依审批工作台中的采购快照，三件物品合计 USD 0.30](images/cases/erp-procurement-ruoyi-zh-caece22.png)](images/cases/erp-procurement-ruoyi-zh-caece22.png)
+The native RuoYi partial-ANY and H5 handled images are scrolled viewport captures, so the top navigation or account header may be outside the image; other captures may be full-page.
 
-复用若依登录、菜单和权限。此图显示已通过采购的业务快照；当前视口以下的流程和记录不在图中。[接入说明](../examples/ruoyi-vue3/README.md)
+### 原生若依 / Native RuoYi
 
-Uses RuoYi's login, menus and permissions. This viewport shows an approved procurement snapshot; the remaining flow and history are below the captured area. [Setup](../examples/ruoyi-vue3/README.md)
+| 编辑人员组 | ANY 组部分拒绝后仍等待 |
+| --- | --- |
+| [![若依原生人员选择和分组配置](images/gallery/ruoyi-group-editor-zh.png)](images/gallery/ruoyi-group-editor-zh.png) | [![若依 ANY 组部分成员拒绝，其他成员仍可处理](images/gallery/ruoyi-any-partial-zh.png)](images/gallery/ruoyi-any-partial-zh.png) |
+| 使用若依真实账号目录、菜单与权限。图中配置固定参与人，不按角色或部门动态选人。 | 一位成员拒绝不会立即结束 ANY 组；另一个成员仍可同意。该图是合成测试中的另一个请求。 |
 
-</details>
+RuoYi uses its own identities, menus and permissions. Its native group editor selects fixed users. The ANY example shows a real partial rejection, rather than a terminal rejection. [接入说明 / Integration](../examples/ruoyi-vue3/README.md)
 
-<a href="images/cases/erp-procurement-h5-zh-caece22.png"><img src="images/cases/erp-procurement-h5-zh-caece22.png" width="390" alt="390px H5 采购详情，合计 CNY 599.97，底部提供驳回与同意按钮 / H5 procurement review with decision controls"></a>
+### H5 手机浏览器 / H5 mobile browser
 
-H5 在手机浏览器里查看、审批已有采购单，不提供新建。这张图来自 390px Chromium 视口，是另一份合计 CNY 599.97 的测试单；不代表实体手机或原生 App 验收。[H5 说明](../examples/approval-mobile/README.md)
+<a href="images/gallery/h5-handled-zh.png"><img src="images/gallery/h5-handled-zh.png" width="260" alt="H5 采购已办列表和完整单据卡片"></a> <a href="images/gallery/h5-procurement-review-zh.png"><img src="images/gallery/h5-procurement-review-zh.png" width="260" alt="H5 采购详情及同意、拒绝按钮"></a> <a href="images/gallery/h5-completed-zh.png"><img src="images/gallery/h5-completed-zh.png" width="260" alt="H5 完成审批后的记录"></a>
 
-H5 views and reviews existing requests, without authoring. This 390px Chromium capture uses a separate CNY 599.97 test request; it does not establish physical-device or native-app testing. [H5 guide](../examples/approval-mobile/README.md)
+这里分别展示 CNY 599.97 采购单的已办卡片和审批控制，以及另一份请假组申请通过后的完整历史。它们来自两个合成测试场景，不冒充同一笔业务连续状态。
+
+These captures show a CNY 599.97 procurement request’s handled card and review controls, plus completed leave-group history from a separate test case. H5 can review existing leave/procurement requests; it cannot author requests, design flows or review quotes. Captures use a 390px Chromium viewport, not physical-device or native-app testing. [H5 guide](../examples/approval-mobile/README.md)
 
 <a id="provenance"></a>
 
-## 截图来源 / Capture provenance
+## 版本、来源与复现 / Versions, sources and reproduction
 
-- **OA、ERP、设计器、若依与 H5：** 截于 main [`caece22f`](https://github.com/JamesCube/ArcFlow/commit/caece22fb52e645f303c6adec73f19a027d38e66)。来源为通过的[独立端](https://github.com/JamesCube/ArcFlow/actions/runs/37718170734)、[若依](https://github.com/JamesCube/ArcFlow/actions/runs/37718170686)和 [H5](https://github.com/JamesCube/ArcFlow/actions/runs/37718170698)浏览器工作流。
-- **CRM：** 截于通过验收的 PR head [`878a5659`](https://github.com/JamesCube/ArcFlow/commit/878a5659220aaf546d9d7f77abfa31f42b054938)，来自[报价浏览器工作流](https://github.com/JamesCube/ArcFlow/actions/runs/37723133831)。其 Git tree `12b173536f69b093fd2c9d4ecdd51ceb8e7f5071` 与合并后的 main [`66ec5312`](https://github.com/JamesCube/ArcFlow/commit/66ec531270a513f884125065f19fe4e78762992f)一致。不是合并后重新拍摄的图片。
-- **文件：** 10 张 PNG 均保留原始字节，没有裁剪、改写或生成界面。[逐图来源与 SHA-256](images/cases/provenance.json)列出原始产物路径、尺寸、提交及工作流。CI 产物保留 7 天；本页图片另存于仓库，过期后仍可查看。
+新设计器及 OA／ERP／CRM 状态由专用截图用例驱动真实后端；ALL／ANY、若依和 H5 来自已通过的 main `c4b3135a` 浏览器验收。逐图提交、工作流、原始产物路径、尺寸及 SHA-256 见[来源清单](images/gallery/provenance.json)。所有 PNG 保留原始字节，未裁剪、重绘、修图或生成 UI。
 
-OA, ERP, designer, RuoYi and H5 images were captured on main `caece22f`. CRM images were captured on accepted PR head `878a5659`, whose tree equals merged main `66ec5312`; they were not recaptured after the merge. All ten PNGs retain the original bytes. The [manifest](images/cases/provenance.json) records dimensions, original artifact paths, capture commits and SHA-256 hashes. Repository copies remain available after the seven-day CI artifact retention period.
+Dedicated gallery tests drive the real backend for the new designer and business states. Additional group, RuoYi and H5 captures come from passing main `c4b3135a` browser acceptance. The [manifest](images/gallery/provenance.json) records each image’s exact commit, workflow, artifact path, dimensions and checksum. PNG bytes are unchanged; no UI was generated, retouched or cropped.
 
-本页按 main `9961ac44` 的功能边界整理；该提交只调整文档和启动入口。这些截图说明各自版本的合成案例，不代表真实客户采用、生产就绪或之后提交的测试结果。当前版本请检查对应 CI；历史设计器和若依截图仍可在[旧设计器图集](DESIGNER_SHOWCASE.md)与[旧若依图集](RUOYI_SHOWCASE.md)查看。
+[截图复现命令与环境](GALLERY_CAPTURE.md)记录通过的采集运行与本地浏览器限制。图片说明各自版本的合成案例，不代表生产就绪、真实客户采用或后续提交已通过测试。CI 产物保留 7 天；仓库图片不依赖该保留期。
 
-This gallery was assembled against main `9961ac44`, a documentation and launcher-entry update. The images demonstrate synthetic cases at their capture versions, not customer adoption, production readiness or test results for later commits. Check CI for the version you use. The [earlier designer](DESIGNER_SHOWCASE.md) and [RuoYi](RUOYI_SHOWCASE.md) galleries retain their historical captures.
+[Capture instructions and environment](GALLERY_CAPTURE.md) distinguish passing CI capture runs from the local browser limitation. Screenshots are evidence of synthetic cases at their listed versions, not production readiness, customer adoption or passing tests at later commits. Repository copies outlive the seven-day CI artifact retention period.
+
+此前 10 张案例图片的[原始来源清单](images/cases/provenance.json)保留不变；[早期设计器](DESIGNER_SHOWCASE.md)和[早期若依图集](RUOYI_SHOWCASE.md)仍可查阅。
