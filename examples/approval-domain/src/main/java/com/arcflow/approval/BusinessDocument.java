@@ -12,8 +12,9 @@ import java.time.format.DateTimeParseException;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes({@JsonSubTypes.Type(value = BusinessDocument.Leave.class, name = "leave"),
     @JsonSubTypes.Type(value = BusinessDocument.Procurement.class, name = "procurement"),
-    @JsonSubTypes.Type(value = BusinessDocument.QuoteDiscount.class, name = "quoteDiscount")})
-public sealed interface BusinessDocument permits BusinessDocument.Leave, BusinessDocument.Procurement, BusinessDocument.QuoteDiscount {
+    @JsonSubTypes.Type(value = BusinessDocument.QuoteDiscount.class, name = "quoteDiscount"),
+    @JsonSubTypes.Type(value = BusinessDocument.Expense.class, name = "expense")})
+public sealed interface BusinessDocument permits BusinessDocument.Leave, BusinessDocument.Procurement, BusinessDocument.QuoteDiscount, BusinessDocument.Expense {
     String businessId();
     String title();
     String reason();
@@ -92,6 +93,50 @@ public sealed interface BusinessDocument permits BusinessDocument.Leave, Busines
         }
     }
 
+    /** Versioned expense data, not a payment instruction or proof that a receipt exists. */
+    record Expense(@JsonProperty(required = true) int documentVersion,
+                   @JsonProperty(required = true) String businessId, @JsonProperty(required = true) String title,
+                   @JsonProperty(required = true) String reason, @JsonProperty(required = true) String costCenter,
+                   @JsonProperty(required = true) String currency, @JsonProperty(required = true) java.util.List<ExpenseLine> lines) implements BusinessDocument {
+        public Expense { if (lines != null) lines = java.util.List.copyOf(lines); }
+        @Override public void validate() {
+            validateCommon(this);
+            if (documentVersion != 1 || !java.util.Set.of("SALES", "ENGINEERING", "OPERATIONS").contains(costCenter == null ? "" : costCenter) ||
+                !java.util.Set.of("CNY", "USD", "EUR", "GBP", "JPY").contains(currency == null ? "" : currency) ||
+                lines == null || lines.isEmpty() || lines.size() > 20)
+                throw new IllegalArgumentException("Expense requires document version 1, a supported cost center/currency and 1–20 lines");
+            var lineIds = new java.util.HashSet<String>(); var receipts = new java.util.HashSet<String>();
+            for (ExpenseLine line : lines) {
+                line.validate(currency);
+                if (!lineIds.add(line.lineId()) || !receipts.add(line.receiptRef()))
+                    throw new IllegalArgumentException("Expense line IDs and receipt references must each be distinct");
+            }
+        }
+        @Override public Expense withText(String title, String reason) {
+            return new Expense(documentVersion, businessId, title, reason, costCenter, currency,
+                lines.stream().map(line -> new ExpenseLine(line.lineId(), line.spentOn(), line.category(),
+                    line.description().trim(), line.amount().stripTrailingZeros(), line.receiptRef())).toList());
+        }
+        public BigDecimal total() { return lines.stream().map(ExpenseLine::amount).reduce(BigDecimal.ZERO, BigDecimal::add); }
+    }
+
+    record ExpenseLine(@JsonProperty(required = true) String lineId, @JsonProperty(required = true) String spentOn,
+                       @JsonProperty(required = true) String category, @JsonProperty(required = true) String description,
+                       @JsonProperty(required = true) BigDecimal amount, @JsonProperty(required = true) String receiptRef) {
+        public void validate(String currency) {
+            if (!validReference(lineId) || !validReference(receiptRef) || !validText(description, 240) || description.trim().isBlank() ||
+                !java.util.Set.of("TRAVEL", "MEALS", "OFFICE", "OTHER").contains(category == null ? "" : category) ||
+                amount == null || amount.signum() <= 0 || amount.scale() > 2 || amount.compareTo(new BigDecimal("1000000000")) > 0 ||
+                ("JPY".equals(currency) && amount.stripTrailingZeros().scale() > 0))
+                throw new IllegalArgumentException("Invalid expense line reference, category, description or exact amount");
+            if (spentOn == null || !spentOn.matches("[0-9]{4}-[0-9]{2}-[0-9]{2}"))
+                throw new IllegalArgumentException("Expense date must use YYYY-MM-DD");
+            try { if (LocalDate.parse(spentOn).getYear() < 1) throw new IllegalArgumentException("Expense date year must be positive"); }
+            catch (DateTimeParseException invalid) { throw new IllegalArgumentException("Expense date must be a real calendar date", invalid); }
+        }
+    }
+
+    private static boolean validReference(String value) { return value != null && value.matches("[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}"); }
     private static void validateCommon(BusinessDocument document) {
         if (document.businessId() == null || !document.businessId().matches("[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}") ||
             !validText(document.title(), 120) || !validText(document.reason(), 2000))

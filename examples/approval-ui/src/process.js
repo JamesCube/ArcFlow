@@ -31,11 +31,14 @@ export function setApprovalMode(definition, nodeId, mode, availableIds = ['bob',
 const isRecord = value => !!value && typeof value === 'object' && !Array.isArray(value)
 const hasControlCharacters = value => /[\u0000-\u001f\u007f-\u009f]/.test(value)
 
-export function validateDefinition(definition) {
+export function validateDefinition(definition, expectedProcessId = 'leave-approval') {
+  // Preserve legacy use as an Array callback (which supplies its index), and
+  // native-parity callers that pass a directory. Only an explicit string opts in.
+  if (typeof expectedProcessId !== 'string') expectedProcessId = 'leave-approval'
   if (!isRecord(definition)) return ['The process template is unavailable. Refresh to load it.']
   const errors = []
   if (Object.keys(definition).some(key => !['schemaVersion', 'id', 'version', 'name', 'nodes'].includes(key))) errors.push('The process contains unsupported fields.')
-  if (![2, 3].includes(definition.schemaVersion) || definition.id !== 'leave-approval' || !Number.isInteger(definition.version) || definition.version < 1) errors.push('Use schema 2 or 3, the leave-approval process, and a positive whole-number version.')
+  if (![2, 3].includes(definition.schemaVersion) || definition.id !== expectedProcessId || !Number.isInteger(definition.version) || definition.version < 1) errors.push(`Use schema 2 or 3, the ${expectedProcessId} process, and a positive whole-number version.`)
   if (typeof definition.name !== 'string' || !definition.name.trim()) errors.push('Give the process a name.')
   else if (hasControlCharacters(definition.name)) errors.push('The process name cannot contain control characters.')
   else if (definition.name.length > MAX_NAME_LENGTH) errors.push(`Keep the process name to ${MAX_NAME_LENGTH} characters.`)
@@ -93,11 +96,11 @@ export const participantStateLabel = state => ({ approved: 'Approved', rejected:
 // Publication must acknowledge the exact ordered process sent by this editor.
 // Object key order is irrelevant; stage and participant order are preserved by
 // ApprovalService.publish and are part of the returned runtime definition.
-export function validatePublicationResponse(published, submitted) {
+export function validatePublicationResponse(published, submitted, expectedProcessId = 'leave-approval') {
   const content = definition => [definition.schemaVersion, definition.id, definition.name,
     definition.nodes.map(node => [node.id, node.type, node.name, node.assigneeId,
       ...(node.type === 'parallelApproval' ? [node.assigneeIds, node.completionMode] : [])])]
-  if (validateDefinition(published).length || published.version !== submitted.version + 1
+  if (validateDefinition(published, expectedProcessId).length || published.version !== submitted.version + 1
     || JSON.stringify(content(published)) !== JSON.stringify(content(submitted))) {
     throw Object.assign(new Error('The publication response did not confirm the submitted template and next version.'), { name: 'InvalidPublicationResponseError' })
   }

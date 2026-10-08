@@ -65,6 +65,38 @@ abstract class ServerApprovalStoreContract {
             return results;
         } finally { executor.shutdownNow(); assertTrue(executor.awaitTermination(10, TimeUnit.SECONDS)); }
     }
+    protected static BusinessDocument.Expense expenseDocument() {
+        return new BusinessDocument.Expense(1,"EXP-SQL-1","Office expense","Synthetic references only","OPERATIONS","CNY",List.of(
+            new BusinessDocument.ExpenseLine("line-1","2026-10-01","OFFICE","Supplies",new BigDecimal("0.10"),"RECEIPT-1"),
+            new BusinessDocument.ExpenseLine("line-2","2026-10-02","TRAVEL","Transit",new BigDecimal("0.20"),"RECEIPT-2")));
+    }
+    protected ApprovalService expenseService() throws IOException {
+        return new ApprovalService(new JdbcApprovalStore(dataSource,new ObjectMapper(),com.arcflow.approval.ScenarioCatalog.expense("bob","carol").initialProcess()),USERS);
+    }
+    @Test void expenseTypedSnapshotGlobalKeysAndMemberProjectionRemainProcessIsolated() throws Exception {
+        ApprovalService.Request approved;
+        try(var expenses=expenseService(); var leave=open()) {
+            var created=expenses.submitDocument("alice",expenseDocument(),1,"expense-shared");
+            assertEquals("0.3",((BusinessDocument.Expense)created.business()).total().toPlainString());
+            assertEquals(409,result(()->leave.submit("alice","Leave","Rest",1,1,"expense-shared"))); assertTrue(leave.list("alice").isEmpty());
+            assertEquals(404,result(()->leave.decide("bob",created.id(),"manager","APPROVE","")));
+            expenses.decide("bob",created.id(),"manager","APPROVE","Reviewed");
+            var query=new java.util.LinkedHashMap<String,java.util.List<String>>(); query.put("box",List.of("PENDING"));
+            assertEquals(1,expenses.inbox("carol",query).items().size()); assertEquals(0,leave.inbox("carol",query).items().size());
+            approved=expenses.decide("carol",created.id(),"finance","APPROVE","Reviewed");
+            assertEquals(created.business(),approved.business()); assertEquals("APPROVED",approved.status());
+        }
+        try(var reopened=expenseService()) { assertEquals(List.of(approved),reopened.list("alice")); assertEquals(approved,reopened.submitDocument("alice",expenseDocument(),1,"expense-shared")); }
+    }
+    @Test void expenseConcurrentRetryCreatesOneRequestBindingAndExactAudit() throws Exception {
+        try(var first=expenseService(); var second=expenseService()) {
+            var commands=new ArrayList<Callable<ApprovalService.Request>>();
+            for(int i=0;i<8;i++) { var service=i%2==0?first:second; commands.add(()->service.submitDocument("alice",expenseDocument(),1,"expense-race")); }
+            var saved=race(commands); assertTrue(saved.stream().allMatch(saved.get(0)::equals));
+            assertEquals(1,count("arc_request")); assertEquals(1,count("arc_submission_key")); assertEquals(1,count("arc_request_event")); assertEquals(2,count("arc_request_member"));
+        }
+    }
+
     @Test void concurrentInitializationCreatesOneConsistentHead() throws Exception {
         var constructors = new ArrayList<Callable<Integer>>();
         for (int i = 0; i < 8; i++) constructors.add(() -> { try (var service = open()) { return service.process().version(); } });

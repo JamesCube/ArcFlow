@@ -5,7 +5,7 @@ import { validationText } from './locale'
 import UiIcon from './UiIcon.vue'
 import { createDraftHistory, insertApproval, moveApproval, removeApproval, updateApproval } from './designer-model'
 
-const props = defineProps({ modelValue: Object, published: Object, people: { type: Array, default: () => [] }, editable: Boolean, busy: Boolean, publishing: Boolean, dirty: Boolean, stale: Boolean, initialLocale: { type: String, default: 'zh' }, showLanguage: { type: Boolean, default: true } })
+const props = defineProps({ modelValue: Object, published: Object, expectedProcessId: { type: String, default: 'leave-approval' }, people: { type: Array, default: () => [] }, editable: Boolean, busy: Boolean, publishing: Boolean, dirty: Boolean, stale: Boolean, initialLocale: { type: String, default: 'zh' }, showLanguage: { type: Boolean, default: true } })
 const emit = defineEmits(['update:modelValue', 'update:locale', 'publish', 'reset'])
 const locale = ref(props.initialLocale), root = ref(null), inspector = ref(null), nameInput = ref(null)
 const mobileEditing = ref(false)
@@ -23,7 +23,7 @@ const stages = computed(() => approvalNodes(props.modelValue))
 const selected = computed(() => stages.value.find(node => node.id === selectedId.value))
 const selectedIndex = computed(() => stages.value.findIndex(node => node.id === selectedId.value) + 1)
 const approvers = computed(() => props.people.filter(person => ['bob', 'carol'].includes(person.id)))
-const errors = computed(() => validateDefinition(props.modelValue))
+const errors = computed(() => validateDefinition(props.modelValue, props.expectedProcessId))
 const canAdd = computed(() => props.editable && !props.busy && stages.value.length < MAX_APPROVALS)
 const ariaLabel = (kind, index, value = '') => {
   const en = { name:`Step ${index} name`, mode:`Step ${index} review mode`, assignee:`Step ${index} approver`, members:`Step ${index} participants`, member:`Step ${index} participant ${value}`, up:`Move step ${index} up`, down:`Move step ${index} down`, remove:`Remove step ${index}`, configure:`Configure step ${index}: ${value}`, insert:`Insert approval before ${value === 'end' ? 'end' : 'step ' + index}` }
