@@ -101,8 +101,8 @@ java -cp target/classes com.arcflow.example.QuickStart
 
 [Open an issue](https://github.com/JamesCube/ArcFlow/issues) with the commit, environment, command and error details if something fails. Remove credentials and real personal data first.
 
-For a pinned version, download a Source code archive from the [`v0.1.0-alpha.2` source preview](https://github.com/JamesCube/ArcFlow/releases/tag/v0.1.0-alpha.2), extract it, and run `python3 scripts/tryout.py`. Read the release's upgrade notes before using existing data.
+For a pinned version, download a Source code archive from the [`v0.1.0-alpha.3` source preview](https://github.com/JamesCube/ArcFlow/releases/tag/v0.1.0-alpha.3), extract it, and run `python3 scripts/tryout.py`. Read the release's upgrade notes before using existing data.
 
-The published [`v0.1.0-alpha.1`](https://github.com/JamesCube/ArcFlow/releases/tag/v0.1.0-alpha.1) is an older sequential-approval version. It doesn't include the current designer, ALL/ANY, JDBC or typed business documents.
+The earlier [`v0.1.0-alpha.2`](https://github.com/JamesCube/ArcFlow/releases/tag/v0.1.0-alpha.2) does not include alpha.3's standalone-host dependency upgrade, post-read identity-check fixes, or root build changes. [`v0.1.0-alpha.1`](https://github.com/JamesCube/ArcFlow/releases/tag/v0.1.0-alpha.1) is an older sequential-approval version without the current designer, ALL/ANY, JDBC or typed business documents.
 
 [Apache License 2.0](LICENSE). Separately downloaded RuoYi projects keep their MIT licenses. This project isn't endorsed by RuoYi upstream.
