@@ -48,14 +48,16 @@ python3 scripts/tryout.py
 
 报价案例使用合成客户和固定的销售经理 → 财务两步人工审批，通过专用 `/api/crm` 服务和 `/quote-discount.html` 页面运行。共享独立端、若依和 H5 工作区尚不支持报价；AI 功能、真实 CRM 连接、客户通知和业务回写均未实现。验收状态见 [CRM 兼容性与发布门槛](docs/CRM_COMPATIBILITY_READINESS.md)。
 
+### 看看实际页面
+
+| OA · 请假 | ERP · 采购 | CRM · 报价折扣 |
+| --- | --- | --- |
+| [![填写请假天数和事由，查看两步审批顺序](docs/images/cases/oa-leave-form-zh-caece22.png)](docs/CASE_GALLERY.md#oa) | [![采购审批中查看精确金额和提交时的业务快照](docs/images/cases/erp-procurement-review-zh-caece22.png)](docs/CASE_GALLERY.md#erp) | [![合成报价折扣申请，核对目录总额与申请金额](docs/images/cases/crm-quote-form-zh-878a565.png)](docs/CASE_GALLERY.md#crm) |
+| 填写天数和事由，按发布的流程审批。 | 核对数量、单价和合计，保留审批记录。 | 在独立页面完成两步人工报价审核。 |
+
+以上为运行中应用的真实截图，使用合成数据。[打开图集](docs/CASE_GALLERY.md)可看原图、设计器、若依和 H5 页面。[截图版本与来源](docs/CASE_GALLERY.md#provenance)。
+
 ## 设计流程与处理审批
-
-| Vue 设计器 | 若依中的审批页面 |
-| --- | --- |
-| [![Vue 设计器中的审批步骤和参与人设置](docs/images/designer-desktop-836e605.png)](docs/images/designer-desktop-836e605.png) | [![若依原生菜单中的审批流程配置](docs/images/ruoyi-native-process-editor.png)](docs/images/ruoyi-native-process-editor.png) |
-| 配置步骤、审批人和通过规则。[更多截图](docs/DESIGNER_SHOWCASE.md#简体中文) | 沿用若依的登录、用户、菜单和权限。[接入说明](examples/ruoyi-vue3/README.md) |
-
-图片展示较早版本，点击可看原图；截图版本和来源见[设计器图集](docs/DESIGNER_SHOWCASE.md#简体中文)与[若依图集](docs/RUOYI_SHOWCASE.md#简体中文)。
 
 - **单人审批、会签和或签。** 一个流程支持 1–8 个步骤。ALL 需全员同意，任一人拒绝就驳回；ANY 有一人同意就通过，所有人拒绝才驳回。
 - **每份申请保留自己的流程。** 发布新版本后，已提交申请继续按原版本审批。
