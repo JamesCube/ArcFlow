@@ -25,7 +25,7 @@ class QuoteDiscountController {
     @GetMapping("/requests") List<QuoteDiscountCase.View> requests(Principal actor) { return quotes.list(actor.getName()); }
     @PostMapping("/documents") @ResponseStatus(HttpStatus.CREATED) QuoteDiscountCase.View submit(Principal actor,
             @Valid @RequestBody Submission body, @RequestHeader HttpHeaders headers) throws IOException {
-        if (headers.containsKey("Idempotency-Key"))
+        if (headers.containsHeader("Idempotency-Key"))
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "This sample binds submissions to the quote revision; omit Idempotency-Key");
         return quotes.submit(actor.getName(), body.business(), body.processVersion());
     }

@@ -20,6 +20,36 @@ jobs:
       - run: mvn --batch-mode --no-transfer-progress install
       - run: mvn --batch-mode --no-transfer-progress -f examples/approval-domain/pom.xml install
       - run: mvn --batch-mode --no-transfer-progress -f examples/approval-demo/backend/pom.xml verify
+      - name: Verify packaged standalone dependency boundary
+        run: |
+          python3 - <<'PY'
+          import json, re, xml.etree.ElementTree as ET, zipfile
+          from pathlib import Path
+          backend = Path('examples/approval-demo/backend')
+          ns = {'m': 'http://maven.apache.org/POM/4.0.0'}
+          expected = ET.parse(backend / 'pom.xml').findtext('m:parent/m:version', namespaces=ns)
+          with zipfile.ZipFile(backend / 'target/approval-demo-0.1.0-SNAPSHOT.jar') as jar:
+              libraries = sorted(Path(name).name for name in jar.namelist()
+                                 if name.startswith('BOOT-INF/lib/') and name.endswith('.jar'))
+          assert f'spring-boot-{expected}.jar' in libraries, libraries
+          assert f'spring-boot-jackson2-{expected}.jar' in libraries, libraries
+          assert all(name.endswith(f'-{expected}.jar') for name in libraries if name.startswith('spring-boot-')), libraries
+          for family in (r'spring-(?:aop|beans|context|core|expression|web|webmvc)-(.+)\.jar',
+                         r'spring-security-.+-([0-9].+)\.jar'):
+              versions = {match[1] for name in libraries if (match := re.fullmatch(family, name))}
+              assert len(versions) == 1 and next(iter(versions)).startswith('7.'), (family, versions)
+          (backend / 'target/runtime-libraries.json').write_text(json.dumps(libraries, indent=2) + '\n')
+          print('Verified Boot', expected, 'with a consistent Spring 7 / Security 7 runtime')
+          PY
+      - name: Retain standalone host test and runtime evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: standalone-host-reports-java-${{ matrix.java }}
+          path: |
+            examples/approval-demo/backend/target/surefire-reports/
+            examples/approval-demo/backend/target/runtime-libraries.json
+          retention-days: 7
       - name: Verify isolated CRM quote approval and member inbox separation
         run: python3 examples/crm-quote/http_smoke.py --inbox --jar examples/approval-demo/backend/target/approval-demo-0.1.0-SNAPSHOT.jar
       - name: Verify authenticated member inbox on a live disposable backend

@@ -2,7 +2,7 @@
 
 Try human approvals with ArcFlow: publish an ordered process, submit a sample leave request, approve or reject its steps, and see the saved result and history. Steps can have one approver or an ALL/ANY group.
 
-**Run this on localhost with synthetic data only.** The example pins Spring Boot 3.5.16 to stay on Boot 3, which has [ended OSS support](https://spring.io/blog/2026/06/25/spring-boot-3-5-16-available-now/). Keep it off the public internet and do not enter real leave or health information. It is not ready for production use.
+**Run this on localhost with synthetic data only.** The standalone backend uses Spring Boot 4.1.1 with a temporary Jackson 2 bridge; see [migration scope and remaining support limits](../../docs/SUPPORTED_HOST_MIGRATION.md). Keep it off the public internet and do not enter real leave or health information. It is not ready for production use.
 
 ## Run
 

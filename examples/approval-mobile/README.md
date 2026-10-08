@@ -47,7 +47,7 @@ use this client to review them. The initial implementation was based on
 ## Run locally / 本地运行
 
 Requirements: Java 17+, Maven, Node 22.22.2+ or 24.15.0+ (see engines), npm.
-Use only synthetic data. The existing Boot 3 demo and this mobile client are not
+Use only synthetic data. The standalone demo and this mobile client are not
 production deployments; see the backend's security/persistence limits.
 
 From the repository root, build the backend dependencies:
