@@ -113,7 +113,7 @@
 | 源报价版本与提示 | ✅ | 校验源字段、版本和有效日期；折扣百分比、10% 提示及过期提示都不自动路由。 | [模型测试 / Tests][quote-model-tests] · [宿主 / Host][quote-host] · [Screen](CASE_GALLERY.md#crm-manager-review) |
 | 可视化表单设计器 | — | 现有表单由代码定义；没有拖拽字段、字段面板或发布表单 schema 的界面。 | [业务契约 / Contract][business] · [表单源码 / UI](../examples/approval-ui/src/App.vue) |
 | 字段联动与节点字段权限 | — | 没有配置式显隐、跨字段公式或按审批步骤编辑字段的规则；已提交业务字段始终只读。 | [业务契约 / Contract][business] |
-| 场景模板库 | — | 没有可安装、复制或发布的 OA／ERP／CRM 模板注册表；当前只有三个明确案例。 | [业务契约 / Contract][business] |
+| 场景模板库 | 🟡 | 已有固定、版本化的费用报销目录与独立工作区；不支持任意模板安装、复制或发布。 | [业务契约 / Contract][business] |
 | 附件 | — | 没有上传、权限下载、病毒扫描或附件留存服务。 | [字段定义 / Fields][business-model] · [H5 范围 / H5 scope][mobile] |
 | 多行明细 | 🟡 | 费用报销支持 1–20 行及逐行校验；采购和报价仍各只有一条商品记录。 | [字段定义 / Fields][business-model] |
 | 审批后业务回写 | — | 通过仅保存审批状态；不创建采购订单、更新真实 CRM、发货、开票或付款。 | [采购边界 / Procurement](PROCUREMENT_UI.md) · [报价边界 / Quotes](CRM_QUOTE_CASE.md) |
@@ -167,7 +167,7 @@
 
 ### 已有场景与逐步截图
 
-这里的“场景”是三种业务案例，不是 33 种业务模板。现有图集包含设计器、业务状态、人员组、若依及 H5 的 33 个不同场景、61 张中英文原始截图；语言变体不重复算场景。
+主线有请假、采购、报价和费用报销四类业务案例。原图集包含 33 个操作／状态场景、61 张中英文原图；另有[费用报销的 16 张真实图](EXPENSE_SCENARIO.md#gallery)。操作状态与语言变体不是新的业务模板。
 
 | 业务 | 配置与表单 | 提交／待审／下一步 | 通过／驳回 | 边界 |
 | --- | --- | --- | --- | --- |
@@ -182,7 +182,7 @@
 
 ### 建议建设顺序：场景库、可视化表单与配置
 
-下面是根据已有基础整理的建议，不是已交付功能或排期。先把一个场景从配置、表单到审批结果做完整，再扩展同类场景，避免只增加名称、表单截图或未接后端的成功状态。
+费用报销基础已交付；下表其余阶段是后续建议，没有交付日期。先把一个场景从配置、表单到审批结果做完整，再扩展同类场景，避免只增加名称、表单截图或未接后端的成功状态。
 
 | 顺序 | 建设范围 | 完成时应能核验什么 |
 | --- | --- | --- |
@@ -325,7 +325,7 @@ The flow designer configures approval stages. A business-form designer is still 
 | Source quote revision and hints | ✅ | Validate source fields, revision and validity; discount percentages, the 10% hint and expiry hints do not route requests. | [模型测试 / Tests][quote-model-tests] · [宿主 / Host][quote-host] · [Screen](CASE_GALLERY.md#crm-manager-review) |
 | Visual form designer | — | Current forms are defined in code; no drag-and-drop fields, field inspector or form-schema publishing UI. | [业务契约 / Contract][business] · [表单源码 / UI](../examples/approval-ui/src/App.vue) |
 | Field dependencies/stage permissions | — | No configurable visibility, cross-field formulas or stage-specific field editing; submitted fields remain read-only. | [业务契约 / Contract][business] |
-| Scenario template library | — | No installable, cloneable or publishable OA/ERP/CRM template registry; there are three explicit cases today. | [业务契约 / Contract][business] |
+| Scenario template library | 🟡 | A fixed, versioned expense catalog and dedicated workspace are available; arbitrary template installation, cloning and publishing are not. | [业务契约 / Contract][business] |
 | Attachments | — | No upload, authorized download, malware scanning or attachment-retention service. | [字段定义 / Fields][business-model] · [H5 范围 / H5 scope][mobile] |
 | Repeating line items | 🟡 | Expenses support 1–20 editable, validated lines; procurement and quotes still contain one item. | [字段定义 / Fields][business-model] |
 | Business writeback | — | Approval records a workflow state; it does not create orders, update a real CRM, ship, invoice or pay. | [采购边界 / Procurement](PROCUREMENT_UI.md) · [报价边界 / Quotes](CRM_QUOTE_CASE.md) |
@@ -379,7 +379,7 @@ The flow designer configures approval stages. A business-form designer is still 
 
 ### Existing cases and step-by-step screens
 
-There are three business cases, not 33 business templates. The galleries contain 33 distinct scenes and 61 original Chinese/English captures across the designer, business states, groups, RuoYi and H5. Language variants are not counted as new scenes.
+Main provides four business cases: leave, procurement, quotes and expenses. The original galleries contain 33 operation/state scenes and 61 bilingual captures; the [expense gallery adds 16 real captures](EXPENSE_SCENARIO.md#gallery). States and language variants are not separate business templates.
 
 | Case | Configuration and form | Submit / pending / next stage | Approved / rejected | Boundary |
 | --- | --- | --- | --- | --- |
@@ -394,7 +394,7 @@ There are three business cases, not 33 business templates. The galleries contain
 
 ### Proposed sequence: scenarios, visual forms and configuration
 
-This is a proposed sequence based on existing foundations, not shipped work or a release schedule. Complete one case from configuration and form entry through persisted decisions before scaling out. New labels, form-only screenshots or disconnected success states do not establish a runnable scenario.
+The expense foundation is delivered; the remaining stages are proposals without delivery dates. Complete one case from configuration and form entry through persisted decisions before scaling out. New labels, form-only screenshots or disconnected success states do not establish a runnable scenario.
 
 | Order | Scope | Evidence required for completion |
 | --- | --- | --- |
@@ -405,7 +405,7 @@ This is a proposed sequence based on existing foundations, not shipped work or a
 | 5 · More routing operations | Define conditional routing, role/department resolution, return, withdrawal, added reviewers and delegation separately | Permissions, terminal states, versions and concurrency semantics before execution, clients and negative tests |
 | 6 · Hosts and delivery safeguards | Integrate real systems, transactional outbox, messaging, tenant isolation and mobile capabilities as needed | Separate adapters and failure testing; passing source examples does not establish production acceptance |
 
-### Candidate business templates: each still unimplemented
+### Business templates: delivered and missing support
 
 | Area | Scenario | Status | Initial boundary / prerequisite |
 | --- | --- | --- | --- |
