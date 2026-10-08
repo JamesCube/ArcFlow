@@ -10,7 +10,7 @@ These steps start the demo in two terminals and keep its data between runs. For 
 
 Requirements: Git, Bash, a full JDK 17+, Maven 3.9+, Node 22.22.2 or later within 22.x, and npm. Supported alternatives for the standalone UI are Node 24.15+ within 24.x or Node 26+, as declared in its [package.json](../examples/approval-ui/package.json). This setup needs no MySQL, Redis or RuoYi installation.
 
-Choose a new private data path and three different demo-only passwords, each at least 12 characters long. Use test data instead of real leave, health or personnel information. A fresh store starts with **Alice submits → Bob reviews → complete**.
+Choose a new private data path and three different demo-only passwords, each at least 12 characters long and at most 72 UTF-8 bytes. Multibyte characters can reach the byte limit sooner. Use test data instead of real leave, health or personnel information. A fresh store starts with **Alice submits → Bob reviews → complete**.
 
 In terminal 1:
 
@@ -25,7 +25,7 @@ umask 077
 mkdir -p "$PWD/examples/approval-demo/backend/data"
 export APPROVAL_DATA_FILE="$PWD/examples/approval-demo/backend/data/requests.json"
 
-# Choose three different demo-only passwords, each at least 12 characters.
+# Choose three different demo-only passwords, each at least 12 characters and at most 72 UTF-8 bytes.
 read -rs -p 'Alice demo password: ' APPROVAL_ALICE_PASSWORD; echo
 read -rs -p 'Bob demo password: ' APPROVAL_BOB_PASSWORD; echo
 read -rs -p 'Carol demo password: ' APPROVAL_CAROL_PASSWORD; echo
@@ -95,7 +95,7 @@ If you open a new terminal, set the passwords again and set `APPROVAL_DATA_FILE`
 | Symptom | Check |
 | --- | --- |
 | Maven cannot resolve `arcflow-core` or `approval-domain` | Run root `mvn install`, then `mvn -f examples/approval-domain/pom.xml install`, before starting the backend. These jars are built locally. |
-| Backend refuses to start | Check all three password variables (12+ characters), port 8080, and data-path permissions. Another process using the same store intentionally blocks startup. |
+| Backend refuses to start | Check all three password variables (at least 12 characters and at most 72 UTF-8 bytes each), port 8080, and data-path permissions. Another process using the same store intentionally blocks startup. |
 | UI cannot connect / login fails | Wait for backend startup; use the configured account/password and exact URL `http://localhost:5173`. Check API logs, Node version, and port 5173. Keep loopback bindings. |
 | UI port 5173 is already in use | Stop your other demo instance or deliberately change both the Vite port and backend `APPROVAL_UI_ORIGIN`. Avoid changing the hostname/port in only one place. |
 | Publish or submit reports a conflict | Refresh to load the current published version. Review before retrying; preserve/reapply designer changes if needed. |
@@ -116,7 +116,7 @@ If you open a new terminal, set the passwords again and set `APPROVAL_DATA_FILE`
 
 需要 Git、Bash、完整 JDK 17+、Maven 3.9+、Node 22.22.2 或更高的 22.x 版本及 npm。独立界面也接受 24.15+ 的 Node 24.x 或 Node 26+，以 [package.json](../examples/approval-ui/package.json) 为准。这套启动方式不需要 MySQL、Redis 或若依。
 
-选择一个新的私有数据路径，设置三个不同的演示专用密码，每个至少 12 个字符。请使用测试数据，不要输入真实请假、健康或人员信息。初始流程为 **Alice 发起 → Bob 审批 → 完成**。
+选择一个新的私有数据路径，设置三个不同的演示专用密码，每个至少 12 个字符，且 UTF-8 编码后最多 72 字节。多字节字符会更早达到字节上限。请使用测试数据，不要输入真实请假、健康或人员信息。初始流程为 **Alice 发起 → Bob 审批 → 完成**。
 
 在终端 1 运行：
 
@@ -131,7 +131,7 @@ umask 077
 mkdir -p "$PWD/examples/approval-demo/backend/data"
 export APPROVAL_DATA_FILE="$PWD/examples/approval-demo/backend/data/requests.json"
 
-# 设置三个不同的、至少 12 个字符的演示专用密码。
+# 设置三个不同的演示专用密码，每个至少 12 个字符，且 UTF-8 编码后最多 72 字节。
 read -rs -p 'Alice demo password: ' APPROVAL_ALICE_PASSWORD; echo
 read -rs -p 'Bob demo password: ' APPROVAL_BOB_PASSWORD; echo
 read -rs -p 'Carol demo password: ' APPROVAL_CAROL_PASSWORD; echo
@@ -199,7 +199,7 @@ npm run dev
 ### 常见问题
 
 - **找不到本地 Maven 依赖：**先在根目录执行 `mvn install`，再执行 `mvn -f examples/approval-domain/pom.xml install`，最后启动后端。
-- **后端启动失败：**检查三个密码变量是否齐全且至少 12 字符、8080 端口和数据目录权限；同一数据文件已有写者时会拒绝启动。
+- **后端启动失败：**检查三个密码变量是否齐全、每个至少 12 个字符且 UTF-8 编码后最多 72 字节，以及 8080 端口和数据目录权限；同一数据文件已有写者时会拒绝启动。
 - **无法连接或登录：**等待后端启动完成，使用配置的账号密码以及准确地址 `http://localhost:5173`；检查后端日志、Node 版本和 5173 端口，保持仅绑定回环地址。
 - **5173 被占用：**停止另一个演示实例，或同时调整 Vite 端口和后端 `APPROVAL_UI_ORIGIN`，不要只改一端的主机名或端口。
 - **发布 / 提交冲突：**刷新并检查最新流程版本，再决定重试；必要时重置并重新应用设计器草稿。

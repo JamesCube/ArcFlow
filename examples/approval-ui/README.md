@@ -6,12 +6,15 @@ A Vue 3 + Vite UI for the Spring Boot approval example. Publish a process, submi
 
 Requires Node 22.22.2+ (or 24.15+) (Node 22 LTS recommended) and a running approval backend at `http://localhost:8080`.
 
+From the repository root:
+
 ```sh
+cd examples/approval-ui
 npm ci
 npm run dev
 ```
 
-Open `http://localhost:5173`. The Vite development proxy forwards `/api` to the backend. Configure the backend's permitted UI origin if changing that URL. The backend requires user-provided `APPROVAL_ALICE_PASSWORD`, `APPROVAL_BOB_PASSWORD`, and `APPROVAL_CAROL_PASSWORD`; there are no built-in passwords. Sign in as Alice to design/publish and submit, sign out, then sign in as Bob or Carol to review the currently assigned step. Refresh fetches requests and the published template from other sessions while preserving an unsaved local draft. Drafts are lost when signing out or reloading the page; publish to persist.
+Open `http://localhost:5173`. The Vite development proxy forwards `/api` to the backend. Configure the backend's permitted UI origin if changing that URL. The backend requires user-provided `APPROVAL_ALICE_PASSWORD`, `APPROVAL_BOB_PASSWORD`, and `APPROVAL_CAROL_PASSWORD`; there are no built-in passwords. Choose three different demo-only passwords, each at least 12 characters and at most 72 UTF-8 bytes. Multibyte characters can reach the byte limit sooner. Sign in as Alice to design/publish and submit, sign out, then sign in as Bob or Carol to review the currently assigned step. Refresh fetches requests and the published template from other sessions while preserving an unsaved local draft. Drafts are lost when signing out or reloading the page; publish to persist.
 
 ```sh
 npm test

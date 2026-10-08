@@ -5,6 +5,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -31,6 +32,8 @@ class SecurityConfig {
             String password = env.getProperty(key);
             if (password == null || password.isBlank() || password.length() < 12)
                 throw new IllegalStateException("Set " + key + " to a unique password of at least 12 characters");
+            if (password.getBytes(StandardCharsets.UTF_8).length > 72)
+                throw new IllegalStateException("Set " + key + " to a password of at most 72 UTF-8 bytes");
             users.createUser(User.withUsername(id).password("{bcrypt}" + encoder.encode(password)).roles("alice".equals(id) ? new String[]{"USER", "EDITOR"} : new String[]{"USER"}).build());
         }
         return users;
