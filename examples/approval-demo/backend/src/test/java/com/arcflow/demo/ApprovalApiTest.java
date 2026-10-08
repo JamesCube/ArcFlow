@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -21,6 +21,9 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -32,10 +35,33 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class ApprovalApiTest {
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper mapper;
+    @Autowired RequestMappingHandlerAdapter handlerAdapter;
 
     @DynamicPropertySource static void data(DynamicPropertyRegistry registry) throws Exception {
         var file = Files.createTempDirectory("approval-api-test-").resolve("state.json");
         registry.add("approval.data-file", file::toString);
+    }
+
+    @Test void httpJsonUsesTheSharedStrictJackson2Mapper() {
+        // A Jackson 2 bean alone is insufficient: Boot 4 defaults to Jackson 3 for MVC.
+        // Verify the converter selected for every body family, not just mapper presence.
+        for (Class<?> body : List.of(ApprovalController.Submission.class,
+                ApprovalController.DocumentSubmission.class, ApprovalController.Publication.class,
+                ApprovalController.Decision.class, QuoteDiscountController.Submission.class,
+                QuoteDiscountController.Decision.class)) {
+            var reader = handlerAdapter.getMessageConverters().stream()
+                .filter(converter -> converter.canRead(body, MediaType.APPLICATION_JSON)).findFirst().orElseThrow();
+            var jackson = assertInstanceOf(MappingJackson2HttpMessageConverter.class, reader);
+            assertSame(mapper, jackson.getObjectMapper());
+        }
+        var writer = handlerAdapter.getMessageConverters().stream()
+            .filter(converter -> converter.canWrite(ApprovalService.Request.class, MediaType.APPLICATION_JSON))
+            .findFirst().orElseThrow();
+        assertSame(mapper, assertInstanceOf(MappingJackson2HttpMessageConverter.class, writer).getObjectMapper());
+        assertTrue(mapper.isEnabled(com.fasterxml.jackson.databind.DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS));
+        assertTrue(mapper.isEnabled(com.fasterxml.jackson.core.StreamReadFeature.STRICT_DUPLICATE_DETECTION.mappedFeature()));
+        assertThrows(com.fasterxml.jackson.core.JsonProcessingException.class,
+            () -> mapper.readValue("{\"title\":42,\"reason\":\"test\",\"days\":1,\"processVersion\":1}", ApprovalController.Submission.class));
     }
 
     @Test void authenticationAndBrowserBoundariesApplyToEveryApi() throws Exception {

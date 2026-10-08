@@ -1,6 +1,6 @@
 # Sequential approval demo backend
 
-A local example using Spring Boot 3.5.16 and Java 17+. Spring Boot 3.5 has [reached the end of open-source support](https://spring.io/blog/2026/06/25/spring-boot-3-5-16-available-now/). Keep this demo on localhost. Production use would need a supported framework release and a separate review of authentication, security and persistence.
+A local example using Spring Boot 4.1.1 and Java 17+. The standalone host uses a maintained Boot line with the temporary Jackson 2 compatibility module to preserve the shared approval contracts. See [migration scope and remaining support limits](../../../docs/SUPPORTED_HOST_MIGRATION.md). Keep this demo on localhost; authentication, security and persistence still need a separate production review.
 
 ## Run
 
