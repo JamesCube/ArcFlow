@@ -68,6 +68,9 @@ public class ArcFlowController {
     @PostMapping("/documents") @PreAuthorize("@ss.hasPermi('arcflow:request:submit')")
     public AjaxResult submitDocument(@RequestBody byte[] bytes, @RequestHeader HttpHeaders headers) throws IOException {
         String id = actor(); var input = body(bytes, DocumentSubmission.class);
+        if (input.business() instanceof BusinessDocument.QuoteDiscount)
+            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST,
+                "Quote discounts require a host adapter with quote access and revision checks");
         return AjaxResult.success(service.submitDocument(id, input.business(), input.processVersion(), submissionKey(headers)));
     }
     private static String submissionKey(HttpHeaders headers) {

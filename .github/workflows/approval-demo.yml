@@ -20,6 +20,8 @@ jobs:
       - run: mvn --batch-mode --no-transfer-progress install
       - run: mvn --batch-mode --no-transfer-progress -f examples/approval-domain/pom.xml install
       - run: mvn --batch-mode --no-transfer-progress -f examples/approval-demo/backend/pom.xml verify
+      - name: Verify isolated CRM quote approval and member inbox separation
+        run: python3 examples/crm-quote/http_smoke.py --inbox --jar examples/approval-demo/backend/target/approval-demo-0.1.0-SNAPSHOT.jar
       - name: Verify authenticated member inbox on a live disposable backend
         run: python3 examples/approval-demo/verify-parallel-http.py
   frontend:
@@ -42,6 +44,8 @@ jobs:
           ln -s "$(pwd)/node_modules" "$native/node_modules"
           trap 'rm "$native/node_modules"' EXIT
           node node_modules/vitest/vitest.mjs run --root "$native" --config "$native/vitest.config.mjs"
+      - name: Verify CRM exact amounts and isolated page recovery
+        run: node --test tests/crm-quote/*.test.mjs
       - run: npm run build
   browser:
     runs-on: ubuntu-latest
@@ -68,7 +72,10 @@ jobs:
       - name: Install CJK sans font for bilingual visual checks
         run: sudo apt-get update && sudo apt-get install -y fonts-noto-cjk
       - name: Verify real backend leave and procurement journeys
-        run: npm run test:e2e -- --grep-invert "visual showcase:"
+        run: npm run test:e2e -- --grep-invert "visual showcase:|crm quote:"
+        working-directory: examples/approval-ui
+      - name: Verify real CRM quote journey and capture bilingual desktop/narrow screenshots
+        run: npm run test:e2e -- e2e/crm-quote.spec.mjs --output=crm-visual-results
         working-directory: examples/approval-ui
       - name: Capture bilingual leave scenarios against a fresh real backend
         run: npm run test:e2e -- --grep "visual showcase:" --output=visual-results
@@ -83,5 +90,6 @@ jobs:
           path: |
             examples/approval-ui/test-results/**/*.png
             examples/approval-ui/visual-results/**/*.png
+            examples/approval-ui/crm-visual-results/**/*.png
           if-no-files-found: error
           retention-days: 7

@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>报价折扣审批 · ArcFlow</title><link rel="stylesheet" href="/crm-quote/style.css"></head>
+<body>
+<main><header><div><p class="eyebrow">ARCFLOW · CRM</p><h1 data-copy="title"></h1><p data-copy="subtitle"></p></div><label class="language"><span>语言 / Language</span><select id="language"><option value="zh">中文</option><option value="en">English</option></select></label></header>
+<p class="notice" data-copy="scope"></p><p id="message" role="status" aria-live="polite"></p>
+<section id="login-panel"><h2 data-copy="signIn"></h2><p data-copy="roles"></p><form id="login-form"><fieldset><label><span data-copy="username"></span><select id="username"><option value="alice">Alice</option><option value="bob">Bob</option><option value="carol">Carol</option></select></label><label><span data-copy="password"></span><input id="password" type="password" autocomplete="current-password" required></label><button type="submit" data-copy="login"></button></fieldset></form></section>
+<div id="workspace" hidden><nav><span id="identity"></span><button id="refresh" data-copy="refresh"></button><button id="logout" class="secondary" data-copy="logout"></button></nav>
+<div class="columns"><section><h2 data-copy="source"></h2><p data-copy="quoteSource"></p><label><span data-copy="choose"></span><select id="quote-select"></select></label><dl id="quote-details"></dl><h3 data-copy="process"></h3><p id="process-steps"></p></section>
+<section id="create-panel"><h2 data-copy="create"></h2><p class="notice mobile-only" data-copy="readonly"></p><form id="quote-form"><fieldset><label><span data-copy="titleLabel"></span><input id="title" maxlength="120" required></label><label><span data-copy="reason"></span><textarea id="reason" maxlength="2000" rows="3" required></textarea></label><label><span data-copy="requestedPrice"></span><input id="requested" inputmode="decimal" value="850.00" required></label><dl id="preview"></dl><p class="hint" data-copy="help"></p><button type="submit" data-copy="submit"></button></fieldset></form></section></div>
+<section><h2 data-copy="requests"></h2><div id="requests"></div></section></div>
+</main><script type="module" src="/crm-quote/app.mjs"></script>
+</body></html>
