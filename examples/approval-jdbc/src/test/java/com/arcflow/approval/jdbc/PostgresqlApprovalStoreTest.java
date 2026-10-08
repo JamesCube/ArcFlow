@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /** Runs on a real disposable PostgreSQL database in CI; never substitutes H2 compatibility mode. */
 @EnabledIfEnvironmentVariable(named = "ARCFLOW_PG_URL", matches = ".+")
-class PostgresqlApprovalStoreTest extends ServerApprovalStoreContract {
+class PostgresqlApprovalStoreTest extends MemberInboxStoreContract {
     private PGSimpleDataSource database;
     private String schema;
     private PGSimpleDataSource source() {

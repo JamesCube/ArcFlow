@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /** Real MySQL only. Creates and removes its own UUID-named database; never use production credentials. */
 @EnabledIfEnvironmentVariable(named = "ARCFLOW_MYSQL_URL", matches = ".+")
-class MysqlApprovalStoreTest extends ServerApprovalStoreContract {
+class MysqlApprovalStoreTest extends MemberInboxStoreContract {
     private String catalog;
     private boolean created;
     private final ObjectMapper mapper = new ObjectMapper();

@@ -2,6 +2,7 @@ import { mount, flushPromises } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App.vue'
 import { api } from './api'
+import { pendingParticipants } from './process'
 vi.mock('./api', () => ({ api: { login: vi.fn(), logout: vi.fn(), request: vi.fn() } }))
 const people = [{ id: 'alice', name: 'Alice' }, { id: 'bob', name: 'Bob' }, { id: 'carol', name: 'Carol' }]
 const start = { id: 'start', type: 'start', name: 'Submit request', assigneeId: null }
@@ -16,7 +17,14 @@ function request(definition = blueprint, overrides = {}) {
 }
 function setup(identity = 'alice', items = [], definition = blueprint) {
   const server = { identity, items: clone(items), definition: clone(definition) }
-  api.request.mockImplementation(async path => clone({ '/me': people.find(p => p.id === server.identity), '/people': people, '/process': server.definition, '/requests': server.items }[path]))
+  api.request.mockImplementation(async path => {
+    if (path.startsWith('/requests/inbox?')) {
+      const box = new URLSearchParams(path.split('?')[1]).get('box')
+      const actor = server.identity
+      return { items: server.items.filter(item => box === 'PENDING' ? pendingParticipants(item).includes(actor) : item.history.some(event => event.actorId === actor && ['APPROVE', 'REJECT'].includes(event.action))), nextCursor: null }
+    }
+    return clone({ '/me': people.find(p => p.id === server.identity), '/people': people, '/process': server.definition, '/requests': server.items }[path])
+  })
   return { wrapper: mount(App), server }
 }
 async function login(wrapper) {
@@ -327,7 +335,8 @@ describe('request submission and snapshots', () => {
   })
   it('submits using the published version without a chosen approver and shows the snapshot', async () => {
     const { wrapper } = setup(); await login(wrapper); await requestForm(wrapper)
-    expect(wrapper.find('.new-request select').exists()).toBe(false)
+    expect(wrapper.findAll('.new-request select')).toHaveLength(1)
+    expect(button(wrapper, 'request-type').element.value).toBe('leave')
     expect(button(wrapper, 'submission-template').text()).toContain('Manager review (Bob)')
     api.request.mockResolvedValueOnce(request())
     await wrapper.find('.new-request').trigger('submit'); await flushPromises()
@@ -587,7 +596,8 @@ describe('parallel process designer and participant views', () => {
   })
   it('allows every pending group member, including Carol when approverId is Bob', async () => {
     const { wrapper } = setup('carol', [groupRequest()], parallel()); await login(wrapper)
-    expect(wrapper.findAll('nav button')[1].text()).toContain('1')
+    await button(wrapper, 'inbox-tab').trigger('click'); await flushPromises()
+    expect(wrapper.find('.request-list .count').text()).toBe('1 loaded')
     await wrapper.find('.request-item').trigger('click')
     expect(wrapper.find('.decision-form').exists()).toBe(true)
     expect(wrapper.find('.decision-form button.primary').text()).toBe('Approve vote')
@@ -607,7 +617,8 @@ describe('parallel process designer and participant views', () => {
     expect(wrapper.find('.participant-votes').text()).toContain(`Bob · ${decision === 'APPROVE' ? 'Approved' : 'Rejected'}`)
     expect(wrapper.find('.participant-votes').text()).toContain('bob saved comment')
     expect(wrapper.find('.decision-form').exists()).toBe(false)
-    expect(wrapper.findAll('nav button')[1].text()).toContain('0')
+    await button(wrapper, 'inbox-tab').trigger('click'); await flushPromises()
+    expect(wrapper.find('.request-list .count').text()).toBe('0 loaded')
   })
   it.each([['ALL', 'REJECT', 'REJECTED'], ['ANY', 'APPROVE', 'APPROVED']])('shows %s early outcome and remaining votes not required', async (mode, decision, status) => {
     const definition = parallel(mode); definition.nodes.splice(2, 1)

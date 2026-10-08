@@ -39,7 +39,7 @@ class ApprovalApiTest {
     }
 
     @Test void authenticationAndBrowserBoundariesApplyToEveryApi() throws Exception {
-        for (String path : List.of("/api/me", "/api/people", "/api/process", "/api/requests")) {
+        for (String path : List.of("/api/me", "/api/people", "/api/process", "/api/requests", "/api/requests/inbox")) {
             mvc.perform(get(path)).andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.message").isString()).andExpect(header().doesNotExist("WWW-Authenticate"))
                 .andExpect(header().doesNotExist("Set-Cookie"));
@@ -521,6 +521,84 @@ class ApprovalApiTest {
         assertStep(response(decide("bob", grouped, "manager", "APPROVE", "Group partial").andExpect(status().isOk())), "PENDING", "manager", "carol", 2);
         JsonNode fresh = submit("alice", 3);
         assertStep(response(decide("bob", fresh, "manager", "APPROVE", "Single").andExpect(status().isOk())), "APPROVED", null, "bob", 2);
+    }
+
+    @Test void inboxUsesOnlyAuthenticatedActorAndKeepsLegacyVisibility() throws Exception {
+        postJson("/api/process", "alice", publication(1, definition(1, "bob", "carol"))).andExpect(status().isOk());
+        JsonNode request = submit("alice", 2);
+        assertEquals(1, getJson("/api/requests", "carol").size());
+        for (String actor : List.of("alice", "carol")) {
+            JsonNode inbox = getJson("/api/requests/inbox", actor);
+            assertEquals(0, inbox.path("items").size()); assertTrue(inbox.path("nextCursor").isNull());
+        }
+        assertEquals(request, getJson("/api/requests/inbox", "bob").path("items").get(0));
+        for (String forged : List.of("actor", "actorId", "userId", "applicantId", "approverId"))
+            mvc.perform(authenticated(get("/api/requests/inbox").param(forged, "bob"), "carol")).andExpect(status().isBadRequest());
+        mvc.perform(get("/api/requests/inbox")).andExpect(status().isUnauthorized());
+        mvc.perform(authenticated(get("/api/requests/inbox"), "bob").header("Origin", "https://evil.example"))
+            .andExpect(status().isForbidden());
+    }
+
+    @Test void inboxIncludesAllMembersAndOnlyActualHandledVotesAcrossStages() throws Exception {
+        postJson("/api/process", "alice", publication(1, groupDefinition(1, "ALL"))).andExpect(status().isOk());
+        JsonNode request = submit("alice", 2);
+        for (String actor : List.of("bob", "carol")) assertEquals(request, getJson("/api/requests/inbox", actor).path("items").get(0));
+        JsonNode partial = response(decide("carol", request, "manager", "APPROVE", "first").andExpect(status().isOk()));
+        assertEquals(0, getJson("/api/requests/inbox", "carol").path("items").size());
+        assertEquals(partial, getJson("/api/requests/inbox?box=HANDLED&status=PENDING&processVersion=2", "carol").path("items").get(0));
+        JsonNode advanced = response(decide("bob", request, "manager", "APPROVE", "second").andExpect(status().isOk()));
+        for (String box : List.of("PENDING", "HANDLED"))
+            assertEquals(advanced, getJson("/api/requests/inbox?box=" + box, "carol").path("items").get(0));
+        JsonNode terminal = response(decide("carol", request, "step2", "APPROVE", "final").andExpect(status().isOk()));
+        for (String actor : List.of("bob", "carol")) {
+            assertEquals(0, getJson("/api/requests/inbox", actor).path("items").size());
+            assertEquals(terminal, getJson("/api/requests/inbox?box=HANDLED&status=APPROVED", actor).path("items").get(0));
+        }
+    }
+
+    @Test void inboxAnyWinnerDoesNotMarkUnvotedLoserAsHandled() throws Exception {
+        ObjectNode definition = groupDefinition(1, "ANY"); ((ArrayNode) definition.path("nodes")).remove(2);
+        postJson("/api/process", "alice", publication(1, definition)).andExpect(status().isOk());
+        JsonNode request = submit("alice", 2);
+        decide("bob", request, "manager", "APPROVE", "winner").andExpect(status().isOk());
+        for (String box : List.of("PENDING", "HANDLED")) assertEquals(0,
+            getJson("/api/requests/inbox?box=" + box, "carol").path("items").size());
+        assertEquals(1, getJson("/api/requests", "carol").size());
+        assertEquals(1, getJson("/api/requests/inbox?box=HANDLED", "bob").path("items").size());
+    }
+
+    @Test void inboxPaginatesWithoutDuplicatesAndRejectsForeignCursorsAndInvalidParameters() throws Exception {
+        postJson("/api/process", "alice", publication(1, groupDefinition(1, "ALL"))).andExpect(status().isOk());
+        List<JsonNode> submitted = new ArrayList<>();
+        for (int i = 0; i < 4; i++) submitted.add(submit("alice", 2));
+        submitted.sort((a, b) -> {
+            int time = java.time.Instant.parse(b.path("createdAt").textValue()).compareTo(java.time.Instant.parse(a.path("createdAt").textValue()));
+            return time == 0 ? b.path("id").textValue().compareTo(a.path("id").textValue()) : time;
+        });
+        List<String> seen = new ArrayList<>();
+        JsonNode first = getJson("/api/requests/inbox?limit=1", "bob");
+        assertEquals(2, first.size());
+        String initialCursor = first.path("nextCursor").textValue(); assertNotNull(initialCursor);
+        JsonNode current = first;
+        while (true) {
+            current.path("items").forEach(item -> seen.add(item.path("id").textValue()));
+            if (current.path("nextCursor").isNull()) break;
+            current = response(mvc.perform(authenticated(get("/api/requests/inbox").param("limit", "1")
+                .param("cursor", current.path("nextCursor").textValue()), "bob")).andExpect(status().isOk()));
+        }
+        assertEquals(submitted.stream().map(item -> item.path("id").textValue()).toList(), seen);
+        mvc.perform(authenticated(get("/api/requests/inbox").param("cursor", initialCursor), "carol")).andExpect(status().isBadRequest());
+        for (String[] changed : List.of(new String[]{"box", "HANDLED"}, new String[]{"status", "PENDING"}, new String[]{"processVersion", "2"}))
+            mvc.perform(authenticated(get("/api/requests/inbox").param(changed[0], changed[1]).param("cursor", initialCursor), "bob"))
+                .andExpect(status().isBadRequest());
+        for (String bad : List.of("0", "101", "-1", "1.5", "true", "", " 1", "99999999999999"))
+            mvc.perform(authenticated(get("/api/requests/inbox").param("limit", bad), "bob")).andExpect(status().isBadRequest());
+        for (String bad : List.of("", "broken!", "A".repeat(1025), initialCursor + "="))
+            mvc.perform(authenticated(get("/api/requests/inbox").param("cursor", bad), "bob")).andExpect(status().isBadRequest());
+        for (String[] bad : List.of(new String[]{"box", "VISIBLE"}, new String[]{"status", "DONE"}, new String[]{"processVersion", "0"}))
+            mvc.perform(authenticated(get("/api/requests/inbox").param(bad[0], bad[1]), "bob")).andExpect(status().isBadRequest());
+        mvc.perform(authenticated(get("/api/requests/inbox").param("limit", "1", "2"), "bob")).andExpect(status().isBadRequest());
+        assertEquals(4, getJson("/api/requests", "alice").size());
     }
 
     private ObjectNode groupDefinition(int version, String mode) {

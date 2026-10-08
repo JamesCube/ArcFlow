@@ -41,7 +41,7 @@ The leave demo is the starting point for applying approvals to other business ta
 | --- | --- | --- |
 | **Smart CRM** | Quote discounts: sales submits a quote, a manager checks the discount, and finance reviews the amount | Planned; no runnable example yet |
 | **Office automation (OA)** | Leave requests: an employee enters the duration and reason; assigned reviewers decide in order | [Runnable](docs/GETTING_STARTED.md#english), including the RuoYi example |
-| **ERP** | Purchase requests: enter the item, quantity and unit price, then review the need and cost | [Java and HTTP API available](docs/BUSINESS_DOCUMENTS.md), merged in [PR #16](https://github.com/JamesCube/ArcFlow/pull/16); no purchase form on `main` yet |
+| **ERP** | Purchase requests: enter the item, quantity and unit price, then review the need and cost | [Runnable API and standalone/RuoYi forms](docs/PROCUREMENT_UI.md), with procurement review on H5 |
 
 The Smart CRM forms and AI features aren't implemented.
 
@@ -59,11 +59,13 @@ These images show earlier versions. Click for the originals; capture versions an
 - **Worklists, notes and history.** The server checks who can view and review requests, saves decisions, and lets you retry the same decision for the same step without adding another history entry. See [submission idempotency](docs/SUBMISSION_IDEMPOTENCY.md) for retrying a failed submission.
 - **Desktop and H5.** The standalone UI supports English and Chinese. There's also a separate [mobile-browser approval client](examples/approval-mobile/README.md).
 
+Pending and handled tabs page through every ALL/ANY member’s work. See the [member inbox contract](docs/MEMBER_INBOX.md) and [business documents](docs/BUSINESS_DOCUMENTS.md).
+
 ## Connect an application
 
 The RuoYi example adds approval pages to its native menus and reuses existing accounts and permissions. For another Java application, start with the approval domain and storage interfaces.
 
-The domain accepts typed leave and procurement documents through Java and HTTP, sharing approval rules, permissions, audit history and submission retries. Existing forms still submit leave requests. See the [business-document contract](docs/BUSINESS_DOCUMENTS.md) for fields, endpoints and upgrade limits.
+The domain accepts typed leave and procurement documents through Java and HTTP, sharing approval rules, permissions, audit history and submission retries. Standalone and RuoYi forms submit leave or procurement documents; business snapshots remain immutable during review. See the [business-document contract](docs/BUSINESS_DOCUMENTS.md) for fields, endpoints and upgrade limits.
 
 | Module or example | What it covers |
 | --- | --- |
@@ -72,9 +74,9 @@ The domain accepts typed leave and procurement documents through Java and HTTP, 
 | [RuoYi integration](examples/ruoyi-vue3/README.md) | Setup for RuoYi-Vue + RuoYi-Vue3 |
 | [JDBC storage](examples/approval-jdbc/README.md) | Database persistence for approval data and audit history |
 
-Typed writes use JSON snapshot schema 5. Upgrade all readers before enabling them; older binaries cannot read the new payloads, and mixed-version writers are unsupported. SQL stays at revision 2.
+Typed writes use JSON snapshot schema 5. Upgrade all readers before enabling them; older binaries cannot read the new payloads, and mixed-version writers are unsupported. Member worklists use SQL revision 3; existing databases need an explicit migration and bounded backfill.
 
-Both demos store approval data in local JSON and support one instance. RuoYi's MySQL database holds users, roles and menus; it doesn't automatically store approvals. JDBC needs explicit setup and migrations. Tenant isolation, pagination, transactions spanning business tables, and an outbox aren't implemented yet.
+Both demos store approval data in local JSON and support one instance. RuoYi's MySQL database holds users, roles and menus; it doesn't automatically store approvals. JDBC needs explicit setup and migrations. Actor-scoped pending/handled pagination is available. Tenant isolation, transactions spanning business tables, and an outbox aren't implemented yet.
 
 Conditional routing, dynamic role resolution, timers, withdrawal and delegation are also missing. Native apps, mini-programs, Feishu, WeCom and DingTalk integrations are unfinished. There's no production-readiness guarantee or BPMN compatibility. See the [roadmap](docs/ROADMAP.md) for planned work.
 

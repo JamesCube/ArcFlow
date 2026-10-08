@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { createWorkspace } from "../src/domain/workspace";
 import { ApiError } from "../src/domain/api";
 import type { Api, Request } from "../src/domain/types";
-import { request, deferred } from "./fixtures";
+import { request, deferred, listResponse, approved } from "./fixtures";
 function setup() {
   const r = request();
   const api = {
@@ -13,7 +13,7 @@ function setup() {
         ? { id: "bob", displayName: "Bob" }
         : path === "/people"
           ? [{ id: "bob", displayName: "Bob" }]
-          : [r],
+          : listResponse(path, [r]),
     ),
   };
   return { r, api, w: createWorkspace(api as Api) };
@@ -62,7 +62,8 @@ describe("server-confirmed state and interrupted flows", () => {
     w.compose("APPROVE");
     w.state.comment = "Reviewed";
     const pending = deferred<Request>();
-    api.request.mockImplementation(() => pending.promise as never);
+    api.request.mockImplementation((path) => path.endsWith("/decisions")
+      ? pending.promise as never : Promise.resolve(listResponse(path, [approved(r)])) as never);
     const one = w.submit(),
       two = w.submit();
     expect(
@@ -78,7 +79,7 @@ describe("server-confirmed state and interrupted flows", () => {
       decision: "APPROVE",
       comment: "Reviewed",
     });
-    pending.resolve({ ...r, status: "APPROVED", currentStepId: null });
+    pending.resolve(approved(r));
     await Promise.all([one, two]);
     expect(w.state.notice).toBe(true);
     expect(w.actionable.value).toBe(false);
@@ -101,7 +102,7 @@ describe("server-confirmed state and interrupted flows", () => {
         },
       ],
     };
-    api.request.mockResolvedValue(voted as never);
+    api.request.mockImplementation(async (path) => path.endsWith("/decisions") ? voted as never : listResponse(path, [voted as Request]) as never);
     await w.submit();
     expect(w.selected.value?.status).toBe("PENDING");
     expect(w.actionable.value).toBe(false);
@@ -140,7 +141,7 @@ describe("server-confirmed state and interrupted flows", () => {
     w.state.comment = "Keep me";
     api.request
       .mockRejectedValueOnce(new Error("secret network details"))
-      .mockResolvedValueOnce([r]);
+      .mockImplementation(async (path) => listResponse(path, [r]) as never);
     await w.submit();
     expect(w.state.notice).toBe(false);
     expect(w.state.error).toBe("network");
@@ -166,9 +167,9 @@ describe("server-confirmed state and interrupted flows", () => {
     w.compose("REJECT");
     api.request
       .mockRejectedValueOnce(new ApiError(409))
-      .mockResolvedValueOnce([
-        { ...r, status: "APPROVED", currentStepId: null },
-      ]);
+      .mockImplementation(async (path) => listResponse(path, [
+        approved(r),
+      ]) as never);
     await w.submit();
     expect(w.state.error).toBe("conflict");
     expect(w.selected.value?.status).toBe("APPROVED");
@@ -177,15 +178,15 @@ describe("server-confirmed state and interrupted flows", () => {
   it("ignores old refresh results after a newer refresh", async () => {
     const { api, w } = setup();
     await w.login("bob", "valid");
-    const old = deferred<Request[]>();
-    api.request
-      .mockImplementationOnce(() => old.promise as never)
-      .mockResolvedValueOnce([]);
+    const old = deferred<unknown>();
+    api.request.mockImplementationOnce(() => old.promise as never)
+      .mockImplementation(async (path) => listResponse(path, []) as never);
     const first = w.refresh();
     await w.refresh();
-    old.resolve([request()]);
+    old.resolve({ items: [request()], nextCursor: "old" });
     await first;
-    expect(w.state.requests).toEqual([]);
+    expect(w.state.inboxes.PENDING.items).toEqual([]);
+    expect(w.state.inboxes.PENDING.nextCursor).toBeNull();
   });
   it("ignores pending authentication after logout", async () => {
     const { api, w } = setup();
@@ -250,28 +251,17 @@ describe("frozen reviewed step", () => {
           stepId: "team",
         },
       ],
-      definition: {
-        ...r.definition,
-        nodes: [
-          ...r.definition.nodes.slice(0, -1),
-          {
-            id: "later",
-            type: "approval",
-            name: "Later Bob step",
-            assigneeId: "bob",
-          },
-          r.definition.nodes.at(-1)!,
-        ],
-      },
+
     };
   }
   it("refresh cannot carry a prior step decision to a later step assigned to the same actor", async () => {
     const { api, w, r } = setup();
+    r.definition.nodes.splice(-1, 0, { id: "later", type: "approval", name: "Later Bob step", assigneeId: "bob" });
     await w.login("bob", "valid");
     w.route("r1");
     w.compose("REJECT");
     w.state.comment = "Only intended for team";
-    api.request.mockResolvedValue([nextStep(r)] as never);
+    api.request.mockImplementation(async (path) => listResponse(path, [nextStep(r)]) as never);
     await w.refresh();
     expect(w.state.composer).toBeNull();
     expect(w.state.comment).toBe("");
@@ -283,13 +273,14 @@ describe("frozen reviewed step", () => {
   });
   it("a lost response reconciles a committed vote without silently retrying the next stage", async () => {
     const { api, w, r } = setup();
+    r.definition.nodes.splice(-1, 0, { id: "later", type: "approval", name: "Later Bob step", assigneeId: "bob" });
     await w.login("bob", "valid");
     w.route("r1");
     w.compose("APPROVE");
     w.state.comment = "Only first stage";
     api.request
       .mockRejectedValueOnce(new Error("response lost"))
-      .mockResolvedValueOnce([nextStep(r)] as never);
+      .mockImplementation(async (path) => listResponse(path, [nextStep(r)]) as never);
     await w.submit();
     expect(w.state.composer).toBeNull();
     expect(w.state.notice).toBe(false);
@@ -301,5 +292,117 @@ describe("frozen reviewed step", () => {
     expect(
       api.request.mock.calls.filter((call) => call[0].endsWith("/decisions")),
     ).toHaveLength(1);
+  });
+});
+
+it("clears stale visible business data and freezes decisions when strict parsing fails", async () => {
+  const { InvalidPayloadError } = await import("../src/domain/business");
+  const { api, w } = setup();
+  await w.login("bob", "valid");
+  w.route("r1");
+  w.compose("APPROVE");
+  w.state.comment = "Do not apply to malformed data";
+  api.request.mockRejectedValueOnce(new InvalidPayloadError());
+  await w.refresh();
+  expect(w.state.error).toBe("invalidData");
+  expect(w.state.requests).toEqual([]);
+  expect(w.selected.value).toBeUndefined();
+  expect(w.state.composer).toBeNull();
+  expect(w.state.comment).toBe("");
+  expect(w.actionable.value).toBe(false);
+  expect(w.state.fresh).toBe(false);
+  expect(w.state.notice).toBe(false);
+});
+
+it("never announces success for a malformed decision reply and reconciles via a valid read", async () => {
+  const { InvalidPayloadError } = await import("../src/domain/business");
+  const { api, w, r } = setup();
+  await w.login("bob", "valid");
+  w.route("r1");
+  w.compose("APPROVE");
+  api.request.mockRejectedValueOnce(new InvalidPayloadError()).mockImplementation(async path => listResponse(path, [r]) as never);
+  await w.submit();
+  expect(w.state.notice).toBe(false);
+  expect(w.state.error).toBe("invalidData");
+  expect(w.state.composer).toBeNull();
+  expect(w.state.requests).toEqual([r]);
+});
+
+describe("decision evidence matches the reviewed immutable instance", () => {
+  const purchase = (): Request => {
+    const r = request({ days: 0 });
+    return { ...r, business: { type: "procurement", businessId: "PO-001", title: r.title, reason: r.reason,
+      item: "Synthetic item", quantity: 3, unitPrice: "199.99", currency: "CNY" } };
+  };
+  const voted = (r: Request): Request => ({ ...r, history: [...r.history,
+    { actorId: "bob", action: "APPROVE", comment: "Original durable note", at: r.updatedAt, stepId: "team" },
+  ] });
+  const mutations: [string, (r: Request) => Request][] = [
+    ["unchanged pending reply", r => r],
+    ["other identity", r => ({ ...voted(r), id: "other" })],
+    ["created timestamp", r => ({ ...voted(r), createdAt: "2026-10-06T00:00:00Z" })],
+    ["business reference", r => ({ ...voted(r), business: { ...r.business!, businessId: "PO-OTHER" } })],
+    ["business amount", r => ({ ...voted(r), business: { ...r.business!, quantity: 4 } as Request["business"] })],
+    ["definition snapshot", r => ({ ...voted(r), definition: { ...r.definition, name: "Different routing snapshot" } })],
+    ["rewritten audit prefix", r => ({ ...voted(r), history: [{ ...r.history[0], comment: "Rewritten" }, voted(r).history[1]] })],
+    ["wrong decision", r => ({ ...voted(r), history: [...r.history, { ...voted(r).history[1], action: "REJECT" }] })],
+    ["wrong actor", r => ({ ...voted(r), history: [...r.history, { ...voted(r).history[1], actorId: "carol" }] })],
+    ["wrong step", r => ({ ...voted(r), history: [...r.history, { ...voted(r).history[1], stepId: "future" }] })],
+    ["duplicate vote", r => ({ ...voted(r), history: [...voted(r).history, voted(r).history[1]] })],
+  ];
+  for (const [label, mutate] of mutations) it(`rejects ${label} instead of confirming success`, async () => {
+    const { api, w } = setup();
+    const r = purchase();
+    api.request.mockResolvedValueOnce({ id: "bob", displayName: "Bob" } as never)
+      .mockResolvedValueOnce([] as never).mockImplementation(async path => listResponse(path, [r]) as never);
+    await w.login("bob", "valid");
+    w.route(r.id);
+    w.compose("APPROVE");
+    const reconciliation = deferred<Request[]>();
+    api.request.mockResolvedValueOnce(mutate(r) as never).mockImplementation(async path =>
+      listResponse(path, await reconciliation.promise) as never);
+    const sending = w.submit();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(w.state.notice).toBe(false);
+    expect(w.state.requests).toEqual([]);
+    expect(w.state.composer).toBeNull();
+    expect(w.actionable.value).toBe(false);
+    reconciliation.resolve([r]);
+    await sending;
+    expect(w.state.notice).toBe(false);
+    expect(w.state.error).toBe("invalidData");
+    expect(w.state.requests).toEqual([r]);
+  });
+  it("rejects a changed immutable snapshot during reconciliation as well", async () => {
+    const { api, w } = setup();
+    const r = purchase();
+    api.request.mockResolvedValueOnce({ id: "bob", displayName: "Bob" } as never)
+      .mockResolvedValueOnce([] as never).mockImplementation(async path => listResponse(path, [r]) as never);
+    await w.login("bob", "valid");
+    w.route(r.id);
+    w.compose("APPROVE");
+    const altered = { ...voted(r), business: { ...r.business!, businessId: "CHANGED" } };
+    api.request.mockResolvedValueOnce(altered as never).mockImplementation(async path => listResponse(path, [altered]) as never);
+    await w.submit();
+    expect(w.state.error).toBe("invalidData");
+    expect(w.state.requests).toEqual([]);
+    expect(w.state.fresh).toBe(false);
+    expect(w.state.notice).toBe(false);
+  });
+  it("accepts proven same-decision replay while preserving its original durable note", async () => {
+    const { api, w } = setup();
+    const r = purchase();
+    api.request.mockResolvedValueOnce({ id: "bob", displayName: "Bob" } as never)
+      .mockResolvedValueOnce([] as never).mockImplementation(async path => listResponse(path, [r]) as never);
+    await w.login("bob", "valid");
+    w.route(r.id);
+    w.compose("APPROVE");
+    w.state.comment = "Changed retry note must not overwrite audit";
+    api.request.mockResolvedValueOnce(voted(r) as never).mockImplementation(async path => listResponse(path, [voted(r)]) as never);
+    await w.submit();
+    expect(w.state.notice).toBe(true);
+    expect(w.selected.value?.history.at(-1)?.comment).toBe("Original durable note");
+    expect(w.actionable.value).toBe(false);
   });
 });

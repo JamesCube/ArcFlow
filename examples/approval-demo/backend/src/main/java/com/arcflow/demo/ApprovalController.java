@@ -38,6 +38,10 @@ class ApprovalController {
         return service.publish(p.getName(), input.expectedVersion(), input.definition());
     }
     @GetMapping("/requests") List<ApprovalService.Request> requests(Principal p) { return service.list(p.getName()); }
+    @GetMapping("/requests/inbox") ApprovalService.InboxPage inbox(Principal p,
+            @RequestParam org.springframework.util.MultiValueMap<String,String> parameters) throws IOException {
+        return service.inbox(p.getName(), parameters);
+    }
     @PostMapping("/requests") @ResponseStatus(HttpStatus.CREATED) ApprovalService.Request submit(Principal p, @Valid @RequestBody Submission input,
             @RequestHeader HttpHeaders headers) throws IOException {
         return service.submit(p.getName(), input.title(), input.reason(), input.days(), input.processVersion(), submissionKey(headers));

@@ -24,12 +24,15 @@ jobs:
       - run: mvn --batch-mode --no-transfer-progress -f examples/approval-domain/pom.xml install
       - run: mvn --batch-mode --no-transfer-progress -f examples/approval-demo/backend/pom.xml package
       - run: python3 examples/approval-mobile/scripts/verify-http.py
+      - run: python3 examples/approval-mobile/scripts/verify-documents-http.py
       - run: npm ci
         working-directory: examples/approval-mobile
       - run: npm run typecheck && npm test && npm run build:h5
         working-directory: examples/approval-mobile
       - run: npx playwright install --with-deps chromium
         working-directory: examples/approval-mobile
+      - name: Install CJK sans font for bilingual procurement screenshots
+        run: sudo apt-get update && sudo apt-get install -y fonts-noto-cjk
       - run: npm run test:e2e
         working-directory: examples/approval-mobile
       - name: Save synthetic mobile screenshots (no auth traces)

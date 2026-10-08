@@ -52,9 +52,9 @@ Process definitions keep schemas 2/3. Snapshot schema 4 adds a `submissions` col
 
 ### JDBC
 
-SQL revision 2 is independent of the process JSON schemas. For a new database, use its dialect’s `schema-*.sql`. For a revision-1 database, apply the matching `upgrade-*-v1-to-v2.sql` once. Stop all writers, back up, and run the migration with an account authorized for it. Old requests receive no invented keys. The constructor runs no DDL and needs the new table even if clients omit keys. MySQL uses InnoDB and exact `utf8mb4_0900_bin` identity comparison. See the [JDBC host contract](../examples/approval-jdbc/README.md).
+Submission keys were added in SQL revision 2, independently of process JSON schemas. This combined source requires SQL revision 3 for member worklists. For a new database, use its dialect’s current `schema-*.sql`. For a revision-1 database, apply the matching `upgrade-*-v1-to-v2.sql` once, then the explicit v2-to-v3 member migration and bounded backfill. Stop all writers, back up, and run the migration with an account authorized for it. Old requests receive no invented keys. The constructor runs no DDL and needs the new table even if clients omit keys. MySQL uses InnoDB and exact `utf8mb4_0900_bin` identity comparison. See the [JDBC host contract](../examples/approval-jdbc/README.md).
 
-SQL 使用独立的 revision 2。已有数据库要先停写、备份，再运行对应升级脚本；旧申请不会自动补键。即使暂时不用幂等键，也必须在启动新程序前完成迁移，构造器不会自动建表。
+提交键从 SQL revision 2 开始提供，当前成员待办需要 revision 3。已有数据库须先停写、备份，按顺序运行对应升级脚本并完成分批回填；旧申请不会自动补键。即使暂时不用幂等键，也必须在启动新程序前完成迁移，构造器不会自动建表。
 
 Upgrade every host before enabling keyed clients. An old server may ignore the header and create duplicates. Do not run old and new hosts together or downgrade while traffic is still running.
 
@@ -84,6 +84,6 @@ The typed endpoints, `POST /api/documents` and `POST /arcflow/documents`, share 
 
 Different JDBC processes lock different head rows and can race on a global key. Only a duplicate at the binding INSERT, followed by clean rollback and a fresh lookup of the durable winner, is reconciled. A foreign-process winner returns conflict; other database or cleanup failures stay errors.
 
-Legacy keyed JSON writes require at least schema 4. The first typed write upgrades schema 1–4 to schema 5 and preserves a byte-exact backup; later writes never downgrade it. Deploy compatible readers before enabling typed writes and avoid mixed-version writers. SQL remains revision 2. Restoring an old JSON backup would lose later submissions and approvals; it is not a supported automatic downgrade. See [business-document compatibility](BUSINESS_DOCUMENTS.md).
+Legacy keyed JSON writes require at least schema 4. The first typed write upgrades schema 1–4 to schema 5 and preserves a byte-exact backup; later writes never downgrade it. Deploy compatible readers before enabling typed writes and avoid mixed-version writers. Typed documents alone use the existing SQL payload columns; the member inbox additionally requires the explicit SQL revision-3 migration and backfill. Restoring an old JSON backup would lose later submissions and approvals; it is not a supported automatic downgrade. See [business-document compatibility](BUSINESS_DOCUMENTS.md).
 
-类型化请假与采购入口共用原来的申请人键空间，重试比较流程 ID/版本、业务类型、业务 ID 及全部规范化业务字段。业务 ID 本身不去重。JDBC 跨流程抢占同一个键时，只有明确的键插入重复且完整回滚后，才会重新读取已提交结果并判断冲突。类型化 JSON 写入升级到 schema 5，原样备份旧文件；SQL 仍为 revision 2。先升级全部读取端，再启用新写入，不支持新旧版本混写或用旧备份直接回退。
+类型化请假与采购入口共用原来的申请人键空间，重试比较流程 ID/版本、业务类型、业务 ID 及全部规范化业务字段。业务 ID 本身不去重。JDBC 跨流程抢占同一个键时，只有明确的键插入重复且完整回滚后，才会重新读取已提交结果并判断冲突。类型化 JSON 写入升级到 schema 5，原样备份旧文件；类型化单据沿用原有 SQL 载荷列，成员待办另需 SQL revision 3 的显式迁移和回填。先升级全部读取端，再启用新写入，不支持新旧版本混写或用旧备份直接回退。

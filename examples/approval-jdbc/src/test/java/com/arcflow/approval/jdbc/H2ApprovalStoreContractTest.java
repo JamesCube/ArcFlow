@@ -9,7 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import static org.junit.jupiter.api.Assertions.*;
 
 /** Real H2 execution of the same inherited contract as PostgreSQL and MySQL. */
-class H2ApprovalStoreContractTest extends ServerApprovalStoreContract {
+class H2ApprovalStoreContractTest extends MemberInboxStoreContract {
     @BeforeEach void migrateFreshDatabase() throws Exception {
         var source = new JdbcDataSource();
         source.setURL("jdbc:h2:mem:" + UUID.randomUUID() + ";DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000");

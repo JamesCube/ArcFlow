@@ -42,7 +42,7 @@ python3 scripts/tryout.py
 | --- | --- | --- |
 | **智能 CRM** | 报价折扣：销售提交报价，经理核对折扣，财务复核金额 | 规划中，尚无可运行案例 |
 | **OA** | 请假申请：填写天数和事由，由指定审批人逐步处理 | [可以运行](docs/GETTING_STARTED.md#简体中文)，也有若依示例 |
-| **ERP** | 采购申请：填写物品、数量和单价，审核采购需求与金额 | [Java 与 HTTP 接口已可用](docs/BUSINESS_DOCUMENTS.md)，见已合并的 [PR #16](https://github.com/JamesCube/ArcFlow/pull/16)；`main` 暂无采购表单 |
+| **ERP** | 采购申请：填写物品、数量和单价，审核采购需求与金额 | [接口与独立／若依表单](docs/PROCUREMENT_UI.md)均可运行，H5 可查看并审批采购单 |
 
 智能 CRM 的业务表单和 AI 功能尚未实现。
 
@@ -60,11 +60,13 @@ python3 scripts/tryout.py
 - **待办、意见和记录。** 服务端检查谁能看、谁能审批，保存处理结果。重复提交同一步骤的相同决定，不会新增审批记录。提交失败后的重试方式见[幂等说明](docs/SUBMISSION_IDEMPOTENCY.md)。
 - **桌面和 H5。** 独立界面可以切换中英文，也有单独的[手机浏览器审批页面](examples/approval-mobile/README.md)。
 
+待办和已办使用服务端成员分页，包含 ALL／ANY 分组中的每位参与人。采购单展示数量、单价、币种和精确金额，H5 只负责审批。[成员查询](docs/MEMBER_INBOX.md) · [业务单据](docs/BUSINESS_DOCUMENTS.md)。
+
 ## 接到你的应用
 
 若依示例把审批页面放进原生菜单，复用现有账号和权限。接其他 Java 应用时，可以从审批领域库及存储接口开始。
 
-领域库已通过 Java 和 HTTP 接口支持类型化请假与采购单，共用审批规则、权限、历史记录和提交重试。现有表单仍用于请假。字段、接口和升级限制见[业务单据契约](docs/BUSINESS_DOCUMENTS.md)。
+领域库已通过 Java 和 HTTP 接口支持类型化请假与采购单，共用审批规则、权限、历史记录和提交重试。独立与若依页面可提交请假和采购单，审批期间业务快照保持不变。字段、接口和升级限制见[业务单据契约](docs/BUSINESS_DOCUMENTS.md)。
 
 | 从哪里看 | 用途 |
 | --- | --- |
@@ -73,9 +75,9 @@ python3 scripts/tryout.py
 | [若依集成](examples/ruoyi-vue3/README.md) | RuoYi-Vue + RuoYi-Vue3 的接入步骤 |
 | [JDBC 存储](examples/approval-jdbc/README.md) | 用数据库保存审批数据和审计记录 |
 
-类型化单据写入使用 JSON 快照 schema 5。启用前须升级全部读取端；旧程序读不了新数据，也不支持新旧版本混写。SQL 仍使用 revision 2。
+类型化单据写入使用 JSON 快照 schema 5。启用前须升级全部读取端；旧程序读不了新数据，也不支持新旧版本混写。成员待办索引使用 SQL revision 3，旧数据库需要显式迁移与分批回填。
 
-两个演示默认把审批数据写进本地 JSON，只支持单实例。若依的 MySQL 保存的是用户、角色和菜单，审批不会自动改用数据库。JDBC 需要显式接入和迁移；租户隔离、分页、业务表联合事务及 outbox 仍未实现。
+两个演示默认把审批数据写进本地 JSON，只支持单实例。若依的 MySQL 保存的是用户、角色和菜单，审批不会自动改用数据库。JDBC 需要显式接入和迁移；已提供成员待办／已办分页。租户隔离、业务表联合事务及 outbox 仍未实现。
 
 条件路由、动态角色解析、定时器、撤回和转办也还没有实现。App、小程序和飞书／企微／钉钉接入尚未完成；目前没有生产就绪承诺或 BPMN 兼容性。后续工作见[路线图](docs/ROADMAP.md)。
 

@@ -11,7 +11,7 @@ use this client to review them. The initial implementation was based on
 
 ## Scope / 边界
 
-- Uses `/api/me`, `/api/people`, `/api/requests` and the decision endpoints; Basic
+- Uses `/api/me`, `/api/people`, `/api/requests/inbox`, the compatible `/api/requests` list and decision endpoints; Basic
   credentials remain in page memory only. Reload requires sign-in again and
   preserves an opaque `?task=<id>` deep link. No default password.
 - Alice, Bob and Carol are labelled **demo identities**. The server checks who
@@ -22,11 +22,13 @@ use this client to review them. The initial implementation was based on
   My decisions includes a participant's completed vote even while the overall
   request remains pending. A decision note is part of the vote, **not** a chat or
   standalone comment endpoint.
-- Mobile authoring and submission are not supported. Create synthetic leave
-  requests and publish processes in the existing desktop UI before reviewing
-  them here. There are no attachment, pagination, due-date or tenant fields in
-  the existing API; the UI does not add placeholders for them. The API returns
-  the full visible list. Pagination would need backend support.
+- Mobile authoring and submission are not supported. Create synthetic leave or
+  procurement requests and publish processes in the desktop UI. Pending and
+  handled pages come from the server-side member inbox, with independent
+  cursors and retry state. Detail refresh uses the compatible visible-request
+  list; an actor switch, sign-out or newer refresh invalidates stale responses.
+- Typed procurement details show the immutable item, quantity, exact unit
+  price, total and currency. There are no attachment, due-date or tenant fields.
 - The platform interfaces include browser, Feishu, WeCom and DingTalk adapters.
   Enterprise identity and notifications remain unconfigured and reject use.
   `?host=feishu-web`,
@@ -126,7 +128,7 @@ never point tests at personnel data. No credentials or data store are bundled.
   controls and decision-sheet focus handling.
 
 这个示例不支持多租户。无权访问时返回 404 的测试，只覆盖当前单租户示例，
-不能说明不同租户之间已经隔离。生产身份认证、租户权限、分页、浏览器和真机测试，
+不能说明不同租户之间已经隔离。生产身份认证、租户权限、组合版本的浏览器和真机测试，
 以及各平台接入，都还需要单独完成。
 
 ## Dependency note / 依赖说明
@@ -136,3 +138,16 @@ The lockfile includes tested security overrides for the upstream uni compiler
 ACCEPTANCE.md found 8 high, 4 moderate and 12 low affected package entries, with no critical entry. Read that record before running the
 toolchain, and check the current dependencies again before any deployment. Keep
 this demo local; it has not been verified for production use.
+
+## Current local integration / 当前本地组合
+
+The procurement review model and member paging are combined in this source.
+See [the procurement scope](../../docs/PROCUREMENT_UI.md),
+[member inbox adoption](MEMBER_INBOX_ADOPTION.md) and
+[the combined verification report](../../docs/LOCAL_INTEGRATION.md).
+This does not turn earlier screenshots or browser results into evidence for
+this combined version. After packaging the backend, also run:
+
+```sh
+python3 examples/approval-mobile/scripts/verify-documents-http.py
+```

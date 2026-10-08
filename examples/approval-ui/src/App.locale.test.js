@@ -2,6 +2,7 @@ import { mount, flushPromises } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App.vue'
 import { api } from './api'
+import { pendingParticipants } from './process'
 vi.mock('./api', () => ({ api: { login: vi.fn(), logout: vi.fn(), request: vi.fn() } }))
 const people = [{ id: 'alice', name: 'Alice' }, { id: 'bob', name: 'Bob' }, { id: 'carol', name: 'Carol' }]
 const definition = { schemaVersion: 3, id: 'leave-approval', version: 2, name: 'Original process name', nodes: [
@@ -14,7 +15,14 @@ const copy = value => structuredClone(value)
 const wrappers = []
 function setup(identity = 'bob', items = [item]) {
   const server = { definition: copy(definition), items: copy(items) }
-  api.request.mockImplementation(async path => copy({ '/me': people.find(person => person.id === identity), '/people': people, '/process': server.definition, '/requests': server.items }[path]))
+  api.request.mockImplementation(async path => {
+    if (path.startsWith('/requests/inbox?')) {
+      const box = new URLSearchParams(path.split('?')[1]).get('box')
+      const actor = identity
+      return { items: server.items.filter(item => box === 'PENDING' ? pendingParticipants(item).includes(actor) : item.history.some(event => event.actorId === actor && ['APPROVE', 'REJECT'].includes(event.action))), nextCursor: null }
+    }
+    return copy({ '/me': people.find(person => person.id === identity), '/people': people, '/process': server.definition, '/requests': server.items }[path])
+  })
   const wrapper = mount(App); wrappers.push(wrapper); return { wrapper, server }
 }
 const field = (wrapper, id) => wrapper.find(`[data-testid="${id}"]`)
@@ -35,7 +43,7 @@ describe('one language throughout the workspace', () => {
     expect(document.documentElement.lang).toBe('zh-CN')
     expect(wrapper.text()).toContain('本演示仅限本机使用')
     await login(wrapper)
-    expect(wrapper.find('.page-heading h1').text()).toBe('请假审批')
+    expect(wrapper.find('.page-heading h1').text()).toBe('业务审批')
     expect(wrapper.find('.designer-workbench').attributes('lang')).toBe('zh-CN')
     expect(wrapper.find('.new-request h2').text()).toBe('新建请假申请')
     expect(wrapper.find('.page-footer').text()).toContain('仅使用合成数据')
@@ -180,7 +188,7 @@ describe('locale changes during mutations', () => {
     expect(wrapper.find('.login-form button').attributes('disabled')).toBeDefined()
     expect(api.login).toHaveBeenCalledTimes(1)
     resolve(people[1]); await flushPromises()
-    expect(wrapper.find('.page-heading h1').text()).toBe('请假审批')
+    expect(wrapper.find('.page-heading h1').text()).toBe('业务审批')
   })
   it('updates pending submission and success copy without changing the payload', async () => {
     const { wrapper } = setup('alice', []); await login(wrapper)

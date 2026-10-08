@@ -30,6 +30,8 @@ public final class JsonApprovalStore implements ApprovalStore {
     private final FileChannel lockChannel;
     private final FileLock lock;
     private Map<String, Request> requests = new LinkedHashMap<>();
+    private final Map<String, NavigableMap<InboxQuery.Position, Request>> pendingInbox = new HashMap<>();
+    private final Map<String, NavigableMap<InboxQuery.Position, Request>> handledInbox = new HashMap<>();
     private Map<SubmissionScope, String> submissions = new LinkedHashMap<>();
     private ProcessDefinition definition;
     private byte[] previousSchemaOriginal;
@@ -65,6 +67,19 @@ public final class JsonApprovalStore implements ApprovalStore {
     @Override public synchronized ProcessDefinition process() throws IOException { ensureOpen(); return definition; }
     @Override public synchronized List<Request> requests() throws IOException { ensureOpen(); return List.copyOf(requests.values()); }
     @Override public synchronized Request request(String id) throws IOException { ensureOpen(); return requests.get(id); }
+
+    @Override public synchronized List<Request> inbox(InboxQuery query) throws IOException {
+        ensureOpen(); Objects.requireNonNull(query, "query");
+        var index = (query.bucket() == InboxQuery.Bucket.PENDING ? pendingInbox : handledInbox).get(query.actor());
+        if (index == null) return List.of();
+        var candidates = query.after() == null ? index : index.tailMap(query.after(), false);
+        var rows = new ArrayList<Request>();
+        for (Request request : candidates.values()) {
+            if (query.acceptsFilters(request)) rows.add(request);
+            if (rows.size() == query.limit() + 1) break;
+        }
+        return List.copyOf(rows);
+    }
 
     @Override public synchronized Request submission(String applicantId, String key) throws IOException {
         ensureOpen();
@@ -171,6 +186,7 @@ public final class JsonApprovalStore implements ApprovalStore {
                 ApprovalService.validateRequest(r);
                 if (!r.processId().equals(definition.id()) || r.processVersion() > definition.version() || requests.putIfAbsent(r.id(), r) != null)
                     throw new IllegalArgumentException("Duplicate request or future process version");
+                indexRequest(r, true);
             }
             var boundRequests = new HashSet<String>();
             for (SubmissionBinding binding : bindings) {
@@ -257,12 +273,37 @@ public final class JsonApprovalStore implements ApprovalStore {
             // No non-atomic fallback: fail closed on unsupported file systems.
             Files.move(temp, file, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
             definition = nextDefinition;
+            // Publish derived indexes only after the same durable state publication succeeds.
+            for (Request next : updated.values()) {
+                Request previous = requests.get(next.id());
+                if (previous == next) continue;
+                if (previous != null) indexRequest(previous, false);
+                indexRequest(next, true);
+            }
             requests = new LinkedHashMap<>(updated); // Publish only after persistence succeeds.
             submissions = new LinkedHashMap<>(nextSubmissions);
             snapshotSchema = nextSchema;
             previousSchemaOriginal = nextSchema < 5 ? json.clone() : null;
             migrationBackup = null;
         } finally { Files.deleteIfExists(temp); }
+    }
+
+    private void indexRequest(Request request, boolean add) {
+        InboxQuery.Position position = InboxQuery.position(request);
+        for (InboxQuery.Member member : InboxQuery.members(request)) {
+            if (member.pending()) indexMember(pendingInbox, member.actorId(), position, request, add);
+            if (member.handled()) indexMember(handledInbox, member.actorId(), position, request, add);
+        }
+    }
+
+    private static void indexMember(Map<String, NavigableMap<InboxQuery.Position, Request>> index,
+                                    String actor, InboxQuery.Position position, Request request, boolean add) {
+        if (add) index.computeIfAbsent(actor, ignored -> new TreeMap<>((a, b) -> InboxQuery.comparePositions(b, a)))
+            .put(position, request);
+        else {
+            var entries = index.get(actor);
+            if (entries != null) { entries.remove(position); if (entries.isEmpty()) index.remove(actor); }
+        }
     }
 
     private static void writeForced(Path path, byte[] data) throws IOException {

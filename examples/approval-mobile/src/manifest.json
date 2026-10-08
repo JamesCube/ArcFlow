@@ -1,7 +1,7 @@
 {
   "name": "ArcFlow Mobile",
   "appid": "",
-  "description": "A local mobile web demo for reviewing leave requests.",
+  "description": "A local mobile web demo for reviewing leave and procurement requests.",
   "versionName": "0.1.0",
   "versionCode": 1,
   "transformPx": false,

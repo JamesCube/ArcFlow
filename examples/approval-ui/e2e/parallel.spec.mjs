@@ -5,7 +5,7 @@ async function login(page, user) {
   await page.getByLabel('Demo account').selectOption(user)
   await page.getByLabel('Password', { exact: true }).fill(process.env[`APPROVAL_${user.toUpperCase()}_PASSWORD`])
   await page.getByRole('button', { name: 'Enter workspace' }).click()
-  await expect(page.getByRole('heading', { name: 'Leave approvals', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Business approvals', exact: true })).toBeVisible()
 }
 async function switchUser(page, user) { await page.getByRole('button', { name: 'Sign out', exact: true }).click(); await login(page, user) }
 async function select(page, title) { await page.getByRole('button').filter({ has: page.getByText(title, { exact: true }) }).click() }

@@ -46,3 +46,26 @@ export function deferred<T>() {
   });
   return { promise, resolve, reject };
 }
+
+// Small server stub for legacy tests; the pagination suite controls pages explicitly.
+export function listResponse(path: string, rows: Request[], actor = "bob") {
+  if (!path.startsWith("/requests/inbox")) return rows;
+  const query = new URLSearchParams(path.split("?")[1]);
+  const items = rows.filter((item) => {
+    const step = item.definition.nodes.find((node) => node.id === item.currentStepId);
+    const members = step?.type === "parallelApproval" ? step.assigneeIds || [] : [step?.assigneeId];
+    const eligible = query.get("box") === "PENDING"
+      ? item.status === "PENDING" && members.includes(actor) && !item.history.some((event) => event.actorId === actor && event.stepId === item.currentStepId)
+      : item.history.some((event) => event.actorId === actor && event.action !== "SUBMIT");
+    return eligible && (!query.has("status") || item.status === query.get("status")) &&
+      (!query.has("processVersion") || item.processVersion === Number(query.get("processVersion")));
+  });
+  return { items, nextCursor: null };
+}
+
+export function approved(item = request()): Request {
+  return { ...item, status: "APPROVED", currentStepId: null, history: [...item.history,
+    { actorId: "bob", action: "APPROVE", comment: "", at: item.updatedAt, stepId: "team" },
+    { actorId: "carol", action: "APPROVE", comment: "", at: item.updatedAt, stepId: "team" },
+  ] };
+}

@@ -71,6 +71,9 @@ public class ApprovalService implements AutoCloseable {
         }
     }
     public record Snapshot(int schemaVersion, ProcessDefinition definition, List<Request> requests) {}
+    public record InboxPage(List<Request> items, String nextCursor) {
+        public InboxPage { items = List.copyOf(items); }
+    }
     private final ActorDirectory actors;
     private final ApprovalStore store;
 
@@ -127,6 +130,52 @@ public class ApprovalService implements AutoCloseable {
         requirePerson(actor);
         try { return store.requests().stream().filter(r -> visibleTo(r, actor)).toList(); }
         catch (IOException e) { throw new UncheckedIOException("Cannot read approval requests", e); }
+    }
+
+    /** Additive bounded inbox; legacy list() retains its full applicant/all-participant visibility. */
+    public InboxPage inbox(String actor, String box, Integer limit, String status, Integer processVersion, String cursor) throws IOException {
+        requirePerson(actor);
+        InboxQuery query;
+        try { query = InboxQuery.parse(actor, box, limit, status, processVersion, cursor); }
+        catch (IllegalArgumentException ex) { throw badRequest(ex.getMessage()); }
+        List<Request> rows = store.inbox(query);
+        requirePerson(actor); // A directory revocation during I/O must not release a page.
+        if (rows == null || rows.size() > query.limit() + 1) throw new IOException("Invalid inbox page size from store");
+        try {
+            Request previous = null;
+            Set<String> seenIds = new HashSet<>();
+            for (Request row : rows) {
+                if (row == null || !query.matches(row) || !seenIds.add(row.id()) ||
+                        (previous != null && InboxQuery.ORDER.compare(previous, row) >= 0))
+                    throw new IOException("Inbox page does not match its authenticated query or ordering");
+                previous = row;
+            }
+        } catch (RuntimeException invalid) { throw new IOException("Invalid inbox request from store", invalid); }
+        boolean more = rows.size() > query.limit();
+        List<Request> items = rows.subList(0, Math.min(query.limit(), rows.size()));
+        return new InboxPage(items, more ? query.cursorFor(items.get(items.size() - 1)) : null);
+    }
+
+    /** Strict adapter for GET query parameters; no client-supplied actor or ambiguous repeated fields. */
+    public InboxPage inbox(String actor, Map<String, List<String>> parameters) throws IOException {
+        requirePerson(actor);
+        var allowed = Set.of("box", "limit", "status", "processVersion", "cursor");
+        if (parameters == null || parameters.entrySet().stream().anyMatch(entry -> !allowed.contains(entry.getKey()) ||
+                entry.getValue() == null || entry.getValue().size() != 1 || entry.getValue().get(0) == null))
+            throw badRequest("Unknown or repeated inbox query parameter");
+        return inbox(actor, parameter(parameters, "box"), integerParameter(parameters, "limit"),
+            parameter(parameters, "status"), integerParameter(parameters, "processVersion"), parameter(parameters, "cursor"));
+    }
+
+    private static String parameter(Map<String, List<String>> parameters, String name) {
+        var values = parameters.get(name); return values == null ? null : values.get(0);
+    }
+    private static Integer integerParameter(Map<String, List<String>> parameters, String name) {
+        String value = parameter(parameters, name);
+        if (value == null) return null;
+        if (!value.matches("[0-9]{1,10}")) throw badRequest("Invalid inbox integer parameter");
+        try { return Integer.valueOf(value); }
+        catch (NumberFormatException invalid) { throw badRequest("Invalid inbox integer parameter"); }
     }
 
     public Request submit(String actor, String title, String reason, int days, int processVersion) throws IOException {

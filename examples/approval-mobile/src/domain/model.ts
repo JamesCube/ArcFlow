@@ -37,7 +37,7 @@ export function filterRequests(
           (tab === "todo"
             ? canDecide(request, actor)
             : hasDecided(request, actor))) &&
-        `${request.title} ${request.reason} ${request.applicantId}`
+        `${request.title} ${request.reason} ${request.applicantId} ${request.business?.businessId || ""} ${request.business?.type === "procurement" ? request.business.item : ""}`
           .toLocaleLowerCase()
           .includes(needle),
     )

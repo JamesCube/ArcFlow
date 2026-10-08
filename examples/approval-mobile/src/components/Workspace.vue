@@ -8,8 +8,8 @@ import {
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { createApi } from "../domain/api";
 import { createWorkspace } from "../domain/workspace";
+import { formatMoney, procurementTotal } from "../domain/business";
 import {
-  canDecide,
   currentStep,
   participants,
   stepState,
@@ -29,11 +29,13 @@ const props = defineProps<{
   provider?: Provider;
 }>();
 const workspace = createWorkspace(props.api || createApi());
-const { state, selected, visible, actionable } = workspace;
+const { state, selected, visible, actionable, activeInbox, listFresh, listLoading, listError } = workspace;
 const locale = ref<Locale>("zh"),
   username = ref("bob"),
   password = ref(""),
-  expanded = ref(false);
+  expanded = ref(false),
+  filterStatus = ref(""),
+  filterVersion = ref("");
 const t = computed(() => copy[locale.value]);
 const provider =
   props.provider ||
@@ -44,11 +46,10 @@ let route: RoutePort,
   unsubscribe: (() => void) | undefined,
   scroll = 0,
   lastFocus: HTMLElement | null = null;
-const todoCount = computed(
-  () =>
-    state.requests.filter((request) => canDecide(request, state.me?.id || ""))
-      .length,
-);
+const todoCount = computed(() => state.inboxes.PENDING.fresh
+  ? `${state.inboxes.PENDING.items.length}${state.inboxes.PENDING.nextCursor ? "+" : ""}` : "—");
+watch(() => state.me?.id, () => { filterStatus.value = ""; filterVersion.value = ""; });
+function applyFilters() { void workspace.setFilters(filterStatus.value, filterVersion.value); }
 const person = (id: string) =>
   state.people.find((person) => person.id === id)?.displayName || id;
 const status = (request: Request) =>
@@ -57,6 +58,11 @@ const status = (request: Request) =>
     APPROVED: t.value.approved,
     REJECTED: t.value.rejected,
   })[request.status];
+const requestType = (request: Request) =>
+  request.business?.type === "procurement" ? t.value.procurementType : t.value.requestType;
+const summary = (request: Request) => request.business?.type === "procurement"
+  ? formatMoney(procurementTotal(request.business), request.business.currency)
+  : `${request.days} ${t.value.days}`;
 const date = (value: string) =>
   new Intl.DateTimeFormat(locale.value === "zh" ? "zh-CN" : "en-GB", {
     month: "short",
@@ -108,7 +114,7 @@ function syncRoute() {
   expanded.value = false;
   if (old && !state.selectedId)
     nextTick(() => window.scrollTo({ top: scroll }));
-  if (state.me && !state.busy) void workspace.refresh();
+  if (state.me && state.selectedId && !state.busy) void workspace.refreshDetail();
 }
 function toggleLocale() {
   locale.value = locale.value === "zh" ? "en" : "zh";
@@ -270,7 +276,7 @@ onUnmounted(() => {
         ><text>{{ t.errors[state.error] }}</text
         ><H5Button
           class="text-button"
-          :disabled="state.loading || state.busy"
+          :disabled="state.loading || state.legacyLoading || state.busy"
           @click="workspace.refresh()"
           >{{ t.retry }}</H5Button
         ></view
@@ -284,7 +290,7 @@ onUnmounted(() => {
             }}</text
             ><view class="count-orbit"
               ><text>{{ todoCount }}</text
-              ><text class="orbit-label">{{ t.todo }}</text></view
+              ><text class="orbit-label">{{ t.loadedTodo }}</text></view
             ></view
           ><text class="body-copy">{{ t.subtitle }}</text></view
         >
@@ -296,10 +302,26 @@ onUnmounted(() => {
             role="tab"
             :aria-selected="state.tab === tab"
             :class="{ active: state.tab === tab }"
-            @click="state.tab = tab"
+            @click="workspace.setTab(tab)"
             >{{ t[tab] }}</H5Button
           ></view
         >
+        <view v-if="activeInbox" class="inbox-filters">
+          <H5Label for="inbox-status" class="field-label">{{ t.statusFilter }}</H5Label>
+          <select id="inbox-status" v-model="filterStatus" :disabled="state.busy" @change="applyFilters">
+            <option value="">{{ t.anyStatus }}</option>
+            <option value="PENDING">{{ t.pending }}</option>
+            <option value="APPROVED">{{ t.approved }}</option>
+            <option value="REJECTED">{{ t.rejected }}</option>
+          </select>
+          <H5Label for="inbox-version" class="field-label">{{ t.versionFilter }}</H5Label>
+          <view class="filter-version-row">
+            <H5Input id="inbox-version" v-model="filterVersion" type="text" inputmode="numeric" :disabled="state.busy" @confirm="applyFilters" />
+            <H5Button class="secondary" :disabled="state.busy" @click="applyFilters">{{ t.applyFilters }}</H5Button>
+          </view>
+          <text class="caption">{{ t.inboxScope }}</text>
+        </view>
+        <text v-else class="caption list-scope">{{ t.legacyScope }}</text>
         <view class="search-row"
           ><text aria-hidden="true" class="search-icon">⌕</text
           ><H5Input
@@ -315,24 +337,25 @@ onUnmounted(() => {
             >×</H5Button
           ></view
         >
+        <text v-if="activeInbox" class="caption list-scope">{{ t.searchScope }}</text>
         <view class="list-toolbar"
-          ><text>{{ visible.length }} {{ t.count }}</text
+          ><text>{{ visible.length }} {{ activeInbox ? t.loadedCount : t.count }}</text
           ><H5Button
             class="text-button refresh"
-            :disabled="state.loading || state.busy"
+            :disabled="state.loading || state.legacyLoading || state.busy"
             @click="workspace.refresh()"
-            >{{ state.loading ? t.refreshing : t.refresh
+            >{{ state.loading || state.legacyLoading ? t.refreshing : t.refresh
             }}<text aria-hidden="true">↻</text></H5Button
           ></view
         >
         <view
-          v-if="state.loading && !state.requests.length"
+          v-if="listLoading && !visible.length"
           class="empty-state"
           role="status"
           ><view class="loading-line" /><text>{{ t.loading }}</text></view
         >
         <view
-          v-else-if="!state.fresh && !state.loading"
+          v-else-if="!listFresh && !listLoading"
           class="empty-state"
           role="status"
           ><text class="section-title" role="heading" aria-level="2">{{
@@ -341,7 +364,7 @@ onUnmounted(() => {
           ><text class="body-copy">{{ t.loadFailedBody }}</text
           ><H5Button
             class="secondary"
-            :disabled="state.loading || state.busy"
+            :disabled="state.loading || state.legacyLoading || state.busy"
             @click="workspace.refresh()"
             >{{ t.retry }}</H5Button
           ></view
@@ -349,10 +372,10 @@ onUnmounted(() => {
         <view v-else-if="!visible.length" class="empty-state"
           ><view class="empty-symbol" aria-hidden="true">✓</view
           ><text class="section-title" role="heading" aria-level="2">{{
-            state.tab === "todo" && !state.query ? t.emptyTodo : t.emptyTitle
+            state.tab === "todo" && !state.query && !state.filters.status && !state.filters.processVersion && !activeInbox?.nextCursor ? t.emptyTodo : t.emptyTitle
           }}</text
           ><text class="body-copy">{{
-            state.tab === "todo" && !state.query ? t.emptyTodoBody : t.emptyBody
+            state.tab === "todo" && !state.query && !state.filters.status && !state.filters.processVersion && !activeInbox?.nextCursor ? t.emptyTodoBody : t.emptyBody
           }}</text></view
         >
         <view v-else class="request-list">
@@ -363,7 +386,7 @@ onUnmounted(() => {
             @click="open(request.id)"
           >
             <view class="card-top"
-              ><text class="type-label">{{ t.requestType }}</text
+              ><text class="type-label">{{ requestType(request) }}</text
               ><text :class="['status', request.status.toLowerCase()]"
                 ><text class="status-dot" />{{ status(request) }}</text
               ></view
@@ -372,13 +395,22 @@ onUnmounted(() => {
             <view class="card-summary"
               ><text>{{ person(request.applicantId) }}</text
               ><text class="summary-divider">/</text
-              ><text>{{ request.days }} {{ t.days }}</text></view
+              ><text>{{ summary(request) }}</text></view
             >
+            <text v-if="request.business" class="card-business-id">{{ request.business.businessId }}</text>
             <view class="card-bottom"
               ><text>{{ date(request.createdAt) }}</text
               ><text class="card-arrow" aria-hidden="true">↗</text></view
             >
           </H5Button>
+        </view>
+        <view v-if="activeInbox" class="pagination" aria-live="polite">
+          <view v-if="listError" class="message error" role="alert">{{ listError === "cursor" ? t.errors.cursor : t.pageFailed }}</view>
+          <H5Button v-if="activeInbox.nextCursor" class="secondary load-more"
+            :disabled="activeInbox.loading || state.loading || state.legacyLoading || state.busy || listError === 'cursor'"
+            @click="workspace.loadMore()">{{ activeInbox.loading ? t.loadingMore : t.loadMore }}</H5Button>
+          <text v-else-if="activeInbox.fresh && !activeInbox.loading" class="caption">{{ t.endOfList }}</text>
+          <text class="caption">{{ t.livePages }}</text>
         </view>
         <text class="quiet-footer">{{ t.demo }} · {{ t.platformFoot }}</text>
       </template>
@@ -388,14 +420,14 @@ onUnmounted(() => {
             ><text aria-hidden="true">←</text>{{ t.back }}</H5Button
           ><H5Button
             class="text-button"
-            :disabled="state.loading || state.busy"
+            :disabled="state.loading || state.legacyLoading || state.busy"
             @click="workspace.refresh()"
-            >{{ state.loading ? t.refreshing : t.refresh }}</H5Button
+            >{{ state.loading || state.legacyLoading ? t.refreshing : t.refresh }}</H5Button
           ></view
         >
         <view v-if="!selected" class="empty-state"
           ><text class="section-title" role="heading" aria-level="2">{{
-            state.loading ? t.loading : t.missingTitle
+            state.loading || state.legacyLoading ? t.loading : t.missingTitle
           }}</text
           ><text class="body-copy">{{ t.missingBody }}</text></view
         >
@@ -408,7 +440,7 @@ onUnmounted(() => {
           >
           <view class="detail-hero"
             ><view class="card-top"
-              ><text class="type-label">{{ t.requestType }}</text
+              ><text class="type-label">{{ requestType(selected) }}</text
               ><text :class="['status', selected.status.toLowerCase()]"
                 ><text class="status-dot" />{{ status(selected) }}</text
               ></view
@@ -435,14 +467,32 @@ onUnmounted(() => {
               ><text class="section-title" role="heading" aria-level="2">{{
                 t.details
               }}</text></view
-            ><view class="duration-block"
+            >
+            <view v-if="selected.business?.type === 'procurement'" class="procurement-detail">
+              <view class="amount-block">
+                <text class="caption">{{ t.total }}</text>
+                <text class="amount-value">{{ summary(selected) }}</text>
+                <text class="caption">{{ t.calculationHint }}</text>
+              </view>
+              <view class="business-fields">
+                <view class="business-field"><text class="caption">{{ t.businessId }}</text><text class="business-value business-reference">{{ selected.business.businessId }}</text></view>
+                <view class="business-field"><text class="caption">{{ t.item }}</text><text class="business-value">{{ selected.business.item }}</text></view>
+                <view class="business-field"><text class="caption">{{ t.quantity }}</text><text class="business-value">{{ selected.business.quantity }}</text></view>
+                <view class="business-field"><text class="caption">{{ t.unitPrice }}</text><text class="business-value">{{ formatMoney(selected.business.unitPrice, selected.business.currency) }}</text></view>
+                <view class="business-field"><text class="caption">{{ t.currency }}</text><text class="business-value">{{ selected.business.currency }}</text></view>
+              </view>
+            </view>
+            <template v-else>
+              <view v-if="selected.business" class="business-field leave-reference"><text class="caption">{{ t.businessId }}</text><text class="business-value business-reference">{{ selected.business.businessId }}</text></view>
+              <view class="duration-block"
               ><text class="caption">{{ t.duration }}</text
               ><view
                 ><text class="duration-value">{{ selected.days }}</text
                 ><text>{{ t.days }}</text></view
-              ></view
-            ><text class="field-label">{{ t.reason }}</text
-            ><text class="reason-copy">{{ selected.reason }}</text></view
+              ></view>
+            </template>
+            <text class="field-label">{{ selected.business?.type === 'procurement' ? t.businessReason : t.reason }}</text>
+            <text class="reason-copy">{{ selected.reason }}</text></view
           >
           <view class="detail-section"
             ><H5Button
@@ -548,7 +598,7 @@ onUnmounted(() => {
             ></view
           >
           <view
-            v-if="!actionable && !state.loading && !state.busy"
+            v-if="!actionable && !state.loading && !state.legacyLoading && !state.busy"
             class="no-action"
             ><text class="field-label">{{ t.noAction }}</text
             ><text class="caption">{{ t.noActionBody }}</text></view
@@ -596,7 +646,8 @@ onUnmounted(() => {
           ></view
         >
         <text class="decision-request">{{ selected.title }}</text
-        ><text class="consequence">{{ consequence }}</text
+        ><text v-if="selected.business?.type === 'procurement'" class="decision-business">{{ selected.business.businessId }} · {{ summary(selected) }}</text>
+        <text class="consequence">{{ consequence }}</text
         ><H5Label for="decision-comment" class="field-label">{{
           t.opinion
         }}</H5Label

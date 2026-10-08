@@ -1,0 +1,2 @@
+# Local shared test dependencies, including a symlink to approval-ui.
+node_modules

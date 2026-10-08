@@ -37,3 +37,7 @@ The standalone Vue/HTTP and native RuoYi hosts support schema 3. Schema-3 hosts 
 ## Business document boundary / 业务单据边界
 
 The domain now accepts typed immutable leave and procurement documents through `submitDocument`, sharing the same approval lifecycle. Legacy leave APIs and stored request shapes remain compatible; new typed writes use JSON snapshot schema 5, while process definitions stay at schema 2/3. Upgrade all readers before enabling typed writes. Older binaries cannot read the new payloads, and mixed-version writers are unsupported. See [the business-document contract](../../docs/BUSINESS_DOCUMENTS.md) for validation, process scope, migration and replay rules.
+
+## Bounded member inbox
+
+`ApprovalService.inbox(actor, box, limit, status, processVersion, cursor)` is an additive authenticated request-level inbox. `PENDING` includes every current unvoted ALL/ANY participant; `HANDLED` includes only actors with actual decision events and may overlap pending in a later stage. The default limit is 25, maximum 100. Results use immutable creation-time/ID keyset order and actor/filter-bound cursors. Existing `list(actor)` remains unchanged. Unsupported third-party store adapters fail explicitly instead of replaying their full list. See the [complete contract and verification boundaries](../../docs/MEMBER_INBOX.md).

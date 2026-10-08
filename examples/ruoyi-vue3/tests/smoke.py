@@ -83,6 +83,23 @@ def saved_request(token, req):
     return matches[0]
 
 
+def inbox_items(token, box="PENDING"):
+    rows, cursor, cursors = [], None, set()
+    while True:
+        query = {"box": box, "limit": 2}
+        if cursor is not None:
+            assert cursor not in cursors, "Inbox cursor cycle"
+            cursors.add(cursor)
+            query["cursor"] = cursor
+        page = data("/arcflow/requests/inbox?" + urllib.parse.urlencode(query), token)
+        assert set(page) == {"items", "nextCursor"} and len(page["items"]) <= 2
+        rows.extend(page["items"])
+        cursor = page["nextCursor"]
+        if cursor is None:
+            assert len({row["id"] for row in rows}) == len(rows), "Duplicate inbox request"
+            return rows
+
+
 def pending_members(req):
     """Derive the full worklist from the public snapshot, never just approverId."""
     if req["status"] != "PENDING":
@@ -159,6 +176,12 @@ def run_groups(server, password, sequential):
     assert all_complete["definition"] == all_definition and all_complete["currentStepId"] == "group"
     assert all_complete["approverId"] == "101" and pending_members(all_complete) == ["101", "102"]
     assert_votes(all_complete, [])
+    for token in (first, second):
+        assert all_complete in inbox_items(token)
+    assert all_complete not in inbox_items(a)
+    cursor = data("/arcflow/requests/inbox?limit=1", first)["nextCursor"]
+    assert cursor is not None
+    api("/arcflow/requests/inbox?cursor=" + urllib.parse.quote(cursor, safe=""), second, allowed=(400,))
     for participant in (a, first, second):
         assert saved_request(participant, all_complete) == all_complete
     # In particular, non-first member 102 has this item in their pending worklist
@@ -192,9 +215,12 @@ def run_groups(server, password, sequential):
     assert partial["id"] not in {
         item["id"] for item in data("/arcflow/requests", second) if "102" in pending_members(item)}
     assert saved_request(second, partial) == partial, "Voting removed historical participant visibility"
+    assert partial not in inbox_items(second)
+    assert partial in inbox_items(second, "HANDLED")
     advanced = decision(first, partial, "group")["data"]
     assert advanced["status"] == "PENDING" and advanced["currentStepId"] == "final"
     assert pending_members(advanced) == ["101"]
+    assert advanced in inbox_items(first) and advanced in inbox_items(first, "HANDLED")
     assert_votes(advanced, [("102", "group", "APPROVE"), ("101", "group", "APPROVE")])
     assert_retry(first, advanced, "group")
     assert_retry(second, advanced, "group")
@@ -246,6 +272,8 @@ def run_groups(server, password, sequential):
     any_immediate = decision(second, any_immediate, "group")["data"]
     assert any_immediate["status"] == "APPROVED" and pending_members(any_immediate) == []
     assert_votes(any_immediate, [("102", "group", "APPROVE")])
+    assert any_immediate not in inbox_items(first) and any_immediate not in inbox_items(first, "HANDLED")
+    assert any_immediate in inbox_items(second, "HANDLED")
     decision(first, any_immediate, "group", allowed=(409,))
     decision(first, any_immediate, "group", "REJECT", allowed=(409,))
     assert_retry(second, any_immediate, "group")
@@ -517,10 +545,13 @@ def run(server, password):
     assert str(data("/arcflow/me", a)["id"]) == "100"
     people = data("/arcflow/people", a)
     assert {"100", "101", "102"}.issubset({str(p["id"]) for p in people})
-    for path in ("/arcflow/me", "/arcflow/people", "/arcflow/process", "/arcflow/requests"):
+    for path in ("/arcflow/me", "/arcflow/people", "/arcflow/process", "/arcflow/requests", "/arcflow/requests/inbox"):
         api(path, allowed=(401,))
     api("/arcflow/me", "invalid-token", allowed=(401,))
     api("/arcflow/requests", none, allowed=(403,))
+    api("/arcflow/requests/inbox", none, allowed=(403,))
+    for invalid in ("actorId=101", "limit=0", "limit=101", "limit=1&limit=2", "box=VISIBLE", "cursor=broken!"):
+        api("/arcflow/requests/inbox?" + invalid, first, allowed=(400,))
     definition = data("/arcflow/process", a)
     proposed = {**definition, "name": "CI two-step process", "nodes": [
         {"id": "start", "type": "start", "name": "Submit", "assigneeId": None},

@@ -71,3 +71,27 @@ The previous desktop and 390px stacked layouts passed the real Chromium workbenc
 The workspace has a navy navigation rail, shared text and status styles, compact stage cards and one inspector. On mobile, you can switch between the flow and its settings. Escape returns to the selected card, including read-only reviewers; switching views or languages preserves the draft and undo history. The request overview counts only records actually returned for the signed-in user.
 
 The [scenario suite](e2e/VISUAL_SCENARIOS.md) captures Chinese and English leave-request forms, sequential steps, ALL/ANY groups, saved snapshots and mobile views. It uses a fresh backend in a separate CI run. Check that the browser job passed for your revision, then inspect its screenshots; unit tests and a successful build do not show how the UI renders. Keep the example on localhost with synthetic leave requests and the fixed Bob/Carol accounts. Expense and contract forms, role resolution, tenant isolation and arbitrary branching are not included, and production use has not been verified.
+
+## Paginated member worklists
+
+**Needs my review** and **My decisions** use the bounded server inbox instead of filtering the legacy full list. Each has its own cursor, filter values, load-more/retry state and loaded-item count. Handled means an actual saved vote; a request can remain pending, or appear in both boxes when the same person reviews a later stage. The existing request list and applicant form keep their broader historical visibility.
+
+Changing filters restarts only that box; signing out or changing identity clears both boxes and all cached records. In-flight reads are aborted and late responses ignored, even when the transport ignores cancellation. A shared actor-scoped snapshot cache prevents older page/legacy replies undoing a saved decision. Decisions restart both first pages; uncertain results also recover through the broader legacy history, with further decisions locked if that recovery fails. Refresh intentionally restarts live worklists; counts are loaded rows, never a server total.
+
+A dependency-free launcher exercises the actual installed client transport/pager against a fresh disposable backend with 27 synthetic requests:
+
+```sh
+node scripts/verify-inbox-http.mjs ../approval-demo/backend/target/approval-demo-0.1.0-SNAPSHOT.jar
+```
+
+Run it from this UI directory with Java 17+ on PATH (or `JAVA=/absolute/path/to/java`). It never targets an existing backend, downloads packages, or writes to a persistent demo store. The original local unit/DOM/build/HTTP checkpoint and browser acceptance boundaries are listed in [MEMBER_INBOX_UI](../../docs/MEMBER_INBOX_UI.md).
+
+## Procurement and member inbox together
+
+The document selector keeps independent leave/procurement drafts and submission
+intent keys. Procurement validates item, quantity, currency and decimal price,
+then submits a typed immutable business snapshot. Pending/handled tabs use the
+bounded member API and keep their own continuation state. Details use the
+shared request snapshot cache and compatible visible-request list. See [the business contract](../../docs/BUSINESS_DOCUMENTS.md),
+[procurement scope](../../docs/PROCUREMENT_UI.md) and
+[combined verification](../../docs/LOCAL_INTEGRATION.md).

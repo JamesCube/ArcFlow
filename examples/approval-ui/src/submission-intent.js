@@ -1,3 +1,5 @@
+import { normalizeBusinessDocument } from './business-document.js'
+
 // One unresolved intent per mounted form, held only in memory. Never persist
 // request text, credentials, or keys to browser storage. Reload/sign-out ends it.
 export function newSubmissionKey() {
@@ -6,8 +8,14 @@ export function newSubmissionKey() {
   return Array.from(globalThis.crypto.getRandomValues(new Uint8Array(32)), byte => byte.toString(16).padStart(2, '0')).join('')
 }
 
-const normalize = ({ title, reason, days }) => ({ title: title.trim(), reason: reason.trim(), days: Number(days) })
-const signature = (actor, input) => JSON.stringify([actor, ...Object.values(normalize(input))])
+const typed = input => Object.prototype.hasOwnProperty.call(input, 'business')
+const normalize = input => typed(input) ? { business: normalizeBusinessDocument(input.business) }
+  : { title: input.title.trim(), reason: input.reason.trim(), days: Number(input.days) }
+const signature = (actor, input) => {
+  // Editing an incomplete/invalid form must invalidate an old intent safely.
+  try { return JSON.stringify([actor, typed(input) ? 'typed' : 'legacy', normalize(input)]) }
+  catch { return JSON.stringify([actor, 'invalid', input]) }
+}
 
 // Only this explicit server rejection proves the keyed submission was never
 // created. A generic 409, 503, malformed response or lost connection does not.
@@ -27,7 +35,7 @@ export function createSubmissionIntent(keyFactory = newSubmissionKey) {
     prepare(actor, input, processVersion) {
       const fingerprint = signature(actor, input)
       if (pending?.signature !== fingerprint) {
-        pending = Object.freeze({ signature: fingerprint, key: keyFactory(),
+        pending = Object.freeze({ signature: fingerprint, key: keyFactory(), endpoint: typed(input) ? '/documents' : '/requests',
           payload: Object.freeze({ ...normalize(input), processVersion }) })
       }
       // Retain the original version even if refresh has discovered a publication.

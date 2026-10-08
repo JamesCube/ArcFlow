@@ -50,6 +50,15 @@ def bootstrap(destination):
         raise SystemExit('Upstream logging layout changed')
     logback.write_text(logs.replace(marker, 'value="${ARCFLOW_LOG_DIR:-./logs}"'))
     shutil.copytree(HERE / 'frontend' / 'src', destination / 'frontend' / 'src', dirs_exist_ok=True)
+    # One reviewed business boundary for both hosts; do not fork money or retry
+    # semantics in the native overlay. Committed copies also support direct view tests.
+    shared = HERE.parent / 'approval-ui' / 'src'
+    native = destination / 'frontend' / 'src' / 'views' / 'arcflow' / 'approval'
+    for name in ('business-document.js', 'submission-intent.js', 'submission-response.js'):
+        overlay = HERE / 'frontend' / 'src' / 'views' / 'arcflow' / 'approval' / name
+        if overlay.read_bytes() != (shared / name).read_bytes():
+            raise SystemExit(f'Shared/native helper drift: {name}')
+        shutil.copyfile(shared / name, native / name)
     npm_lock = HERE / 'frontend' / 'package-lock.json'
     if npm_lock.exists():
         shutil.copyfile(npm_lock, destination / 'frontend' / 'package-lock.json')

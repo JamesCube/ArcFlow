@@ -78,6 +78,26 @@ class BusinessDocumentApiTest {
         assertEquals(1, list("alice").size());
     }
 
+    @Test void procurementInboxReturnsExactBusinessSnapshotAndCurrentHandledStateOnRetry() throws Exception {
+        ObjectNode input = procurement();
+        JsonNode request = result(submit("alice", input, "procurement-inbox").andExpect(status().isCreated()));
+        JsonNode pending = result(mvc.perform(get("/api/requests/inbox?limit=1").with(httpBasic("bob", "test-bob-password")))
+            .andExpect(status().isOk()));
+        assertEquals(request, pending.path("items").get(0));
+        assertEquals(input.path("business"), pending.path("items").get(0).path("business"));
+        JsonNode approved = result(decide("bob", request, "APPROVE").andExpect(status().isOk()));
+        assertEquals(approved, result(submit("alice", input, "procurement-inbox").andExpect(status().isCreated())));
+        JsonNode handled = result(mvc.perform(get("/api/requests/inbox?box=HANDLED&status=APPROVED&processVersion=1")
+            .with(httpBasic("bob", "test-bob-password"))).andExpect(status().isOk()));
+        assertEquals(approved, handled.path("items").get(0));
+        assertEquals(request.path("business"), handled.path("items").get(0).path("business"));
+        assertTrue(handled.path("nextCursor").isNull());
+        mvc.perform(get("/api/requests/inbox").with(httpBasic("bob", "test-bob-password")))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.items").isEmpty());
+        mvc.perform(get("/api/requests/inbox?box=HANDLED").with(httpBasic("carol", "test-carol-password")))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.items").isEmpty());
+    }
+
     @Test void typedLeaveAndLegacyLeavePreserveTheirDistinctContracts() throws Exception {
         ObjectNode leave = leave();
         JsonNode typed = result(submit("alice", leave, "typed-leave").andExpect(status().isCreated()));
