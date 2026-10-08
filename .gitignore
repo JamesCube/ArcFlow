@@ -30,3 +30,7 @@ examples/approval-mobile/playwright-report/
 
 # CRM synthetic browser screenshots are retained through CI artifacts only.
 examples/approval-ui/crm-visual-results/
+
+# Fresh-backend documentation gallery artifacts
+examples/approval-ui/gallery-results/
+examples/approval-ui/gallery-rejection-results/
