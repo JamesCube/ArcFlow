@@ -36,7 +36,7 @@ def prerequisites(maven):
         raise RuntimeError('Python 3.9+ is required.')
     for name in ['java', 'javac', maven, 'node', 'npm']:
         if not shutil.which(name):
-            raise RuntimeError('Missing prerequisite: ' + name + '. Install it yourself; see docs/TRYOUT.md.')
+            raise RuntimeError('Missing prerequisite: ' + name + '. Install it first; see docs/TRYOUT.md.')
     if version(['javac', '-version'], r'javac (\d+)')[0] < 17:
         raise RuntimeError('JDK 17+ is required.')
     if version(['java', '-version'], r'version "(\d+)')[0] < 17:
@@ -144,10 +144,10 @@ def main():
     try:
         prerequisites(args.maven)
         check_ports([args.backend_port, args.ui_port])
-        print('Prerequisites and loopback ports OK.', flush=True)
+        print('Required tools are available, and the local ports are free.', flush=True)
         if args.check:
             return 0
-        print('Building source and downloading locked UI / Maven dependencies. No system tools are installed.', flush=True)
+        print('Building the demo and downloading the configured npm and Maven dependencies. This does not install system tools.', flush=True)
         for pom in ['pom.xml', 'examples/approval-domain/pom.xml', 'examples/approval-demo/backend/pom.xml']:
             processes.run([args.maven, '-B', '-ntp', '-f', pom, 'install' if 'backend' not in pom else 'package'])
         processes.run(['npm', 'ci'], UI)
@@ -179,7 +179,7 @@ def main():
                     raise RuntimeError('A demo service stopped unexpectedly; stopping the other service.')
                 time.sleep(0.5)
     except KeyboardInterrupt:
-        print('\nStopping demo and removing private runtime files.', flush=True)
+        print('\nStopping the demo and deleting its temporary files.', flush=True)
         return 130
     except (RuntimeError, OSError, subprocess.SubprocessError) as error:
         print('TRYOUT: ' + str(error), file=sys.stderr)

@@ -38,15 +38,18 @@ public final class JdbcDialectChecks {
         check(JdbcDialect.POSTGRESQL.duplicateKey(new SQLException("duplicate", "23505")));
         check(!JdbcDialect.POSTGRESQL.duplicateKey(new SQLException("mysql", "23000", 1062)));
         var duplicate = new SQLException("duplicate", "23000", 1062);
-        check(JdbcDialect.MYSQL8.cleanInitializationDuplicate(new IOException("operation", duplicate)));
+        check(JdbcDialect.MYSQL8.cleanDuplicate(new IOException("operation", duplicate)));
         duplicate.addSuppressed(new SQLException("rollback failed", "08S01"));
-        check(!JdbcDialect.MYSQL8.cleanInitializationDuplicate(new IOException("operation", duplicate)));
+        check(!JdbcDialect.MYSQL8.cleanDuplicate(new IOException("operation", duplicate)));
         for (String cleanup : List.of("reset", "close")) {
             var failure = new IOException("operation", new SQLException("duplicate", "23000", 1062));
             failure.addSuppressed(new SQLException(cleanup + " failed"));
-            check(!JdbcDialect.MYSQL8.cleanInitializationDuplicate(failure));
+            check(!JdbcDialect.MYSQL8.cleanDuplicate(failure));
         }
-        check(!JdbcDialect.MYSQL8.cleanInitializationDuplicate(new IOException("nested", new IOException("wrapper", duplicate))));
+        check(!JdbcDialect.MYSQL8.cleanDuplicate(new IOException("nested", new IOException("wrapper", duplicate))));
+        var chained = new SQLException("duplicate", "23000", 1062);
+        chained.setNextException(new SQLException("connection failure", "08006"));
+        check(!JdbcDialect.MYSQL8.cleanDuplicate(new IOException("operation", chained)));
         System.out.println("PASS " + checks + " plain-JDK dialect/schema/error checks (simulated metadata, not database integration)");
     }
 

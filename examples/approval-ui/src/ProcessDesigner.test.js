@@ -43,7 +43,7 @@ describe('focused designer workbench',()=>{
     expect(state.value.nodes.filter(n=>oldIds.includes(n.id)).map(n=>n.id)).toEqual(oldIds)
     expect(state.value.nodes[index+1].id).toBe(id)
     expect(document.activeElement).toBe(input(wrapper).element)
-    expect(wrapper.text()).toContain('New approval added')
+    expect(wrapper.text()).toContain('Step added. Give it a name and choose who will review it.')
   })
   it('brings the stacked inspector into view after pointer selection on a narrow screen',async()=>{
     const scrollIntoView=vi.fn()

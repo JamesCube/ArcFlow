@@ -34,6 +34,8 @@ endpoint and check responses in RuoYi’s existing `AjaxResult` envelope:
   existing server restart, even with a historical reviewer deleted, without
   adding history or another request.
 
+Typed-document API checks also cover `POST /arcflow/documents`: procurement and typed leave, strict fields and numeric validation, submission permissions, changed-intent conflicts, and mixed legacy/typed requests surviving restart with later decisions. These API checks do not establish a procurement form; the current browser journey uses the leave form.
+
 The API smoke tests schema-2 two-step approvals and schema-3 groups through the
 same native `/arcflow` endpoints:
 

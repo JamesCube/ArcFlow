@@ -1,6 +1,9 @@
 package com.arcflow.approval;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.core.StreamReadFeature;
 import com.fasterxml.jackson.databind.cfg.CoercionAction;
@@ -20,8 +23,52 @@ public class ApprovalService implements AutoCloseable {
     public record Request(String id, String title, String reason, int days, String applicantId, String approverId,
                           String status, String createdAt, String updatedAt, String decision, String comment,
                           String processId, int processVersion, List<Event> history,
-                          ProcessDefinition definition, String currentStepId) {
+                          ProcessDefinition definition, String currentStepId,
+                          @JsonInclude(JsonInclude.Include.NON_NULL) BusinessDocument business) {
         public Request { if (history != null) history = List.copyOf(history); }
+        /** Preserve the existing source API and byte shape for legacy leave requests. */
+        public Request(String id, String title, String reason, int days, String applicantId, String approverId,
+                       String status, String createdAt, String updatedAt, String decision, String comment,
+                       String processId, int processVersion, List<Event> history, ProcessDefinition definition, String currentStepId) {
+            this(id, title, reason, days, applicantId, approverId, status, createdAt, updatedAt, decision, comment,
+                processId, processVersion, history, definition, currentStepId, null);
+        }
+        private static final ObjectMapper DECODER = strictMapper(new ObjectMapper())
+            .enable(DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES);
+        /** Strict old/new shapes, including JDBC's missing-creator-property protection. */
+        @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+        public static Request fromJson(JsonNode node) throws IOException {
+            var expected = new HashSet<>(List.of("id", "title", "reason", "days", "applicantId", "approverId", "status",
+                "createdAt", "updatedAt", "decision", "comment", "processId", "processVersion", "history", "definition", "currentStepId"));
+            if (node == null || !node.isObject()) throw new IOException("Invalid request object");
+            if (node.has("business")) expected.add("business");
+            var actual = new HashSet<String>(); node.fieldNames().forEachRemaining(actual::add);
+            if (!expected.equals(actual)) throw new IOException("Missing or unknown request fields");
+            ObjectMapper decoder = DECODER;
+            if (!node.get("history").isArray()) throw new IOException("Invalid request history");
+            var events = new ArrayList<Event>();
+            for (JsonNode event : node.get("history")) events.add(decoder.treeToValue(event, Event.class));
+            BusinessDocument business = null;
+            if (node.has("business")) {
+                if (node.get("business").isNull()) throw new IOException("Business document must not be null when present");
+                business = decoder.treeToValue(node.get("business"), BusinessDocument.class);
+            }
+            return new Request(string(node,"id"), string(node,"title"), string(node,"reason"), integer(node,"days"),
+                string(node,"applicantId"), string(node,"approverId"), string(node,"status"), string(node,"createdAt"),
+                string(node,"updatedAt"), string(node,"decision"), string(node,"comment"), string(node,"processId"),
+                integer(node,"processVersion"), events, decoder.treeToValue(node.get("definition"), ProcessDefinition.class),
+                string(node,"currentStepId"), business);
+        }
+        private static String string(JsonNode node, String key) throws IOException {
+            JsonNode value = node.get(key);
+            if (!(value.isTextual() || value.isNull())) throw new IOException("Invalid request string: " + key);
+            return value.isNull() ? null : value.textValue();
+        }
+        private static int integer(JsonNode node, String key) throws IOException {
+            JsonNode value = node.get(key);
+            if (!value.isIntegralNumber() || !value.canConvertToInt()) throw new IOException("Invalid request integer: " + key);
+            return value.intValue();
+        }
     }
     public record Snapshot(int schemaVersion, ProcessDefinition definition, List<Request> requests) {}
     private final ActorDirectory actors;
@@ -42,13 +89,15 @@ public class ApprovalService implements AutoCloseable {
     /** Keep file and HTTP decoding strict, including scalar types and duplicate JSON keys. */
     public static ObjectMapper strictMapper(ObjectMapper mapper) {
         mapper.enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES,
-            DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
+            DeserializationFeature.FAIL_ON_TRAILING_TOKENS, DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS);
         mapper.disable(DeserializationFeature.ACCEPT_FLOAT_AS_INT);
         mapper.enable(StreamReadFeature.STRICT_DUPLICATE_DETECTION.mappedFeature());
         for (var shape : List.of(CoercionInputShape.Integer, CoercionInputShape.Float, CoercionInputShape.Boolean))
             mapper.coercionConfigFor(LogicalType.Textual).setCoercion(shape, CoercionAction.Fail);
         for (var shape : List.of(CoercionInputShape.String, CoercionInputShape.Boolean, CoercionInputShape.EmptyString))
             mapper.coercionConfigFor(LogicalType.Integer).setCoercion(shape, CoercionAction.Fail);
+        for (var shape : List.of(CoercionInputShape.String, CoercionInputShape.Boolean, CoercionInputShape.EmptyString))
+            mapper.coercionConfigFor(LogicalType.Float).setCoercion(shape, CoercionAction.Fail);
         return mapper;
     }
 
@@ -64,6 +113,7 @@ public class ApprovalService implements AutoCloseable {
         catch (IllegalArgumentException ex) { throw badRequest(ex.getMessage()); }
         requireActiveAssignees(proposed);
         var definition = store.process();
+        if (!definition.id().equals(proposed.id())) throw badRequest("Publication must retain the configured process ID");
         if (expectedVersion != definition.version() || proposed.version() != expectedVersion)
             throw conflict("The published process changed; reload before publishing");
         if (definition.version() == Integer.MAX_VALUE) throw conflict("Process version limit reached");
@@ -85,18 +135,35 @@ public class ApprovalService implements AutoCloseable {
 
     /** Optional, durable applicant-scoped submission key. Replays return the current saved request. */
     public Request submit(String actor, String title, String reason, int days, int processVersion, String idempotencyKey) throws IOException {
+        return submit(actor, title, reason, days, processVersion, idempotencyKey, null);
+    }
+
+    /** A typed business document enters the same approval lifecycle as the legacy leave API. */
+    public Request submitDocument(String actor, BusinessDocument document, int processVersion, String idempotencyKey) throws IOException {
+        requirePerson(actor);
+        try {
+            if (document == null) throw new IllegalArgumentException("Business document is required");
+            document.validate();
+        } catch (IllegalArgumentException invalid) { throw badRequest(invalid.getMessage()); }
+        return submit(actor, document.title(), document.reason(), document instanceof BusinessDocument.Leave leave ? leave.days() : 0,
+            processVersion, idempotencyKey, document);
+    }
+
+    private Request submit(String actor, String title, String reason, int days, int processVersion,
+                           String idempotencyKey, BusinessDocument document) throws IOException {
         requirePerson(actor);
         if (idempotencyKey != null && !validSubmissionKey(idempotencyKey))
             throw badRequest("Idempotency-Key must be 1-128 ASCII letters, digits, dots, underscores, colons or hyphens, starting with a letter or digit");
-        if (!validText(title, 120) || !validText(reason, 2000) || days < 1 || days > 365 || processVersion < 1)
+        if (!validText(title, 120) || !validText(reason, 2000) || (document == null && (days < 1 || days > 365)) || processVersion < 1)
             throw badRequest("Invalid leave submission");
         // The real, unchanged ArcFlow core performs the validate → normalize DAG on every command.
-        var normalized = SubmissionWorkflow.execute(title, reason, days);
+        var normalized = SubmissionWorkflow.execute(title, reason);
+        BusinessDocument business = document == null ? null : document.withText(normalized.get("title"), normalized.get("reason"));
+        var definition = store.process();
         if (idempotencyKey != null) {
             Request prior = store.submission(actor, idempotencyKey);
-            if (prior != null) return submissionReplay(actor, normalized, days, processVersion, prior);
+            if (prior != null) return submissionReplay(actor, normalized, days, definition.id(), processVersion, business, prior);
         }
-        var definition = store.process();
         try {
             if (processVersion != definition.version()) throw conflict("The published process changed; reload before submitting");
             requireActiveAssignees(definition);
@@ -107,7 +174,7 @@ public class ApprovalService implements AutoCloseable {
             // directory change. Historical replay must not depend on current routing eligibility.
             if (idempotencyKey != null) {
                 Request winner = store.submission(actor, idempotencyKey);
-                if (winner != null) return submissionReplay(actor, normalized, days, processVersion, winner);
+                if (winner != null) return submissionReplay(actor, normalized, days, definition.id(), processVersion, business, winner);
             }
             throw changed;
         }
@@ -115,10 +182,10 @@ public class ApprovalService implements AutoCloseable {
         var first = definition.approvals().get(0);
         Request r = new Request(UUID.randomUUID().toString(), normalized.get("title"), normalized.get("reason"), days, actor, first.participants().get(0),
             "PENDING", now, now, null, null, definition.id(), definition.version(),
-            List.of(new Event(actor, "SUBMIT", "", now, null)), definition, first.id());
+            List.of(new Event(actor, "SUBMIT", "", now, null)), definition, first.id(), business);
         if (idempotencyKey != null) {
             Request saved = store.create(processVersion, r, idempotencyKey);
-            if (saved != null) return submissionReplay(actor, normalized, days, processVersion, saved);
+            if (saved != null) return submissionReplay(actor, normalized, days, definition.id(), processVersion, business, saved);
         } else if (store.create(processVersion, r)) return r;
         // A competing keyed submit may have committed before the process was republished.
         // The store must resolve its binding before rejecting an outdated process version.
@@ -130,11 +197,11 @@ public class ApprovalService implements AutoCloseable {
         return key != null && key.matches("[A-Za-z0-9][A-Za-z0-9._:-]{0,127}");
     }
 
-    private Request submissionReplay(String actor, Map<String,String> normalized, int days, int processVersion, Request saved) throws IOException {
+    private Request submissionReplay(String actor, Map<String,String> normalized, int days, String processId, int processVersion, BusinessDocument business, Request saved) throws IOException {
         requirePerson(actor); // Recheck live authorization after storage/racing commands.
         if (!actor.equals(saved.applicantId())) throw new IOException("Submission binding has an invalid owner");
         if (!normalized.get("title").equals(saved.title()) || !normalized.get("reason").equals(saved.reason()) ||
-            days != saved.days() || processVersion != saved.processVersion())
+            days != saved.days() || !processId.equals(saved.processId()) || processVersion != saved.processVersion() || !Objects.equals(business, saved.business()))
             throw conflict("Idempotency-Key was already used for a different submission");
         return saved;
     }
@@ -174,7 +241,7 @@ public class ApprovalService implements AutoCloseable {
             boolean pending = "PENDING".equals(progress.status);
             Request next = new Request(old.id(), old.title(), old.reason(), old.days(), old.applicantId(),
                 pending ? progress.pendingActors().get(0) : actor, progress.status, old.createdAt(), now, decision, cleanComment,
-                old.processId(), old.processVersion(), history, old.definition(), progress.currentStepId());
+                old.processId(), old.processVersion(), history, old.definition(), progress.currentStepId(), old.business());
             if (store.update(old.history().size() - 1, next)) return next;
         }
         throw conflict("The request changed concurrently; retry the decision");
@@ -183,8 +250,17 @@ public class ApprovalService implements AutoCloseable {
     /** Replays every participant vote and checks derived state instead of trusting saved fields. */
     public static void validateRequest(Request r) {
         if (r == null || r.id() == null || !r.id().matches("[A-Za-z0-9][A-Za-z0-9_-]{0,127}") ||
-            !validText(r.title(), 120) || !validText(r.reason(), 2000) || r.days() < 1 || r.days() > 365 || !ProcessDefinition.validActorId(r.applicantId()))
+            !validText(r.title(), 120) || !validText(r.reason(), 2000) || !ProcessDefinition.validActorId(r.applicantId()))
             throw new IllegalArgumentException("Invalid request fields");
+        if (r.business() == null) {
+            if (r.days() < 1 || r.days() > 365) throw new IllegalArgumentException("Invalid legacy leave days");
+        } else {
+            r.business().validate();
+            int days = r.business() instanceof BusinessDocument.Leave leave ? leave.days() : 0;
+            if (!r.title().equals(r.business().title()) || !r.reason().equals(r.business().reason()) || r.days() != days ||
+                !r.business().equals(r.business().withText(r.title().trim(), r.reason().trim())))
+                throw new IllegalArgumentException("Business document differs from its normalized compatibility fields");
+        }
         ProcessDefinition.validate(r.definition());
         if (!r.definition().id().equals(r.processId()) || r.definition().version() != r.processVersion() ||
             r.definition().approvals().stream().anyMatch(n -> n.participants().contains(r.applicantId())) ||
@@ -259,7 +335,7 @@ public class ApprovalService implements AutoCloseable {
         validateRequest(old);
         validateRequest(next);
         if (!Objects.equals(old.id(), next.id()) || !Objects.equals(old.title(), next.title()) ||
-            !Objects.equals(old.reason(), next.reason()) || old.days() != next.days() ||
+            !Objects.equals(old.reason(), next.reason()) || old.days() != next.days() || !Objects.equals(old.business(), next.business()) ||
             !Objects.equals(old.applicantId(), next.applicantId()) || !Objects.equals(old.createdAt(), next.createdAt()) ||
             !Objects.equals(old.definition(), next.definition()) || !"PENDING".equals(old.status()) ||
             next.history().size() != old.history().size() + 1 ||

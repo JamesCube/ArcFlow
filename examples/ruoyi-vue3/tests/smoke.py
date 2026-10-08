@@ -306,6 +306,154 @@ def run_groups(server, password, sequential):
     print("PASS: native schema-3 ALL/ANY publication, strict group shapes, participant worklists, assignment/RBAC/self-submission, per-actor-and-step replay/conflict, pinned definitions, inactive/deleted group members, exact group restart persistence; two-step browser fixture restored")
 
 
+
+def run_documents(server, password):
+    """Exercise typed business payloads through real RuoYi identity and HTTP decoding."""
+    a, first, second, outsider, none = (
+        login("arcflow_" + name, password)
+        for name in ("applicant", "first", "second", "outsider", "nopermission"))
+    admin = login("admin", password)
+    definition = data("/arcflow/process", a)
+    version = definition["version"]
+    business = {"type": "procurement", "businessId": "PO-CI-001", "title": "Native procurement",
+                "reason": "Equipment for a new team member", "item": "Laptop", "quantity": 2,
+                "unitPrice": 1299.50, "currency": "USD"}
+    submission = {"business": business, "processVersion": version}
+    headers = [("Idempotency-Key", "Native.Documents:procurement-1")]
+    before = data("/arcflow/requests", a)
+    assert all("business" not in item for item in before), "Legacy leave responses gained business fields"
+    api("/arcflow/documents", body=submission, allowed=(401,))
+    api("/arcflow/documents", none, submission, allowed=(403,))
+    api("/arcflow/documents", none, b'{', allowed=(403,))
+    for actor in (first, second):
+        api("/arcflow/documents", actor, submission, allowed=(400,))
+    api("/arcflow/documents", a, {**submission, "processVersion": version - 1}, allowed=(409,))
+    invalid = [None, [], 1, True, "document", {}, {"processVersion": version}, {"business": business}]
+    # None is raw JSON null below; passing Python None to api means GET.
+    invalid += [{**submission, "business": value} for value in (None, [], 1, True, "procurement", {})]
+    invalid += [{**submission, "processVersion": value}
+                for value in (None, 0, -1, 1.5, "1", True, 2147483648, [], {})]
+    for field in business:
+        invalid.append({**submission, "business": {key: value for key, value in business.items() if key != field}})
+        invalid.append({**submission, "business": {**business, field: None}})
+    for field in ("businessId", "title", "reason", "item", "currency"):
+        invalid += [{**submission, "business": {**business, field: value}}
+                    for value in (42, 1.5, True, [], {}, "", " ")]
+    invalid += [{**submission, "business": {**business, "type": value}}
+                for value in ("expense", "Procurement", "", 42, True, [], {})]
+    invalid += [{**submission, "business": {**business, "quantity": value}}
+                for value in (0, -1, 100001, 2147483648, 1.5, "2", True, [], {})]
+    invalid += [{**submission, "business": {**business, "unitPrice": value}}
+                for value in (0, -1, 1.001, 1000000000.01, 1e100, "1299.50", "NaN", True, [], {})]
+    invalid.append({**submission, "business": {**business, "currency": "JPY"}})
+    for field in ("applicantId", "approverId", "idempotencyKey", "processId", "days"):
+        invalid.extend(({**submission, field: "forged"}, {**submission, "business": {**business, field: "forged"}}))
+    leave = {"business": {"type": "leave", "businessId": "LEAVE-CI-001", "title": "Native typed leave",
+                           "reason": "Disposable integration exercise", "days": 2}, "processVersion": version}
+    invalid += [{**leave, "business": {**leave["business"], "days": value}}
+                for value in (None, 0, 366, 1.5, "2", 2147483648)]
+    invalid.append({**leave, "business": {key: value for key, value in leave["business"].items() if key != "days"}})
+    for candidate in invalid:
+        api("/arcflow/documents", a, json.dumps(candidate).encode(), headers=headers, allowed=(400,))
+    raw = json.dumps(submission)
+    for candidate in (b'{', (raw + ' {}').encode(),
+                      raw.replace('"quantity": 2', '"quantity": 2, "quantity": 3', 1).encode(),
+                      raw.replace('"type": "procurement"', '"type": "procurement", "type": "leave"', 1).encode(),
+                      raw.replace('1299.5', '1e999999', 1).encode()):
+        api("/arcflow/documents", a, candidate, headers=headers, allowed=(400,))
+    for key in ("", " ", "bad/key", "a,b", ".invalid", "a" * 129):
+        api("/arcflow/documents", a, submission, headers=[("Idempotency-Key", key)], allowed=(400,))
+    for duplicate in (headers[0], ("idempotency-key", "another-key")):
+        api("/arcflow/documents", a, submission, headers=[*headers, duplicate], allowed=(400,))
+    api("/arcflow/requests", a, submission, allowed=(400,))
+    old_submission = {"title": leave["business"]["title"], "reason": leave["business"]["reason"],
+                      "days": 2, "processVersion": version}
+    api("/arcflow/documents", a, old_submission, allowed=(400,))
+    api("/arcflow/requests", a, {**old_submission, "business": business}, allowed=(400,))
+    assert data("/arcflow/requests", a) == before, "Malformed typed documents changed saved requests or reserved a key"
+
+    req = data("/arcflow/documents", a, submission, headers=headers)
+    assert req["business"] == business and req["days"] == 0 and req["applicantId"] == "100"
+    assert req["definition"] == definition and req["currentStepId"] == "first"
+    assert_votes(req, [])
+    normalized = {**submission, "business": {**business, "title": "  " + business["title"] + "  ",
+                                            "reason": "  " + business["reason"] + "  ", "item": "  Laptop  "}}
+    assert data("/arcflow/documents", a, normalized, headers=headers) == req
+    for field, value in (("businessId", "PO-CI-OTHER"), ("title", "Changed"), ("reason", "Changed"),
+                         ("item", "Monitor"), ("quantity", 3), ("unitPrice", 1300), ("currency", "CNY")):
+        api("/arcflow/documents", a, {**submission, "business": {**business, field: value}}, headers=headers, allowed=(409,))
+    api("/arcflow/documents", a, {**submission, "processVersion": version + 1}, headers=headers, allowed=(409,))
+    api("/arcflow/documents", a, leave, headers=headers, allowed=(409,))
+    api("/arcflow/requests", a, old_submission, headers=headers, allowed=(409,))
+    assert len(data("/arcflow/requests", a)) == len(before) + 1
+    scoped = data("/arcflow/documents", outsider, submission, headers=headers)
+    assert scoped["id"] != req["id"] and scoped["applicantId"] == "103"
+    assert data("/arcflow/documents", outsider, submission, headers=headers) == scoped
+    assert all(item["id"] != scoped["id"] for item in data("/arcflow/requests", a))
+    assert all(item["id"] != req["id"] for item in data("/arcflow/requests", outsider))
+    api("/arcflow/documents", none, submission, headers=headers, allowed=(403,))
+    # A previously valid document key cannot bypass a later permission revocation.
+    with connection() as db, db.cursor() as cur:
+        assert cur.execute("UPDATE sys_user_role SET role_id=21001 WHERE user_id=103 AND role_id=21000") == 1
+    try:
+        denied = login("arcflow_outsider", password)
+        api("/arcflow/documents", denied, submission, headers=headers, allowed=(403,))
+    finally:
+        with connection() as db, db.cursor() as cur:
+            assert cur.execute("UPDATE sys_user_role SET role_id=21000 WHERE user_id=103 AND role_id=21001") == 1
+    outsider = login("arcflow_outsider", password)
+    try:
+        for status, deleted in (("1", "0"), ("0", "2")):
+            actor_state(100, status=status, deleted=deleted)
+            api("/arcflow/documents", a, submission, headers=headers, allowed=(401, 403))
+            assert saved_request(first, req) == req
+    finally:
+        actor_state(100)
+    a = login("arcflow_applicant", password)
+    for unassigned in (outsider, admin):
+        decision(unassigned, req, "first", allowed=(403, 404))
+    decision(a, req, "first", allowed=(403,))
+    decision(none, req, "first", allowed=(403,))
+    decision(second, req, "second", allowed=(409,))
+    req = decision(first, req, "first")["data"]
+    assert req["status"] == "PENDING" and req["currentStepId"] == "second" and req["business"] == business
+    assert_retry(first, req, "first")
+    assert data("/arcflow/documents", a, submission, headers=headers) == req
+
+    typed = data("/arcflow/documents", a, leave, headers=[("Idempotency-Key", "Native.Documents:leave-1")])
+    assert typed["business"] == leave["business"] and typed["days"] == 2
+    typed = decision(first, typed, "first", "REJECT")["data"]
+    assert typed["status"] == "REJECTED" and typed["business"] == leave["business"]
+    old_headers = [("Idempotency-Key", "Native.Documents:legacy-1")]
+    old = data("/arcflow/requests", a, old_submission, headers=old_headers)
+    expected_legacy = {"id", "title", "reason", "days", "applicantId", "approverId", "status", "createdAt", "updatedAt",
+                       "decision", "comment", "processId", "processVersion", "history", "definition", "currentStepId"}
+    assert set(old) == expected_legacy, "Legacy response fields changed"
+    api("/arcflow/documents", a, leave, headers=old_headers, allowed=(409,))
+    old = decision(first, old, "first", "REJECT")["data"]
+    assert set(old) == expected_legacy
+    assert data("/arcflow/requests", a, old_submission, headers=old_headers) == old
+
+    # The same persisted host stores old leave, typed leave and procurement together.
+    before_restart = data("/arcflow/requests", a)
+    server.stop()
+    server.start()
+    a, first, second = (login("arcflow_" + name, password) for name in ("applicant", "first", "second"))
+    assert data("/arcflow/process", a) == definition
+    assert data("/arcflow/requests", a) == before_restart, "Restart changed business payloads or approval history"
+    assert data("/arcflow/documents", a, submission, headers=headers) == req
+    api("/arcflow/documents", a, leave, headers=headers, allowed=(409,))
+    req = decision(second, req, "second")["data"]
+    assert req["status"] == "APPROVED" and req["business"] == business and req["currentStepId"] is None
+    assert_votes(req, [("101", "first", "APPROVE"), ("102", "second", "APPROVE")])
+    assert_retry(first, req, "first")
+    assert_retry(second, req, "second")
+    assert data("/arcflow/documents", a, submission, headers=headers) == req
+    assert data("/arcflow/requests", a, old_submission, headers=old_headers) == old
+    assert data("/arcflow/documents", a, leave, headers=[("Idempotency-Key", "Native.Documents:leave-1")]) == typed
+    print("PASS: native typed procurement/leave, strict polymorphic JSON and numeric boundaries, principal/RBAC/assignment checks, business-aware keyed replay/conflicts, unchanged legacy payloads, mixed-document restart and continued decisions")
+
+
 def contains_component(routes, component):
     return any(r.get("component") == component or contains_component(r.get("children", []), component)
                for r in routes)
@@ -520,6 +668,7 @@ def run(server, password):
     assert decision(first, req, "first")["data"] == approved
     print("PASS: official login/menu, RBAC, authoritative assignments, ordered approvals, keyed submission replay/conflict/header validation, applicant scope, current-state replay after publication/decisions, permission revocation, disabled/deleted identity, logout/expired Redis session, durable submission-key restart persistence")
     run_groups(server, password, published)
+    run_documents(server, password)
 
 
 def main():

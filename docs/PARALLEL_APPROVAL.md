@@ -22,7 +22,7 @@ These groups belong to the human-approval example. They do not add parallel exec
 }
 ```
 
-A group needs 2–16 distinct stable user IDs, `assigneeId: null`, and a completion mode of `ALL` or `ANY`. The server rejects empty or single-member groups, duplicate IDs, unknown or missing fields, mixed singular/group assignments, and scalar coercion. IDs, names and the fixed process ID `leave-approval` follow the [sequential contract](SEQUENTIAL_APPROVAL.md). Each request keeps the definition and participants saved at submission. Later publications do not change it, and participants are not resolved again or added dynamically.
+A group needs 2–16 distinct stable user IDs, `assigneeId: null`, and a completion mode of `ALL` or `ANY`. The server rejects empty or single-member groups, duplicate IDs, unknown or missing fields, mixed singular/group assignments, and scalar coercion. Node IDs, names and configured process IDs follow the [sequential contract](SEQUENTIAL_APPROVAL.md); the demos use `leave-approval`. Each request keeps the definition and participants saved at submission. Later publications do not change it, and participants are not resolved again or added dynamically.
 
 ## Completion and rejection
 
@@ -52,7 +52,7 @@ The `Request` and `Event` JSON shapes have not changed. `currentStepId` identifi
 
 The schema-3 change accepts JSON snapshot schemas 1, 2 and 3. Sequential writes stay at schema 2, with the old node shape, until the first schema-3 write. That write saves the latest schema-2 file bytes in `.schema2.bak`, choosing a unique name if needed. Opening a file for reading does not rewrite it. Schema-1 migration and `.schema1.bak` backups remain supported. After the upgrade, the file wrapper stays at schema 3 even if later definitions are sequential; existing request snapshots keep their original schemas. Protect backups as carefully as the source data. The JSON store still supports only one process.
 
-The later [submission-idempotency update](SUBMISSION_IDEMPOTENCY.md#json) adds snapshot schema 4. Its upgrade rules take over when keyed submissions are used; process-definition schemas remain 2 and 3.
+The later [submission-idempotency update](SUBMISSION_IDEMPOTENCY.md#json) adds snapshot schema 4. Its upgrade rules take over when legacy keyed submissions are used. [Typed business documents](BUSINESS_DOCUMENTS.md) use snapshot schema 5, which never downgrades on a later legacy write. Process-definition schemas remain 2 and 3.
 
 Groups need no changes to the JDBC tables: request/event JSON and integer revisions already allow one event per participant. Existing schema-2 versions, requests and audit rows remain readable without rewriting. Schema-3 definitions are saved as new immutable versions, with no DDL or automatic JSON import. The request state and new audit event commit together using the existing revision checks and row locks. The `approver_id` SQL index cannot serve a group inbox; the SPI reads requests and filters them by their saved participants.
 

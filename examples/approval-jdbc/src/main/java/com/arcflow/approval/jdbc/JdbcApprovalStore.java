@@ -26,10 +26,10 @@ import javax.sql.DataSource;
  * deliberately does not participate in a host/Spring transaction. No schema DDL is executed here.
  */
 public final class JdbcApprovalStore implements ApprovalStore {
-    private static final String PROCESS_ID = "leave-approval";
     private static final String REQUEST_COLUMNS = "request_id, process_id, process_version, revision, "
         + "applicant_id, approver_id, request_status, current_step_id, created_at, updated_at, request_json";
     private final DataSource dataSource;
+    private final String processId;
     private final ObjectMapper mapper;
     private final JdbcDialect dialect;
     private final AtomicBoolean closed = new AtomicBoolean();
@@ -38,6 +38,7 @@ public final class JdbcApprovalStore implements ApprovalStore {
     public JdbcApprovalStore(DataSource dataSource, ObjectMapper mapper, ProcessDefinition initialDefinition) throws IOException {
         this.dataSource = Objects.requireNonNull(dataSource, "dataSource");
         ProcessDefinition.validate(initialDefinition);
+        this.processId = initialDefinition.id();
         this.mapper = ApprovalService.strictMapper(Objects.requireNonNull(mapper, "mapper").copy())
             .enable(DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES)
             .setSerializationInclusion(JsonInclude.Include.ALWAYS);
@@ -62,9 +63,11 @@ public final class JdbcApprovalStore implements ApprovalStore {
             // Read state, audit and retained definitions from one repeatable-read snapshot.
             var result = new ArrayList<Request>();
             var ids = new ArrayList<String>();
-            try (var statement = connection.prepareStatement("SELECT request_id FROM arc_request ORDER BY created_at, request_id");
-                 var rows = statement.executeQuery()) {
-                while (rows.next()) ids.add(rows.getString(1));
+            try (var statement = connection.prepareStatement("SELECT request_id FROM arc_request WHERE process_id = ? ORDER BY created_at, request_id")) {
+                statement.setString(1, processId);
+                try (var rows = statement.executeQuery()) {
+                    while (rows.next()) ids.add(rows.getString(1));
+                }
             }
             for (String id : ids) {
                 Request request = readRequest(connection, id, false);
@@ -82,6 +85,7 @@ public final class JdbcApprovalStore implements ApprovalStore {
 
     @Override public boolean publish(String actor, int expectedVersion, ProcessDefinition next) throws IOException {
         ProcessDefinition.validate(next);
+        if (!processId.equals(next.id())) throw new IllegalArgumentException("Publication cannot change the configured process ID");
         if (!ProcessDefinition.validActorId(actor) || expectedVersion < 1 || expectedVersion == Integer.MAX_VALUE ||
             next.version() != expectedVersion + 1)
             throw new IllegalArgumentException("Publication requires an actor and the next consecutive version");
@@ -92,7 +96,7 @@ public final class JdbcApprovalStore implements ApprovalStore {
             try (var statement = connection.prepareStatement(
                     "UPDATE arc_process_head SET active_version = ? WHERE process_id = ? AND active_version = ?")) {
                 statement.setInt(1, next.version());
-                statement.setString(2, PROCESS_ID);
+                statement.setString(2, processId);
                 statement.setInt(3, expectedVersion);
                 if (statement.executeUpdate() != 1) throw new IOException("Locked process head changed unexpectedly");
             }
@@ -112,38 +116,61 @@ public final class JdbcApprovalStore implements ApprovalStore {
 
     @Override public Request create(int expectedProcessVersion, Request request, String key) throws IOException {
         ApprovalService.validateRequest(request);
+        requireBoundProcess(request);
         if (key != null) validateSubmissionKey(request.applicantId(), key);
         if (request.history().size() != 1 || request.processVersion() != expectedProcessVersion)
             throw new IllegalArgumentException("A new request must have only its submission event and the expected process version");
-        return transaction(false, connection -> {
-            // All creators and publishers share this lock, including across application instances.
-            ProcessDefinition current = requireProcess(connection, true);
-            if (key != null) {
-                // Lookup precedes the active-version check: publication cannot invalidate a retry.
-                // Lock the request so a concurrent decision cannot split its state/audit reads.
-                Request existing = readSubmission(connection, request.applicantId(), key, true);
-                if (existing != null) return existing;
-            }
-            if (current.version() != expectedProcessVersion) return null;
-            if (!current.equals(request.definition()))
-                throw new IllegalArgumentException("Request definition differs from the published version");
-            try (var statement = connection.prepareStatement("INSERT INTO arc_request (" + REQUEST_COLUMNS
-                    + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
-                bindRequest(statement, request);
-                statement.executeUpdate();
-            }
-            insertEvent(connection, request.id(), 0, request.history().get(0));
-            if (key != null) {
-                try (var statement = connection.prepareStatement("INSERT INTO arc_submission_key "
-                        + "(applicant_id, submission_key, request_id) VALUES (?, ?, ?)")) {
-                    statement.setString(1, request.applicantId());
-                    statement.setString(2, key);
-                    statement.setString(3, request.id());
+        try {
+            return transaction(false, connection -> {
+                // Creators and publishers for this process share a lock across application instances.
+                ProcessDefinition current = requireProcess(connection, true);
+                if (key != null) {
+                    // Lookup precedes the active-version check: publication cannot invalidate a retry.
+                    // Lock the request so a concurrent decision cannot split its state/audit reads.
+                    Request existing = readSubmission(connection, request.applicantId(), key, true);
+                    if (existing != null) return existing;
+                }
+                if (current.version() != expectedProcessVersion) return null;
+                if (!current.equals(request.definition()))
+                    throw new IllegalArgumentException("Request definition differs from the published version");
+                try (var statement = connection.prepareStatement("INSERT INTO arc_request (" + REQUEST_COLUMNS
+                        + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+                    bindRequest(statement, request);
                     statement.executeUpdate();
                 }
-            }
-            return request;
-        });
+                insertEvent(connection, request.id(), 0, request.history().get(0));
+                if (key != null) {
+                    try (var statement = connection.prepareStatement("INSERT INTO arc_submission_key "
+                            + "(applicant_id, submission_key, request_id) VALUES (?, ?, ?)")) {
+                        statement.setString(1, request.applicantId());
+                        statement.setString(2, key);
+                        statement.setString(3, request.id());
+                        try { statement.executeUpdate(); }
+                        catch (SQLException failure) { throw new SubmissionKeyFailure(failure); }
+                    }
+                }
+                return request;
+            });
+        } catch (IOException failure) {
+            // Other processes have independent head locks but share the legacy applicant/key scope.
+            // Reconcile only a duplicate from the key INSERT after a clean rollback and cleanup.
+            // A duplicate request ID, unrelated constraint or uncertain transaction is still an error.
+            if (!(failure instanceof SubmissionKeyFailure) || !dialect.cleanDuplicate(failure)) throw failure;
+            Request winner;
+            try { winner = transaction(true, connection -> readSubmission(connection, request.applicantId(), key, false)); }
+            catch (IOException verification) { failure.addSuppressed(verification); throw failure; }
+            if (winner == null) throw failure;
+            return winner; // The service checks process identity and business intent before replaying.
+        }
+    }
+
+    private static final class SubmissionKeyFailure extends IOException {
+        private SubmissionKeyFailure(SQLException cause) { super("Could not bind submission key", cause); }
+    }
+
+    private void requireBoundProcess(Request request) {
+        if (!processId.equals(request.processId()))
+            throw new IllegalArgumentException("Request does not belong to the configured process");
     }
 
     private static void validateSubmissionKey(String actor, String key) {
@@ -165,7 +192,7 @@ public final class JdbcApprovalStore implements ApprovalStore {
                 if (rows.next()) throw new IOException("Ambiguous persisted submission key");
             }
         }
-        Request result = readRequest(connection, id, lock);
+        Request result = readRequest(connection, id, lock, false);
         if (result == null || !actor.equals(result.applicantId()))
             throw new IOException("Submission key does not belong to its referenced request applicant");
         return result;
@@ -173,6 +200,7 @@ public final class JdbcApprovalStore implements ApprovalStore {
 
     @Override public boolean update(int expectedRevision, Request next) throws IOException {
         ApprovalService.validateRequest(next);
+        requireBoundProcess(next);
         if (expectedRevision < 0 || next.history().size() - 2 != expectedRevision)
             throw new IllegalArgumentException("An update must append exactly one event to the expected revision");
         return transaction(false, connection -> {
@@ -181,7 +209,7 @@ public final class JdbcApprovalStore implements ApprovalStore {
             ApprovalService.validateTransition(previous, next);
             try (var statement = connection.prepareStatement("UPDATE arc_request SET revision = ?, approver_id = ?, "
                     + "request_status = ?, current_step_id = ?, updated_at = ?, request_json = ? "
-                    + "WHERE request_id = ? AND revision = ?")) {
+                    + "WHERE request_id = ? AND revision = ? AND process_id = ?")) {
                 statement.setInt(1, expectedRevision + 1);
                 statement.setString(2, next.approverId());
                 statement.setString(3, next.status());
@@ -190,6 +218,7 @@ public final class JdbcApprovalStore implements ApprovalStore {
                 statement.setString(6, mapper.writeValueAsString(next));
                 statement.setString(7, next.id());
                 statement.setInt(8, expectedRevision);
+                statement.setString(9, processId);
                 if (statement.executeUpdate() != 1) throw new IOException("Locked request revision changed unexpectedly");
             }
             insertEvent(connection, next.id(), expectedRevision + 1, next.history().get(expectedRevision + 1));
@@ -203,7 +232,7 @@ public final class JdbcApprovalStore implements ApprovalStore {
                 if (readProcess(connection, true) != null) return null;
                 insertVersion(connection, initial, "bootstrap");
                 try (var statement = connection.prepareStatement("INSERT INTO arc_process_head (process_id, active_version) VALUES (?, ?)")) {
-                    statement.setString(1, PROCESS_ID);
+                    statement.setString(1, processId);
                     statement.setInt(2, initial.version());
                     statement.executeUpdate();
                 }
@@ -213,7 +242,7 @@ public final class JdbcApprovalStore implements ApprovalStore {
             // The only accepted initialization race is a duplicate key from another initializer.
             // Rollback already happened; verify a complete committed head in a fresh transaction.
             // Do not retry an insert, a connection failure, serialization failure, or other SQL error.
-            if (!dialect.cleanInitializationDuplicate(failure)) throw failure;
+            if (!dialect.cleanDuplicate(failure)) throw failure;
             try { transaction(true, connection -> requireProcess(connection, false)); }
             catch (IOException verification) { failure.addSuppressed(verification); throw failure; }
         }
@@ -230,10 +259,10 @@ public final class JdbcApprovalStore implements ApprovalStore {
         Integer version = null;
         try (var statement = connection.prepareStatement(
                 "SELECT active_version FROM arc_process_head WHERE process_id = ?" + (lock ? " FOR UPDATE" : ""))) {
-            statement.setString(1, PROCESS_ID);
+            statement.setString(1, processId);
             try (var rows = statement.executeQuery()) { if (rows.next()) version = rows.getInt(1); }
         }
-        return version == null ? null : readVersion(connection, PROCESS_ID, version);
+        return version == null ? null : readVersion(connection, processId, version);
     }
 
     private ProcessDefinition readVersion(Connection connection, String processId, int version) throws SQLException, IOException {
@@ -283,15 +312,21 @@ public final class JdbcApprovalStore implements ApprovalStore {
     }
 
     private Request readRequest(Connection connection, String id, boolean lock) throws SQLException, IOException {
+        return readRequest(connection, id, lock, true);
+    }
+
+    private Request readRequest(Connection connection, String id, boolean lock, boolean scoped) throws SQLException, IOException {
         Request request;
         try (var statement = connection.prepareStatement("SELECT " + REQUEST_COLUMNS
-                + " FROM arc_request WHERE request_id = ?" + (lock ? " FOR UPDATE" : ""))) {
+                + " FROM arc_request WHERE request_id = ?" + (scoped ? " AND process_id = ?" : "") + (lock ? " FOR UPDATE" : ""))) {
             statement.setString(1, id);
+            if (scoped) statement.setString(2, processId);
             try (var rows = statement.executeQuery()) {
                 if (!rows.next()) return null;
                 try {
                     request = mapper.readValue(rows.getString("request_json"), Request.class);
                     ApprovalService.validateRequest(request);
+                    if (scoped) requireBoundProcess(request);
                     verifyColumns(rows, request);
                 } catch (RuntimeException failure) { throw new IOException("Invalid persisted request", failure); }
             }

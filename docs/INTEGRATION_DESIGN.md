@@ -1,6 +1,6 @@
 # 企业框架与 Vue 设计器集成设计（规划）
 
-这份文档讨论后续如何接入企业框架。仓库已有[独立审批示例](../examples/approval-demo/README.md)和基于固定官方版本的[若依参考集成](../examples/ruoyi-vue3/README.md)，支持顺序阶段、ALL/ANY 分组，以及各自的设计器。若依示例使用宿主的登录、菜单和权限；审批领域库另有可选 [JDBC 存储](../examples/approval-jdbc/README.md)。这些都位于同步 DAG 内核之外。下面的通用企业 API、条件分支和完整持久化方案仍是设计草案。
+这份文档讨论后续如何接入企业框架。仓库已有[独立审批示例](../examples/approval-demo/README.md)和基于固定官方版本的[若依参考集成](../examples/ruoyi-vue3/README.md)，支持顺序阶段、ALL/ANY 分组，以及各自的设计器。若依示例使用宿主的登录、菜单和权限；审批领域库另有可选 [JDBC 存储](../examples/approval-jdbc/README.md)。这些都位于同步 DAG 内核之外。[类型化请假与采购单](BUSINESS_DOCUMENTS.md)已经提供 Java 和 HTTP 接口，但还没有采购表单或任意业务类型插件。下面的通用企业 API、条件分支和完整持久化方案仍是设计草案。
 
 ## 首个参考接入方向
 

@@ -31,6 +31,12 @@ final class ServerTestSupport {
 
     /** Throw after a real statement succeeded, before commit, to prove whole-transaction rollback. */
     static DataSource failAfterStatement(DataSource delegate, String prefix, java.util.concurrent.atomic.AtomicBoolean inserted) {
+        return failAfterStatement(delegate, prefix, inserted,
+            () -> new SQLException("Injected failure after successful submission-key insert", "HY000"));
+    }
+
+    static DataSource failAfterStatement(DataSource delegate, String prefix, java.util.concurrent.atomic.AtomicBoolean inserted,
+                                        java.util.function.Supplier<SQLException> injectedFailure) {
         return (DataSource) Proxy.newProxyInstance(ServerTestSupport.class.getClassLoader(), new Class<?>[]{DataSource.class}, (proxy, method, args) -> {
             try {
                 Object result = method.invoke(delegate, args);
@@ -46,7 +52,7 @@ final class ServerTestSupport {
                                 Object outcome = sm.invoke(statement, sa);
                                 if (sm.getName().equals("executeUpdate")) {
                                     inserted.set(true);
-                                    throw new SQLException("Injected failure after successful submission-key insert", "HY000");
+                                    throw injectedFailure.get();
                                 }
                                 return outcome;
                             } catch (InvocationTargetException failure) { throw failure.getCause(); }

@@ -21,7 +21,7 @@ This document records the schema-2 rules for the local approval example. Those r
 
 Nodes run in array order: one start, 1–8 approval nodes, then one end. IDs must be unique and stable. Definitions contain no edges, scripts, expressions, layout coordinates or implicit routing. The server rejects unsupported fields and node shapes.
 
-The process ID is `leave-approval`, and the start/end node IDs are fixed. Other node IDs must match `[A-Za-z][A-Za-z0-9_-]{0,63}`. Names must be nonblank, contain no control characters and fit within 120 characters. The standalone demo allows only Bob and Carol as approvers. You can assign the same person to more than one step; they must decide each step separately.
+The demos use process ID `leave-approval`. The domain also accepts configured process IDs matching `[A-Za-z][A-Za-z0-9_-]{0,127}`; publication cannot change that ID. The start/end node IDs are fixed. Other node IDs must match `[A-Za-z][A-Za-z0-9_-]{0,63}`. Names must be nonblank, contain no control characters and fit within 120 characters. The standalone demo allows only Bob and Carol as approvers. You can assign the same person to more than one step; they must decide each step separately.
 
 ## Edit, publish, start
 

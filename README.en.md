@@ -41,7 +41,7 @@ The leave demo is the starting point for applying approvals to other business ta
 | --- | --- | --- |
 | **Smart CRM** | Quote discounts: sales submits a quote, a manager checks the discount, and finance reviews the amount | Planned; no runnable example yet |
 | **Office automation (OA)** | Leave requests: an employee enters the duration and reason; assigned reviewers decide in order | [Runnable](docs/GETTING_STARTED.md#english), including the RuoYi example |
-| **ERP** | Purchase requests: enter the item, quantity and unit price, then review the need and cost | API in unmerged [PR #16](https://github.com/JamesCube/ArcFlow/pull/16); the purchase form is not published |
+| **ERP** | Purchase requests: enter the item, quantity and unit price, then review the need and cost | [Java and HTTP API available](docs/BUSINESS_DOCUMENTS.md), merged in [PR #16](https://github.com/JamesCube/ArcFlow/pull/16); no purchase form on `main` yet |
 
 The Smart CRM forms and AI features aren't implemented.
 
@@ -61,7 +61,9 @@ These images show earlier versions. Click for the originals; capture versions an
 
 ## Connect an application
 
-The RuoYi example adds approval pages to its native menus and reuses existing accounts and permissions. For another Java application, start with the approval domain and storage interfaces. The business model on `main` is still leave-specific.
+The RuoYi example adds approval pages to its native menus and reuses existing accounts and permissions. For another Java application, start with the approval domain and storage interfaces.
+
+The domain accepts typed leave and procurement documents through Java and HTTP, sharing approval rules, permissions, audit history and submission retries. Existing forms still submit leave requests. See the [business-document contract](docs/BUSINESS_DOCUMENTS.md) for fields, endpoints and upgrade limits.
 
 | Module or example | What it covers |
 | --- | --- |
@@ -69,6 +71,8 @@ The RuoYi example adds approval pages to its native menus and reuses existing ac
 | [Spring Boot backend](examples/approval-demo/backend/README.md) | HTTP endpoints, identity checks and host configuration |
 | [RuoYi integration](examples/ruoyi-vue3/README.md) | Setup for RuoYi-Vue + RuoYi-Vue3 |
 | [JDBC storage](examples/approval-jdbc/README.md) | Database persistence for approval data and audit history |
+
+Typed writes use JSON snapshot schema 5. Upgrade all readers before enabling them; older binaries cannot read the new payloads, and mixed-version writers are unsupported. SQL stays at revision 2.
 
 Both demos store approval data in local JSON and support one instance. RuoYi's MySQL database holds users, roles and menus; it doesn't automatically store approvals. JDBC needs explicit setup and migrations. Tenant isolation, pagination, transactions spanning business tables, and an outbox aren't implemented yet.
 
@@ -91,6 +95,6 @@ java -cp target/classes com.arcflow.example.QuickStart
 
 [Open an issue](https://github.com/JamesCube/ArcFlow/issues) with the commit, environment, command and error details if something fails. Remove credentials and real personal data first.
 
-The published [`v0.1.0-alpha.1`](https://github.com/JamesCube/ArcFlow/releases/tag/v0.1.0-alpha.1) is an older sequential-approval version. It doesn't include the current designer, ALL/ANY or JDBC. Use current source to try those features.
+The published [`v0.1.0-alpha.1`](https://github.com/JamesCube/ArcFlow/releases/tag/v0.1.0-alpha.1) is an older sequential-approval version. It doesn't include the current designer, ALL/ANY, JDBC or typed business documents. Use current source to try those features.
 
 [Apache License 2.0](LICENSE). Separately downloaded RuoYi projects keep their MIT licenses. This project isn't endorsed by RuoYi upstream.

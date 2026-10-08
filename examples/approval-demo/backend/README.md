@@ -35,6 +35,7 @@ The JSON decoder rejects unknown properties, duplicate keys, trailing content, f
 - `POST /api/process`: `{expectedVersion, definition}`; Alice only; returns the newly published full definition (200)
 - `GET /api/requests`: requests visible to the applicant or **any** assignee in each request's immutable definition
 - `POST /api/requests`: `{title, reason, days, processVersion}`; starts from the exact current published version (201)
+- `POST /api/documents`: `{business:{type,...}, processVersion}`; typed leave or procurement, using the same configured process and approval lifecycle (201)
 - `POST /api/requests/{id}/decisions`: `{stepId, decision:"APPROVE"|"REJECT", comment?}`; authorizes the specified step against the request's saved definition
 
 ### Executable definition (schema 2, with schema-3 groups)
@@ -57,7 +58,7 @@ Schema 3 also accepts `parallelApproval` nodes with `assigneeId: null`, `assigne
 
 The node array defines the execution order: exactly one `start`, **1–8 approvals**, then exactly one `end`. Start/end IDs are fixed to `start`/`end` and cannot have assignees. Single-approver nodes require `bob` or `carol`; groups require both. Repeating an approver across distinct steps is allowed; each step needs its own decision. Node IDs are unique and match `[A-Za-z][A-Za-z0-9_-]{0,63}`. Process/node names are nonblank, at most 120 characters, and contain no control characters. All definition/node properties shown above must be present, including nullable `assigneeId` on start/end.
 
-Process ID is fixed to `leave-approval`. To publish, send a full definition with its `version` equal to `expectedVersion`, both equal to the current server version. The server validates it, increments the version and atomically saves it. Stale publication, even an identical retry, returns 409. A stale submission `processVersion` also returns 409; refresh and review before submitting again. Publishing does not modify any existing request.
+This demo is configured for process ID `leave-approval`; clients cannot change it through publication. Other hosts can configure another stable process ID through the domain API. To publish, send a full definition with its `version` equal to `expectedVersion`, both equal to the current server version. The server validates it, increments the version and atomically saves it. Stale publication, even an identical retry, returns 409. A stale submission `processVersion` also returns 409; refresh and review before submitting again. Publishing does not modify any existing request.
 
 A fresh store starts with the single-Bob-approval definition above. `src/main/resources/process.json` is the matching schema example. The live process comes from `ApprovalService` and persisted publication; editing that resource does not publish a process.
 
@@ -75,11 +76,37 @@ For a repeated decision, the server checks the actor against the step’s saved 
 
 Errors use `{message}`. Validation errors return 400, authorization failures 401/403, missing or concealed requests 404, version/state conflicts 409, and storage failures 503. Submission accepts one optional `Idempotency-Key` header, using the authenticated applicant ID as its scope. Same key plus normalized title/reason, days and original process version returns the current original request (201); changed intent returns 409. Missing keys still create on each call. Keep the original key and payload after an uncertain response. See [submission semantics and migration](../../../docs/SUBMISSION_IDEMPOTENCY.md).
 
+### Typed business documents
+
+The additive `POST /api/documents` endpoint separates business fields from approval state. It accepts a required `business` object and positive current `processVersion`; it uses the same Basic principal, `X-Arcflow-Client`, optional `Idempotency-Key`, list endpoint and `/api/requests/{id}/decisions` endpoint described above. For example:
+
+```json
+{
+  "business": {
+    "type": "procurement",
+    "businessId": "PO-001",
+    "title": "Equipment",
+    "reason": "New team member",
+    "item": "Laptop",
+    "quantity": 2,
+    "unitPrice": 1299.50,
+    "currency": "USD"
+  },
+  "processVersion": 1
+}
+```
+
+The closed business types are `leave` (`businessId,title,reason,days`) and `procurement` (`businessId,title,reason,item,quantity,unitPrice,currency`). Every field is required. IDs match `[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}`. Title/reason retain the existing limits. Procurement requires a nonblank item up to 240 characters, integer quantity 1–100000, a positive numeric unit price no greater than 1000000000.00 with at most two decimal places, and `CNY`, `USD`, `EUR`, `GBP` or `JPY`; JPY requires a whole amount. Decimal strings, fractional/overflowing integers, missing/null values, unknown types/fields and duplicate JSON keys are rejected.
+
+Typed responses append the immutable `business` object to the approval request. The top-level title/reason remain compatibility fields; typed leave also retains its days, while procurement uses top-level `days: 0`. Use `business.type` and its fields for business-aware presentation. The existing leave UI is unchanged. `/api/requests` keeps its original leave submission body, and legacy-created requests still omit `business` entirely. A key is scoped to the applicant across both submission endpoints: changing the business type, ID, any business field or original process version returns 409. Text and price representations are normalized before replay comparison.
+
+The configured process is reused; a caller cannot select or deploy an arbitrary process through this endpoint. Typed requests upgrade the JSON snapshot to schema 5, preserving a byte-exact backup of the preceding schema on its first upgrade write. Upgrade the host and back up the data before adoption; older binaries cannot read schema 5. Business records and approval history remain immutable across decisions, replays and restart.
+
 ## Persistence, restart and schema-1 migration
 
-The JSON store serializes publication, request creation and decision updates on its store monitor. The store takes a process-exclusive file lock and writes the published definition **and all requests** in one schema-2/3 JSON snapshot, or schema 4 with durable submission-key bindings through a same-directory temporary file, forced to disk before atomic replace. Unsupported atomic moves fail closed. The in-memory state changes only after the file has been replaced. Startup validates complete stored definitions, fields, actors, ordered step history, timestamps and derived request state. Corrupt, unsupported, extra-field or inconsistent snapshots fail startup without being rewritten. The lock prevents a second process from opening the same store on a supported local filesystem.
+The JSON store serializes publication, request creation and decision updates on its store monitor. The store takes a process-exclusive file lock and writes the published definition **and all requests** in one schema-2/3 JSON snapshot, schema 4 with durable submission-key bindings, or schema 5 with typed documents. It writes through a same-directory temporary file, forced to disk before atomic replace. Unsupported atomic moves fail closed. The in-memory state changes only after the file has been replaced. Startup validates complete stored definitions, fields, actors, ordered step history, timestamps and derived request state. Corrupt, unsupported, extra-field or inconsistent snapshots fail startup without being rewritten. The lock prevents a second process from opening the same store on a supported local filesystem.
 
-Existing schema-1 single-approval snapshots are explicitly validated and migrated in memory. Each request gets a one-step definition assigned to its original approver, so Bob and Carol legacy requests retain their own behavior. Original IDs, fields, decisions, actors, comments and timestamps are retained; decision events gain `stepId: "manager"`. Reading or replaying a prior decision does not rewrite the old file. The first mutation preserves the original bytes in `requests.json.schema1.bak` (or a unique `.schema1-*.bak` if that backup already exists), then writes the schema needed by the mutation (2/3, or 4 for a keyed creation). Existing backups are never overwritten/deleted. New named backups use owner-only read/write permissions on POSIX filesystems; other filesystems use inherited permissions. A failed mutation leaves the active file and in-memory state unchanged; a backup may already have been written. Keep backups under the same OS-account access restrictions as the data file. Do not alternate old/new binaries against this store: older backends cannot read later snapshots; schema-4 state requires the keyed-submission release. Existing schema-2/3 data also gets a byte-exact backup on its first keyed write, while request/event JSON and process-definition schemas remain unchanged.
+Existing schema-1 single-approval snapshots are explicitly validated and migrated in memory. Each request gets a one-step definition assigned to its original approver, so Bob and Carol legacy requests retain their own behavior. Original IDs, fields, decisions, actors, comments and timestamps are retained; decision events gain `stepId: "manager"`. Reading or replaying a prior decision does not rewrite the old file. The first mutation preserves the original bytes in `requests.json.schema1.bak` (or a unique `.schema1-*.bak` if that backup already exists), then writes the schema needed by the mutation (2/3 for legacy unkeyed data, 4 for legacy keyed creation, or 5 for typed documents). Existing backups are never overwritten/deleted. New named backups use owner-only read/write permissions on POSIX filesystems; other filesystems use inherited permissions. A failed mutation leaves the active file and in-memory state unchanged; a backup may already have been written. Keep backups under the same OS-account access restrictions as the data file. Do not alternate old/new binaries against this store: older backends cannot read later snapshots; schema-4 state requires keyed-submission support, and schema-5 state requires typed-document support. Existing schema-2/3 data also gets a byte-exact backup on its first legacy keyed write. The first typed write upgrades any schema-1/2/3/4 file to schema 5 with a byte-exact backup. Schema 5 never downgrades on a later legacy write; legacy request shapes and process-definition schemas remain unchanged. Upgrade all readers before typed writes and do not mix old and new writers.
 
 Use this store with **one JVM and a local filesystem**. It has no distributed coordination, bounded retention, encryption at rest, secure multi-tenant audit, automated backup rotation or directory fsync/power-loss guarantee. Network filesystems and multiple replicas are unsupported. OS/process crashes after rename can leave a committed action whose response was lost; same-step decisions and same-key/same-intent submissions reconcile through the saved state. Abrupt power loss may lose the latest directory entry. Do not store real personnel/health data. Restrict the local data directory to your OS account.
 

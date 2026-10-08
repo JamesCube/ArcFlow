@@ -1,6 +1,6 @@
 # MySQL implementation verification record
 
-> Submission-key schema revision 2 expanded the shared contract from 23 to 39 tests and MySQL from 29 to 45. The matrix below predates that change. To verify a current revision, run all 45 MySQL tests and 39 PostgreSQL tests with zero skips, failures or errors, along with the H2/domain/core checks. Also check both fresh-install and upgrade scripts; the old revision-1 results do not cover them.
+> This page preserves historical runs. Submission keys expanded the shared contract from 23 to 39 tests and MySQL from 29 to 45; typed documents later expanded them to 47 and 53. The [matrix at merged commit `9143f3d`](https://github.com/JamesCube/ArcFlow/actions/runs/37710417628) passed the 47-test PostgreSQL and 53-test MySQL contracts with zero skips across Java 17/21. The October 5 matrix below predates both changes. Check the exact commit and its fresh-install/upgrade checks before using a newer revision.
 
 
 ## Verified server acceptance (2026-10-05)
@@ -42,7 +42,7 @@ Compilation used `-source 17 -target 17` on Java 21. `--release 17` and a Java 1
 
 ## Authored but not executed
 
-At this checkpoint the server tests had been written but had not run locally. The current `MysqlApprovalStoreTest` has since grown to 39 shared contract tests plus 6 MySQL-specific tests (45 total). The coverage listed in the original review included:
+At this checkpoint the server tests had been written but had not run locally. At the later submission-key revision, `MysqlApprovalStoreTest` grew to 39 shared contract tests plus 6 MySQL-specific tests (45 total). Typed documents have since brought those counts to 47 shared and 53 total. The coverage listed in the original review included:
 
 - Explicit schema installation, actual FK/CHECK enforcement and safe-schema rejection
 - Forced simultaneous first initialization with differing defaults
@@ -61,7 +61,7 @@ The CI configuration added MySQL 8.0/8.4 on Java 17/21 and rejected missing or s
 
 No usable Maven, JUnit/database-driver artifacts, MySQL server/client or Docker executable was present in the inspected local environment. No new software was installed and no system, credential or server security settings were changed. No remote push, PR or deployment was attempted.
 
-Run the [module's documented build and real-server commands](README.md#mysql-8-integration-target) on a disposable MySQL 8 server. For the current suite, all 45 MySQL tests must run with zero failures/errors/skips at the revision being checked, along with the core/domain/H2/PostgreSQL tests. The host still needs to test physical restart/restore and its own capacity and security requirements.
+Run the [module's documented build and real-server commands](README.md#mysql-8-integration-target) on a disposable MySQL 8 server. For the current suite, all 53 MySQL tests must run with zero failures/errors/skips at the revision being checked, along with the core/domain/H2/PostgreSQL tests. The host still needs to test physical restart/restore and its own capacity and security requirements.
 
 ## Reproducing the focused standalone checks
 

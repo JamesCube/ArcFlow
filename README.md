@@ -42,7 +42,7 @@ python3 scripts/tryout.py
 | --- | --- | --- |
 | **智能 CRM** | 报价折扣：销售提交报价，经理核对折扣，财务复核金额 | 规划中，尚无可运行案例 |
 | **OA** | 请假申请：填写天数和事由，由指定审批人逐步处理 | [可以运行](docs/GETTING_STARTED.md#简体中文)，也有若依示例 |
-| **ERP** | 采购申请：填写物品、数量和单价，审核采购需求与金额 | 接口在未合并的 [PR #16](https://github.com/JamesCube/ArcFlow/pull/16) 中，采购表单尚未发布 |
+| **ERP** | 采购申请：填写物品、数量和单价，审核采购需求与金额 | [Java 与 HTTP 接口已可用](docs/BUSINESS_DOCUMENTS.md)，见已合并的 [PR #16](https://github.com/JamesCube/ArcFlow/pull/16)；`main` 暂无采购表单 |
 
 智能 CRM 的业务表单和 AI 功能尚未实现。
 
@@ -62,7 +62,9 @@ python3 scripts/tryout.py
 
 ## 接到你的应用
 
-若依示例把审批页面放进原生菜单，复用现有账号和权限。接其他 Java 应用时，可以从审批领域库及存储接口开始；当前 `main` 的业务模型仍以请假申请为主。
+若依示例把审批页面放进原生菜单，复用现有账号和权限。接其他 Java 应用时，可以从审批领域库及存储接口开始。
+
+领域库已通过 Java 和 HTTP 接口支持类型化请假与采购单，共用审批规则、权限、历史记录和提交重试。现有表单仍用于请假。字段、接口和升级限制见[业务单据契约](docs/BUSINESS_DOCUMENTS.md)。
 
 | 从哪里看 | 用途 |
 | --- | --- |
@@ -70,6 +72,8 @@ python3 scripts/tryout.py
 | [Spring Boot 后端](examples/approval-demo/backend/README.md) | HTTP 接口、身份校验和宿主配置 |
 | [若依集成](examples/ruoyi-vue3/README.md) | RuoYi-Vue + RuoYi-Vue3 的接入步骤 |
 | [JDBC 存储](examples/approval-jdbc/README.md) | 用数据库保存审批数据和审计记录 |
+
+类型化单据写入使用 JSON 快照 schema 5。启用前须升级全部读取端；旧程序读不了新数据，也不支持新旧版本混写。SQL 仍使用 revision 2。
 
 两个演示默认把审批数据写进本地 JSON，只支持单实例。若依的 MySQL 保存的是用户、角色和菜单，审批不会自动改用数据库。JDBC 需要显式接入和迁移；租户隔离、分页、业务表联合事务及 outbox 仍未实现。
 
@@ -92,6 +96,6 @@ java -cp target/classes com.arcflow.example.QuickStart
 
 遇到问题请[提 issue](https://github.com/JamesCube/ArcFlow/issues)，附上提交版本、运行环境、命令和错误信息，去掉密码及真实个人数据。
 
-已有的 [`v0.1.0-alpha.1`](https://github.com/JamesCube/ArcFlow/releases/tag/v0.1.0-alpha.1) 是早期顺序审批版本，不包含当前设计器、ALL/ANY 和 JDBC；试用以上功能请使用当前源码。
+已有的 [`v0.1.0-alpha.1`](https://github.com/JamesCube/ArcFlow/releases/tag/v0.1.0-alpha.1) 是早期顺序审批版本，不包含当前设计器、ALL/ANY、JDBC 和类型化业务单据；试用以上功能请使用当前源码。
 
 [Apache License 2.0](LICENSE)。另行下载的若依项目保留 MIT 许可证；本项目未获得若依上游背书。
