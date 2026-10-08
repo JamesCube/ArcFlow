@@ -7,6 +7,7 @@ Credentials are random per run, held in memory, and never printed.
 import argparse
 import base64
 import concurrent.futures
+import datetime
 import copy
 import json
 import os
@@ -17,6 +18,7 @@ import tempfile
 import time
 import urllib.error
 import urllib.request
+import urllib.parse
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--jar', type=Path, default=Path(__file__).parent / 'backend/target/approval-demo-0.1.0-SNAPSHOT.jar')
@@ -86,6 +88,8 @@ with tempfile.TemporaryDirectory(prefix='arcflow-parallel-http-') as directory:
         else: raise RuntimeError('Port already in use; choose a free --port')
         start()
         call('/me', None, expected=401)
+        call('/requests/inbox', None, expected=401)
+        call('/requests/inbox?actor=bob', 'carol', expected=400)
         call('/process', headers={'Origin': 'https://foreign.example'}, expected=403)
         old = call('/requests', body=submission(1), expected=201)
         d = proposal(1, 'ALL')
@@ -98,20 +102,28 @@ with tempfile.TemporaryDirectory(prefix='arcflow-parallel-http-') as directory:
         call('/process', body={'expectedVersion': 1, 'definition': d}, expected=409)
         call('/requests', 'bob', submission(2), 400)
         item = call('/requests', body=submission(2), expected=201)
+        assert call('/requests/inbox', 'alice')['items'] == []
+        assert item in call('/requests/inbox', 'carol')['items']
+        assert item in call('/requests/inbox', 'bob')['items']
         vote(item, 'alice', 'APPROVE', expected=403)
         vote(item, 'carol', 'APPROVE', 'final', 409)
         partial = vote(item, 'carol', 'APPROVE'); assert_state(partial, 'PENDING', 'manager', 2)
         assert partial['approverId'] == 'bob'
+        assert call('/requests/inbox', 'carol')['items'] == []
+        assert call('/requests/inbox?box=HANDLED&status=PENDING', 'carol')['items'] == [partial]
         assert vote(item, 'carol', 'APPROVE') == partial
         vote(item, 'carol', 'REJECT', expected=409)
         # Persist a partial group, restart the actual backend, then continue it.
         stop(); start()
         restored = next(r for r in call('/requests', 'carol') if r['id'] == item['id'])
         assert restored == partial
+        assert call('/requests/inbox?box=HANDLED', 'carol')['items'] == [partial]
         with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
             results = list(pool.map(lambda _: vote(item, 'bob', 'APPROVE'), range(4)))
         assert all(r == results[0] for r in results); assert_state(results[0], 'PENDING', 'final', 3)
         assert vote(item, 'carol', 'APPROVE') == results[0]
+        for box in ('PENDING', 'HANDLED'):
+            assert call('/requests/inbox?box=' + box, 'carol')['items'] == [results[0]]
         done = vote(item, 'carol', 'APPROVE', 'final'); assert_state(done, 'APPROVED', None, 4)
         assert done['definition'] == published
         assert_state(vote(old, 'bob', 'APPROVE'), 'APPROVED', None, 2)
@@ -130,5 +142,28 @@ with tempfile.TemporaryDirectory(prefix='arcflow-parallel-http-') as directory:
         assert_state(vote(item, 'bob', 'REJECT'), 'REJECTED', None, 2)
         vote(item, 'carol', 'APPROVE', expected=409)
         print('PASS: ANY partial rejection/all-reject/early-approve and ALL early-reject terminal rules')
+        # A fresh current group gives both actors the same membership but different cursor scopes.
+        created = [call('/requests', body={**submission(4), 'title': f'Inbox page {i}'}, expected=201) for i in range(4)]
+        page = call('/requests/inbox?limit=1', 'bob'); cursor = page['nextCursor']; assert cursor
+        encoded = urllib.parse.quote(cursor, safe='')
+        call('/requests/inbox?cursor=' + encoded, 'carol', expected=400)
+        call('/requests/inbox?box=HANDLED&cursor=' + encoded, 'bob', expected=400)
+        for query in ('limit=0', 'limit=101', 'limit=1&limit=2', 'box=VISIBLE', 'status=DONE',
+                      'processVersion=0', 'cursor=', 'cursor=broken!', 'actorId=bob'):
+            call('/requests/inbox?' + query, 'bob', expected=400)
+        seen, cursors = [], set()
+        while True:
+            seen.extend(row['id'] for row in page['items'])
+            if page['nextCursor'] is None: break
+            assert page['nextCursor'] not in cursors, 'Inbox cursor cycle'
+            cursors.add(page['nextCursor'])
+            page = call('/requests/inbox?limit=1&cursor=' + urllib.parse.quote(page['nextCursor'], safe=''), 'bob')
+        def position(row):
+            whole, _, fraction = row['createdAt'].removesuffix('Z').partition('.')
+            seconds = datetime.datetime.fromisoformat(whole).replace(tzinfo=datetime.timezone.utc).timestamp()
+            return seconds, int(fraction.ljust(9, '0') or '0'), row['id']
+        assert seen == [row['id'] for row in sorted(created, key=position, reverse=True)] and len(set(seen)) == 4
+        assert isinstance(call('/requests', 'alice'), list)
+        print('PASS: full-member inbox, real handled votes, restart, repeated-stage overlap, bounded pages and actor-bound cursors')
         print(f'PASS: {checks} authenticated HTTP assertions against a disposable backend, including restart')
     finally: stop()

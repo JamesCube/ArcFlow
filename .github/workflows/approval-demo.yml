@@ -20,6 +20,8 @@ jobs:
       - run: mvn --batch-mode --no-transfer-progress install
       - run: mvn --batch-mode --no-transfer-progress -f examples/approval-domain/pom.xml install
       - run: mvn --batch-mode --no-transfer-progress -f examples/approval-demo/backend/pom.xml verify
+      - name: Verify authenticated member inbox on a live disposable backend
+        run: python3 examples/approval-demo/verify-parallel-http.py
   frontend:
     runs-on: ubuntu-latest
     defaults:
@@ -34,6 +36,12 @@ jobs:
           cache-dependency-path: examples/approval-ui/package-lock.json
       - run: npm ci
       - run: npm test
+      - name: Verify native RuoYi inbox mounted components with locked shared tools
+        run: |
+          native="$(cd ../ruoyi-vue3/frontend && pwd)"
+          ln -s "$(pwd)/node_modules" "$native/node_modules"
+          trap 'rm "$native/node_modules"' EXIT
+          node node_modules/vitest/vitest.mjs run --root "$native" --config "$native/vitest.config.mjs"
       - run: npm run build
   browser:
     runs-on: ubuntu-latest
@@ -59,7 +67,8 @@ jobs:
         working-directory: examples/approval-ui
       - name: Install CJK sans font for bilingual visual checks
         run: sudo apt-get update && sudo apt-get install -y fonts-noto-cjk
-      - run: npm run test:e2e -- --grep-invert "visual showcase:"
+      - name: Verify real backend leave and procurement journeys
+        run: npm run test:e2e -- --grep-invert "visual showcase:"
         working-directory: examples/approval-ui
       - name: Capture bilingual leave scenarios against a fresh real backend
         run: npm run test:e2e -- --grep "visual showcase:" --output=visual-results

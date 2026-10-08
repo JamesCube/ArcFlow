@@ -94,3 +94,55 @@ The GitHub workflow `.github/workflows/ruoyi-integration.yml` provisions disposa
 MySQL 8.4.4 / Redis 7.4.2 services, builds both official upstream applications, and
 runs this smoke. Python syntax checks cannot verify this runtime behavior. Check the workflow
 result for the commit you are testing.
+
+## Native procurement UI regression
+
+The Chromium journey in `browser.py` keeps the existing leave and SINGLE/ALL/ANY coverage and adds real typed procurement authoring and review:
+
+- Quantity and price-precision errors stay local; native keyboard controls and quantity-to-price Tab focus work.
+- Draft values survive type switches, language changes and native workspace tab navigation.
+- A synthetic `3 × USD 0.10` request displays exactly `USD 0.30`, sends one normalized body to `/arcflow/documents`, and retains the same business snapshot through ALL → ANY votes and reloads.
+- Eight new screenshots cover authoring/detail in Chinese/English at 1440px and 390px. Together with the existing six workspace screenshots, the successful job emits fourteen PNG files. No login screenshots, auth state, traces or credentials are saved.
+- Native API tests also verify raw-token parsing on list/submit/decision responses: hidden fractional quantities and over-limit decimal prices are rejected before JavaScript can round them; valid canonical scientific prices are accepted.
+- The native view's Vue tests live in `examples/approval-ui/src/NativeSubmission.test.js`; they mount the actual overlay component with transport-only mocks. They cover malformed/wrong-type responses, exact retry keys/versions, business/identity edits, strict immutable detail, malformed lifecycle fail-closed handling, and native permission directives. These are separate from the real-server RBAC checks.
+
+Run helper/parity/API tests with `node --test examples/ruoyi-vue3/frontend/src/views/arcflow/approval/*.test.mjs` and component tests with `cd examples/approval-ui && npm test`. Browser runs require the real disposable services and built official frontend described above. Syntax or unit checks alone do not establish a browser pass.
+
+## Local native inbox UI checks (no browser)
+
+The native view now reads bounded pending and handled pages through RuoYi's
+existing authenticated request client. The following tests need no server,
+database, browser, registry access or native-login fixture at execution time.
+They do not replace the real upstream smoke above.
+
+Run the dependency-free state/API tests from the repository root:
+
+```sh
+node --test examples/ruoyi-vue3/frontend/src/views/arcflow/approval/*.test.mjs
+```
+
+The mounted DOM tests reuse the Vue/Vitest/jsdom dependencies already installed
+for `examples/approval-ui`; the overlay is not a standalone upstream package.
+On a POSIX checkout, make the local, ignored dependency link if it is absent:
+
+```sh
+test -e examples/ruoyi-vue3/frontend/node_modules || \
+  ln -s ../../approval-ui/node_modules examples/ruoyi-vue3/frontend/node_modules
+cd examples/ruoyi-vue3/frontend
+./node_modules/.bin/vitest run --config vitest.config.mjs
+```
+
+Install missing dependencies separately using the standalone UI's documented
+setup before these commands; this runner does not install them. The native
+session stub is only a module-resolution target for tests and is never copied
+into the upstream application by bootstrap.
+
+Coverage includes separate pending/handled cursors, empty and exhausted lists,
+opaque cursor forwarding, optional status/process-version filters, retryable
+page failures, invalid-cursor restart, duplicate-click suppression, cancellation,
+late response rejection after filter/session changes or unmount, non-first group
+participants, partial votes, repeated-stage overlap, and preservation of the
+legacy applicant/history tabs. A shared actor-scoped snapshot cache ensures that
+a shorter, older history from a slower list read cannot undo a confirmed vote.
+The existing standalone `NativeSubmission.test.js` also mounts this exact view
+and retains the durable submission-retry compatibility checks.

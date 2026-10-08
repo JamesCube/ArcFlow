@@ -43,7 +43,7 @@ jobs:
           python3 - <<'PY'
           import xml.etree.ElementTree as ET
           report = ET.parse('examples/approval-jdbc/target/surefire-reports/TEST-com.arcflow.approval.jdbc.PostgresqlApprovalStoreTest.xml').getroot()
-          assert int(report.attrib['tests']) >= 47, report.attrib
+          assert int(report.attrib['tests']) >= 74, report.attrib
           for key in ('skipped', 'errors', 'failures'):
               assert int(report.attrib[key]) == 0, report.attrib
           print('Real PostgreSQL contract executed:', report.attrib)
@@ -96,7 +96,7 @@ jobs:
           python3 - <<'PY'
           import xml.etree.ElementTree as ET
           report = ET.parse('examples/approval-jdbc/target/surefire-reports/TEST-com.arcflow.approval.jdbc.MysqlApprovalStoreTest.xml').getroot()
-          assert int(report.attrib['tests']) >= 53, report.attrib
+          assert int(report.attrib['tests']) >= 80, report.attrib
           for key in ('skipped', 'errors', 'failures'):
               assert int(report.attrib[key]) == 0, report.attrib
           print('Real MySQL contract executed:', report.attrib)

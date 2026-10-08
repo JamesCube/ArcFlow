@@ -97,3 +97,27 @@ running user server or a production store and prints no credentials.
 
 These results apply to the local demo with fixed accounts and file-backed
 persistence. Production and multi-instance operation were not verified.
+
+## Typed procurement review contract, 2026-10-06
+
+The additional disposable, loopback-only command:
+
+```sh
+python3 examples/approval-mobile/scripts/verify-documents-http.py
+```
+
+passed **28 HTTP status checks and 18 invariants**, including one backend restart.
+It creates only synthetic legacy leave, typed leave and procurement records and
+confirms their mixed approver list. CNY 199.99 × 3 = 599.97 and maximum JPY
+1,000,000,000 × 100,000 = 100,000,000,000,000 are checked using decimal arithmetic;
+USD/EUR/GBP and invalid quantities/prices/currency/unknown fields are covered too.
+Existing authentication, mandatory client header, applicant denial, concealed
+unrelated requests, server approval, immutable business and decision note,
+same-decision retry and opposite-decision conflict are retained.
+The exact business payloads and audit survive schema-5 persistence and restart.
+
+The original mobile HTTP harness was also rerun successfully: **177 status checks,
+217 invariants in the final rerun, two restarts**. The invariant count can increase
+with additional legal outcomes in concurrent race cases. These are backend/HTTP checks, not browser proof.
+A separate local nonbrowser smoke fed seven real backend mixed response records
+through the mobile strict decoder and exact formatter successfully.

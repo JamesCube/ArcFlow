@@ -50,7 +50,7 @@ final class ServerTestSupport {
                         return Proxy.newProxyInstance(ServerTestSupport.class.getClassLoader(), new Class<?>[]{PreparedStatement.class}, (sp, sm, sa) -> {
                             try {
                                 Object outcome = sm.invoke(statement, sa);
-                                if (sm.getName().equals("executeUpdate")) {
+                                if (sm.getName().equals("executeUpdate") || sm.getName().equals("executeBatch")) {
                                     inserted.set(true);
                                     throw injectedFailure.get();
                                 }

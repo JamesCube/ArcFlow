@@ -61,12 +61,12 @@ Storage rejects inconsistent projections. Business consumers must inspect `busin
 `days: 0` alone is never accepted as a valid legacy leave submission.
 
 旧 `POST .../requests` 请假 API 和原 Java 构造器不变，旧请求不新增 `business: null` 字段。
-新入口只增加能力，现有桌面/移动/RuoYi表单仍为请假表单；本轮未增加采购 UI。
-新增采购单可通过 API 或 Java 服务调用，再通过既有审批接口完成表决。
+新入口只增加能力；后续采购体验在独立与若依工作区提供采购表单，H5 仅查看与审批。
+新增采购单也可通过 API 或 Java 服务调用，再通过既有审批接口完成表决。参见[采购 UI 边界](PROCUREMENT_UI.md)。
 
 The legacy leave API and 16-argument Request constructor are retained. Old responses keep
-exactly their previous fields; `business` is omitted entirely. Existing frontends remain
-leave-oriented; this release adds a Java/HTTP procurement path, not a procurement form.
+exactly their previous fields; `business` is omitted entirely. The procurement UI layer adds standalone/native RuoYi authoring and review-only H5 rendering;
+see [procurement UI scope](PROCUREMENT_UI.md).
 
 ## 幂等与授权 / Idempotency and authorization
 
@@ -104,8 +104,9 @@ submission event is committed.
 - A schema-5 file never downgrades when a later legacy/keyed request is added.
 - A JSON file belongs to one process ID. Mixed-process historical rows or opening an existing
   file using another configured process ID fail closed.
-- JDBC continues using SQL schema revision 2 and the same `request_json` column. No automatic
-  DDL or backfill runs. Old and new request JSON shapes are decoded strictly; explicit
+- Typed documents continue using the existing `request_json` column. This combined member
+  inbox source additionally uses SQL revision 3 with explicit migration and bounded backfill.
+  No automatic DDL or backfill runs. Old and new request JSON shapes are decoded strictly; explicit
   `business: null`, missing/unknown fields and invalid projections are rejected.
 - Multiple JDBC store instances may bind different process IDs in one schema. Retained
   definitions and request snapshots are checked against each request's own process/version.
@@ -125,3 +126,7 @@ global key collisions and forced cross-process races on H2, PostgreSQL and MySQL
 HTTP suite and RuoYi smoke flow exercise the additive endpoints without weakening old routes.
 CI retains Java 17/21, PostgreSQL and MySQL 8.0/8.4 verification; actual server jobs assert
 non-skipped contract counts. See the PR's exact-commit checks for execution results.
+
+## Combined member-inbox source
+
+The typed-business change itself did not need new SQL tables. This local combination also includes the member inbox, whose SQL revision 3 adds a process-scoped member projection and explicit stopped-writer migration/backfill. Follow the current [JDBC installation guide](../examples/approval-jdbc/README.md), not an older revision-2-only rollout. JSON business snapshots remain schema 5. See [local integration checks](LOCAL_INTEGRATION.md).

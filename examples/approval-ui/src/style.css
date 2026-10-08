@@ -551,3 +551,39 @@ pre { padding: 18px; background: #f4f6fa; border-radius: 7px; overflow: auto; ma
   .detail-empty { padding: 32px 4px; }
   .detail { min-height: 260px; }
 }
+
+/* Two explicit business forms share the approval lifecycle and immutable detail. */
+.request-type-selector { padding: 12px 14px; border: 1px solid var(--line); border-radius: 9px; background: #fafbfe; }
+.request-type-selector select { margin-top: 6px; }
+.request-form-fields.procurement-title-row { grid-template-columns: minmax(0, 1fr); }
+.procurement-price-fields { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.15fr) minmax(82px, .7fr); gap: 12px; }
+.procurement-price-fields label { margin-bottom: 7px; }
+.field-help, .field-error { display: block; font-size: 11px; font-weight: 400; line-height: 1.6; margin-top: 6px; }
+.field-help { color: var(--muted); }
+.field-error { color: #a23840; }
+[aria-invalid="true"] { border-color: #c3535b; background: #fffafa; }
+.price-help { margin: 0 0 18px; }
+.procurement-total { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin: 0 0 20px; padding: 15px 16px; background: var(--accent-soft); border: 1px solid #dddff3; border-radius: 9px; }
+.procurement-total > span { font-size: 12px; font-weight: 650; }
+.procurement-total small { display: block; margin-top: 5px; color: var(--muted); font-size: 10px; font-weight: 400; line-height: 1.6; }
+.procurement-total output { font-size: 19px; font-weight: 750; letter-spacing: -.4px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; text-align: right; }
+.business-details { margin: 22px 0; padding: 18px; border: 1px solid var(--line); border-radius: 10px; background: #fafbfe; }
+.business-snapshot-heading { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 12px; margin-bottom: 16px; }
+.business-snapshot-heading h3 { margin: 0; font-size: 14px; }
+.snapshot-label { color: var(--muted); font-size: 10px; line-height: 1.6; }
+.business-facts { border: 0; padding: 0; gap: 18px 16px; }
+.business-reference, .business-item { grid-column: 1 / -1; }
+.business-total dd { color: var(--accent); font-size: 16px; font-variant-numeric: tabular-nums; }
+.business-details .footnote { margin: 13px 0 0; font-size: 10px; }
+.business-details .legacy-business { margin-top: 0; }
+@media (max-width: 640px) {
+  .procurement-price-fields { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
+  .procurement-price-fields label:last-child { grid-column: 1 / -1; }
+  .procurement-total { align-items: flex-start; flex-direction: column; gap: 8px; }
+  .procurement-total output { text-align: left; font-size: 20px; }
+  .business-details { padding: 15px; }
+}
+.inbox-filters { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; margin: 16px 0; }
+.inbox-filters label { flex: 1 1 130px; min-width: 0; }
+.inbox-filters button { min-height: 40px; }
+.inbox-more { margin-top: 16px; width: 100%; }

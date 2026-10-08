@@ -36,6 +36,7 @@ The JSON decoder rejects unknown properties, duplicate keys, trailing content, f
 - `GET /api/requests`: requests visible to the applicant or **any** assignee in each request's immutable definition
 - `POST /api/requests`: `{title, reason, days, processVersion}`; starts from the exact current published version (201)
 - `POST /api/documents`: `{business:{type,...}, processVersion}`; typed leave or procurement, using the same configured process and approval lifecycle (201)
+- `GET /api/requests/inbox`: actor-scoped `{items,nextCursor}` pending/handled pages
 - `POST /api/requests/{id}/decisions`: `{stepId, decision:"APPROVE"|"REJECT", comment?}`; authorizes the specified step against the request's saved definition
 
 ### Executable definition (schema 2, with schema-3 groups)
@@ -98,7 +99,7 @@ The additive `POST /api/documents` endpoint separates business fields from appro
 
 The closed business types are `leave` (`businessId,title,reason,days`) and `procurement` (`businessId,title,reason,item,quantity,unitPrice,currency`). Every field is required. IDs match `[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}`. Title/reason retain the existing limits. Procurement requires a nonblank item up to 240 characters, integer quantity 1–100000, a positive numeric unit price no greater than 1000000000.00 with at most two decimal places, and `CNY`, `USD`, `EUR`, `GBP` or `JPY`; JPY requires a whole amount. Decimal strings, fractional/overflowing integers, missing/null values, unknown types/fields and duplicate JSON keys are rejected.
 
-Typed responses append the immutable `business` object to the approval request. The top-level title/reason remain compatibility fields; typed leave also retains its days, while procurement uses top-level `days: 0`. Use `business.type` and its fields for business-aware presentation. The existing leave UI is unchanged. `/api/requests` keeps its original leave submission body, and legacy-created requests still omit `business` entirely. A key is scoped to the applicant across both submission endpoints: changing the business type, ID, any business field or original process version returns 409. Text and price representations are normalized before replay comparison.
+Typed responses append the immutable `business` object to the approval request. The top-level title/reason remain compatibility fields; typed leave also retains its days, while procurement uses top-level `days: 0`. Use `business.type` and its fields for business-aware presentation. The standalone and RuoYi UIs can create procurement documents; H5 is review-only. `/api/requests` keeps its original leave submission body, and legacy-created requests still omit `business` entirely. A key is scoped to the applicant across both submission endpoints: changing the business type, ID, any business field or original process version returns 409. Text and price representations are normalized before replay comparison.
 
 The configured process is reused; a caller cannot select or deploy an arbitrary process through this endpoint. Typed requests upgrade the JSON snapshot to schema 5, preserving a byte-exact backup of the preceding schema on its first upgrade write. Upgrade the host and back up the data before adoption; older binaries cannot read schema 5. Business records and approval history remain immutable across decisions, replays and restart.
 
@@ -127,3 +128,7 @@ Tests cover real Basic authentication, editor-only publication, strict JSON/defi
 ## Reusable domain
 
 The backend uses `com.arcflow.examples:approval-domain` for approval persistence and transitions. `ApprovalConfiguration` supplies the demo actor directory and initial Bob process. Other hosts supply their own `ActorDirectory` and initial definition. The shared jar contains no application entry point or security filter.
+
+## Bounded member inbox API
+
+`GET /api/requests/inbox` adds authenticated `PENDING` / `HANDLED` queries with optional status/process-version filters and keyset pagination (default 25, maximum 100). The response is `{items, nextCursor}`. It uses every actual current group member and only actual historical decisions, rather than the representative `approverId`. The existing `/api/requests` endpoint remains compatible. Pending/handled frontend tabs use the bounded member API, while applicant/history and detail refresh retain the compatible visible-request list. See [全成员收件箱 / inbox contract](../../../docs/MEMBER_INBOX.md) for parameter validation, actor binding, ordering and concurrent-page semantics. `verify-parallel-http.py` covers the endpoint against a disposable live backend, including restart.

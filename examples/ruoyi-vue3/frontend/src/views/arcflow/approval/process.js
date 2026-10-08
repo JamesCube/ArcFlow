@@ -28,7 +28,7 @@ export function setApprovalMode(definition, nodeId, mode) {
 
 export function validateDefinition(definition, people) {
   if (!record(definition) || !Array.isArray(definition.nodes)) return '请先加载流程定义'
-  if (!exactFields(definition, ['schemaVersion', 'id', 'version', 'name', 'nodes']) || ![2, 3].includes(definition.schemaVersion) || definition.id !== 'leave-approval' || !Number.isInteger(definition.version) || definition.version < 1) return '流程定义格式或版本无效'
+  if (!exactFields(definition, ['schemaVersion', 'id', 'version', 'name', 'nodes']) || ![2, 3].includes(definition.schemaVersion) || typeof definition.id !== 'string' || !/^[A-Za-z][A-Za-z0-9_-]{0,127}$/.test(definition.id) || !Number.isInteger(definition.version) || definition.version < 1) return '流程定义格式或版本无效'
   if (!validText(definition.name, 120)) return '请输入有效的流程名称（最多 120 字）'
   const nodes = definition.nodes, steps = approvals(definition)
   if (nodes.some(node => !record(node))) return '节点格式无效'

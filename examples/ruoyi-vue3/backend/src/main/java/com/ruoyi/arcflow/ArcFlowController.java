@@ -56,6 +56,10 @@ public class ArcFlowController {
     }
     @GetMapping("/requests") @PreAuthorize("@ss.hasPermi('arcflow:request:read')")
     public AjaxResult requests() { return AjaxResult.success(service.list(actor())); }
+    @GetMapping("/requests/inbox") @PreAuthorize("@ss.hasPermi('arcflow:request:read')")
+    public AjaxResult inbox(@RequestParam org.springframework.util.MultiValueMap<String,String> parameters) throws IOException {
+        return AjaxResult.success(service.inbox(actor(), parameters));
+    }
     @PostMapping("/requests") @PreAuthorize("@ss.hasPermi('arcflow:request:submit')")
     public AjaxResult submit(@RequestBody byte[] bytes, @RequestHeader HttpHeaders headers) throws IOException {
         String id = actor(); var input = body(bytes, Submission.class);

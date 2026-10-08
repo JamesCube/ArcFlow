@@ -13,6 +13,15 @@ public interface ApprovalStore extends AutoCloseable {
     List<ApprovalService.Request> requests() throws IOException;
     ApprovalService.Request request(String id) throws IOException;
 
+    /**
+     * Actor-scoped request inbox, newest immutable creation position first. Return at most
+     * query.limit()+1 matching requests from one consistent snapshot; the extra row is lookahead.
+     * Implementations must not silently replace this bounded query with requests() full replay.
+     */
+    default List<ApprovalService.Request> inbox(InboxQuery query) throws IOException {
+        throw new IOException("This approval store does not support bounded member inbox queries");
+    }
+
     /** Publish only if the active version still equals expectedVersion. */
     boolean publish(String actor, int expectedVersion, ProcessDefinition next) throws IOException;
 

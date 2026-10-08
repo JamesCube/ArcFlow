@@ -120,3 +120,53 @@ OAuth grant, add a callback, send a notification, deploy the client or merge cod
 verified CI captures above; it is not comprehensive visual/device acceptance. The backend uses one tenant and fixed demo accounts. These tests do not cover
 cross-tenant isolation. Comments are vote notes; standalone commenting is not present.
 The desktop designer remains the authoring tool; mobile flow rendering is read-only.
+
+## Procurement review checkpoint / 采购审批检查点
+
+Recorded **2026-10-06 UTC**, based on **e8568d4 (PR #16)**. The H5 client remains
+read-only for business documents; approval decisions and their notes are its only
+write operation. The prior 390px inbox/detail/decision screenshot pixels were
+inspected before extending the existing visual language.
+
+Executed locally against the final procurement implementation:
+
+- `npm run typecheck`: passed.
+- `npm test`: **236 tests in 6 files**, including 177 strict business/transport
+  tests, CN/EN typed detail and mixed-list DOM tests, fail-closed invalid-response
+  tests, immutable decision evidence and lifecycle-replay checks, and the original
+  2,304-state approval model coverage.
+- `npm run build:h5`: passed using the locked uni-app compiler and dependencies.
+- Existing real-backend HTTP suite: **177 status checks, 223 invariants, 2 restarts**.
+- `scripts/verify-documents-http.py`: **28 status checks, 18 invariants, 1 restart**,
+  including mixed legacy/typed lists, all five currencies, maximum JPY, invalid
+  business input, existing authentication/authorization, unchanged business after
+  approval, immutable notes and same/opposite decision replay behavior.
+- A nonbrowser parser smoke accepted seven real backend response records (legacy
+  leave, typed leave and five currencies), including approved procurement. Totals
+  included CNY 599.97 and JPY 100,000,000,000,000.
+- Browser spec syntax and `git diff --check`: passed.
+
+**New procurement browser journeys and screenshots are authored but not yet
+executed at this checkpoint.** No local browser was launched. `e2e/mobile.spec.mjs`
+now contains **11 tests**: the prior eight plus CN/EN procurement approval journeys
+and maximum JPY 390px reflow. New captures, produced only by successful real
+Chromium execution, include each language's procurement detail, fixed action dock,
+completed history, My decisions and empty search state, plus maximum JPY detail.
+The journeys create synthetic documents via `/api/documents` solely in test
+fixtures, use H5 for approval, verify exact server audit and idempotent replay,
+and repeat Back/Forward/Cancel/keyboard operations without document authoring.
+Exact published-commit CI and inspection of its screenshots remain required.
+
+No backend permission, authentication, persistence, process routing, audit or
+idempotency semantics were changed. No mobile form, attachment, payment, actual
+order, production deployment, App/mini-program build or enterprise integration
+is introduced. Existing unrun device/accessibility/network acceptance and
+historical dependency caveats below remain in force.
+
+## Combined-source verification
+
+The records above apply to their stated feature inputs. Procurement review and
+member paging are now combined locally; this source needs its own unit/DOM,
+typecheck, build and HTTP results. See [LOCAL_INTEGRATION](../../docs/LOCAL_INTEGRATION.md)
+for the checks actually run. Browser, native and real-device acceptance is not
+implied by the earlier records.

@@ -98,3 +98,11 @@ The Spring Boot 3.5.16 parent used for this record manages Connector/J 9.7.0, H2
 Official sources checked for provisioning: [Temurin JDK](https://adoptium.net/temurin/releases/?version=17), [Apache Maven](https://maven.apache.org/download.cgi), [MySQL 8.0](https://dev.mysql.com/downloads/mysql/8.0.html), [MySQL 8.4](https://dev.mysql.com/downloads/mysql/8.4.html). Generic Linux MySQL binaries require compatible native libraries such as libaio. Use an isolated workspace or dedicated test machine with permission to install the required software; do not alter a production server or assume Debian's MariaDB default satisfies this test target.
 
 Supporting primary documentation: [Connector/J catalog behavior](https://dev.mysql.com/doc/connector-j/en/connector-j-connp-props-connection.html#cj-conn-prop_databaseTerm), [timeout rollback behavior](https://dev.mysql.com/doc/refman/8.0/en/innodb-parameters.html#sysvar_innodb_rollback_on_timeout), [Boot 3.5 dependency coordinates](https://docs.spring.io/spring-boot/3.5/appendix/dependency-versions/coordinates.html), [Connector/J 9.7 supports MySQL 8.0+](https://dev.mysql.com/doc/relnotes/connector-j/en/news-9-7-0.html).
+
+## Current combined source
+
+The earlier server results retain their original commits and scope. The local
+combination adds typed procurement, process-scoped member projection and mixed-
+process backfill. It needs a fresh real-server matrix; see
+[the combined report](../../docs/LOCAL_INTEGRATION.md). An offline H2 pass does
+not extend these historical MySQL results to the combined source.

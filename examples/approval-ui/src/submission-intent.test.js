@@ -40,3 +40,37 @@ describe('submission intent identity', () => {
     expect(intent.prepare('alice', { ...fields, days: 3 }, 2).key).not.toBe(second.key)
   })
 })
+
+describe('typed procurement retry identity', () => {
+  const business = { type: 'procurement', businessId: 'PO-001', title: ' Chairs ', reason: ' Growth ', item: ' Chair ', quantity: '3', unitPrice: '199.50', currency: 'CNY' }
+  it('freezes all typed business fields, endpoint and original process version for uncertain retries', () => {
+    let count = 0
+    const intent = createSubmissionIntent(() => `key-${++count}`)
+    const first = intent.prepare('alice', { business }, 1)
+    expect(first.endpoint).toBe('/documents')
+    expect(first.payload.business).toEqual({ ...business, title: 'Chairs', reason: 'Growth', item: 'Chair', quantity: 3, unitPrice: 199.5 })
+    expect(Object.isFrozen(first.payload.business)).toBe(true)
+    const normalized = { business: { ...business, title: 'Chairs', item: 'Chair', quantity: 3, unitPrice: '199.5' } }
+    expect(intent.prepare('alice', normalized, 7)).toBe(first)
+    expect(first.payload.processVersion).toBe(1)
+    for (const [key, value] of [['businessId', 'PO-002'], ['item', 'Desk'], ['quantity', 4], ['unitPrice', '199.51'], ['currency', 'USD']]) {
+      const next = intent.prepare('alice', { business: { ...business, [key]: value } }, 7)
+      expect(next.key).not.toBe(first.key)
+    }
+  })
+  it('handles incomplete edits safely and never treats legacy and typed leave as the same intent', () => {
+    let count = 0
+    const intent = createSubmissionIntent(() => `key-${++count}`)
+    const first = intent.prepare('alice', { business }, 1)
+    intent.invalidate('alice', { business: { ...business, unitPrice: '' } })
+    expect(intent.current('alice', { business })).toBeNull()
+    expect(() => intent.prepare('alice', { business: { ...business, unitPrice: '' } }, 1)).toThrow('Invalid business document')
+    const legacy = intent.prepare('alice', fields, 1)
+    expect(legacy.endpoint).toBe('/requests')
+    const typed = intent.prepare('alice', { business: { type: 'leave', businessId: 'L-001', ...fields } }, 1)
+    expect(typed.endpoint).toBe('/documents')
+    expect(typed.key).not.toBe(legacy.key)
+    expect(typed.key).not.toBe(first.key)
+    expect(intent.prepare('alice', fields, 1).key).not.toBe(typed.key)
+  })
+})

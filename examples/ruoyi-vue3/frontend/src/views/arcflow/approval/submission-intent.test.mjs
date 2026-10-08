@@ -2,7 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 const source = await readFile(new URL('./submission-intent.js', import.meta.url), 'utf8')
-const { createSubmissionIntent, newSubmissionKey, isRejectedSubmissionVersion } = await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`)
+const { createSubmissionIntent, newSubmissionKey, isRejectedSubmissionVersion } = await import('./submission-intent.js')
 const fields = { title: ' Leave ', reason: ' Rest ', days: 2 }
 test('native and standalone use the same bounded in-memory intent semantics', async () => {
   const standalone = await readFile(new URL('../../../../../../approval-ui/src/submission-intent.js', import.meta.url), 'utf8')
@@ -33,12 +33,22 @@ test('only native HTTP409 with definitive stale-version reason can end an uncrea
 })
 test('native API forwards the same key and bypasses only the client duplicate-submit cache', async () => {
   const apiSource = await readFile(new URL('../../../api/arcflow/approval.js', import.meta.url), 'utf8')
-  const stubbed = apiSource.replace("import request from '@/utils/request'", 'const request = options => Promise.resolve(options)')
+  const businessSource = await readFile(new URL('./business-document.js', import.meta.url), 'utf8')
+  const stubbed = apiSource.replace("import { parseApprovalJson } from '../../views/arcflow/approval/business-document.js'", `import { parseApprovalJson } from 'data:text/javascript;base64,${Buffer.from(businessSource).toString('base64')}'; export { parseApprovalJson }`).replace("import request from '@/utils/request'", 'const request = options => Promise.resolve(options)')
   assert.notEqual(stubbed, apiSource)
-  const { submitRequest } = await import(`data:text/javascript;base64,${Buffer.from(stubbed).toString('base64')}`)
+  const { submitRequest, submitDocument, getRequests, decideRequest, parseApprovalJson } = await import(`data:text/javascript;base64,${Buffer.from(stubbed).toString('base64')}`)
   const data = { title: 'Leave', reason: 'Rest', days: 2, processVersion: 1 }
   const initial = await submitRequest(data, 'native:retry-1')
-  assert.deepEqual(initial, { url: '/arcflow/requests', method: 'post', data, headers: { 'Idempotency-Key': 'native:retry-1', repeatSubmit: false } })
+  assert.deepEqual(initial, { url: '/arcflow/requests', method: 'post', data, transformResponse: [parseApprovalJson], headers: { 'Idempotency-Key': 'native:retry-1', repeatSubmit: false } })
   assert.deepEqual(await submitRequest(data, 'native:retry-1'), initial)
   assert.deepEqual((await submitRequest(data)).headers, {})
+  const document = { business: { type: 'procurement', businessId: 'PO-1', title: 'Adapters', reason: 'Synthetic', item: 'USB-C adapter', quantity: 3, unitPrice: 0.1, currency: 'USD' }, processVersion: 1 }
+  assert.deepEqual(await submitDocument(document, 'native:document-1'), { url: '/arcflow/documents', method: 'post', data: document, transformResponse: [parseApprovalJson], headers: { 'Idempotency-Key': 'native:document-1', repeatSubmit: false } })
+  assert.deepEqual((await submitDocument(document)).headers, {})
+  for (const options of [initial, await submitDocument(document, 'native:document-1'), await getRequests(), await decideRequest('req/1', { stepId: 'review', decision: 'APPROVE', comment: '' })]) {
+    assert.equal(options.transformResponse[0], parseApprovalJson)
+    assert.throws(() => options.transformResponse[0]('{"code":200,"data":{"business":{"currency":"USD","unitPrice":1000000000.00000001}}}'))
+    assert.equal(options.transformResponse[0]('{"code":200,"data":{"business":{"currency":"USD","unitPrice":1E+9}}}').data.business.unitPrice, 1000000000)
+    assert.throws(() => options.transformResponse[0]('{"code":200,"data":{"business":{"quantity":1.00000000000000001}}}'))
+  }
 })
