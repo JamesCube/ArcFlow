@@ -26,23 +26,99 @@ Real application screens with synthetic data. Click for full resolution or follo
 
 ## Approval capabilities at a glance
 
-For teams adding fixed-reviewer, multi-stage approvals to an existing Java or RuoYi application. The repository has three layers: **a synchronous DAG core, approval domain/storage modules, and runnable examples**. Human approvals and persistence live in the latter two.
+Explore seven groups, from process configuration and permissions to task handling, forms and storage. The repository separates **the synchronous Java DAG core, approval domain/storage, and host/UI examples**. Human approvals and persistence live in the latter two.
 
-✅ Implemented · 🟡 Bounded support · — Not implemented. This describes the current source; verify the preview against your own use case.
+✅ Implemented within the stated scope · 🟡 Bounded support with integration/client limits · — Not implemented. This remains a source preview, without a production-readiness guarantee.
 
+[Run first](#quick-start) · [Full capabilities with code/test evidence](docs/CAPABILITIES.md#en) · [Three existing cases and proposed expansion](docs/CAPABILITIES.md#en-scenarios)
+
+Go straight to a case: [OA leave](docs/CASE_GALLERY.md#oa) · [ERP procurement](docs/CASE_GALLERY.md#erp) · [CRM quotes](docs/CASE_GALLERY.md#crm)
+
+### Flow design and versions
 | Capability | Status | Current scope |
 | --- | --- | --- |
-| **Single, ALL and ANY review** | ✅ | 1–8 ordered stages; ALL requires every approval and rejects on any rejection; ANY passes on the first approval and rejects only when everyone rejects  · [Screens](docs/DESIGNER_GALLERY.md#all) |
-| **Visual designer and versions** | ✅ | Edit, insert, reorder, assign, validate and publish; each request keeps its submitted process and business snapshots  · [Screens](docs/DESIGNER_GALLERY.md#publish) |
-| **Worklists and decision history** | ✅ | Actor-scoped pending/handled pages include every ALL/ANY member; retain each person's note, decision and timestamp  · [Screens](docs/CASE_GALLERY.md#oa-inbox) |
-| **Retries and concurrency** | ✅ | Optional submission keys, per-stage/member decision retries and revision CAS; no exactly-once guarantee for external business operations |
-| **Persistence** | 🟡 | Single-writer JSON by default; optional transactional JDBC with PostgreSQL, MySQL 8.0/8.4 and H2 tests; explicit integration and migration required |
-| **Business documents** | 🟡 | Submit and review leave/procurement; quote discounts run in an isolated synthetic CRM case, outside shared workspaces  · [Screens](docs/CASE_GALLERY.md#erp) |
-| **Desktop, RuoYi and mobile** | 🟡 | Runnable standalone Vue and native RuoYi workspaces; H5 is review-only, with no mobile submission, designer or enterprise SSO  · [Screens](docs/CASE_GALLERY.md#other-clients) |
-| **Zero-dependency Java DAG core** | ✅ | No third-party runtime dependencies; validates dependencies and runs synchronously, one node at a time, without durable execution state or human waits |
-| **Advanced workflow features** | — | No conditional routing, timed reminders/escalation, withdrawal, delegation, tenant isolation, outbox or BPMN compatibility |
+| [Ordered stages](docs/DESIGNER_GALLERY.md#sequential) | ✅ | Fixed start → 1–8 approval stages → fixed end |
+| [Insert a stage](docs/DESIGNER_GALLERY.md#all) | ✅ | Insert at a chosen position; remove stages while keeping at least one |
+| [Reorder stages](docs/DESIGNER_GALLERY.md#reorder) | ✅ | Move stages up/down while retaining IDs; no arbitrary edges |
+| [Stage inspector](docs/DESIGNER_GALLERY.md#any) | ✅ | Configure names, assigned people and SINGLE/ALL/ANY in the inspector |
+| [Draft undo/redo](docs/DESIGNER_GALLERY.md#undo) | 🟡 | Standalone tab-local undo/redo; no durable drafts |
+| [Publication conflicts](docs/DESIGNER_GALLERY.md#publish) | ✅ | Validate and publish a new version; stale expected versions are rejected |
+| [Pinned process version](docs/DESIGNER_GALLERY.md#versions) | ✅ | Existing requests keep the rules, people and version saved at submission |
+| Conditional routing | — | No amount/field-driven branches; quote thresholds are informational |
 
-[Full checklist, limits and code/test evidence](docs/CAPABILITIES.md#en) · [Run the demo](#quick-start) · [See the screens](#see-the-cases)
+[Limits, missing features and test evidence](docs/CAPABILITIES.md#en-design)
+
+### Approval rules and voting
+| Capability | Status | Current scope |
+| --- | --- | --- |
+| Single reviewer | ✅ | One approval advances; rejection ends the request |
+| [ALL groups](docs/DESIGNER_GALLERY.md#votes) | ✅ | 2–16 distinct fixed members; all must approve, any rejection ends it |
+| [ANY groups](docs/CASE_GALLERY.md#other-clients) | ✅ | One approval advances; only unanimous rejection ends it |
+| Same reviewer in later stages | ✅ | One person may appear in several stages and must decide at each |
+
+[Limits, missing features and test evidence](docs/CAPABILITIES.md#en-rules)
+
+### People, identity and permissions
+| Capability | Status | Current scope |
+| --- | --- | --- |
+| Host identity directory | 🟡 | Hosts provide active users and publication eligibility through ActorDirectory |
+| [Standalone demo picker](docs/DESIGNER_GALLERY.md#all) | 🟡 | Standalone uses Alice/Bob/Carol; reviewer choices are Bob and Carol |
+| [Native RuoYi users](docs/CASE_GALLERY.md#other-clients) | ✅ | Select fixed RuoYi users; reuse native login, menus and button permissions |
+| Request visibility | ✅ | Applicants/participants can see requests; administrators cannot vote as others |
+| Dynamic role resolution | — | No dynamic role, department or direct-manager resolution |
+
+[Limits, missing features and test evidence](docs/CAPABILITIES.md#en-people)
+
+### Task handling and history
+| Capability | Status | Current scope |
+| --- | --- | --- |
+| [Pending worklist](docs/CASE_GALLERY.md#oa-inbox) | ✅ | Show current-stage requests awaiting this member, including every group member |
+| [Handled worklist](docs/CASE_GALLERY.md#oa-pending-next) | ✅ | Requires this actor’s saved vote; the request may still await others |
+| Cursor paging and filters | ✅ | 1–100 rows; status/version filters and actor-bound cursors |
+| [Decision notes](docs/CASE_GALLERY.md#oa-approved) | ✅ | Notes accompany votes; no chat or note rewriting through retries |
+| [Per-person history](docs/CASE_GALLERY.md#erp-approved) | ✅ | Retain each actor’s decision, stage, time and note |
+| Withdraw a request | — | No operation withdraws a submitted request |
+| Return to a previous stage | — | Rejection is terminal; no return-to-stage or edit-and-resubmit |
+
+[Limits, missing features and test evidence](docs/CAPABILITIES.md#en-tasks)
+
+### Business forms and scenarios
+| Capability | Status | Current scope |
+| --- | --- | --- |
+| [OA leave form](docs/CASE_GALLERY.md#oa-form) | ✅ | Title, reason and 1–365 whole days; standalone/RuoYi authoring |
+| [ERP procurement form](docs/CASE_GALLERY.md#erp-form) | ✅ | One item, quantity, exact unit price and currency; no ordering/payment |
+| [CRM quote-discount form](docs/CASE_GALLERY.md#crm-form) | 🟡 | Isolated synthetic case with manager → finance review; outside shared workspaces |
+| [Immutable business snapshot](docs/CASE_GALLERY.md#erp-submitted) | ✅ | Business fields are read-only after submission |
+| Visual form designer | — | Forms are code-defined; no field drag/drop or form-schema publishing |
+
+[Limits, missing features and test evidence](docs/CAPABILITIES.md#en-forms)
+
+### Reliability, storage and recovery
+| Capability | Status | Current scope |
+| --- | --- | --- |
+| Submission idempotency | ✅ | Optional applicant-scoped keys; same intent replays, changed intent conflicts |
+| Decision idempotency | ✅ | Same member/stage retry adds no vote; opposite decisions conflict |
+| Concurrent state updates | ✅ | Revision checks/atomic updates protect approval state, not external effects |
+| Local JSON recovery | 🟡 | Default file persistence/reopen recovery; one writer only |
+| Transactional JDBC storage | ✅ | Optional transactional adapter requiring wiring/migration; see tested DB scope |
+| Transactional outbox | — | No reliable external message delivery or joint business-table transactions |
+
+[Limits, missing features and test evidence](docs/CAPABILITIES.md#en-reliability)
+
+### Integration, clients and core
+| Capability | Status | Current scope |
+| --- | --- | --- |
+| Standalone Spring Boot + Vue | 🟡 | Bilingual workspace with fixed demo identities and local JSON |
+| Native RuoYi-Vue + Vue3 | 🟡 | Native host reference integration; approvals do not automatically use RuoYi MySQL |
+| [H5 browser client](docs/CASE_GALLERY.md#other-clients) | 🟡 | View/review leave and procurement; no mobile authoring, designer or quotes |
+| Synchronous DAG execution | ✅ | No third-party runtime dependencies; synchronous serial core without human waits |
+| Enterprise platform identity | — | Feishu/WeCom/DingTalk adapters remain unconfigured placeholders |
+
+[Limits, missing features and test evidence](docs/CAPABILITIES.md#en-integration)
+
+The full catalog also lists each missing capability separately: arbitrary forks/joins, majority voting, added reviewers, claiming, delegation, CC, batch decisions, reminders, escalation, attachments, repeating line items, tenant isolation, asynchronous execution and BPMN. See the [proposed implementation sequence](docs/CAPABILITIES.md#en-next) for additional scenarios and form design.
+
+[Run locally](#quick-start) · [Follow the three business journeys](#business-examples) · [Full capability catalog](docs/CAPABILITIES.md#en)
 
 <a id="try-one-leave-approval"></a>
 <a id="fast-local-tryout-one-terminal"></a>
