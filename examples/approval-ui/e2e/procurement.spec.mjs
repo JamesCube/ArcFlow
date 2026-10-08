@@ -131,7 +131,7 @@ test('procurement: exact decimals, durable retry, immutable mixed documents, bil
   await expect(page.getByTestId('refresh')).toBeEnabled()
   await expect(page.getByTestId('submission-template')).toContainText(`v${original.version}`)
   await page.getByTestId('submit-request').click()
-  await expect(page.getByRole('status')).toContainText('Request submitted')
+  await expect(page.locator('.notice[role="status"]')).toContainText('Request submitted')
   expect(attempts).toHaveLength(2)
   expect(attempts[0].key).toBeTruthy()
   expect(attempts[1]).toEqual(attempts[0])
@@ -150,7 +150,7 @@ test('procurement: exact decimals, durable retry, immutable mixed documents, bil
   await page.getByTestId('request-days').fill('2')
   await page.getByTestId('request-reason').fill('Synthetic leave regression / 合成请假回归')
   await page.getByTestId('submit-request').click()
-  await expect(page.getByRole('status')).toContainText('Request submitted')
+  await expect(page.locator('.notice[role="status"]')).toContainText('Request submitted')
   for (let index = 0; index < 2; index++) {
     await page.getByTestId('process-tab').click()
     await page.getByTestId('requests-tab').click()
