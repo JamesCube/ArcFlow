@@ -171,8 +171,12 @@ def main():
             ui_env = dict(os.environ, ARCFLOW_BACKEND_PORT=str(args.backend_port))
             ui = processes.start(['npm', 'run', 'dev', '--', '--port', str(args.ui_port), '--strictPort'], UI, env=ui_env, stdout=ui_log, stderr=subprocess.STDOUT)
             wait_ready([backend, ui], url, passwords['alice'])
-            print('\nREADY: ' + url + '\nOpen the private credentials file in your editor: ' + str(credentials)
-                  + '\nSign in as alice, then follow docs/TRYOUT.md. Passwords are never printed.'
+            print('\nREADY: ' + url
+                  + '\nOA leave / ERP procurement: ' + url
+                  + '\nCRM quote discount (separate page): ' + url + '/quote-discount.html'
+                  + '\nOpen the private credentials file in your editor: ' + str(credentials)
+                  + '\nUse the same demo accounts on either page; sign in separately. Passwords are never printed.'
+                  + '\nStart as alice; see docs/GETTING_STARTED.md for all three case walkthroughs.'
                   + '\nCtrl-C stops both services and deletes this run\'s credentials, logs and demo data.', flush=True)
             while True:
                 if backend.poll() is not None or ui.poll() is not None:

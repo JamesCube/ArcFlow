@@ -45,7 +45,7 @@ Keep both terminals running. Open [http://localhost:5173](http://localhost:5173)
 
 ### 2. Complete a request
 
-1. Open the UI, choose **Alice · process designer**, enter Alice's configured password, and select **Enter workspace →**.
+1. Open the UI and select **English** in the language menu. Choose **Alice · process designer**, enter Alice's configured password, and select **Enter workspace →**.
 2. Submit `Demo leave`, reason `Synthetic test`, for `1` day. Expect **pending**, assigned to Bob.
 3. Sign out. Choose **Bob · approver** and use Bob's password. Open **Needs my review**, select the request, and approve it.
 4. Sign back in as Alice. Open the request in **Requests**. Expect **approved**, the saved one-step definition, and submission/approval activity.
@@ -62,7 +62,29 @@ As Alice, open **Process designer**, keep Bob as the first approver, add Carol a
 
 Only Alice can publish. Bob and Carol can decide only their current step. Signing out or reloading the page loses unpublished edits, so publish before leaving. If another publication makes your draft stale, refresh, review the new version, reset your draft and reapply the changes you still want.
 
-### 4. Check restart persistence
+<a id="try-other-cases-en"></a>
+
+### 4. Try procurement and quote approvals
+
+All three cases use the same running standalone backend and UI. No additional server, database or vendor account is needed. With the launcher, use the exact printed origin and the passwords in its private file. With the manual setup above, use `http://localhost:5173` and the passwords you configured. Keep passwords out of URLs and source files.
+
+**ERP procurement, in the existing workspace:**
+
+1. Sign in as Alice and open **Requests**. Choose **Procurement** under **Request type**.
+2. Enter reference `PO-DEMO-001`, title `Demo equipment purchase`, item `Equipment set`, quantity `3`, unit price `0.10`, currency `CNY`, and reason `Synthetic test`. Check that the total is **CNY 0.30**, then submit.
+3. Follow the reviewers in the saved process. A fresh store uses Bob only; if you published Bob → Carol above, both must approve in order. Sign back in as Alice to check the saved item, amount and history. Approval does not place an order or make a payment.
+
+**CRM quote discount, on its own page:**
+
+1. Open `/quote-discount.html` on the same UI origin. With the default manual setup, that is [http://localhost:5173/quote-discount.html](http://localhost:5173/quote-discount.html). Select **English** in this page's own language menu. Use a desktop-width window to submit; narrow screens only support viewing and review.
+2. Sign in as Alice again with the same configured password. The two pages do not share a login. Select the preset `Q-DEMO-001` revision 1, keep the synthetic title/reason and requested unit price `850.00`. For ten items, check **CNY 8,500.00** and a **CNY 1,500.00** reduction, then submit. The saved record also shows a **15%** discount.
+3. Sign out on the quote page, sign in as Bob and approve, then sign out and sign in as Carol to approve. This fixed Bob → Carol sequence is separate from the leave/procurement designer. Alice can then inspect the approved record on the quote page.
+
+One quote revision binds to one request. Repeating the same submission returns that record; changing its price or reason conflicts. The preset source has only revision 1. For a fresh exercise, finish and stop the disposable launcher, then start a new run; do not delete a persistent store just to repeat the demo. See [the quote contract](CRM_QUOTE_CASE.md) for details. Quotes are not listed in the shared workspace, RuoYi or H5. This synthetic case makes no external CRM or AI calls and performs no business writeback.
+
+**Other clients:** [RuoYi](../examples/ruoyi-vue3/README.md) has its own installation, accounts, ArcFlow menu and role permissions. It supports leave and procurement; standalone Alice/Bob/Carol passwords do not log in to RuoYi. [H5](../examples/approval-mobile/README.md#run-locally--本地运行) is a separate review-only client for existing leave/procurement requests, with its own startup and origin configuration. The standalone launcher starts neither client.
+
+### 5. Check restart persistence
 
 Stop the backend with Ctrl+C, then rerun its `spring-boot:run` command in the same terminal, keeping the same `APPROVAL_DATA_FILE` and password variables. Sign in again and verify that the published process, requests and history remain. A pending request should continue at the same step.
 
@@ -129,24 +151,46 @@ npm run dev
 
 ### 2. 完成一次审批
 
-1. 打开界面，选择 **Alice · process designer**，输入配置的 Alice 密码，点击 **Enter workspace →**。
-2. 提交标题 `Demo leave`、原因 `Synthetic test`、天数 `1`。应显示 **pending**，当前审批人为 Bob。
-3. 退出登录，选择 **Bob · approver**，输入 Bob 密码。打开 **Needs my review**，选中申请并同意。
-4. 重新登录 Alice，在 **Requests** 中打开申请。应显示 **approved**，可查看原始单步骤流程快照与提交、审批记录。
+1. 打开界面，语言选择“简体中文”，选择 **Alice · 流程设计者**，输入配置的 Alice 密码，点击 **进入工作区 →**。
+2. 提交标题“请假演示”、事由“合成测试”、天数 `1`。应显示“审批中”，当前审批人为 Bob。
+3. 退出登录，选择 **Bob · 审批人**，输入 Bob 密码。打开“待我审批”，选中申请并通过。
+4. 重新登录 Alice，在“申请列表”中打开申请。应显示“已通过”，可查看原始单步骤流程快照与提交、审批记录。
 
 演示在本地运行，使用你自己配置的密码。凭据只保存在页面内存中，退出登录或刷新页面后都会清除，需要重新登录。
 
 ### 3. 体验顺序设计器
 
-以 Alice 打开 **Process designer**，保留 Bob 为第一位审批人，新增 Carol 作为第二位审批人并发布。可为 1–8 个审批步骤命名、增删和排序。提交一份**新**申请后：
+以 Alice 打开“流程设计器”，保留 Bob 为第一位审批人，新增 Carol 作为第二位审批人并发布。可为 1–8 个审批步骤命名、增删和排序。提交一份**新**申请后：
 
-- Bob 同意第一步：仍为 **pending**，当前审批人变为 Carol。
-- Carol 同意最后一步：变为 **approved**。如果当前步骤的审批人拒绝，申请就以 **rejected** 结束。
+- Bob 通过第一步：仍为“审批中”，当前审批人变为 Carol。
+- Carol 通过最后一步：变为“已通过”。如果当前步骤的审批人拒绝，申请就以“已驳回”结束。
 - 原来的申请仍保留单步骤快照，后续发布不会改变运行中或已完成的申请。
 
 只有 Alice 可以发布流程。Bob 和 Carol 只能处理当前轮到自己的步骤。退出登录或刷新页面会丢失未发布的草稿，离开前请先发布。遇到版本冲突时，刷新并查看新版本，重置草稿后再重新添加需要保留的修改。
 
-### 4. 验证重启恢复
+<a id="try-other-cases-zh"></a>
+
+### 4. 试试采购与报价审批
+
+三种案例共用已启动的独立端后端与界面，不需要再启动服务、安装数据库或连接厂商账号。使用一键启动脚本时，保持终端打印的完整地址，并使用它生成的私有密码文件；按上文手动启动时，地址为 `http://localhost:5173`，密码为你刚设置的演示密码。不要把密码放进 URL 或源码。
+
+**ERP 采购，在现有工作区操作：**
+
+1. 以 Alice 登录，打开“申请列表”，将“申请类型”改为“采购”。
+2. 填写单据编号 `PO-DEMO-001`、标题“设备采购演示”、品名“设备套装”、数量 `3`、单价 `0.10`、币种 `CNY`，事由填“合成测试”。确认合计为 **CNY 0.30** 后提交。
+3. 按申请保存的流程切换账号审批。全新数据默认只需 Bob；若已按上文发布 Bob → Carol，则需要两人依次审批。最后由 Alice 查看原始物品、金额和操作记录。审批通过不会下单或付款。
+
+**CRM 报价折扣，使用独立页面：**
+
+1. 在相同界面地址后加 `/quote-discount.html`。上文默认手动启动地址为 [http://localhost:5173/quote-discount.html](http://localhost:5173/quote-discount.html)。请使用桌面宽度窗口提交；窄屏只支持查看和审批。
+2. 使用同一密码重新登录 Alice；两个页面不共享登录态。选择预设 `Q-DEMO-001` 第 1 版，保留合成标题、理由和申请单价 `850.00`。确认十套设备的申请总额为 **CNY 8,500.00**，减少 **CNY 1,500.00** 后提交；保存的记录还会显示 **15%** 折扣率。
+3. 在报价页退出并换 Bob 登录、同意，再退出并换 Carol 登录、同意。报价固定按 Bob → Carol 审批，不受请假／采购设计器的发布影响。最后由 Alice 在报价页查看已通过的记录。
+
+同一报价版本只绑定一笔申请：原样重复提交会返回原记录，改价格或理由会冲突。预设报价只有第 1 版。如需从头体验，完成本次试用后停止临时启动脚本，再启动新的一轮；不要为重试随意删除持久化数据。详见[报价契约](CRM_QUOTE_CASE.md)。报价不会进入共享工作区、若依或 H5 列表；此合成案例不调用外部 CRM 或 AI，也不回写业务系统。
+
+**其他客户端：**[若依](../examples/ruoyi-vue3/README.md)需单独安装，并配置自己的账号、ArcFlow 菜单和角色权限，支持请假与采购；独立端 Alice／Bob／Carol 密码不能登录若依。[H5](../examples/approval-mobile/README.md#run-locally--本地运行)也需单独启动并配置允许的 Origin，只能查看和审批已创建的请假／采购单。独立端启动脚本不会启动这两个客户端。
+
+### 5. 验证重启恢复
 
 用 Ctrl+C 停止后端，在同一个终端重新运行后端 `spring-boot:run` 命令，保留原来的 `APPROVAL_DATA_FILE` 和密码变量。重新登录，检查流程、申请及历史仍在；未完成申请应停留在原步骤。
 
