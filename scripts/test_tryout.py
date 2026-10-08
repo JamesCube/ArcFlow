@@ -263,6 +263,27 @@ class MainTests(unittest.TestCase):
         self.processes.stop.assert_called_once()
         self.assertIn('readiness failed', self.errors.getvalue())
 
+    def test_ready_lists_both_case_pages_on_the_configured_origin_without_passwords(self):
+        captured = {}
+        def ready(children, url, password):
+            env = self.processes.start.call_args_list[0].kwargs['env']
+            captured['runtime'] = Path(env['APPROVAL_DATA_FILE']).parent
+            captured['passwords'] = json.loads((captured['runtime'] / 'credentials.json').read_text())
+        with mock.patch.object(tryout, 'wait_ready', side_effect=ready), \
+                mock.patch.object(tryout.time, 'sleep', side_effect=KeyboardInterrupt):
+            self.assertEqual(tryout.main(), 130)
+        output = self.output.getvalue()
+        self.assertIn('\nREADY: http://127.0.0.1:35173\n', output)
+        self.assertIn('OA leave / ERP procurement: http://127.0.0.1:35173\n', output)
+        self.assertIn('CRM quote discount (separate page): http://127.0.0.1:35173/quote-discount.html\n', output)
+        self.assertIn('sign in separately', output)
+        self.assertIn('docs/GETTING_STARTED.md', output)
+        self.assertTrue((tryout.UI / 'public/quote-discount.html').is_file())
+        for password in captured['passwords'].values():
+            self.assertNotIn(password, output + self.errors.getvalue())
+        self.assertFalse(captured['runtime'].exists())
+        self.processes.stop.assert_called_once()
+
 
 if __name__ == '__main__':
     unittest.main()

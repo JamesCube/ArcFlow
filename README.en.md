@@ -31,6 +31,8 @@ Open the URL printed in your terminal. The launcher also tells you where to find
 
 To try two steps, use Alice's designer to add Carol after Bob, publish, and submit a new request.
 
+The same launch also runs procurement and quote approvals. Choose **Procurement** under **Request type** in the workspace. For quotes, open the separate `/quote-discount.html` URL printed in your terminal and sign in again with the same password file. See [the three business cases](docs/GETTING_STARTED.md#try-other-cases-en) for sample values, reviewers and entry points.
+
 Ctrl-C stops the services and deletes that run's data. Use the [manual setup](docs/GETTING_STARTED.md#english) if you want to keep the data. The current version is `0.1.0-SNAPSHOT`; run it locally with test data. APIs may change.
 
 ## Business examples

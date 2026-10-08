@@ -4,7 +4,7 @@ Run the standalone Vue approval designer and Spring Boot backend from one termin
 
 RuoYi has a separate example and setup guide. This launcher starts only the standalone app, without RuoYi, MySQL or Redis.
 
-To try the designer shown in the [screenshots](DESIGNER_SHOWCASE.md), use `main` or tested commit `e1ee9c6bdb971949c4f8746fe88b9ff49e6d4c36`. The older `v0.1.0-alpha.1` source archives contain the earlier sequential demo, without the Chinese-first workbench, ALL/ANY groups or JDBC adapter.
+Use current `main`, or the [accepted three-case checkpoint](CRM_COMPATIBILITY_READINESS.md#accepted-crm-checkpoint), to try all the cases below. The designer [screenshots](DESIGNER_SHOWCASE.md) include the older tested commit `e1ee9c6bdb971949c4f8746fe88b9ff49e6d4c36`; that historical checkpoint does not include the current procurement and CRM examples. The older `v0.1.0-alpha.1` source archives contain the earlier sequential demo, without the Chinese-first workbench, ALL/ANY groups or JDBC adapter.
 
 ## Requirements
 
@@ -31,6 +31,13 @@ python3 scripts/tryout.py
 ```
 
 Keep that terminal open. The first build can take several minutes while dependencies download. Wait for the launcher's ready message, then open the exact UI URL it prints. The default UI address is `http://127.0.0.1:5173` and the default backend address is `http://127.0.0.1:8080`.
+
+The ready message lists two pages on that same origin:
+
+- **OA leave / ERP procurement:** the main workspace. Select **Request type → Procurement** to try a purchase request.
+- **CRM quote discount:** `/quote-discount.html`, a separate synthetic example with fixed Bob → Carol approval. Sign in separately with the same demo accounts; its records are not in the main workspace or its inbox.
+
+For sample values and each role's next step, follow the [three-case walkthrough](GETTING_STARTED.md#try-other-cases-en) / [三种业务案例](GETTING_STARTED.md#try-other-cases-zh). The launcher does not start RuoYi or the H5 review client. No vendor account or AI credentials are needed.
 
 The launcher generates a different password for `alice`, `bob` and `carol`, writes them to a private temporary `credentials.json` file, and prints its path. Open the file in a local text editor. These passwords work only for this run; there are no shared or default passwords. Keep the file private and leave its contents out of issues, chat, screenshots and source control.
 

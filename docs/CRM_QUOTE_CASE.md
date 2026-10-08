@@ -1,6 +1,8 @@
 # 报价折扣审批 / Quote discount approval
 
-本文说明**隔离的合成 CRM 报价案例**及其接入、验证边界。采购／成员待办接入基线为已合入 main 的
+本文说明**隔离的合成 CRM 报价案例**及其接入、验证边界。[PR #20](https://github.com/JamesCube/ArcFlow/pull/20)
+已合入 main `66ec531270a513f884125065f19fe4e78762992f`；精确提交验收记录见
+[CRM 兼容性与发布检查](CRM_COMPATIBILITY_READINESS.md#accepted-crm-checkpoint)。历史采购／成员待办接入基线为
 `caece22fb52e645f303c6adec73f19a027d38e66`，树
 `1d3332659bc59f3c70f2ffb5954aed6aa383f522`。本文不替代当前分支或 PR 的合并、部署和验收状态。
 
@@ -9,11 +11,10 @@
 原生若依 CRM 页面和三端共享列表不在本例已实现范围内。
 验收门槛见 [CRM 兼容性与发布检查](CRM_COMPATIBILITY_READINESS.md)。
 
-This document describes the isolated synthetic CRM case and its boundaries against the
-accepted main baseline above. It does not assert the current branch's merge, deployment or
-acceptance status. Browser and server-database test definitions are included; verify actual
-exact-head reports, non-skipped database cases and screenshots before claiming those checks
-passed. Local model/DOM checks and inherited baseline CI do not replace that evidence.
+This document describes the isolated synthetic CRM case merged through PR #20. The linked
+acceptance checkpoint records its exact tested head and matching merge tree. The older
+baseline above is retained for history. Later commits need their own reports; a merged
+example is not a deployment or production-readiness claim.
 
 ## 可以运行的边界
 
@@ -35,20 +36,25 @@ No third-party credentials, customer records or external LLM calls are used.
 
 ## 本地启动
 
-沿用 `docs/GETTING_STARTED.md` 的独立端 Java 17+、Maven、Node 安装与密码设置步骤。
-先安装当前源码的 core 和 approval-domain，再运行后端与现有 approval-ui：
+首次试用可从仓库根目录运行一键启动脚本；所需 Java、Maven、Node 等版本见[启动要求](TRYOUT.md#requirements)：
 
 ```sh
-mvn install
-mvn -f examples/approval-domain/pom.xml install
-mvn -f examples/approval-demo/backend/pom.xml spring-boot:run
-# 另一个终端，使用已安装且与 lockfile 一致的依赖
-cd examples/approval-ui
-npm run dev
+python3 scripts/tryout.py
 ```
 
-打开 `http://localhost:5173/quote-discount.html`，使用原有演示账号密码。
+等待 READY，打开终端打印的报价页面地址，默认是 `http://127.0.0.1:5173/quote-discount.html`。
+从终端提示的私有密码文件读取 Alice、Bob、Carol 各自的本次演示密码，不要将密码放进 URL 或截图。
+按 Ctrl-C 会停止服务并删除本次请假、采购和报价数据。需要保留数据时，完整的
+[双终端手动启动步骤](GETTING_STARTED.md#简体中文)包含密码设置和 `npm ci`；该方式的默认地址为
+`http://localhost:5173/quote-discount.html`。两种方式都要保持各自配置的 hostname 和端口。
+
+Run the launcher above from the repository root, open its printed quote URL and use its
+private credentials file. For persistent data, use the [manual setup](GETTING_STARTED.md#english),
+including password configuration and `npm ci`. Follow the [English walkthrough](GETTING_STARTED.md#try-other-cases-en)
+or [中文操作步骤](GETTING_STARTED.md#try-other-cases-zh) for sample values and role changes.
+
 密码只保留在当前页面内存，退出后清除；页面不写入 localStorage、sessionStorage 或 URL。
+报价页与主工作区不共享登录态，但使用同一后端的演示账号。
 先 Alice 提交，再退出并以 Bob 登录审核，最后 Carol 复核。
 列表会显示每笔审批的报价版本、金额、当前步骤和原始理由。
 
@@ -147,7 +153,7 @@ not a lossless downgrade path.
 
 ## 验收与下一步 / Verification and next steps
 
-此前本地检查记录随交付包保存，不替代最终候选的回归。`examples/crm-quote/http_smoke.py` 使用随机、临时密码启动打包后的
+此前本地检查记录随交付包保存，不替代后续提交的回归。`examples/crm-quote/http_smoke.py` 使用随机、临时密码启动打包后的
 真实 Spring Boot HTTP 服务，完成报价、两步审批、篡改拒绝、跨流程隔离与重启恢复。
 
 ```sh
@@ -160,17 +166,18 @@ python3 examples/crm-quote/http_smoke.py --inbox --jar examples/approval-demo/ba
 
 `mvn test` 没有配置真实数据库时会跳过 PostgreSQL/MySQL 合同；不能将其报告成数据库全绿。
 页面 DOM 测试不能替代真实浏览器验收。`--inbox` 只检查真实 HTTP 的跨流程隔离，不模拟浏览器。
-CRM 浏览器、桌面与 390px 双语截图和真实数据库检查均需核对目标提交的实际执行结果；
-远端 exact-head CRM CI 尚未运行。通用若依构建通过也不表示若依已有 CRM 页面。
+CRM 已接受提交的浏览器、桌面与 390px 双语截图、真实数据库和远端 CI 结果见
+[精确提交验收记录](CRM_COMPATIBILITY_READINESS.md#accepted-crm-checkpoint)。后续修改仍需核对其目标提交；
+不能沿用旧结果宣称新提交已通过。通用若依构建通过也不表示若依已有 CRM 页面。
 
-下一步清单：
-1. CRM 负责人：在上述已接受 main 基线上核对最终增量和冲突处理，重新执行领域、MVC、JDBC、客户端构建及真实 HTTP 回归。
-2. 验收负责人：完成最终树的真实 PostgreSQL/MySQL CRM 合同，以及中文／英文、桌面／390px、跨角色、刷新、退出和失败恢复的浏览器旅程，保存对应提交的结果与截图。
-3. 发布负责人：完成草稿 PR 发布流程并核对 exact-head 远端 CI；发布候选不表示允许合并或部署，也不表示检查已通过。
-4. 后续共享工作区接入：同步扩展独立端、若依和 H5 的 quoteDiscount 解析、金额精度、业务权限和只读详情，再单独验收；H5 继续不新建。
+后续修改检查清单：
+1. 修改 CRM 时，针对新提交重新执行领域、MVC、JDBC、客户端构建及真实 HTTP 回归。
+2. 修改页面或存储时，保留对应提交的 PostgreSQL/MySQL 合同、双语浏览器旅程和截图，明确失败或跳过项。
+3. 准备新的发布时，独立复核增量和 exact-head CI；合并示例不等于部署或生产验收。
+4. 共享工作区接入仍未实现：需同步扩展独立端、若依和 H5 的 quoteDiscount 解析、金额精度、业务权限和只读详情，再单独验收；H5 继续不新建。
 
-For this candidate, verify the final delta against the accepted baseline, rerun the local
-regressions, then record actual browser/server-database results and exact-head remote CI.
+For subsequent changes, review the new delta, rerun affected checks and record actual
+browser/server-database results and exact-head remote CI rather than reusing this checkpoint.
 The dedicated page remains the only quote UI in scope. Shared standalone/RuoYi/H5 quote
 views require a separate integration; approval never sends a quote, charges a payment,
 notifies a customer or writes to a CRM.
