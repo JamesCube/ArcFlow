@@ -58,6 +58,13 @@ or [中文操作步骤](GETTING_STARTED.md#try-other-cases-zh) for sample values
 先 Alice 提交，再退出并以 Bob 登录审核，最后 Carol 复核。
 列表会显示每笔审批的报价版本、金额、当前步骤和原始理由。
 
+未提交的审批意见仅保留在当前登录页内存中。切换中英文、刷新相同步骤或请求失败不会清空意见；
+确认保存、步骤或流程版本变化、退出及页面导航会清除对应草稿，不跨账号或申请复用。
+
+Unsubmitted review comments stay in the current signed-in page's memory across language changes,
+same-step refreshes and failed requests. Confirmed saves, step/version changes, sign-out and page
+navigation clear the corresponding draft; comments never carry into another actor or request.
+
 报价页面通过独立地址访问，尚未加入共享主导航或采购／成员待办工作区。
 部署静态构建时须保留 `dist/quote-discount.html` 和 `dist/crm-quote/`，并将 `/api` 反向代理到后端；
 Origin 配置和原有非简单客户端头校验继续生效。

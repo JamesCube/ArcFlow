@@ -114,3 +114,94 @@ test('language changes never fill intentionally empty authenticated draft fields
   assert.equal(ui.$('title').value,''); assert.equal(ui.$('reason').value,'');
   assert.equal(ui.$('message').textContent,'Enter a title and a reason for the discount.'); ui.dom.window.close();
 });
+
+test('review draft survives language changes, refresh and retry until the saved step changes',async()=>{
+  const ui=await mount('bob'); await ui.login();
+  const opinion='保留原始审核意见 / Keep this review draft';
+  let input=ui.$('requests').querySelector('textarea'); input.value=opinion; input.dispatchEvent(new ui.dom.window.Event('input',{bubbles:true}));
+  ui.$('language').value='en'; ui.$('language').dispatchEvent(new ui.dom.window.Event('change'));
+  assert.equal(ui.$('requests').querySelector('textarea').value,opinion,'language change must preserve review input');
+  ui.$('refresh').click(); await ui.tick();
+  assert.equal(ui.$('requests').querySelector('textarea').value,opinion,'same-step refresh must preserve review input');
+  const original=globalThis.fetch;
+  globalThis.fetch=async(path,options)=>{if(options.method==='POST')throw new Error('offline');return original(path,options)};
+  ui.$('requests').querySelector('button').click(); await ui.tick(); await ui.tick();
+  assert.equal(ui.$('requests').querySelector('textarea').value,opinion,'unsaved decision retry must preserve its opinion');
+  globalThis.fetch=original;
+  ui.$('logout').click(); await ui.login();
+  assert.equal(ui.$('requests').querySelector('textarea').value,'','sign out must discard the private review draft');
+  ui.dom.window.close();
+});
+
+test('failed refresh hides controls but recovers the same unsaved review draft',async()=>{
+  const ui=await mount('bob'); await ui.login();
+  const input=ui.$('requests').querySelector('textarea'); input.value='Keep through offline recovery'; input.dispatchEvent(new ui.dom.window.Event('input'));
+  const original=globalThis.fetch; globalThis.fetch=async()=>{throw new Error('offline')};
+  ui.$('refresh').click(); await ui.tick();
+  assert.equal(ui.$('requests').querySelector('textarea'),null);
+  globalThis.fetch=original; ui.$('refresh').click(); await ui.tick();
+  assert.equal(ui.$('requests').querySelector('textarea').value,'Keep through offline recovery'); ui.dom.window.close();
+});
+
+for (const [name, changed] of [
+  ['completed step',{...view,request:{...view.request,status:'APPROVED',currentStepId:null}}],
+  ['next step',{...view,request:{...view.request,currentStepId:'finance'}}],
+  ['different process version',{...view,request:{...view.request,processVersion:2,definition:{...process,version:2}}}],
+]) test(`review draft is discarded after a confirmed ${name} and never resurrected`,async()=>{
+  const ui=await mount('bob'); await ui.login();
+  const input=ui.$('requests').querySelector('textarea'); input.value='Old review'; input.dispatchEvent(new ui.dom.window.Event('input'));
+  const original=globalThis.fetch;
+  globalThis.fetch=async(path,options)=>path==='/api/crm/requests'?{ok:true,json:async()=>structuredClone([changed])}:original(path,options);
+  ui.$('refresh').click(); await ui.tick();
+  assert.notEqual(ui.$('requests').querySelector('textarea')?.value,'Old review');
+  globalThis.fetch=original; ui.$('refresh').click(); await ui.tick();
+  assert.equal(ui.$('requests').querySelector('textarea').value,''); ui.dom.window.close();
+});
+
+test('separate requests keep separate review drafts and explicitly clearing one stays empty',async()=>{
+  const ui=await mount('bob'),original=globalThis.fetch;
+  globalThis.fetch=async(path,options)=>path==='/api/crm/requests'?{ok:true,json:async()=>structuredClone([view,{...view,request:{...view.request,id:'second-request'}}])}:original(path,options);
+  await ui.login();
+  const inputs=[...ui.$('requests').querySelectorAll('textarea')];
+  inputs.forEach((input,index)=>{input.value=`Draft ${index}`;input.dispatchEvent(new ui.dom.window.Event('input'))});
+  ui.$('language').value='en'; ui.$('language').dispatchEvent(new ui.dom.window.Event('change'));
+  assert.deepEqual([...ui.$('requests').querySelectorAll('textarea')].map(input=>input.value),['Draft 0','Draft 1']);
+  const first=ui.$('requests').querySelector('textarea');first.value='';first.dispatchEvent(new ui.dom.window.Event('input'));
+  ui.$('refresh').click(); await ui.tick();
+  assert.deepEqual([...ui.$('requests').querySelectorAll('textarea')].map(input=>input.value),['','Draft 1']); ui.dom.window.close();
+});
+
+test('a confirmed decision clears its opinion even if its following reload fails',async()=>{
+  const ui=await mount('bob'); await ui.login();
+  const input=ui.$('requests').querySelector('textarea'); input.value='Saved opinion'; input.dispatchEvent(new ui.dom.window.Event('input'));
+  const original=globalThis.fetch;
+  globalThis.fetch=async(path,options)=>{if(options.method==='POST')return {ok:true,json:async()=>view};throw new Error('offline reload')};
+  ui.$('requests').querySelector('button').click(); await ui.tick(); await ui.tick();
+  assert.equal(ui.$('requests').querySelector('textarea'),null);
+  globalThis.fetch=original; ui.$('refresh').click(); await ui.tick();
+  assert.equal(ui.$('requests').querySelector('textarea').value,''); ui.dom.window.close();
+});
+
+test('sign-out during review mutation cannot restore or clear the next session draft',async()=>{
+  const ui=await mount('bob'); await ui.login();
+  const first=ui.$('requests').querySelector('textarea'); first.value='Old actor session';first.dispatchEvent(new ui.dom.window.Event('input'));
+  const original=globalThis.fetch;let finish;
+  globalThis.fetch=(path,options)=>options.method==='POST'?new Promise(resolve=>{finish=resolve}):original(path,options);
+  ui.$('requests').querySelector('button').click();ui.$('logout').click();await ui.login();
+  const next=ui.$('requests').querySelector('textarea');assert.equal(next.value,'');next.value='New actor session';next.dispatchEvent(new ui.dom.window.Event('input'));
+  finish({ok:true,json:async()=>view});await ui.tick();await ui.tick();
+  ui.$('language').value='en';ui.$('language').dispatchEvent(new ui.dom.window.Event('change'));
+  assert.equal(ui.$('requests').querySelector('textarea').value,'New actor session');ui.dom.window.close();
+});
+
+test('a mutation recovery from an old session never publishes its result into a new login',async()=>{
+  const ui=await mount('bob'); await ui.login();
+  const original=globalThis.fetch, pending=[];
+  globalThis.fetch=(path,options)=>options.method==='POST'?Promise.resolve({ok:true,json:async()=>view}):new Promise(resolve=>pending.push(async()=>resolve(await original(path,options))));
+  ui.$('requests').querySelector('button').click();await ui.tick();
+  assert.equal(pending.length,4);
+  ui.$('logout').click();globalThis.fetch=original;await ui.login();
+  assert.equal(ui.$('message').textContent,'');
+  await Promise.all(pending.map(finish=>finish()));await ui.tick();await ui.tick();
+  assert.equal(ui.$('message').textContent,'');ui.dom.window.close();
+});
