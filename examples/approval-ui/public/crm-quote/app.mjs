@@ -2,6 +2,10 @@ import { copy } from './copy.mjs';
 import { authorization, preview, submissionBody, canDecide, validateViews } from './model.mjs';
 const $ = id => document.getElementById(id);
 let language = 'zh', auth = '', actor = '', process = null, quotes = [], views = [], busy = false, loaded = false, generation = 0, messageKey = null;
+// Unsubmitted opinions belong to one signed-in actor and one saved review step.
+// Keep them in memory across translated redraws and recoverable reloads only.
+const reviewDrafts = new Map();
+const reviewKey = request => JSON.stringify([actor, request.id, request.processVersion ?? request.definition?.version, request.currentStepId]);
 const t = key => copy[language][key] || key;
 function message(key = null) { messageKey = key; $('message').textContent = key ? t(key) : ''; }
 function draftError(error) { return error.message === 'discount' ? 'discountError' : ['price', 'jpy', 'text'].includes(error.message) ? error.message : 'error'; }
@@ -43,11 +47,13 @@ function renderRequests() {
     card.append(element('p', t('rule'), 'hint'), element('p', t('notConnected'), 'hint'));
     if (canDecide(request, actor)) {
       const form = element('form'), fieldset = element('fieldset'), label = element('label', t('comment')), input = element('textarea');
+      const draftKey = reviewKey(request); input.value = reviewDrafts.get(draftKey) || '';
+      input.addEventListener('input', () => { if (input.value) reviewDrafts.set(draftKey, input.value); else reviewDrafts.delete(draftKey); });
       input.maxLength = 2000; input.rows = 2; label.append(input); fieldset.append(label); fieldset.disabled = busy || !loaded;
       const actions = element('div', null, 'actions');
       for (const [decision, key] of [['APPROVE', 'approve'], ['REJECT', 'reject']]) {
         const button = element('button', t(key), key === 'reject' ? 'secondary' : null); button.type = 'button';
-        button.addEventListener('click', () => mutate(`/crm/requests/${encodeURIComponent(request.id)}/decisions`, JSON.stringify({stepId: request.currentStepId, decision, comment: input.value}), 'decisionSaved'));
+        button.addEventListener('click', () => mutate(`/crm/requests/${encodeURIComponent(request.id)}/decisions`, JSON.stringify({stepId: request.currentStepId, decision, comment: input.value}), 'decisionSaved', draftKey));
         actions.append(button);
       }
       fieldset.append(actions); form.append(fieldset); card.append(form);
@@ -63,19 +69,22 @@ async function refresh({ clearMessage = true } = {}) {
     validateViews(nextViews);
     if (!Array.isArray(nextQuotes) || nextProcess.id !== 'quote-discount') throw new Error('response');
     actor = me.id; process = nextProcess; quotes = nextQuotes; views = nextViews; loaded = true;
+    const activeReviews = new Set(views.filter(view => canDecide(view.request, actor)).map(view => reviewKey(view.request)));
+    for (const key of reviewDrafts.keys()) if (!activeReviews.has(key)) reviewDrafts.delete(key);
     $('identity').textContent = me.displayName; $('login-panel').hidden = true; $('workspace').hidden = false;
     $('quote-select').replaceChildren(...quotes.map((quote, index) => { const option = element('option', `${quote.businessId} · v${quote.revision}`); option.value = String(index); return option; }));
     renderSource(); if (clearMessage) message();
   } catch { if (token === generation) { views = []; quotes = []; process = null; renderSource(); message(auth && actor ? 'error' : 'loginError'); } }
   finally { if (token === generation) setBusy(false); }
 }
-async function mutate(path, body, success) {
+async function mutate(path, body, success, savedReviewKey) {
   if (busy || !loaded) return;
   const token = generation; setBusy(true);
   let result = success;
   try { await api(path, body); } catch (error) { result = error.message === 'http-409' ? 'conflict' : error.message === 'http-403' ? 'forbidden' : error.message === 'http-400' ? 'invalid' : 'uncertain'; }
   if (token !== generation) return;
-  await refresh({ clearMessage: false }); if (loaded) message(result);
+  if (result === success && savedReviewKey) reviewDrafts.delete(savedReviewKey);
+  await refresh({ clearMessage: false }); if (token === generation && loaded) message(result);
 }
 $('login-form').addEventListener('submit', event => {
   event.preventDefault(); if (busy) return;
@@ -83,6 +92,7 @@ $('login-form').addEventListener('submit', event => {
 });
 function clearSession({ focus = false } = {}) {
   generation++; auth = ''; actor = ''; process = null; quotes = []; views = []; loaded = false;
+  reviewDrafts.clear();
   $('identity').textContent = ''; $('quote-select').replaceChildren();
   $('title').value = t('defaultTitle'); $('reason').value = t('defaultReason'); $('requested').value = '850.00';
   setBusy(false); renderSource(); $('workspace').hidden = true; $('login-panel').hidden = false;

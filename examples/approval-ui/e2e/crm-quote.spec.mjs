@@ -178,10 +178,13 @@ test('crm quote: real source checks, lost acknowledgement, immutable revision, t
   let record = await readRecord(page)
   await expect(record.getByRole('button', { name: 'Approve', exact: true })).toBeVisible()
   await expect(page.locator('#create-panel')).toBeHidden()
+  const managerOpinion = 'Synthetic sales manager review / 合成销售经理审核'
+  await record.locator('textarea').fill(managerOpinion)
   for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) {
     await page.setViewportSize(viewport)
     for (const language of ['zh', 'en']) {
       await page.locator('#language').selectOption(language)
+      await expect(record.locator('textarea')).toHaveValue(managerOpinion)
       await capture(page, testInfo, `crm-review-${language}-${viewport.width === 390 ? '390' : 'desktop'}`)
     }
   }
@@ -197,7 +200,13 @@ test('crm quote: real source checks, lost acknowledgement, immutable revision, t
   await page.locator('#refresh').click()
   record = await readRecord(page)
   await expect(page.locator('#refresh')).toBeEnabled()
-  await record.locator('textarea').fill('Synthetic sales manager review / 合成销售经理审核')
+  await expect(record.locator('textarea')).toHaveValue(managerOpinion)
+  // A failed write keeps the original opinion ready for an explicit retry.
+  await page.route(`**/api/crm/requests/${id}/decisions`, route => route.abort('failed'))
+  await record.getByRole('button', { name: 'Approve', exact: true }).click()
+  await expect(page.locator('#message')).toContainText('could not be confirmed')
+  await expect(record.locator('textarea')).toHaveValue(managerOpinion)
+  await page.unroute(`**/api/crm/requests/${id}/decisions`)
   await record.getByRole('button', { name: 'Approve', exact: true }).click()
   await expect(page.locator('#message')).toHaveText('Your review is saved.')
   await expect(page.locator('#requests button')).toHaveCount(0)
@@ -206,6 +215,7 @@ test('crm quote: real source checks, lost acknowledgement, immutable revision, t
   expect(partial.request.currentStepId).toBe('finance')
   expect(partial.request.business).toEqual(committed.request.business)
   expect(partial.request.history.map(event => event.actorId)).toEqual(['alice', 'bob'])
+  expect(partial.request.history.at(-1).comment).toBe(managerOpinion)
   expect((await backend(request, 'bob', '/requests/inbox?box=HANDLED')).items.some(row => row.id === id)).toBe(false)
   await logout(page)
 
