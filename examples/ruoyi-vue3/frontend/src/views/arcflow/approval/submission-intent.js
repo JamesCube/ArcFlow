@@ -44,3 +44,13 @@ export function createSubmissionIntent(keyFactory = newSubmissionKey) {
     clear() { pending = null },
   }
 }
+
+// Each document selector entry owns its draft and unresolved retry. Merely
+// visiting another form is not an edit of the first submission's intent.
+export function createSubmissionForms(keyFactory = newSubmissionKey) {
+  return Object.fromEntries(['leave', 'procurement'].map(type => [type, {
+    fields: type === 'leave' ? { title: '', reason: '', days: 1 }
+      : { businessId: '', title: '', reason: '', item: '', quantity: '1', unitPrice: '', currency: 'CNY' },
+    intent: createSubmissionIntent(keyFactory), attempt: null, definition: null, versionRejected: false,
+  }]))
+}

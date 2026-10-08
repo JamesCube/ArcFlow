@@ -98,3 +98,8 @@ bounded member API and keep their own continuation state. Details use the
 shared request snapshot cache and compatible visible-request list. See [the business contract](../../docs/BUSINESS_DOCUMENTS.md),
 [procurement scope](../../docs/PROCUREMENT_UI.md) and
 [combined verification](../../docs/LOCAL_INTEGRATION.md).
+
+Returning to an unchanged document form reuses its unresolved submission key
+and original process snapshot, even after a publication refresh. A successful
+submission clears only that form. Sign-out clears both forms and retry slots;
+editing a form's normalized payload starts a new intent for that form.

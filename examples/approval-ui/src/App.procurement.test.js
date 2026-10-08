@@ -172,9 +172,10 @@ describe('uncertain typed submission retry and immutable details', () => {
     api.request.mockRejectedValueOnce(new TypeError('Failed to fetch')); await submit(wrapper)
     expect(posts()[1][1].headers['Idempotency-Key']).not.toBe(first)
     await field(wrapper, 'request-type').setValue('leave')
+    await field(wrapper, 'request-title').setValue('Annual leave'); await field(wrapper, 'request-reason').setValue('Rest')
     api.request.mockRejectedValueOnce(new TypeError('Failed to fetch')); await submit(wrapper)
     expect(posts()[2][0]).toBe('/requests')
-    expect(JSON.parse(posts()[2][1].body)).toEqual({ title: business.title, reason: business.reason, days: 1, processVersion: 1 })
+    expect(JSON.parse(posts()[2][1].body)).toEqual({ title: 'Annual leave', reason: 'Rest', days: 1, processVersion: 1 })
     expect(posts()[2][1].headers['Idempotency-Key']).not.toBe(posts()[1][1].headers['Idempotency-Key'])
   })
   it('renders legacy, typed leave and procurement together while malformed typed rows cannot be approved', async () => {
@@ -320,5 +321,122 @@ describe('typed procurement across member inbox pages', () => {
     await field(wrapper, 'handled-tab').trigger('click'); await flushPromises()
     expect(wrapper.find('.request-item').text()).toContain('Procurement · CNY 598.50')
     expect(posts()).toHaveLength(1)
+  })
+})
+
+describe('audit: switching away from an unresolved submission', () => {
+  it('reuses the same procurement key after switching to leave and returning without editing', async () => {
+    const { wrapper } = setup(); await login(wrapper); await fill(wrapper)
+    api.request.mockRejectedValueOnce(new TypeError('Lost acknowledgement after commit')); await submit(wrapper)
+    const first = posts()[0][1]
+    await field(wrapper, 'request-type').setValue('leave')
+    await field(wrapper, 'request-type').setValue('procurement')
+    api.request.mockRejectedValueOnce(new TypeError('Retry acknowledgement unavailable')); await submit(wrapper)
+    expect(posts()[1][1].body).toBe(first.body)
+    expect(posts()[1][1].headers['Idempotency-Key']).toBe(first.headers['Idempotency-Key'])
+  })
+})
+
+describe('independent document drafts and unresolved retries', () => {
+  async function failSubmit(wrapper) { api.request.mockRejectedValueOnce(new TypeError('Lost acknowledgement')); await submit(wrapper); return posts().at(-1)[1] }
+  async function leaveDraft(wrapper) {
+    await field(wrapper, 'request-type').setValue('leave')
+    await field(wrapper, 'request-title').setValue('Annual leave'); await field(wrapper, 'request-reason').setValue('Rest'); await field(wrapper, 'request-days').setValue('4')
+  }
+  it('keeps distinct text, keys and original versions for both forms across publication refresh', async () => {
+    const { wrapper, server } = setup(); await login(wrapper); await fill(wrapper)
+    const procurementAttempt = await failSubmit(wrapper)
+    await leaveDraft(wrapper); const leaveAttempt = await failSubmit(wrapper)
+    expect(leaveAttempt.headers['Idempotency-Key']).not.toBe(procurementAttempt.headers['Idempotency-Key'])
+    server.definition = { ...clone(definition), version: 2, nodes: definition.nodes.map(node => node.type === 'approval' ? { ...node, assigneeId: 'alice' } : node) }
+    await field(wrapper, 'refresh').trigger('click'); await flushPromises()
+    await field(wrapper, 'workspace-language').setValue('zh')
+    expect(await failSubmit(wrapper)).toEqual(leaveAttempt)
+    await field(wrapper, 'request-type').setValue('procurement')
+    expect(field(wrapper, 'request-title').element.value).toBe(business.title)
+    expect(field(wrapper, 'request-reason').element.value).toBe(business.reason)
+    expect(field(wrapper, 'submission-template').text()).toContain('v1')
+    expect(await failSubmit(wrapper)).toEqual(procurementAttempt)
+    await field(wrapper, 'request-type').setValue('leave')
+    expect(field(wrapper, 'request-title').element.value).toBe('Annual leave')
+    expect(field(wrapper, 'request-days').element.value).toBe('4')
+  })
+  it('successful procurement clears only its form and retains the other draft and retry', async () => {
+    const { wrapper } = setup(); await login(wrapper); await leaveDraft(wrapper)
+    const leaveAttempt = await failSubmit(wrapper)
+    await fill(wrapper); api.request.mockResolvedValueOnce(clone(document)); await submit(wrapper)
+    expect(field(wrapper, 'request-title').element.value).toBe('')
+    expect(field(wrapper, 'request-business-id').element.value).toBe('')
+    await field(wrapper, 'request-type').setValue('leave')
+    expect(field(wrapper, 'request-title').element.value).toBe('Annual leave')
+    expect(field(wrapper, 'request-days').element.value).toBe('4')
+    expect(await failSubmit(wrapper)).toEqual(leaveAttempt)
+  })
+  it('sign-out clears both hidden and visible drafts and retry keys', async () => {
+    const { wrapper } = setup(); await login(wrapper); await fill(wrapper)
+    const procurementAttempt = await failSubmit(wrapper)
+    await leaveDraft(wrapper); const leaveAttempt = await failSubmit(wrapper)
+    await field(wrapper, 'sign-out').trigger('click'); await login(wrapper)
+    expect(field(wrapper, 'request-title').element.value).toBe('')
+    expect(field(wrapper, 'request-reason').element.value).toBe('')
+    expect(field(wrapper, 'request-days').element.value).toBe('1')
+    await field(wrapper, 'request-type').setValue('procurement')
+    expect(field(wrapper, 'request-title').element.value).toBe('')
+    expect(field(wrapper, 'request-business-id').element.value).toBe('')
+    await fill(wrapper); expect((await failSubmit(wrapper)).headers['Idempotency-Key']).not.toBe(procurementAttempt.headers['Idempotency-Key'])
+    await leaveDraft(wrapper); expect((await failSubmit(wrapper)).headers['Idempotency-Key']).not.toBe(leaveAttempt.headers['Idempotency-Key'])
+  })
+  it('refresh clears a hidden proven-uncreated version conflict without dropping another uncertain retry', async () => {
+    const { wrapper, server } = setup(); await login(wrapper); await fill(wrapper)
+    api.request.mockRejectedValueOnce({ status: 409, message: 'The published process changed; reload before submitting' }); await submit(wrapper)
+    const rejectedAttempt = posts().at(-1)[1]
+    await leaveDraft(wrapper); const leaveAttempt = await failSubmit(wrapper)
+    server.definition = { ...clone(definition), version: 2 }
+    await field(wrapper, 'refresh').trigger('click'); await flushPromises()
+    expect(await failSubmit(wrapper)).toEqual(leaveAttempt)
+    await field(wrapper, 'request-type').setValue('procurement')
+    const next = await failSubmit(wrapper)
+    expect(next.headers['Idempotency-Key']).not.toBe(rejectedAttempt.headers['Idempotency-Key'])
+    expect(JSON.parse(next.body).processVersion).toBe(2)
+  })
+})
+
+describe('independent review: symmetric standalone slot transitions', () => {
+  async function uncertain(wrapper) { api.request.mockRejectedValueOnce(new TypeError('Lost acknowledgement')); await submit(wrapper); return posts().at(-1)[1] }
+  async function leave(wrapper) { await field(wrapper, 'request-type').setValue('leave'); await field(wrapper, 'request-title').setValue(' Different leave '); await field(wrapper, 'request-reason').setValue(' Rest '); await field(wrapper, 'request-days').setValue('4') }
+  it('successfully submitting leave preserves procurement input, key and original version', async () => {
+    const { wrapper, server } = setup(); await login(wrapper); await fill(wrapper)
+    const procurementAttempt = await uncertain(wrapper)
+    await leave(wrapper); await uncertain(wrapper)
+    server.definition = { ...clone(definition), version: 2 }
+    await field(wrapper, 'refresh').trigger('click'); await flushPromises()
+    const { business: ignored, ...legacy } = clone(document)
+    api.request.mockResolvedValueOnce({ ...legacy, id: 'l1', title: 'Different leave', reason: 'Rest', days: 4 })
+    await submit(wrapper)
+    expect(field(wrapper, 'request-title').element.value).toBe(''); expect(field(wrapper, 'request-days').element.value).toBe('1')
+    await field(wrapper, 'request-type').setValue('procurement')
+    expect(field(wrapper, 'request-title').element.value).toBe(business.title)
+    expect(field(wrapper, 'request-unit-price').element.value).toBe('199.50')
+    expect(field(wrapper, 'submission-template').text()).toContain('v1')
+    expect(await uncertain(wrapper)).toEqual(procurementAttempt)
+  })
+  it('retains different text/keys during synchronous switches, but rotates just an edited active slot', async () => {
+    const { wrapper } = setup(); await login(wrapper); await fill(wrapper)
+    const procurementAttempt = await uncertain(wrapper)
+    await leave(wrapper); const leaveAttempt = await uncertain(wrapper)
+    const state = wrapper.vm.$.setupState
+    for (let i = 0; i < 100; i++) {
+      state.requestType = 'procurement'; expect(state.title).toBe(business.title); expect(state.reason).toBe(business.reason)
+      expect(state.submissionAttempt.key).toBe(procurementAttempt.headers['Idempotency-Key'])
+      state.requestType = 'leave'; expect(state.title).toBe(' Different leave '); expect(state.reason).toBe(' Rest ')
+      expect(state.submissionAttempt.key).toBe(leaveAttempt.headers['Idempotency-Key'])
+    }
+    state.reason = 'Rest'; state.title = 'Different leave'
+    expect(await uncertain(wrapper)).toEqual(leaveAttempt)
+    state.reason = 'New reason'
+    const edited = await uncertain(wrapper)
+    expect(edited.headers['Idempotency-Key']).not.toBe(leaveAttempt.headers['Idempotency-Key'])
+    state.requestType = 'procurement'
+    expect(await uncertain(wrapper)).toEqual(procurementAttempt)
   })
 })
