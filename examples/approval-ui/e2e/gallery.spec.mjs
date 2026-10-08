@@ -117,7 +117,7 @@ test('gallery: designer configuration and staged OA ERP journeys', async ({ page
   let item = await mutation(page, '/requests', () => page.getByTestId('submit-request').click())
   expect(item.status).toBe('PENDING')
   await capture(page, info, 'oa-02-submitted')
-  const next = await seed(request, 'New requests: team review · 新申请使用团队会签', [{ id: 'team', type: 'parallelApproval', name: 'Team review · 团队会签', assigneeIds: ['bob', 'carol'], completionMode: 'ALL' }])
+  const next = await seed(request, 'New requests: team review · 新申请使用团队会签', [{ id: 'team', type: 'parallelApproval', name: 'Team review · 团队会签', assigneeId: null, assigneeIds: ['bob', 'carol'], completionMode: 'ALL' }])
   expect(next.version).toBeGreaterThan(original.version)
   await login(page, 'alice')
   await select(page, title)
@@ -192,7 +192,7 @@ test('gallery: designer configuration and staged OA ERP journeys', async ({ page
   await capture(page, info, 'erp-06-rejected')
 })
 
-test('gallery: isolated CRM quote journey', async ({ page }, info) => {
+test('gallery: isolated CRM quote journey', async ({ page, request }, info) => {
   test.setTimeout(120000)
   const rejected = process.env.GALLERY_CRM_REJECT === '1'
   await login(page, 'alice', true)
@@ -209,21 +209,33 @@ test('gallery: isolated CRM quote journey', async ({ page }, info) => {
   await record.locator('textarea').fill(rejected ? 'Discount exceeds this case budget. / 本案例折扣超出预算。' : 'Discount checked against the source quote. / 已核对源报价和折扣。')
   if (!rejected) await capture(page, info, 'crm-03-manager-review', true)
   await page.locator('#language').selectOption('en')
+  await record.locator('textarea').fill(rejected ? 'Discount exceeds this case budget. / 本案例折扣超出预算。' : 'Discount checked against the source quote. / 已核对源报价和折扣。')
   await record.getByRole('button', { name: rejected ? 'Reject' : 'Approve', exact: true }).click()
   await expect(page.locator('#message')).toHaveText('Your review is saved.')
   await expect(record.locator('.status')).toHaveText(rejected ? 'Rejected' : 'Pending')
   if (rejected) {
+    const saved = (await api(request, 'bob', '/crm/requests'))[0].request
+    expect(saved.status).toBe('REJECTED')
+    expect(saved.history.at(-1).comment).toContain('Discount exceeds this case budget.')
     await capture(page, info, 'crm-06-rejected', true)
     return
   }
   await login(page, 'carol', true)
   record = page.locator('#requests .record')
-  await expect(record).toContainText('Discount checked against the source quote.')
+  await expect(record).toContainText('finance')
+  const partial = (await api(request, 'carol', '/crm/requests'))[0].request
+  expect(partial.currentStepId).toBe('finance')
+  expect(partial.history.map(event => event.actorId)).toEqual(['alice', 'bob'])
+  expect(partial.history.at(-1).comment).toContain('Discount checked against the source quote.')
   await record.locator('textarea').fill('Amount checked; approval only. / 已核对金额，仅记录审批。')
   await capture(page, info, 'crm-04-finance-review', true)
   await page.locator('#language').selectOption('en')
+  await record.locator('textarea').fill('Amount checked; approval only. / 已核对金额，仅记录审批。')
   await record.getByRole('button', { name: 'Approve', exact: true }).click()
   await expect(record.locator('.status')).toHaveText('Approved')
   await expect(record.locator('button')).toHaveCount(0)
+  const approved = (await api(request, 'carol', '/crm/requests'))[0].request
+  expect(approved.status).toBe('APPROVED')
+  expect(approved.history.map(event => [event.actorId, event.action])).toEqual([['alice', 'SUBMIT'], ['bob', 'APPROVE'], ['carol', 'APPROVE']])
   await capture(page, info, 'crm-05-approved', true)
 })
