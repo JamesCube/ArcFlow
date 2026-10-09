@@ -1,0 +1,2 @@
+import {defineConfig} from '@playwright/test';
+export default defineConfig({testDir:'./tests',timeout:30000,fullyParallel:true,use:{baseURL:'http://127.0.0.1:8787/ArcFlow/',trace:'retain-on-failure'},reporter:[['list'],['html',{open:'never'}]],webServer:{command:'python3 scripts/serve.py',url:'http://127.0.0.1:8787/ArcFlow/',reuseExistingServer:!process.env.CI},projects:[{name:'chromium',use:{browserName:'chromium'}}]});
