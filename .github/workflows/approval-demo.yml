@@ -313,10 +313,16 @@ jobs:
           }
           head = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
           assert head == os.environ['EXPECTED_HEAD']
+          expected_run = {
+              'id': os.environ['GITHUB_RUN_ID'],
+              'repository': os.environ['GITHUB_REPOSITORY'],
+              'attempt': os.environ['GITHUB_RUN_ATTEMPT'],
+          }
           summaries = list(root.rglob('receiving-acceptance.json'))
           assert len(summaries) == 1, summaries
           summary = json.loads(summaries[0].read_text())
           assert summary['sourceRevision'] == head and summary['sourceTreeClean'] is True
+          assert summary.get('githubRun') == expected_run, 'Receiving acceptance must belong to this workflow run and attempt'
           assert summary['verificationBackend'] == 'declared-Boot-4.1.1'
           assert summary['result'] == 'passed' and summary['capturedStates'] == 15
           assert summary['mainAndExpenseProcessesUnchanged'] is True
@@ -326,6 +332,7 @@ jobs:
           for image in images:
               metadata = json.loads(image.with_suffix('.json').read_text())
               assert metadata['sourceRevision'] == head and metadata['sourceTreeClean'] is True
+              assert metadata.get('githubRun') == expected_run, f'Receiving image must belong to this workflow run and attempt: {image.name}'
               assert metadata['verificationBackend'] == 'declared-Boot-4.1.1'
               assert metadata['image'] == image.name and metadata['state'] == image.stem
               assert metadata['imageSHA256'] == hashlib.sha256(image.read_bytes()).hexdigest()
