@@ -56,6 +56,11 @@ def java_trim(value):
     return value.strip(''.join(chr(c) for c in range(0x21)))
 
 
+def java_nonblank(value):
+    blank = set(range(9, 14)) | set(range(0x1c, 0x21)) | {0x1680, 0x2028, 0x2029, 0x205f, 0x3000} | set(range(0x2000, 0x2007)) | set(range(0x2008, 0x200b))
+    return any(ord(c) not in blank for c in value)
+
+
 def load_json(path, lexical=False):
     def pairs(items):
         result = {}
@@ -200,6 +205,8 @@ class Checker:
         unknown = {k for k in schema if k not in KEYWORDS and not k.startswith('x-')}
         require(not unknown, f'Unsupported schema keywords {unknown}; extend checker before using them')
         if '$ref' in schema: self.resolve(schema['$ref'], base)
+        if 'x-nonblank' in schema:
+            require(schema['x-nonblank'] in {'java-isBlank', 'java-trim-isBlank', 'unicode-space-c0-bom'}, 'Unsupported x-nonblank policy; extend checker before using it')
         if 'type' in schema:
             kinds = schema['type'] if isinstance(schema['type'], list) else [schema['type']]
             require(set(kinds) <= {'null', 'boolean', 'object', 'array', 'number', 'integer', 'string'}, 'Invalid schema type')
@@ -254,13 +261,14 @@ class Checker:
             require(len(value) >= schema.get('minLength', 0) and len(value) <= schema.get('maxLength', sys.maxsize), f'{where}: string length')
             if 'pattern' in schema: require((re.fullmatch(schema['pattern'], value) if schema['pattern'].startswith('^') and schema['pattern'].endswith('$') else re.search(schema['pattern'], value)), f'{where}: pattern mismatch')
             if schema.get('x-nonblank'):
-                fixed = set(range(0x21)) | {0x85, 0xa0, 0x1680, 0x2028, 0x2029, 0x202f, 0x205f, 0x3000, 0xfeff} | set(range(0x2000, 0x200b))
-                java = set(range(9, 14)) | set(range(0x1c, 0x21)) | {0x1680, 0x2028, 0x2029, 0x205f, 0x3000} | set(range(0x2000, 0x2007)) | set(range(0x2008, 0x200b))
-                blank = fixed if schema['x-nonblank'] == 'unicode-space-c0-bom' else java
-                require(any(ord(c) not in blank for c in value), f'{where}: blank text')
+                policy = schema['x-nonblank']
+                require(policy in {'java-isBlank', 'java-trim-isBlank', 'unicode-space-c0-bom'}, f'{where}: unsupported x-nonblank policy')
+                nonblank = (fixed_scenario_nonblank(value) if policy == 'unicode-space-c0-bom' else
+                            java_nonblank(java_trim(value)) if policy == 'java-trim-isBlank' else java_nonblank(value))
+                require(nonblank, f'{where}: blank text under {policy}')
             if schema.get('x-no-iso-controls'): require(not any(ord(c) < 0x20 or 0x7f <= ord(c) <= 0x9f for c in value), f'{where}: ISO control character')
             if 'x-min-year' in schema: require(int(value[:4]) >= schema['x-min-year'], f'{where}: date year')
-            if 'x-java-utf16-max' in schema: require(len(value.encode('utf-16-le')) // 2 <= schema['x-java-utf16-max'], f'{where}: UTF-16 length')
+            if 'x-java-utf16-max' in schema: require(sum(2 if ord(character) > 0xffff else 1 for character in value) <= schema['x-java-utf16-max'], f'{where}: UTF-16 length')
             if schema.get('format') == 'date':
                 try: datetime.date.fromisoformat(('2000' + value[4:]) if value.startswith('0000-') else value)
                 except ValueError: raise ContractError(f'{where}: invalid calendar date')
@@ -293,6 +301,8 @@ class Checker:
             fields = record_fields((self.root / source['source']).read_text(), source['name'])
             require(set(schema['properties']) == set(fields) | set(source['synthetic']), f'{name}: Java record/property parity drift')
             require(set(schema['required']) == set(schema['properties']) - set(source['optional']), f'{name}: required/omitted field drift')
+        for model, field in [('ExpenseLine', 'description'), ('Travel', 'title'), ('Travel', 'reason'), ('Travel', 'destination')]:
+            require(schemas[model]['properties'][field].get('x-nonblank') == 'java-trim-isBlank', f'{model}.{field}: Java trim/isBlank contract drift')
         require('revision' not in schemas['Request']['properties'] and 'revision' not in schemas['QuoteView']['properties'], 'Invented revision response field')
         require(schemas['Error'] == {'type': 'object', 'properties': {'message': {'type': 'string'}}, 'required': ['message'], 'additionalProperties': False}, 'Standalone controlled error envelope changed')
 

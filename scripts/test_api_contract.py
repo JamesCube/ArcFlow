@@ -249,6 +249,65 @@ class ContractMutationTests(unittest.TestCase):
         self.mutate_json('docs/api/examples/contract.json', change)
         self.rejected('deviation reason')
 
+    def trim_text_cases(self):
+        return [('expense', ('business', 'lines', 0, 'description')),
+                ('travel', ('business', 'destination')),
+                ('travel', ('business', 'title')),
+                ('travel', ('business', 'reason'))]
+
+    def validate_trim_case(self, checker, example, field, value):
+        body = load_json(self.root / ('docs/api/examples/' + example + '.json'), lexical=True)
+        target = body
+        for part in field[:-1]:
+            target = target[part]
+        target[field[-1]] = value
+        checker.validate(body, {'$ref': '#/$defs/ScenarioSubmission'}, self.root / SPEC_DIR / 'schemas.json')
+        checker.domain_example(body, example)
+
+    def test_trimmed_scenario_text_rejects_each_c0_and_space(self):
+        checker = Checker(self.root)
+        for example, field in self.trim_text_cases():
+            for codepoint in range(0x21):
+                with self.subTest(example=example, field=field, codepoint=codepoint):
+                    with self.assertRaises(ContractError):
+                        self.validate_trim_case(checker, example, field, chr(codepoint))
+
+    def test_trimmed_scenario_text_rejects_mixed_blank_after_trim(self):
+        checker = Checker(self.root)
+        for example, field in self.trim_text_cases():
+            for value in ['\x00 \t\x1b', '\x00\u2000\x01', '\x1f\u3000\x00', '\u2000\x00']:
+                with self.subTest(example=example, field=field, value=repr(value)):
+                    with self.assertRaises(ContractError):
+                        self.validate_trim_case(checker, example, field, value)
+
+    def test_trimmed_scenario_text_preserves_exact_java_positive_cases(self):
+        checker = Checker(self.root)
+        # Internal C0 is not trimmed if non-ASCII whitespace surrounds it.
+        # NBSP/NEL/BOM are not Java isBlank characters and must not be banned here.
+        for example, field in self.trim_text_cases():
+            for value in ['\u00a0', '\u0085', '\ufeff', '\x00Synthetic\x1f', '\u2000\x00\u2000', '\x7f']:
+                with self.subTest(example=example, field=field, value=repr(value)):
+                    self.validate_trim_case(checker, example, field, value)
+
+    def test_trim_rule_cannot_be_dropped_from_model(self):
+        self.schema(lambda s: s['Travel']['properties']['destination'].__setitem__('x-nonblank', 'java-isBlank'))
+        self.rejected('trim/isBlank contract drift')
+
+    def test_unknown_nonblank_policy_fails_closed(self):
+        self.schema(lambda s: s['Travel']['properties']['destination'].__setitem__('x-nonblank', 'java-trim-typo'))
+        self.rejected('Unsupported x-nonblank')
+
+    def test_java_utf16_length_handles_escaped_lone_surrogates(self):
+        checker = Checker(self.root)
+        for value in ['\ud800', '\udfff', '\ud800' * 120]:
+            with self.subTest(codepoints=len(value)):
+                body = load_json(self.root / 'docs/api/examples/leave.json', lexical=True)
+                body['business']['title'] = value
+                checker.validate(body, {'$ref': '#/$defs/GenericSubmission'}, self.root / SPEC_DIR / 'schemas.json')
+        body['business']['title'] = '\ud800' * 121
+        with self.assertRaises(ContractError):
+            checker.validate(body, {'$ref': '#/$defs/GenericSubmission'}, self.root / SPEC_DIR / 'schemas.json')
+
     def test_comments_and_whitespace_do_not_invalidate_source_review(self):
         path = self.root / DEMO / 'SecurityConfig.java'
         path.write_text('// Reviewed source comments are not semantic.\n\n' + path.read_text())

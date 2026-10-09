@@ -421,7 +421,7 @@
 
 `leave`、`procurement`、`quoteDiscount` **不带 `documentVersion`**；六场景必须 `documentVersion:1`。支持币种只为 `CNY,USD,EUR,GBP,JPY`，无换汇。日期使用真实 `YYYY-MM-DD`；六场景年份必须 0001–9999。报价的领域日期验证使用 Java LocalDate，首次提交另受 UTC 有效期检查。
 
-用印、收货、付款、合同使用固定 Unicode White_Space/C0/BOM 非空校验；旧类型的 `isBlank()` 规则并不完全相同。不要用不可见字符满足必填。字符串按规定去除首尾空白，引用值不会自动去除首尾空白修复非法值。
+用印、收货、付款、合同使用固定 Unicode White_Space/C0/BOM 非空校验；旧类型的 `isBlank()` 规则并不完全相同。不要用不可见字符满足必填。字符串按规定去除首尾空白，引用值不会自动去除首尾空白修复非法值。 费用明细的 description，以及出差的 title、reason、destination，还会在 Java `trim()` 去除首尾 U+0000–U+0020 后执行 `isBlank()`，因此拒绝仅含 NUL 或 C0 的文本；这不会把 NBSP 或 BOM 当作 Java 空白，也不是禁止所有内嵌控制字符。
 
 ### 9.2 `leave`（通用）
 

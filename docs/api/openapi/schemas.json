@@ -290,7 +290,8 @@
           "maxLength": 240,
           "x-java-utf16-max": 240,
           "minLength": 1,
-          "x-nonblank": "java-isBlank"
+          "x-nonblank": "java-trim-isBlank",
+          "description": "Must remain nonblank under Java String.isBlank() after Java trim() removes only leading/trailing U+0000–U+0020 code units. This is not the fixed Unicode/C0/BOM blank rule."
         },
         "amount": {
           "$ref": "#/$defs/Money"
@@ -403,21 +404,24 @@
           "maxLength": 120,
           "x-java-utf16-max": 120,
           "minLength": 1,
-          "x-nonblank": "java-isBlank"
+          "x-nonblank": "java-trim-isBlank",
+          "description": "Must remain nonblank under Java String.isBlank() after Java trim() removes only leading/trailing U+0000–U+0020 code units. This is not the fixed Unicode/C0/BOM blank rule."
         },
         "reason": {
           "type": "string",
           "maxLength": 2000,
           "x-java-utf16-max": 2000,
           "minLength": 1,
-          "x-nonblank": "java-isBlank"
+          "x-nonblank": "java-trim-isBlank",
+          "description": "Must remain nonblank under Java String.isBlank() after Java trim() removes only leading/trailing U+0000–U+0020 code units. This is not the fixed Unicode/C0/BOM blank rule."
         },
         "destination": {
           "type": "string",
           "maxLength": 160,
           "x-java-utf16-max": 160,
           "minLength": 1,
-          "x-nonblank": "java-isBlank"
+          "x-nonblank": "java-trim-isBlank",
+          "description": "Must remain nonblank under Java String.isBlank() after Java trim() removes only leading/trailing U+0000–U+0020 code units. This is not the fixed Unicode/C0/BOM blank rule."
         },
         "startDate": {
           "$ref": "#/$defs/ScenarioDate"

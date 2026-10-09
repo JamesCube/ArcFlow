@@ -398,7 +398,7 @@ Every business has exact `type,businessId,title,reason`. References match `[A-Za
 
 `leave`, `procurement` and `quoteDiscount` do **not** have documentVersion. All six scenario types require `documentVersion:1`. Supported currencies are only `CNY,USD,EUR,GBP,JPY`, without conversion. Dates must be real `YYYY-MM-DD` calendar dates; the six scenarios require years 0001–9999. Quote domain parsing uses Java LocalDate and additionally checks UTC validity on initial submission.
 
-Seal use, receiving, payment and contract apply fixed Unicode White_Space/C0/BOM blank checks. Older types use Java `isBlank()` rules, which are not identical. Do not use invisible characters to satisfy required text. Text is trimmed where specified; invalid references are not automatically repaired by trimming.
+Seal use, receiving, payment and contract apply fixed Unicode White_Space/C0/BOM blank checks. Older types use Java `isBlank()` rules, which are not identical. Do not use invisible characters to satisfy required text. Text is trimmed where specified; invalid references are not automatically repaired by trimming. Expense-line description and travel title, reason and destination additionally reject text that becomes Java `isBlank()` after Java `trim()` removes leading/trailing U+0000–U+0020. This rejects NUL-only/C0-only input without treating NBSP or BOM as Java whitespace; it does not forbid every embedded control character.
 
 ### 9.2 `leave` — generic host
 
