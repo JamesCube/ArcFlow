@@ -1,0 +1,2558 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ArcFlow HTTP shared models",
+  "description": "Structural JSON schemas. Cross-field/domain and lexical constraints are additionally checked by the source, offline validator and real HTTP tests. x-java-* and x-max-scale document Java wire semantics. This is not a live route.",
+  "$defs": {
+    "Reference": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}(?![\\s\\S])"
+    },
+    "ActorId": {
+      "type": "string",
+      "maxLength": 128,
+      "x-java-utf16-max": 128,
+      "minLength": 1,
+      "x-nonblank": "java-isBlank",
+      "description": "Stable live directory ID; RuoYi uses numeric strings. Historical snapshots preserve IDs.",
+      "x-no-iso-controls": true
+    },
+    "Currency": {
+      "type": "string",
+      "enum": [
+        "CNY",
+        "USD",
+        "EUR",
+        "GBP",
+        "JPY"
+      ]
+    },
+    "Date": {
+      "type": "string",
+      "format": "date",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}(?![\\s\\S])",
+      "x-min-year": 0,
+      "description": "Four-digit Java LocalDate calendar date. Quote structural parsing also permits year 0000; initial submission still checks UTC expiry."
+    },
+    "Money": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 1000000000,
+      "multipleOf": 0.01,
+      "x-max-scale": 2,
+      "description": "Exact JSON decimal with BigDecimal scale at most two after applying the exponent; JPY must be numerically whole. No numeric strings."
+    },
+    "NonnegativeMoney": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1000000000,
+      "multipleOf": 0.01,
+      "x-max-scale": 2,
+      "description": "Exact JSON decimal with BigDecimal scale at most two after applying the exponent; JPY must be numerically whole. No numeric strings."
+    },
+    "DisplayMoney": {
+      "type": "string",
+      "pattern": "^[0-9]+(?:\\.[0-9]{2})?(?![\\s\\S])",
+      "description": "Server display string: whole JPY, two decimals otherwise."
+    },
+    "DocumentType": {
+      "type": "string",
+      "enum": [
+        "leave",
+        "procurement",
+        "quoteDiscount",
+        "expense",
+        "travel",
+        "sealUse",
+        "receiving",
+        "paymentRequest",
+        "contractApproval"
+      ]
+    },
+    "Leave": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "leave"
+        },
+        "businessId": {
+          "$ref": "#/$defs/Reference"
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 120,
+          "x-java-utf16-max": 120,
+          "minLength": 1,
+          "x-nonblank": "java-isBlank"
+        },
+        "reason": {
+          "type": "string",
+          "maxLength": 2000,
+          "x-java-utf16-max": 2000,
+          "minLength": 1,
+          "x-nonblank": "java-isBlank"
+        },
+        "days": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 365,
+          "x-json-integer": true
+        }
+      },
+      "required": [
+        "type",
+        "businessId",
+        "title",
+        "reason",
+        "days"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/BusinessDocument.java",
+        "name": "Leave",
+        "synthetic": [
+          "type"
+        ],
+        "optional": []
+      },
+      "description": ""
+    },
+    "Procurement": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "procurement"
+        },
+        "businessId": {
+          "$ref": "#/$defs/Reference"
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 120,
+          "x-java-utf16-max": 120,
+          "minLength": 1,
+          "x-nonblank": "java-isBlank"
+        },
+        "reason": {
+          "type": "string",
+          "maxLength": 2000,
+          "x-java-utf16-max": 2000,
+          "minLength": 1,
+          "x-nonblank": "java-isBlank"
+        },
+        "item": {
+          "type": "string",
+          "maxLength": 240,
+          "x-java-utf16-max": 240,
+          "minLength": 1,
+          "x-nonblank": "java-isBlank"
+        },
+        "quantity": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100000,
+          "x-json-integer": true
+        },
+        "unitPrice": {
+          "$ref": "#/$defs/Money"
+        },
+        "currency": {
+          "$ref": "#/$defs/Currency"
+        }
+      },
+      "required": [
+        "type",
+        "businessId",
+        "title",
+        "reason",
+        "item",
+        "quantity",
+        "unitPrice",
+        "currency"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/BusinessDocument.java",
+        "name": "Procurement",
+        "synthetic": [
+          "type"
+        ],
+        "optional": []
+      },
+      "description": ""
+    },
+    "QuoteDiscount": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "quoteDiscount"
+        },
+        "businessId": {
+          "$ref": "#/$defs/Reference"
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 120,
+          "x-java-utf16-max": 120,
+          "minLength": 1,
+          "x-nonblank": "java-isBlank"
+        },
+        "reason": {
+          "type": "string",
+          "maxLength": 2000,
+          "x-java-utf16-max": 2000,
+          "minLength": 1,
+          "x-nonblank": "java-isBlank"
+        },
+        "customerRef": {
+          "type": "string",
+          "maxLength": 128,
+          "x-java-utf16-max": 128,
+          "minLength": 1,
+          "x-nonblank": "java-isBlank"
+        },
+        "quoteRevision": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647,
+          "x-json-integer": true
+        },
+        "item": {
+          "type": "string",
+          "maxLength": 240,
+          "x-java-utf16-max": 240,
+          "minLength": 1,
+          "x-nonblank": "java-isBlank"
+        },
+        "quantity": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100000,
+          "x-json-integer": true
+        },
+        "listUnitPrice": {
+          "$ref": "#/$defs/Money"
+        },
+        "requestedUnitPrice": {
+          "$ref": "#/$defs/Money"
+        },
+        "currency": {
+          "$ref": "#/$defs/Currency"
+        },
+        "validUntil": {
+          "$ref": "#/$defs/Date"
+        }
+      },
+      "required": [
+        "type",
+        "businessId",
+        "title",
+        "reason",
+        "customerRef",
+        "quoteRevision",
+        "item",
+        "quantity",
+        "listUnitPrice",
+        "requestedUnitPrice",
+        "currency",
+        "validUntil"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/BusinessDocument.java",
+        "name": "QuoteDiscount",
+        "synthetic": [
+          "type"
+        ],
+        "optional": []
+      },
+      "description": "Requested price is strictly below list price. Source revision, owner, ACL, expiry and snapshot equality are checked by the quote host."
+    },
+    "ExpenseLine": {
+      "type": "object",
+      "properties": {
+        "lineId": {
+          "$ref": "#/$defs/Reference"
+        },
+        "spentOn": {
+          "$ref": "#/$defs/ScenarioDate"
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "TRAVEL",
+            "MEALS",
+            "OFFICE",
+            "OTHER"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 240,
+          "x-java-utf16-max": 240,
+          "minLength": 1,
+          "x-nonblank": "java-isBlank"
+        },
+        "amount": {
+          "$ref": "#/$defs/Money"
+        },
+        "receiptRef": {
+          "$ref": "#/$defs/Reference"
+        }
+      },
+      "required": [
+        "lineId",
+        "spentOn",
+        "category",
+        "description",
+        "amount",
+        "receiptRef"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/BusinessDocument.java",
+        "name": "ExpenseLine",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "Expense": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "expense"
+        },
+        "documentVersion": {
+          "type": "integer",
+          "const": 1,
+          "x-json-integer": true
+        },
+        "businessId": {
+          "$ref": "#/$defs/Reference"
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 120,
+          "x-java-utf16-max": 120,
+          "minLength": 1,
+          "x-nonblank": "java-isBlank"
+        },
+        "reason": {
+          "type": "string",
+          "maxLength": 2000,
+          "x-java-utf16-max": 2000,
+          "minLength": 1,
+          "x-nonblank": "java-isBlank"
+        },
+        "costCenter": {
+          "type": "string",
+          "enum": [
+            "ENGINEERING",
+            "SALES",
+            "OPERATIONS"
+          ]
+        },
+        "currency": {
+          "$ref": "#/$defs/Currency"
+        },
+        "lines": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ExpenseLine"
+          },
+          "minItems": 1,
+          "maxItems": 20
+        }
+      },
+      "required": [
+        "type",
+        "documentVersion",
+        "businessId",
+        "title",
+        "reason",
+        "costCenter",
+        "currency",
+        "lines"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/BusinessDocument.java",
+        "name": "Expense",
+        "synthetic": [
+          "type"
+        ],
+        "optional": []
+      },
+      "description": "Line IDs and receipt references are each distinct within the request; no cross-request reservation."
+    },
+    "Travel": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "travel"
+        },
+        "documentVersion": {
+          "type": "integer",
+          "const": 1,
+          "x-json-integer": true
+        },
+        "businessId": {
+          "$ref": "#/$defs/Reference"
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 120,
+          "x-java-utf16-max": 120,
+          "minLength": 1,
+          "x-nonblank": "java-isBlank"
+        },
+        "reason": {
+          "type": "string",
+          "maxLength": 2000,
+          "x-java-utf16-max": 2000,
+          "minLength": 1,
+          "x-nonblank": "java-isBlank"
+        },
+        "destination": {
+          "type": "string",
+          "maxLength": 160,
+          "x-java-utf16-max": 160,
+          "minLength": 1,
+          "x-nonblank": "java-isBlank"
+        },
+        "startDate": {
+          "$ref": "#/$defs/ScenarioDate"
+        },
+        "endDate": {
+          "$ref": "#/$defs/ScenarioDate"
+        },
+        "purpose": {
+          "type": "string",
+          "enum": [
+            "CUSTOMER_VISIT",
+            "PROJECT_DELIVERY",
+            "TRAINING",
+            "CONFERENCE",
+            "OTHER"
+          ]
+        },
+        "estimatedCost": {
+          "$ref": "#/$defs/Money"
+        },
+        "currency": {
+          "$ref": "#/$defs/Currency"
+        },
+        "costCenter": {
+          "type": "string",
+          "enum": [
+            "ENGINEERING",
+            "SALES",
+            "OPERATIONS"
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "documentVersion",
+        "businessId",
+        "title",
+        "reason",
+        "destination",
+        "startDate",
+        "endDate",
+        "purpose",
+        "estimatedCost",
+        "currency",
+        "costCenter"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/BusinessDocument.java",
+        "name": "Travel",
+        "synthetic": [
+          "type"
+        ],
+        "optional": []
+      },
+      "description": "End date is not before start; 1–90 days inclusive. No booking or reimbursement side effects."
+    },
+    "SealUse": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "sealUse"
+        },
+        "documentVersion": {
+          "type": "integer",
+          "const": 1,
+          "x-json-integer": true
+        },
+        "businessId": {
+          "$ref": "#/$defs/Reference"
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 120,
+          "x-java-utf16-max": 120,
+          "minLength": 1,
+          "x-nonblank": "unicode-space-c0-bom"
+        },
+        "reason": {
+          "type": "string",
+          "maxLength": 2000,
+          "x-java-utf16-max": 2000,
+          "minLength": 1,
+          "x-nonblank": "unicode-space-c0-bom"
+        },
+        "documentName": {
+          "type": "string",
+          "maxLength": 160,
+          "x-java-utf16-max": 160,
+          "minLength": 1,
+          "x-nonblank": "unicode-space-c0-bom"
+        },
+        "documentRef": {
+          "$ref": "#/$defs/Reference"
+        },
+        "sealType": {
+          "type": "string",
+          "enum": [
+            "OFFICIAL",
+            "CONTRACT",
+            "FINANCE"
+          ]
+        },
+        "copyCount": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "x-json-integer": true
+        }
+      },
+      "required": [
+        "type",
+        "documentVersion",
+        "businessId",
+        "title",
+        "reason",
+        "documentName",
+        "documentRef",
+        "sealType",
+        "copyCount"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/BusinessDocument.java",
+        "name": "SealUse",
+        "synthetic": [
+          "type"
+        ],
+        "optional": []
+      },
+      "description": "Synthetic review only; never applies a seal, signs or fetches the referenced document."
+    },
+    "ReceivingLine": {
+      "type": "object",
+      "properties": {
+        "lineId": {
+          "$ref": "#/$defs/Reference"
+        },
+        "orderLineRef": {
+          "$ref": "#/$defs/Reference"
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 240,
+          "x-java-utf16-max": 240,
+          "minLength": 1,
+          "x-nonblank": "unicode-space-c0-bom"
+        },
+        "unit": {
+          "type": "string",
+          "enum": [
+            "PCS",
+            "BOX"
+          ]
+        },
+        "ordered": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100000,
+          "x-json-integer": true
+        },
+        "received": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000,
+          "x-json-integer": true,
+          "x-forbid-negative-zero": true
+        },
+        "accepted": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000,
+          "x-json-integer": true,
+          "x-forbid-negative-zero": true
+        },
+        "rejected": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000,
+          "x-json-integer": true,
+          "x-forbid-negative-zero": true
+        },
+        "exceptionReason": {
+          "type": "string",
+          "maxLength": 1000,
+          "x-java-utf16-max": 1000
+        }
+      },
+      "required": [
+        "lineId",
+        "orderLineRef",
+        "description",
+        "unit",
+        "ordered",
+        "received",
+        "accepted",
+        "rejected",
+        "exceptionReason"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/BusinessDocument.java",
+        "name": "ReceivingLine",
+        "synthetic": [],
+        "optional": []
+      },
+      "description": "accepted + rejected = received <= ordered. A positive rejected count requires a nonblank exceptionReason; quantity lexemes cannot be -0."
+    },
+    "Receiving": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "receiving"
+        },
+        "documentVersion": {
+          "type": "integer",
+          "const": 1,
+          "x-json-integer": true
+        },
+        "businessId": {
+          "$ref": "#/$defs/Reference"
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 120,
+          "x-java-utf16-max": 120,
+          "minLength": 1,
+          "x-nonblank": "unicode-space-c0-bom"
+        },
+        "reason": {
+          "type": "string",
+          "maxLength": 2000,
+          "x-java-utf16-max": 2000,
+          "minLength": 1,
+          "x-nonblank": "unicode-space-c0-bom"
+        },
+        "purchaseOrderRef": {
+          "$ref": "#/$defs/Reference"
+        },
+        "warehouse": {
+          "type": "string",
+          "enum": [
+            "EAST",
+            "WEST"
+          ]
+        },
+        "receivedOn": {
+          "$ref": "#/$defs/ScenarioDate"
+        },
+        "lines": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ReceivingLine"
+          },
+          "minItems": 1,
+          "maxItems": 20
+        }
+      },
+      "required": [
+        "type",
+        "documentVersion",
+        "businessId",
+        "title",
+        "reason",
+        "purchaseOrderRef",
+        "warehouse",
+        "receivedOn",
+        "lines"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/BusinessDocument.java",
+        "name": "Receiving",
+        "synthetic": [
+          "type"
+        ],
+        "optional": []
+      },
+      "description": "At least one line is received. Line IDs/orderLineRef values are separately distinct. Counts of different units are never summed."
+    },
+    "PaymentLine": {
+      "type": "object",
+      "properties": {
+        "lineId": {
+          "$ref": "#/$defs/Reference"
+        },
+        "invoiceRef": {
+          "$ref": "#/$defs/Reference"
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 240,
+          "x-java-utf16-max": 240,
+          "minLength": 1,
+          "x-nonblank": "unicode-space-c0-bom"
+        },
+        "invoiceAmount": {
+          "$ref": "#/$defs/Money"
+        },
+        "previouslySettledAmount": {
+          "$ref": "#/$defs/NonnegativeMoney"
+        },
+        "allocationAmount": {
+          "$ref": "#/$defs/Money"
+        },
+        "deductionAmount": {
+          "$ref": "#/$defs/NonnegativeMoney"
+        },
+        "deductionReason": {
+          "type": "string",
+          "maxLength": 1000,
+          "x-java-utf16-max": 1000
+        }
+      },
+      "required": [
+        "lineId",
+        "invoiceRef",
+        "description",
+        "invoiceAmount",
+        "previouslySettledAmount",
+        "allocationAmount",
+        "deductionAmount",
+        "deductionReason"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/BusinessDocument.java",
+        "name": "PaymentLine",
+        "synthetic": [],
+        "optional": []
+      },
+      "description": "previouslySettledAmount <= invoiceAmount; allocationAmount <= invoiceAmount - previouslySettledAmount; deductionAmount <= allocationAmount. Positive deductions require a nonblank reason."
+    },
+    "PaymentRequest": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "paymentRequest"
+        },
+        "documentVersion": {
+          "type": "integer",
+          "const": 1,
+          "x-json-integer": true
+        },
+        "businessId": {
+          "$ref": "#/$defs/Reference"
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 120,
+          "x-java-utf16-max": 120,
+          "minLength": 1,
+          "x-nonblank": "unicode-space-c0-bom"
+        },
+        "reason": {
+          "type": "string",
+          "maxLength": 2000,
+          "x-java-utf16-max": 2000,
+          "minLength": 1,
+          "x-nonblank": "unicode-space-c0-bom"
+        },
+        "supplierRef": {
+          "$ref": "#/$defs/Reference"
+        },
+        "currency": {
+          "$ref": "#/$defs/Currency"
+        },
+        "requestedPaymentOn": {
+          "$ref": "#/$defs/ScenarioDate"
+        },
+        "lines": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/PaymentLine"
+          },
+          "minItems": 1,
+          "maxItems": 20
+        }
+      },
+      "required": [
+        "type",
+        "documentVersion",
+        "businessId",
+        "title",
+        "reason",
+        "supplierRef",
+        "currency",
+        "requestedPaymentOn",
+        "lines"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/BusinessDocument.java",
+        "name": "PaymentRequest",
+        "synthetic": [
+          "type"
+        ],
+        "optional": []
+      },
+      "description": "Net total must be positive. Line IDs and invoice references are each distinct within this request. No payment, balance lock or cross-request reservation."
+    },
+    "ContractMilestone": {
+      "type": "object",
+      "properties": {
+        "lineId": {
+          "$ref": "#/$defs/Reference"
+        },
+        "milestoneRef": {
+          "$ref": "#/$defs/Reference"
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 240,
+          "x-java-utf16-max": 240,
+          "minLength": 1,
+          "x-nonblank": "unicode-space-c0-bom"
+        },
+        "dueOn": {
+          "$ref": "#/$defs/ScenarioDate"
+        },
+        "amount": {
+          "$ref": "#/$defs/Money"
+        },
+        "acceptanceCriteria": {
+          "type": "string",
+          "maxLength": 1000,
+          "x-java-utf16-max": 1000,
+          "minLength": 1,
+          "x-nonblank": "unicode-space-c0-bom"
+        }
+      },
+      "required": [
+        "lineId",
+        "milestoneRef",
+        "description",
+        "dueOn",
+        "amount",
+        "acceptanceCriteria"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/BusinessDocument.java",
+        "name": "ContractMilestone",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "ContractApproval": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "contractApproval"
+        },
+        "documentVersion": {
+          "type": "integer",
+          "const": 1,
+          "x-json-integer": true
+        },
+        "businessId": {
+          "$ref": "#/$defs/Reference"
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 120,
+          "x-java-utf16-max": 120,
+          "minLength": 1,
+          "x-nonblank": "unicode-space-c0-bom"
+        },
+        "reason": {
+          "type": "string",
+          "maxLength": 2000,
+          "x-java-utf16-max": 2000,
+          "minLength": 1,
+          "x-nonblank": "unicode-space-c0-bom"
+        },
+        "customerRef": {
+          "$ref": "#/$defs/Reference"
+        },
+        "contractRevision": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647,
+          "x-json-integer": true
+        },
+        "contractCategory": {
+          "type": "string",
+          "enum": [
+            "PRODUCT",
+            "SERVICE"
+          ]
+        },
+        "currency": {
+          "$ref": "#/$defs/Currency"
+        },
+        "contractAmount": {
+          "$ref": "#/$defs/Money"
+        },
+        "startOn": {
+          "$ref": "#/$defs/ScenarioDate"
+        },
+        "endOn": {
+          "$ref": "#/$defs/ScenarioDate"
+        },
+        "termsKind": {
+          "type": "string",
+          "enum": [
+            "STANDARD",
+            "NONSTANDARD"
+          ]
+        },
+        "deviationReason": {
+          "type": "string",
+          "maxLength": 2000,
+          "x-java-utf16-max": 2000
+        },
+        "documentRef": {
+          "$ref": "#/$defs/Reference"
+        },
+        "lines": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ContractMilestone"
+          },
+          "minItems": 1,
+          "maxItems": 20
+        }
+      },
+      "required": [
+        "type",
+        "documentVersion",
+        "businessId",
+        "title",
+        "reason",
+        "customerRef",
+        "contractRevision",
+        "contractCategory",
+        "currency",
+        "contractAmount",
+        "startOn",
+        "endOn",
+        "termsKind",
+        "deviationReason",
+        "documentRef",
+        "lines"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/BusinessDocument.java",
+        "name": "ContractApproval",
+        "synthetic": [
+          "type"
+        ],
+        "optional": []
+      },
+      "description": "NONSTANDARD requires a deviation reason; STANDARD requires it blank after trim. Ordered milestone dates lie within the contract term; amounts exactly sum to contractAmount. Line IDs and milestone references are separately unique. No signature or customer delivery."
+    },
+    "BusinessDocument": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/Leave"
+        },
+        {
+          "$ref": "#/$defs/Procurement"
+        },
+        {
+          "$ref": "#/$defs/QuoteDiscount"
+        },
+        {
+          "$ref": "#/$defs/Expense"
+        },
+        {
+          "$ref": "#/$defs/Travel"
+        },
+        {
+          "$ref": "#/$defs/SealUse"
+        },
+        {
+          "$ref": "#/$defs/Receiving"
+        },
+        {
+          "$ref": "#/$defs/PaymentRequest"
+        },
+        {
+          "$ref": "#/$defs/ContractApproval"
+        }
+      ]
+    },
+    "GenericBusinessDocument": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/Leave"
+        },
+        {
+          "$ref": "#/$defs/Procurement"
+        }
+      ]
+    },
+    "ScenarioBusinessDocument": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/Expense"
+        },
+        {
+          "$ref": "#/$defs/Travel"
+        },
+        {
+          "$ref": "#/$defs/SealUse"
+        },
+        {
+          "$ref": "#/$defs/Receiving"
+        },
+        {
+          "$ref": "#/$defs/PaymentRequest"
+        },
+        {
+          "$ref": "#/$defs/ContractApproval"
+        }
+      ]
+    },
+    "LegacySubmission": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 120,
+          "x-java-utf16-max": 120,
+          "minLength": 1,
+          "x-nonblank": "java-isBlank"
+        },
+        "reason": {
+          "type": "string",
+          "maxLength": 2000,
+          "x-java-utf16-max": 2000,
+          "minLength": 1,
+          "x-nonblank": "java-isBlank"
+        },
+        "days": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 365,
+          "x-json-integer": true
+        },
+        "processVersion": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647,
+          "x-json-integer": true
+        }
+      },
+      "required": [
+        "title",
+        "reason",
+        "days",
+        "processVersion"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/ApprovalController.java",
+        "name": "Submission",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "GenericSubmission": {
+      "type": "object",
+      "properties": {
+        "business": {
+          "$ref": "#/$defs/GenericBusinessDocument"
+        },
+        "processVersion": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647,
+          "x-json-integer": true
+        }
+      },
+      "required": [
+        "business",
+        "processVersion"
+      ],
+      "additionalProperties": false
+    },
+    "QuoteSubmission": {
+      "type": "object",
+      "properties": {
+        "business": {
+          "$ref": "#/$defs/QuoteDiscount"
+        },
+        "processVersion": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647,
+          "x-json-integer": true
+        }
+      },
+      "required": [
+        "business",
+        "processVersion"
+      ],
+      "additionalProperties": false
+    },
+    "ScenarioSubmission": {
+      "type": "object",
+      "properties": {
+        "business": {
+          "$ref": "#/$defs/ScenarioBusinessDocument"
+        },
+        "processVersion": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647,
+          "x-json-integer": true
+        }
+      },
+      "required": [
+        "business",
+        "processVersion"
+      ],
+      "additionalProperties": false
+    },
+    "SealSubmission": {
+      "type": "object",
+      "properties": {
+        "business": {
+          "$ref": "#/$defs/SealUse"
+        },
+        "processVersion": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647,
+          "x-json-integer": true
+        }
+      },
+      "required": [
+        "business",
+        "processVersion"
+      ],
+      "additionalProperties": false
+    },
+    "Decision": {
+      "type": "object",
+      "properties": {
+        "stepId": {
+          "type": "string",
+          "maxLength": 64,
+          "x-java-utf16-max": 64,
+          "minLength": 1,
+          "x-nonblank": "java-isBlank"
+        },
+        "decision": {
+          "type": "string",
+          "enum": [
+            "APPROVE",
+            "REJECT"
+          ]
+        },
+        "comment": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 2000,
+              "x-java-utf16-max": 2000
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "stepId",
+        "decision"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/ApprovalController.java",
+        "name": "Decision",
+        "synthetic": [],
+        "optional": [
+          "comment"
+        ]
+      },
+      "description": "Same actor/request/stage/action is replayed without a new event; changed comment does not replace history. No actor, revision, expectedRevision or If-Match input."
+    },
+    "NativeDecision": {
+      "type": "object",
+      "properties": {
+        "stepId": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "decision": {
+          "type": "string",
+          "enum": [
+            "APPROVE",
+            "REJECT"
+          ]
+        },
+        "comment": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 2000,
+              "x-java-utf16-max": 2000
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "decision"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowController.java",
+        "name": "Decision",
+        "synthetic": [],
+        "optional": [
+          "stepId",
+          "comment"
+        ]
+      },
+      "description": "Native DTO has no Bean Validation. Missing/null stepId reaches domain stage matching (typically 409); the action must still be APPROVE or REJECT. Actor and assignments are server-controlled."
+    },
+    "PaymentPredicate": {
+      "type": "object",
+      "properties": {
+        "field": {
+          "const": "payment.netTotal"
+        },
+        "operator": {
+          "type": "string",
+          "enum": [
+            "EQ",
+            "GT",
+            "GTE",
+            "LT",
+            "LTE"
+          ]
+        },
+        "currency": {
+          "$ref": "#/$defs/Currency"
+        },
+        "threshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 20000000000,
+          "multipleOf": 0.01,
+          "description": "JSON number, normalized through Jackson JsonNode before validation. At most two significant fractional decimal places after trailing-zero normalization, up to 20000000000; JPY is numerically whole. Unlike business-money DTOs, 1.000 is accepted here."
+        }
+      },
+      "required": [
+        "field",
+        "operator",
+        "currency",
+        "threshold"
+      ],
+      "additionalProperties": false
+    },
+    "ReceivingPredicate": {
+      "type": "object",
+      "properties": {
+        "field": {
+          "const": "receiving.hasRejectedLines"
+        },
+        "operator": {
+          "const": "EQ"
+        },
+        "expected": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "field",
+        "operator",
+        "expected"
+      ],
+      "additionalProperties": false
+    },
+    "ContractPredicate": {
+      "type": "object",
+      "properties": {
+        "field": {
+          "const": "contract.termsKind"
+        },
+        "operator": {
+          "type": "string",
+          "enum": [
+            "EQ",
+            "IN"
+          ]
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "STANDARD",
+              "NONSTANDARD"
+            ]
+          },
+          "minItems": 1,
+          "maxItems": 2,
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "field",
+        "operator",
+        "values"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "operator": {
+                "const": "EQ"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "values": {
+                "maxItems": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "RoutingPredicate": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/PaymentPredicate"
+        },
+        {
+          "$ref": "#/$defs/ReceivingPredicate"
+        },
+        {
+          "$ref": "#/$defs/ContractPredicate"
+        }
+      ]
+    },
+    "RunIf": {
+      "type": "object",
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "ALL",
+            "ANY"
+          ]
+        },
+        "predicates": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/RoutingPredicate"
+          },
+          "minItems": 1,
+          "maxItems": 8
+        }
+      },
+      "required": [
+        "mode",
+        "predicates"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/ConditionalRouting.java",
+        "name": "Rule",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "BoundaryNode": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}(?![\\s\\S])"
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 120,
+          "x-java-utf16-max": 120,
+          "minLength": 1,
+          "x-nonblank": "java-isBlank",
+          "x-no-iso-controls": true
+        },
+        "assigneeId": {
+          "type": "null"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "start",
+            "end"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "assigneeId",
+        "type"
+      ],
+      "additionalProperties": false,
+      "description": "First node must have id/type start; last id/type end. No runIf or assignees."
+    },
+    "ApprovalNode": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}(?![\\s\\S])"
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 120,
+          "x-java-utf16-max": 120,
+          "minLength": 1,
+          "x-nonblank": "java-isBlank",
+          "x-no-iso-controls": true
+        },
+        "assigneeId": {
+          "$ref": "#/$defs/ActorId"
+        },
+        "type": {
+          "const": "approval"
+        },
+        "runIf": {
+          "$ref": "#/$defs/RunIf"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "assigneeId",
+        "type"
+      ],
+      "additionalProperties": false
+    },
+    "ParallelNode": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}(?![\\s\\S])"
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 120,
+          "x-java-utf16-max": 120,
+          "minLength": 1,
+          "x-nonblank": "java-isBlank",
+          "x-no-iso-controls": true
+        },
+        "assigneeId": {
+          "type": "null"
+        },
+        "type": {
+          "const": "parallelApproval"
+        },
+        "assigneeIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ActorId"
+          },
+          "minItems": 2,
+          "maxItems": 16,
+          "uniqueItems": true
+        },
+        "completionMode": {
+          "type": "string",
+          "enum": [
+            "ALL",
+            "ANY"
+          ]
+        },
+        "runIf": {
+          "$ref": "#/$defs/RunIf"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "assigneeId",
+        "type",
+        "assigneeIds",
+        "completionMode"
+      ],
+      "additionalProperties": false
+    },
+    "ProcessNode": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/BoundaryNode"
+        },
+        {
+          "$ref": "#/$defs/ApprovalNode"
+        },
+        {
+          "$ref": "#/$defs/ParallelNode"
+        }
+      ]
+    },
+    "ProcessDefinition": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "type": "integer",
+          "enum": [
+            2,
+            3,
+            4
+          ],
+          "x-json-integer": true
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,127}(?![\\s\\S])"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647,
+          "x-json-integer": true
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 120,
+          "x-java-utf16-max": 120,
+          "minLength": 1,
+          "x-nonblank": "java-isBlank",
+          "x-no-iso-controls": true
+        },
+        "nodes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ProcessNode"
+          },
+          "minItems": 3,
+          "maxItems": 10
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "id",
+        "version",
+        "name",
+        "nodes"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/ProcessDefinition.java",
+        "name": "ProcessDefinition",
+        "synthetic": [],
+        "optional": []
+      },
+      "description": "Ordered nodes, unique IDs, start/end boundaries, 1–8 manual stages. Schema 2 permits only single approval, schema 3 adds ALL/ANY groups, schema 4 adds runIf. Schema 4 is limited to payment/receiving/contract, one predicate family, at most eight atoms overall, one payment currency and at least one unconditional approval. Names/actor IDs cannot contain ISO controls. Participants must be eligible, active and exclude the applicant in the full definition."
+    },
+    "GenericProcessDefinition": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/ProcessDefinition"
+        },
+        {
+          "properties": {
+            "schemaVersion": {
+              "enum": [
+                2,
+                3
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "Publication": {
+      "type": "object",
+      "properties": {
+        "expectedVersion": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647,
+          "x-json-integer": true
+        },
+        "definition": {
+          "$ref": "#/$defs/ProcessDefinition"
+        }
+      },
+      "required": [
+        "expectedVersion",
+        "definition"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/ApprovalController.java",
+        "name": "Publication",
+        "synthetic": [],
+        "optional": []
+      },
+      "description": "expectedVersion and definition.version must equal current version; stable process ID. Success increments version. Publication is not replay-idempotent."
+    },
+    "GenericPublication": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/Publication"
+        },
+        {
+          "properties": {
+            "definition": {
+              "$ref": "#/$defs/GenericProcessDefinition"
+            }
+          }
+        }
+      ]
+    },
+    "Person": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/ActorId"
+        },
+        "displayName": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "displayName"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/ApprovalService.java",
+        "name": "Person",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "NativePerson": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]{0,18}(?![\\s\\S])"
+        },
+        "displayName": {
+          "type": "string"
+        },
+        "canPublish": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "displayName",
+        "canPublish"
+      ],
+      "additionalProperties": false
+    },
+    "Event": {
+      "type": "object",
+      "properties": {
+        "actorId": {
+          "$ref": "#/$defs/ActorId"
+        },
+        "action": {
+          "type": "string",
+          "enum": [
+            "SUBMIT",
+            "APPROVE",
+            "REJECT"
+          ]
+        },
+        "comment": {
+          "type": "string"
+        },
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "stepId": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "actorId",
+        "action",
+        "comment",
+        "at",
+        "stepId"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/ApprovalService.java",
+        "name": "Event",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "RoutingFact": {
+      "type": "object",
+      "properties": {
+        "field": {
+          "type": "string",
+          "enum": [
+            "payment.netTotal",
+            "receiving.hasRejectedLines",
+            "contract.termsKind"
+          ]
+        },
+        "actualValue": {
+          "type": "string"
+        },
+        "result": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "field",
+        "actualValue",
+        "result"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/ConditionalRouting.java",
+        "name": "Fact",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "RoutingEvaluation": {
+      "type": "object",
+      "properties": {
+        "stepId": {
+          "type": "string"
+        },
+        "result": {
+          "type": "boolean"
+        },
+        "predicates": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/RoutingFact"
+          }
+        }
+      },
+      "required": [
+        "stepId",
+        "result",
+        "predicates"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/ConditionalRouting.java",
+        "name": "Evaluation",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "FrozenRoute": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "stepIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "maxItems": 8,
+          "uniqueItems": true
+        },
+        "evaluations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/RoutingEvaluation"
+          }
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "stepIds",
+        "evaluations"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/ConditionalRouting.java",
+        "name": "FrozenRoute",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "Request": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}(?![\\s\\S])"
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 120,
+          "x-java-utf16-max": 120,
+          "minLength": 1,
+          "x-nonblank": "java-isBlank"
+        },
+        "reason": {
+          "type": "string",
+          "maxLength": 2000,
+          "x-java-utf16-max": 2000,
+          "minLength": 1,
+          "x-nonblank": "java-isBlank"
+        },
+        "days": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 365,
+          "x-json-integer": true
+        },
+        "applicantId": {
+          "$ref": "#/$defs/ActorId"
+        },
+        "approverId": {
+          "$ref": "#/$defs/ActorId"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "PENDING",
+            "APPROVED",
+            "REJECTED"
+          ]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "decision": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "APPROVE",
+                "REJECT"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "comment": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "processId": {
+          "type": "string"
+        },
+        "processVersion": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647,
+          "x-json-integer": true
+        },
+        "history": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Event"
+          },
+          "minItems": 1
+        },
+        "definition": {
+          "$ref": "#/$defs/ProcessDefinition"
+        },
+        "currentStepId": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "business": {
+          "$ref": "#/$defs/BusinessDocument"
+        },
+        "routing": {
+          "$ref": "#/$defs/FrozenRoute"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "reason",
+        "days",
+        "applicantId",
+        "approverId",
+        "status",
+        "createdAt",
+        "updatedAt",
+        "decision",
+        "comment",
+        "processId",
+        "processVersion",
+        "history",
+        "definition",
+        "currentStepId"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/ApprovalService.java",
+        "name": "Request",
+        "synthetic": [],
+        "optional": [
+          "business",
+          "routing"
+        ]
+      },
+      "description": "Complete immutable business/definition snapshot plus current status/history. business is omitted for legacy submissions; routing is omitted unless schema 4. There is no response revision or detail GET endpoint."
+    },
+    "InboxPage": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Request"
+          },
+          "minItems": 0,
+          "maxItems": 100
+        },
+        "nextCursor": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 1024
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "items",
+        "nextCursor"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/ApprovalService.java",
+        "name": "InboxPage",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "ReceivingQuantities": {
+      "type": "object",
+      "properties": {
+        "unit": {
+          "type": "string",
+          "enum": [
+            "PCS",
+            "BOX"
+          ]
+        },
+        "received": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2147483647,
+          "x-json-integer": true
+        },
+        "accepted": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2147483647,
+          "x-json-integer": true
+        },
+        "rejected": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2147483647,
+          "x-json-integer": true
+        }
+      },
+      "required": [
+        "unit",
+        "received",
+        "accepted",
+        "rejected"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/BusinessDocument.java",
+        "name": "ReceivingQuantities",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "ReceivingSummary": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "receiving"
+        },
+        "lineCount": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20,
+          "x-json-integer": true
+        },
+        "exceptionLineCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 20,
+          "x-json-integer": true
+        },
+        "quantities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ReceivingQuantities"
+          },
+          "minItems": 1,
+          "maxItems": 2
+        }
+      },
+      "required": [
+        "kind",
+        "lineCount",
+        "exceptionLineCount",
+        "quantities"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/BusinessDocument.java",
+        "name": "ReceivingSummary",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "PaymentSummary": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "paymentRequest"
+        },
+        "declaredOutstanding": {
+          "$ref": "#/$defs/DisplayMoney"
+        },
+        "grossAllocation": {
+          "$ref": "#/$defs/DisplayMoney"
+        },
+        "deductionTotal": {
+          "$ref": "#/$defs/DisplayMoney"
+        },
+        "netTotal": {
+          "$ref": "#/$defs/DisplayMoney"
+        }
+      },
+      "required": [
+        "type",
+        "declaredOutstanding",
+        "grossAllocation",
+        "deductionTotal",
+        "netTotal"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/BusinessDocument.java",
+        "name": "PaymentSummary",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "ScenarioView": {
+      "type": "object",
+      "properties": {
+        "request": {
+          "$ref": "#/$defs/Request"
+        },
+        "total": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DisplayMoney"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "summary": {
+          "$ref": "#/$defs/ReceivingSummary"
+        },
+        "paymentSummary": {
+          "$ref": "#/$defs/PaymentSummary"
+        }
+      },
+      "required": [
+        "request",
+        "total"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/ScenarioCase.java",
+        "name": "View",
+        "synthetic": [],
+        "optional": [
+          "summary",
+          "paymentSummary"
+        ]
+      },
+      "description": "total is null for seal/receiving; other scenarios format their total. summary is present only for receiving, paymentSummary only for payment. Inapplicable summary fields are omitted."
+    },
+    "QuoteView": {
+      "type": "object",
+      "properties": {
+        "request": {
+          "$ref": "#/$defs/Request"
+        },
+        "listTotal": {
+          "$ref": "#/$defs/DisplayMoney"
+        },
+        "requestedTotal": {
+          "$ref": "#/$defs/DisplayMoney"
+        },
+        "reductionTotal": {
+          "$ref": "#/$defs/DisplayMoney"
+        },
+        "discountPercent": {
+          "type": "string"
+        },
+        "thresholdReached": {
+          "type": "boolean"
+        },
+        "expired": {
+          "type": "boolean"
+        },
+        "quoteUpdated": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "request",
+        "listTotal",
+        "requestedTotal",
+        "reductionTotal",
+        "discountPercent",
+        "thresholdReached",
+        "expired",
+        "quoteUpdated"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/QuoteDiscountCase.java",
+        "name": "View",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "QuoteVersion": {
+      "type": "object",
+      "properties": {
+        "businessId": {
+          "$ref": "#/$defs/Reference"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647,
+          "x-json-integer": true
+        },
+        "customerRef": {
+          "type": "string",
+          "maxLength": 128,
+          "x-java-utf16-max": 128,
+          "minLength": 1,
+          "x-nonblank": "java-isBlank"
+        },
+        "ownerId": {
+          "$ref": "#/$defs/ActorId"
+        },
+        "readerIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ActorId"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "item": {
+          "type": "string",
+          "maxLength": 240,
+          "x-java-utf16-max": 240,
+          "minLength": 1,
+          "x-nonblank": "java-isBlank"
+        },
+        "quantity": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100000,
+          "x-json-integer": true
+        },
+        "listUnitPrice": {
+          "$ref": "#/$defs/Money"
+        },
+        "currency": {
+          "$ref": "#/$defs/Currency"
+        },
+        "validUntil": {
+          "$ref": "#/$defs/Date"
+        }
+      },
+      "required": [
+        "businessId",
+        "revision",
+        "customerRef",
+        "ownerId",
+        "readerIds",
+        "item",
+        "quantity",
+        "listUnitPrice",
+        "currency",
+        "validUntil"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/QuoteDiscountCase.java",
+        "name": "QuoteVersion",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "LocalizedText": {
+      "type": "object",
+      "properties": {
+        "zh": {
+          "type": "string"
+        },
+        "en": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "zh",
+        "en"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/ScenarioCatalog.java",
+        "name": "Text",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "FieldOption": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "string"
+        },
+        "label": {
+          "$ref": "#/$defs/LocalizedText"
+        }
+      },
+      "required": [
+        "value",
+        "label"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/ScenarioCatalog.java",
+        "name": "Option",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "FormField": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "label": {
+          "$ref": "#/$defs/LocalizedText"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "maxLength": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2147483647,
+          "x-json-integer": true
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/FieldOption"
+          }
+        }
+      },
+      "required": [
+        "path",
+        "kind",
+        "label",
+        "required",
+        "maxLength",
+        "options"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/ScenarioCatalog.java",
+        "name": "Field",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "FormSection": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "$ref": "#/$defs/LocalizedText"
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/FormField"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "fields"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/ScenarioCatalog.java",
+        "name": "Section",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "LineItems": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "label": {
+          "$ref": "#/$defs/LocalizedText"
+        },
+        "minItems": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2147483647,
+          "x-json-integer": true
+        },
+        "maxItems": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2147483647,
+          "x-json-integer": true
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/FormField"
+          }
+        }
+      },
+      "required": [
+        "path",
+        "label",
+        "minItems",
+        "maxItems",
+        "fields"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/ScenarioCatalog.java",
+        "name": "LineItems",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "ScenarioId": {
+      "type": "string",
+      "enum": [
+        "oa-expense",
+        "oa-travel",
+        "oa-seal-use",
+        "erp-receiving",
+        "erp-payment",
+        "crm-contract"
+      ]
+    },
+    "ScenarioTemplate": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/ScenarioId"
+        },
+        "domain": {
+          "type": "string",
+          "enum": [
+            "OA",
+            "ERP",
+            "CRM"
+          ]
+        },
+        "documentType": {
+          "$ref": "#/$defs/DocumentType"
+        },
+        "documentVersion": {
+          "const": 1
+        },
+        "formVersion": {
+          "const": 1
+        },
+        "title": {
+          "$ref": "#/$defs/LocalizedText"
+        },
+        "description": {
+          "$ref": "#/$defs/LocalizedText"
+        },
+        "sections": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/FormSection"
+          }
+        },
+        "lineItems": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/LineItems"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "domain",
+        "documentType",
+        "documentVersion",
+        "formVersion",
+        "title",
+        "description",
+        "sections",
+        "lineItems"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/ScenarioCatalog.java",
+        "name": "Template",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "Error": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "message"
+      ],
+      "additionalProperties": false
+    },
+    "NativeError": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer"
+        },
+        "msg": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "msg"
+      ],
+      "additionalProperties": true,
+      "description": "Controlled ArcFlow advice only. RuoYi authentication/permission failures and unhandled errors are host-owned; their status and body are not promised here."
+    },
+    "ScenarioDate": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/Date"
+        }
+      ],
+      "x-min-year": 1,
+      "description": "Real calendar date in years 0001–9999 for registered scenarios."
+    }
+  }
+}

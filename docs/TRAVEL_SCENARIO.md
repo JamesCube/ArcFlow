@@ -1,91 +1,68 @@
-# 出差申请审批 / Business travel review
+# 出差申请审批
 
-## Status and scope
+<!-- Legacy fragments remain entry points after the language split. -->
+<a id="form-and-business-rules"></a>
+<a id="host-identity-and-isolation"></a>
+<a id="schema-8-rollout-and-recovery"></a>
+<a id="status-and-scope"></a>
+<a id="verification-and-visual-acceptance"></a>
+<a id="出差申请审批--business-travel-review"></a>
 
-This is the Travel slice of a local unified Travel/Seal-use/Receiving integration candidate,
-based on accepted main `71910bfc2ac1b9d58e0f7f1b85e6bbb206321ec1`. It is not merged or
-deployed. Historical standalone candidate results are not a fresh combined-head test result.
-See [combined compatibility and acceptance gates](UNIFIED_SCENARIO_INTEGRATION.md).
+<a id="zh"></a>
+<a id="en"></a>
+<a id="简体中文"></a>
+<a id="english"></a>
 
-The compiled `oa-travel` scenario uses the reusable catalog, visual form renderer, designer
-and approval lifecycle with a distinct `travel` version-1 business document. It accepts a
-synthetic itinerary and estimated budget. Approval does not book transport or accommodation,
-reimburse expenses, reserve money, issue payment, send notifications or write to another system.
-There are no sensitive uploads or external integrations.
+[English](TRAVEL_SCENARIO.en.md) · [文档目录](README.md)
 
-## Form and business rules
+<!-- topic:current-scope -->
+## 当前范围
 
-Required fields are `businessId`, `title`, `reason`, `destination`, `startDate`, `endDate`,
-`purpose`, `estimatedCost`, `currency`, and `costCenter`, plus `type: travel` and
-`documentVersion: 1`. The immutable request preserves all fields throughout approval.
+当前 main 已包含六项独立场景，统一读取 JSON wrapper 1–13。本文保留早期统一候选的验证范围和版本边界，不能将当时的“未合并”或 wrapper 10 上限理解为当前状态。当前架构和上线步骤见[架构](development/ARCHITECTURE.md)与[存储迁移](development/PERSISTENCE.md)；精确提交 CI 另行核对。
 
-- Business reference: 1–128 ASCII letters/digits and `._:/-`, starting with a letter/digit.
-- Title ≤120 characters; reason ≤2,000; destination ≤160; each must remain nonblank after
-  normalization. Destination and common text are trimmed; the business reference is exact.
-- Dates: real Gregorian `YYYY-MM-DD`, years 0001–9999. End cannot precede start, and
-  inclusive duration must be 1–90 days. Same-day and leap-day trips are supported. These
-  are local calendar dates; no timezone conversion or current-date expiration is inferred.
-- Purpose: `CUSTOMER_VISIT`, `PROJECT_DELIVERY`, `TRAINING`, `CONFERENCE`, or `OTHER`.
-- Estimated cost: an exact JSON number, greater than zero and at most 1,000,000,000,
-  with at most two decimal places. JPY amounts must be whole. Currency is CNY, USD,
-  EUR, GBP or JPY. No exchange-rate conversion is performed.
-- Cost center: ENGINEERING, SALES or OPERATIONS.
-- Duration is derived from the immutable dates. `durationDays` and totals are not accepted
-  as input. Legacy `request.days` is 0 because this is not a leave document.
+<!-- topic:historical-candidate-and-scenario-scope -->
+## 历史候选与场景范围
 
-The default fixed process is submit → trip review (Bob) → budget review (Carol) → complete.
-The designer can publish the existing 1–8 approval-step model with SINGLE/ALL/ANY voting;
-there is no amount-based routing, dynamic organizational role, timer or outbox.
+本页原记录是基于已验收 main `71910bfc2ac1b9d58e0f7f1b85e6bbb206321ec1` 的 Travel/Seal-use/Receiving 本地组合候选中的出差部分；当时未合并、未部署。历史单项候选结果不等于新组合 head 的结果，见[组合兼容及验收](UNIFIED_SCENARIO_INTEGRATION.md)。
 
-## Host, identity and isolation
+编译期 `oa-travel` 使用共用目录、可视化表单渲染、设计器和审批生命周期，单据是独立的 `travel` 版本 1。它记录合成行程和预计预算；通过不预订交通/住宿、不报销、不预留资金、不付款、不发通知或回写，无敏感文件上传或外部集成。
 
-`/scenarios.html` shares its in-memory authenticated session across Expense, Travel, Seal-use and Receiving.
-Each scenario retains its own draft, unresolved submission key and original intent, loaded
-process version, designer draft, requests and review comments. Switching does not move an
-in-flight response into another scenario. Logout clears all session-local drafts and keys.
+<!-- topic:form-and-business-rules -->
+## 表单与业务规则
 
-The compiled host registry exposes only `/api/scenarios/oa-travel/{process,requests,documents}`
-and its request decisions. Unknown scenario IDs return 404; path input never selects a file.
-Travel uses `approval.data-file + .scenario-oa-travel.json`, independent of Expense, Seal-use, Receiving, CRM and
-legacy leave/procurement stores. Generic standalone and native document routes explicitly
-allow only leave/procurement. Every scenario host rejects the other business types.
+必填 `businessId`、`title`、`reason`、`destination`、`startDate`、`endDate`、`purpose`、`estimatedCost`、`currency`、`costCenter`，并带 `type: travel`、`documentVersion: 1`。审批全过程保持全部字段不变。
 
-Every request uses the authenticated active identity. Publication uses the existing publisher
-permission; decisions use the frozen eligible participants and active-user checks. A required,
-exact applicant-scoped Idempotency-Key binds every normalized field, scenario/process ID and
-process version. Identical retries return current durable state, including after approval or
-rejection; different intent conflicts. In JDBC the key remains globally applicant-scoped
-across configured processes. A business reference is not a uniqueness constraint.
+- 业务引用为 1–128 个 ASCII 字母/数字和 `._:/-`，以字母/数字开头。
+- 标题 ≤120、原因 ≤2,000、目的地 ≤160 字符，规范化后仍非空。目的地与公共文本 trim，业务引用精确保留。
+- 真实公历 `YYYY-MM-DD`，年份 0001–9999；结束不早于开始，含首尾共 1–90 天，支持同日和闰日。它们是本地日历日期，不推断时区转换或按当前日期过期。
+- 目的为 `CUSTOMER_VISIT`、`PROJECT_DELIVERY`、`TRAINING`、`CONFERENCE`、`OTHER`。
+- 预计金额为精确 JSON 数字，>0 且 ≤1,000,000,000，最多两位小数；JPY 为整数。币种 CNY/USD/EUR/GBP/JPY，不换汇。
+- 成本中心为 ENGINEERING、SALES、OPERATIONS。
+- 天数由不可变日期派生，不接受 `durationDays` 或总额输入；兼容字段 `request.days` 为 0，因为这不是请假。
 
-## Schema 8 rollout and recovery
+默认流程：提交 → Bob 行程审核 → Carol 预算审核 → 完成。设计器可发布 1–8 个固定审批步骤和 SINGLE/ALL/ANY 规则；出差不提供金额路由、动态组织角色、定时器或 outbox。
 
-First deploy the unified schema-1–10 reader everywhere that can read the affected JSON or
-JDBC rows, stop incompatible writers, take normal backups, and only then enable Travel writes.
-Opening supported snapshots 1–10 remains read-only and retains existing strict validation. The first
-Travel mutation requires at least JSON snapshot schema 8; valid Travel at 9 or 10 remains readable. A Travel payload in schema 1–7 is rejected;
-Quote still requires ≥6 and Expense ≥7. Later legacy, Expense or publication writes never
-downgrade an existing schema 8, 9 or 10. The writer takes a monotonic maximum, not an unconditional assignment to 8. Process definitions still use schema 2 or 3.
+<!-- topic:host-identity-and-isolation -->
+## 宿主、身份与隔离
 
-The first upgrade preserves the byte-exact file immediately before the upgrade in a private
-`.schemaN.bak`, with a unique name if that backup exists. Atomic replacement failure publishes
-neither a request nor its submission binding. Retries preserve the backup. Restoring it discards
-later submissions, decisions and publications, so it is historical recovery, not a lossless
-downgrade. Schema-7 application binaries cannot read Travel/schema-8 data.
+原四场景候选的 `/scenarios.html` 在报销、出差、用印和收货间共享内存认证会话；当前目录扩为六项。每个场景保留独立草稿、未确认键/原意图、加载流程版本、设计器草稿、申请及审批评论。切换不把在途响应放进另一场景，退出清空全部会话草稿与键。
 
-SQL revision 3 is unchanged; Travel uses the existing strict `request_json` and member projection.
-Registration does not rebuild an already-ready member projection. There is no automatic DDL, backfill or rollback migration. Existing SQL stopped-writer migration
-requirements still apply. Database backups and a forward-compatible rollout are required.
+编译期注册表仅暴露 `/api/scenarios/oa-travel/{process,requests,documents}` 和申请决定。未知场景 404，路径不能选文件。数据文件为 `approval.data-file + .scenario-oa-travel.json`，与报销、用印、收货、CRM 及旧请假/采购隔离。通用独立/若依单据端点只接受请假/采购；每个场景拒绝其他类型。
 
-## Verification and visual acceptance
+每次使用认证活动身份；发布沿用发布权限，决定按冻结成员及活动用户检查。每次提交必须有精确、申请人范围的 `Idempotency-Key`，绑定全部规范化字段、场景/流程 ID 与流程版本；相同重试返回当前持久状态，包括通过/拒绝后，不同意图冲突。JDBC 键仍跨配置流程按申请人全局隔离；业务引用不是唯一约束。
 
-Required release gates: fresh domain and JSON migration/restart tests; inherited H2/PostgreSQL/
-MySQL contracts with the Travel tests explicitly executed; standalone authenticated HTTP tests;
-full shared UI regression suite and build; real-backend bilingual desktop/narrow browser flows.
-Expense's existing tests and screenshots are not evidence that Travel passed these gates.
+<!-- topic:historical-schema-8-rollout-and-recovery -->
+## schema 8 上线与恢复记录
 
-Capture real catalog, filled form, designer, validation error, pending, next reviewer, approved
-and rejected screens in Chinese and English with exact source SHA, viewport, capture-run and
-image hashes. No mock screenshots or generated illustrations may stand in for real captures.
-Review spacing, focus, keyboard use, legible errors, totals and dates, no horizontal clipping,
-retained draft/retry recovery, and frozen data through approval. This candidate currently has
-no independently accepted Travel screenshot gallery. Original candidate image downloads returned HTTP 403 / 1010; the original PNG bytes and independent pixel review remain unverified.
+早期候选要求所有相关 JSON/JDBC 读取端先部署 schema 1–10 统一 reader，停不兼容写者、备份后再启用出差；当前须使用前述 1–13 reader。支持的 1–10 快照只读打开，保留原严格校验。首次出差修改最低 8，Travel 在 9/10 有效，在 1–7 拒绝；报价最低 6、报销最低 7。后续旧接口/报销/发布不降低已有 8/9/10；写者取单调最大值，不强制指定 8。出差流程定义仍为 2/3。
+
+首次升级在私密 `.schemaN.bak` 保存紧邻升级前的精确字节，重名选新名。原子替换失败不发布申请或键映射；重试保留备份。恢复会丢失后续申请、决定、发布，是历史恢复而非无损降级。schema 7 程序不能读取出差/schema 8。
+
+SQL revision 3 不变，沿用严格 `request_json` 与成员投影，登记类型不重建就绪索引。没有自动 DDL、回填或回退迁移；仍需原有停写迁移、数据库备份及兼容升级。
+
+<!-- topic:verification-and-visual-acceptance -->
+## 验证与视觉验收
+
+发布要求新的领域/JSON 迁移与重启测试、明确执行出差用例的 H2/PostgreSQL/MySQL 契约、独立认证 HTTP、完整共用界面回归/构建，以及真实后端中英桌面/窄屏浏览器流程。报销的测试和截图不能代替出差证据。
+
+真实采集目录、已填表单、设计器、验证错误、待审、下一审批人、通过、拒绝的中英文画面，记录精确源码 SHA、视口、运行和图片 hash。不得用模拟图或生成插画替代。检查间距、焦点、键盘、可读错误、总额与日期、无横向裁切、草稿/重试恢复和审批中的冻结数据。该历史候选没有独立验收的出差图集；原产物下载遇 HTTP 403/1010，原 PNG 字节与独立像素复核未验证。

@@ -1,64 +1,65 @@
-# 收货验收 / Goods receipt review
+# 收货验收
 
-> Local unified integration candidate based on main `71910bfc2ac1b9d58e0f7f1b85e6bbb206321ec1`. Not merged or deployed. Receiving requires snapshot schema ≥10 under the strict unified 1–10 reader. Fresh combined-head verification and independent pixels remain gates; see [integration status](UNIFIED_SCENARIO_INTEGRATION.md).
+<!-- Legacy fragments remain entry points after the language split. -->
+<a id="contract"></a>
+<a id="persistence-and-compatibility-gate"></a>
+<a id="verification"></a>
+<a id="中文"></a>
+<a id="收货验收--goods-receipt-review"></a>
+<a id="数量与边界"></a>
 
-## 中文
+<a id="zh"></a>
+<a id="en"></a>
+<a id="简体中文"></a>
+<a id="english"></a>
 
-独立 ERP 收货验收场景 `erp-receiving`，入口 `/receiving.html`，也可从 `/scenarios.html` 的四场景目录进入，使用演示后端相同的账号与本次启动密码。请仅使用合成数据。它是手工录入的订单和验收快照，不连接真实采购订单，也不计算其他申请已收数量。
+[English](RECEIVING_SCENARIO.en.md) · [文档目录](README.md)
 
-示例：Alice 填写 `GR-DEMO-001`、订单 `PO-DEMO-001`、东区演示仓和收货日期。第一行合成传感器，单位“件”，订购 20、本次到货 10、合格 8、不合格 2，异常原因为“外壳损坏”；第二行合成线缆，单位“箱”，订购 10、到货 5、合格 5、不合格 0。
+<!-- topic:current-scope-and-historical-evidence -->
+## 当前范围与历史证据
 
-默认审批：仓库与质量 ALL 会签（Bob + Carol）→ 采购复核（Bob）。Bob 第一次同意后仍等待 Carol；Carol 也同意才进入采购复核，Bob 必须在新节点另投一票。任一 ALL 成员拒绝即结束。这里 Bob 兼任仓库和采购，是固定账号演示，不保证职责分离，也没有动态部门/角色解析。
+收货已包含在当前 main 六场景目录中，并支持受限条件。当前 JSON reader 为 1–13，收货最低仍为 10，上线见[当前迁移](development/PERSISTENCE.md)。原统一候选基于 `71910bfc2ac1b9d58e0f7f1b85e6bbb206321ec1`，当时未合并/部署，reader 严格为 1–10。其组合验证和独立像素证据缺失继续作为历史事实保留，见[集成记录](UNIFIED_SCENARIO_INTEGRATION.md)。
 
-Alice 可用现有流程设计器调整顺序、人员、SINGLE/ALL/ANY，然后发布新版本。旧申请保存提交时的业务和流程快照，不受新版本影响。流程变化只影响后续申请，没有字段条件分支。
+<!-- topic:scenario-and-review-flow -->
+## 场景与审批流程
 
-### 数量与边界
+独立 `erp-receiving` 位于 `/receiving.html`，也可从 `/scenarios.html` 六场景目录进入，使用本次启动的演示账号/密码。仅用合成数据；订单/验收是手工快照，没有真实 PO 查询或跨申请累计余额。
 
-- 单据固定版本 1；头字段：单号、标题、说明、合成订单引用、仓库 EAST/WEST、有效 YYYY-MM-DD 收货日期。
-- 1–20 行；稳定 lineId 与订单行引用均须在本单内唯一。每行包含物料说明、单位 PCS/BOX、订购/到货/合格/不合格数量、异常原因。
-- 数量仅接受 JSON 整数，不接受小数、指数、字符串、布尔、null 或隐式浮点转整数。每项 0–100000，订购数量必须大于 0。
-- 本次到货不超过该行手工录入的订购数；合格 + 不合格 = 本次到货。允许零到货行，但整单至少一行实际到货。
-- 不合格数大于 0 时异常原因必填，最多 1000 UTF-16 代码单元；其他行可留空。
-- 摘要分“件”和“箱”分别列到货、合格、不合格数量，显示物料行数与异常行数。不把不同单位加为一个总数，没有货币金额。
-- 单次申请人 + 幂等键 + 同内容 + 原流程版本可重试；同键改任何数量、引用、单位、说明或行顺序返回冲突。不同键可创建相同 PO 的新申请；不提供跨单去重、累计扣减、余额锁定或防止重复入库的承诺。
-- 通过只表示这份验收申请的人工审批通过；不会入库、付款、执行退货、更新供应商/订单或对外写回，也不证明现实质检已完成。
+示例 Alice 提交 `GR-DEMO-001`、订单 `PO-DEMO-001`、东区演示仓和日期。传感器行：PCS，订购 20、到货 10、合格 8、不合格 2，原因“外壳损坏”；线缆行：BOX，订购 10、到货 5、合格 5、不合格 0。
 
-## English
+默认仓库/质量 ALL（Bob+Carol）→ 采购复核（Bob）。Bob 第一票仍等 Carol，两人通过后 Bob 需另投采购票；任一 ALL 拒绝即结束。Bob 兼两项职责是固定账号演示，不保证职责分离，也不动态解析角色/部门。
 
-`erp-receiving` is a separate goods-receipt review scenario at `/receiving.html`, also available in the four-entry `/scenarios.html` catalog. Sign in with the demo backend accounts and passwords for this run. Use synthetic data only. Purchase-order and inspection fields are manually entered snapshots, without real PO lookup or cross-request cumulative balances.
+Alice 可修改顺序、指定人、SINGLE/ALL/ANY 并发布，旧业务和流程快照不变。原候选没有字段条件，当前收货可配置[受限条件](CONDITIONAL_ROUTING.md)。
 
-Sample: Alice submits `GR-DEMO-001`, purchase order `PO-DEMO-001`, East demo warehouse and a delivery date. Line 1: demo sensors, PCS, ordered 20, received 10, accepted 8, rejected 2, reason “Damaged casing”. Line 2: demo cables, BOX, ordered 10, received 5, accepted 5, rejected 0.
+<!-- topic:quantity-and-response-contract -->
+## 数量与响应契约
 
-Default route: warehouse and quality ALL review (Bob + Carol), then procurement review (Bob). Bob’s first vote waits for Carol; after both approve, Bob casts a separate procurement vote. One ALL rejection ends the request. Bob holds two responsibilities in this demo: these are fixed accounts, without separation-of-duties guarantees or dynamic role/department resolution.
+版本 1 包含业务引用、标题、说明、合成 PO、EAST/WEST 仓库、真实 YYYY-MM-DD 到货日期和 1–20 行。每行 lineId 与 PO 行引用各自在本单唯一，另有物料描述、PCS/BOX 单位、订购/到货/合格/不合格数量及异常原因。
 
-Alice can change ordered stages, named participants and SINGLE/ALL/ANY in the existing designer, then publish a new version. Submitted business data and routing remain immutable snapshots. There is no field-based conditional routing.
+数量必须是 0–100000 JSON 整数 token，订购为正；拒绝小数、指数、字符串、布尔、null 或浮点转整数。到货≤手工订购数，合格+不合格=到货；可有零到货行，但整单至少一行正到货。不合格为正时必须有有意义的原因，最多 1000 UTF-16 单元。
 
-### Contract
+响应为 `{request,total:null,summary:{kind:"receiving",lineCount,exceptionLineCount,quantities:[{unit,received,accepted,rejected}]}}`。只显示存在的单位，PCS 在 BOX 前，分别统计，另有行数/异常行数；不把不同单位加为总数量或金额。报销/出差仍恰为 `{request,total:string}`，用印为 `{request,total:null}`，均无收货 summary。
 
-Version 1 has a business reference, title, context, synthetic PO reference, EAST/WEST warehouse, valid YYYY-MM-DD delivery date, and 1–20 lines. Each line has stable lineId, unique-within-document PO line reference, material description, PCS/BOX unit, ordered/received/accepted/rejected integer counts and an exception reason.
+申请人范围的键对相同规范化单据、行顺序和原版本返回持久结果，包括重启或终审后。改数量、引用、单位、说明或顺序都冲突；新键可再次提交同 PO，不提供跨单去重、库存预留、累计收货或防重复入库保证。
 
-Counts are integer JSON tokens in 0–100000; ordered must be positive. Fractional or exponent tokens, strings, booleans and null are rejected rather than coerced. Received cannot exceed the manually entered ordered count; accepted + rejected must equal received. Zero-delivery lines are allowed if another line has a positive delivery. Rejected quantities require a meaningful reason of at most 1000 UTF-16 code units.
+通过仅完成本申请审核，不入库、付款、退货、更新供应商/订单、回写或证明实际质检完成。
 
-The response is `{request,total:null,summary:{kind:"receiving",lineCount,exceptionLineCount,quantities:[{unit,received,accepted,rejected}]}}`. Unit groups are PCS then BOX, only when present. Expense/Travel retain exactly `{request,total:string}` and Seal-use retains `{request,total:null}`, without a receiving summary. Units are never added into a misleading global quantity or currency amount.
+<!-- topic:historical-persistence-and-compatibility-gate -->
+## 历史持久化与兼容门槛
 
-An applicant-scoped idempotency key replays the persisted result for the same canonical document, line order and original process version, including after restart or final approval. A changed intent with that key conflicts. A different key may submit the same PO again: there is no cross-document deduplication, inventory reservation or cumulative receiving ledger.
+- 原统一 reader 严格接受 1–10，当前为 1–13。Travel 最低 8、Seal 最低 9、Receiving 最低 10；合法 8/9 只读打开，收货在 8/9 中仍拒绝。
+- 写入取已有 wrapper 和全部类型/定义/键需求最大值；后续旧接口/报销/出差/用印不低于 10。原 reader 拒绝未知类型、未来单据版本和 11+，当前上限见迁移指南。
+- 升级保留紧邻之前精确字节，包含同会话早前写入，备份防重名；替换失败不发布申请/键，非法读取不改快照/旧备份。
+- 原始负零在多态类型后置或请求树缓冲规范化前拒绝；不支持的数字词法、降级收货和篡改关系同样拒绝。
+- 隔离宿主启动及变更前检查业务类型；决定每次 CAS 重查，过期预检不能向其他类型追加票。
+- JDBC 保持 SQL revision 3、`request_json`、数据库全局申请人/键和就绪成员投影。仅新增类型不需 DDL/重建，revision 2 仍需显式停写迁移/回填。H2 不证明真实 PostgreSQL/MySQL。
+- 新写入前给全部读写者部署统一 reader 并停不兼容程序；旧候选不能互读彼此类型。历史恢复丢失后续工作，不是无损降级。
+- 发布前对最终组合 head 重跑。CI 检出精确事件 head，测声明 Boot 4.1.1，要求十项新增 Travel/Seal/Receiving 服务器用例无跳过，以及 15 张认证中英收货 Chromium 状态图及提交/hash 来源。原产物 HTTP 403/1010 导致原 PNG 与独立像素复核未取得；自动测试和像素验收独立。
 
-Approval only finishes this request’s review. It does not post stock, pay, return goods, update suppliers/orders, write to another system or certify real-world inspection.
+<!-- topic:verification -->
+## 验证
 
-## Persistence and compatibility gate
-
-- The unified reader accepts known schemas 1–10 and preserves the original field/type/version validation. Travel requires ≥8, Seal-use ≥9 and Receiving ≥10; legal schema 8/9 snapshots are read without rewriting. Receiving in 8/9 still fails closed.
-- Writes take the maximum of the current wrapper and all type/definition/key requirements. Receiving does not assign a lower wrapper on write, and later legacy/Expense/Travel/Seal writes cannot lower 10. Unknown types, future document versions and wrapper 11+ remain rejected.
-- Every actual upgrade preserves exact immediately preceding bytes, including prior writes in that session, using a collision-safe backup. Failed replacement does not publish request/key state; invalid reads do not mutate snapshots or existing backups.
-- Raw negative-zero tokens are rejected before polymorphic/type-last or request/tree buffering can normalize them. Other unsupported numeric lexemes, downgraded Receiving and tampered relationships also fail closed.
-- Isolated hosts reject wrong-business-type records at startup and before mutation. Each typed decision rechecks its target on every CAS attempt, so a stale preflight cannot append a vote to another document type.
-- JDBC retains SQL revision 3, existing `request_json`, database-global applicant/key scope and the ready member projection. No DDL or rebuild is required solely for these types; older revision-2 installations still need explicit stopped-writer migration/backfill. H2 results do not establish PostgreSQL/MySQL results.
-- Deploy the unified reader to every reader/writer and stop incompatible binaries before new writes. Old independent candidates do not understand one another’s types. Historical backup restore discards later work and is not lossless downgrade.
-- Before release, rerun all final checks against the intended combined head. CI checks out its exact event head, tests the declared Boot 4.1.1 host, requires all ten new Travel/Seal/Receiving server cases without skips, and requires 15 authenticated bilingual Receiving Chromium states with commit/hash provenance. Original candidate image downloads returned HTTP 403 / 1010; original PNG bytes and independent pixel review remain unverified. Automated evidence and pixel acceptance are separate gates.
-
-## Verification
-
-Run domain tests, JDBC tests and the declared backend tests separately:
+分别运行领域、JDBC 与声明后端：
 
 ```sh
 mvn -f examples/approval-domain/pom.xml install
@@ -67,4 +68,4 @@ mvn -f examples/approval-demo/backend/pom.xml verify
 cd examples/approval-ui && npm test && npm run build
 ```
 
-Focused coverage includes strict numeric lexemes, boundary quantities and text, zero-delivery rows, per-unit summaries, duplicate references, all-zero/empty/overlong documents, ALL partial voting and rejection, ANY custom publication, same-person cross-stage voting, access isolation, idempotency conflicts, concurrent retries, file/JDBC reopen, migration backups and failed atomic publication.
+重点覆盖严格数字词法、数量/文本边界、零到货行、按单位汇总、重复引用、全零/空/超长单据、ALL 部分投票/拒绝、ANY 自定义发布、同人跨阶段投票、访问隔离、键冲突、并发重试、文件/JDBC 重开、升级备份和原子发布失败。

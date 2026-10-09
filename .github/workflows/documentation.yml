@@ -1,0 +1,26 @@
+name: Documentation contracts
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  documentation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test documentation and API drift gates
+        run: |
+          python3 -m unittest discover -s scripts -p test_documentation.py -v
+          python3 -m unittest discover -s scripts -p test_developer_docs.py -v
+          python3 scripts/test_api_contract.py
+      - name: Verify both languages, links, historical sources and real API contract
+        run: |
+          python3 scripts/check_documentation.py
+          python3 scripts/verify_developer_docs.py
+          python3 scripts/check_api_contract.py

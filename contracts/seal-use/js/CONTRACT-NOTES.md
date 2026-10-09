@@ -1,81 +1,25 @@
-# Local JavaScript seal-use contract proposal
+# 用印 JavaScript 原型说明
 
-These pure modules are not registered with the application. They do not render UI,
-submit a request, fetch document references, apply seals, upload files, or persist data.
+<!-- Legacy fragments remain entry points after the language split. -->
+<a id="apis"></a>
+<a id="local-javascript-seal-use-contract-proposal"></a>
+<a id="normalization-and-input-boundaries"></a>
+<a id="reproduce-checks"></a>
 
-## APIs
+[English](CONTRACT-NOTES.en.md)
 
-- `emptySealUse()` creates a fresh editable business-shaped draft with numeric
-  `copyCount: 1`. Required reference/text fields are empty and therefore invalid.
-- `validateSealUse(value)` returns immutable issues `{path, code, message: {zh, en}}`.
-  It captures each own enumerable data-descriptor value once into a fresh ordinary
-  record, then validates that record. Extra fields and accessors reject; Proxy get
-  traps cannot swap validated values before normalization. The form and outer
-  submit-envelope paths use the same snapshot boundary.
-- `normalizeSealUse(value)` validates original lengths, trims only U+0000–U+0020
-  from title/reason/documentName edges, then returns a new frozen canonical snapshot.
-- `serializeSealUse(value)` and `readSealUse(rawJson)` encode/decode the nine business
-  keys. The raw reader rejects duplicate/escaped-alias keys, trailing content, and
-  fraction/exponent numeric lexemes. It reuses the unchanged baseline strict parser.
-- `emptySealUseForm()` creates a distinct form draft whose `copyCount` is text `'1'`.
-  `validateSealUseForm()` and `normalizeSealUseForm()` validate/convert this shape.
-  Validation never mutates the draft. Both valid and invalid raw input stay visible
-  while editing; commit normalized numbers only on successful form submission.
-- `copyCountFromInput(raw)` returns `{ok, value, issue}`. Raw input is capped at
-  16 UTF-16 code units before ECMAScript `trim()`. ASCII digit strings representing
-  1–100 succeed, including benign pasted edge whitespace and leading zeros. Empty,
-  signed, decimal, exponent, Unicode-digit and partially parsed strings fail with
-  `value: null`. Thus `' 02 '` can submit as numeric `2`, while `'2copies'` cannot.
-  This null is an error result, not a valid business value or a suggested form reset.
-- `sealUseSummary(value)` reports the real numeric count, localized count label and
-  synthetic seal category. It contains no amount, currency, total or money field.
-- `serializeSealUsePayload()`/`readSealUsePayload()` are optional, pure submit-envelope
-  proposals for exact `{business, processVersion}` with integer processVersion
-  1–2147483647. They do not implement or enable any endpoint.
-- `sealUseFormProposal` is deeply frozen compiled metadata, exactly mirrored in
-  `../form-template.json`. It explicitly declares proposal/unregistered/non-runnable.
 
-The future response shape remains `{request, total: null}`. There is no response
-history validator in this phase. Existing monetary validators are unchanged.
-The proposed fields include an integer kind and `lineItems: null`, both requiring
-separate shared-renderer work before any registration.
+<!-- topic:status -->
+## 记录范围
 
-## Normalization and input boundaries
+此页是历史证据入口，原记录冻结于仓库基线 `199db7548f6faba5dfef105eaaf7311972adb388`。其中的日期、源提交、测试计数、候选状态、限制和未运行项属于原检查点，不能推断为当前源码或部署的验收。
 
-String limits count raw UTF-16 code units before normalization. JavaScript in-memory
-numbers do not preserve whether their source was written as `1`, `1.0`, or `1e0`;
-lexical checks therefore belong at `readSealUse()` on the original JSON string.
-Do not pre-parse untrusted JSON with `JSON.parse` and expect the model validator to
-recover discarded lexemes or duplicate keys.
+<!-- topic:source -->
+## 原始材料
 
-The blank rule is the fixed Unicode White_Space set plus C0 and BOM. Nonblank Unicode
-edge whitespace, combining sequences, interior control characters and lone UTF-16
-surrogates are preserved. No Unicode normalization is applied. References are inert
-ASCII strings and are not trimmed, dereferenced or checked for existence.
+[读取完整原始记录](../../../docs/history/199db754/contracts/seal-use/js/CONTRACT-NOTES.md.txt)。原文件逐字节保留，不改写测试结论或把未执行写成通过；其 SHA-256 与来源登记在[历史索引](../../../docs/history/README.md)。原始材料可能使用记录当时的语言，当前中文/英文入口提供相同范围和路径。
 
-Both raw business readers enforce a shared 8,000,000-UTF-16-code-unit source cap.
-Tests accept space-padded valid JSON at 7,999,999 and 8,000,000 units and reject
-8,000,001 using the Java test resource's shared raw-input policy. The JS reader also
-inherits the unchanged baseline parser's depth limit of 64.
+<!-- topic:next -->
+## 当前使用
 
-`prototype-intent.mjs` is an isolated test-only canonical comparison aid. Its bytes
-must not become a persisted fingerprint, signature, idempotency key or new protocol.
-It does not establish authenticated actor/process scoping or durable retry behavior.
-
-## Reproduce checks
-
-Run from the repository root, with native Node (verified using v24.19.0):
-
-```sh
-node --test --test-reporter=tap contracts/seal-use/js/*.test.mjs
-node --test --experimental-test-coverage --test-coverage-include='contracts/seal-use/js/*.mjs' --test-coverage-exclude='**/*.test.mjs' --test-reporter=tap contracts/seal-use/js/*.test.mjs
-```
-
-No packages or network are needed. Shared vectors are read from the independent Java
-module's test resources. `cross-language.test.mjs` verifies those vectors in JS; the
-Java module's own test run is required to establish the Java side.
-
-Test logs and source hashes are retained beside these files. Coverage is restricted
-to the three new proposal modules; it excludes the imported baseline parser and all
-existing renderer/registry/host/store/workflow code. No mounted Vue, browser, HTTP,
-authentication, persistence, migration, database or full-repository test is claimed.
+请从[现行指南](../../../docs/SEAL_USE_SCENARIO.md)开始，按目标提交重新运行相关验证。原型纯数据契约、模拟响应、模型测试、真实 HTTP、真实数据库与浏览器截图分别证明不同层次，不能互相替代。若检查受环境限制，记录阻塞与未运行范围。

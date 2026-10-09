@@ -1,105 +1,77 @@
-# Reusable approval domain
+# 共享审批领域
 
-[Developer architecture / 开发架构](../../docs/development/ARCHITECTURE.md) · [Persistence and migration / 存储迁移](../../docs/development/PERSISTENCE.md) · [API reference / 接口参考](../../docs/api/API_REFERENCE.md)
+<!-- Legacy fragments remain entry points after the language split. -->
+<a id="bounded-member-inbox"></a>
+<a id="business-document-boundary--业务单据边界"></a>
+<a id="explicit-snapshot-compatibility"></a>
+<a id="host-contract"></a>
+<a id="identity-lifecycle-and-authorization"></a>
+<a id="reusable-approval-domain"></a>
+<a id="synthetic-seal-use-scenario--合成用印申请"></a>
 
-`com.arcflow.examples:approval-domain:0.1.0-SNAPSHOT` is a Java 17 library for approval stages, participant groups and persistence through `ApprovalStore`. ArcFlow’s core runs the submission validation/normalization DAG. This module handles the human decisions that follow. It has no Spring Boot entry point, authentication filter or demo users. The default store is still single-process JSON; [approval-jdbc](../approval-jdbc/README.md) provides an optional transactional database adapter.
+[English](README.en.md)
 
-Install the core first, then this module:
+
+<!-- topic:scope -->
+`com.arcflow.examples:approval-domain:0.1.0-SNAPSHOT` 是 Java 17 审批领域库。它管理人工审批、流程版本、参与人、不可变业务单据及 `ApprovalStore` 持久化，不包含启动服务器、认证过滤器或演示账号。内核负责同步 DAG 校验，人工等待由此模块管理。
+
+当前支持九种业务类型、六个独立场景；注册类型不会自动向通用 HTTP 开放。完整范围见[架构](../../docs/development/ARCHITECTURE.md)与[业务单据](../../docs/BUSINESS_DOCUMENTS.md)。
+
+<!-- topic:install -->
+## 安装与宿主接线
+
+从仓库根目录运行：
 
 ```sh
 mvn install
 mvn -f examples/approval-domain/pom.xml install
 ```
 
-## Host contract
+JSON 宿主构造 `ApprovalService(ObjectMapper, String filename, ActorDirectory, ProcessDefinition initialDefinition)`，关闭时调用 `close()`；Spring 可用 `@Bean(destroyMethod = "close")`。数据库宿主使用 `ApprovalService(ApprovalStore, ActorDirectory)`；[JDBC 适配器](../approval-jdbc/README.md)不会自动安装。
 
-Create `ApprovalService(ObjectMapper, String filename, ActorDirectory, ProcessDefinition initialDefinition)` and call `close()` when the host shuts down. In Spring, `@Bean(destroyMethod = "close")` handles this. Give each deployment its own data file. The initial definition is used only when no versioned snapshot exists; `ProcessDefinition.legacy(assigneeId)` constructs the supported one-step leave definition. Each service/store is bound to one process ID matching `[A-Za-z][A-Za-z0-9_-]{0,127}`; an existing JSON file must belong to that ID. The demos keep `leave-approval`. Publication cannot rename the configured process. Definitions have an ordered start → 1–8 approval stages → end structure. Schema 2 keeps single-assignee sequential stages; schema 3 adds `ALL`/`ANY` groups of 2–16 participants. Schema 4 adds restricted frozen routing only for payment, receiving and contract document hosts; generic and quote publication do not accept it. See the [group semantics and rollout contract](../../docs/PARALLEL_APPROVAL.md).
+每个服务绑定一个稳定流程 ID，格式为 `[A-Za-z][A-Za-z0-9_-]{0,127}`。初始定义只用于没有版本快照的新存储，不能通过发布改名。流程有开始、1–8 个顺序审批步骤和结束；定义 schema 2 为单人、3 增加 2–16 人 ALL/ANY 分组、4 仅在付款/收货/合同宿主增加受限条件。通用与报价宿主不接受 schema 4。
 
-For database persistence, construct `ApprovalService(ApprovalStore, ActorDirectory)` with the optional JDBC adapter. This overload does not change the host controllers or request/response records. The service owns the store lifecycle; a host-provided `DataSource` remains host-owned. Stores provide live reads and atomic version-checked publication, creation and decision updates. A request's revision equals its number of decisions (`history.size() - 1`). Failed revision checks reload and reauthorize the exact step before returning an idempotent replay or a conflict. Use the optional `submit(..., key)` overload to retry submissions with a durable key scoped to the applicant. Stores atomically bind the key to the new request; unsupported third-party stores fail explicitly. Without a key, each submission creates a separate request. See the [submission contract and migration boundary](../../docs/SUBMISSION_IDEMPOTENCY.md).
+服务拥有存储生命周期，宿主拥有 `DataSource`。先停止接收请求并排空工作，再关闭服务和连接池；关闭 JDBC 存储阻止新操作，但不取消已经开始的事务。
 
-Methods that already declared `IOException` retain that contract. `process()` and `list()` wrap persistence read failures in `UncheckedIOException`; hosts should map these to a generic server error, never an empty list or stale success. Closed-store reads fail. JDBC closure prevents new operations but allows already-started transactions to finish; shut down request handling before closing.
+<!-- topic:identity -->
+## 身份与授权
 
-Implement a thread-safe `ActorDirectory` for concurrent hosts:
+线程安全的 `ActorDirectory` 必须提供：
 
-- `findActive(String id)` returns only currently active, non-deleted identities, keyed by immutable host user ID, never display name.
-- `listActive()` returns the host's permitted active identity directory for assignee selection.
-- `canPublish(String id)` checks current host publication permission.
-- `canAssignApproval(String id)` defaults to active membership; override for a narrower approver policy.
+- `findActive(id)`：按不可变宿主 ID 返回仍启用、未删除的用户。
+- `listActive()`：宿主允许用于选择审批人的活跃用户目录。
+- `canPublish(id)`：查询当前发布权限。
+- `canAssignApproval(id)`：默认要求活跃用户；可覆盖为更严格的指派策略。
 
-Use authenticated server-side identity for every service actor argument; never trust an actor in request JSON. Hosts own endpoint authentication/authorization and map `ResponseStatusException` to their API error format. Its Spring Web dependency is for these status-bearing exceptions, not for installed web routes. Call `ApprovalService.strictMapper` on a dedicated mapper before decoding typed requests. It preserves exact decimal values before strict field validation; the JSON/JDBC stores and HTTP hosts already use it.
+所有 actor 参数必须来自服务端认证身份，不能信任请求正文。宿主负责端点认证、权限和错误格式。对专用 ObjectMapper 调用 `ApprovalService.strictMapper` 后再解码类型化请求，保留精确数字和严格字段校验。
 
-## Identity lifecycle and authorization
+发布、提交、决策都会重查操作人状态；发布和新提交还检查所有被指派者。已有提交的同键重试按原申请处理，不重新要求历史指派符合新流程资格。恢复快照只验证 ID 与历史结构，删除旧账号不能使历史不可读。管理员不能越过参与人限制。申请人出现在完整定义中，即使条件会跳过该步骤，也不能提交。
 
-Publishing, submitting and deciding each recheck that the acting user is active. Publication and new submissions also check every assigned approver. A keyed retry of an existing submission uses its saved request without rechecking whether its old assignments are eligible for a new process. Snapshot restoration validates IDs and history structurally, without consulting live directory membership: deletion or disabling must not make valid historical data unreadable. Inactive users cannot make decisions, including retries. A publisher can replace inactive future routing by publishing a new process; old requests retain their own exact definition and assignment. Reassignment and administrator overrides are not supported. Administrators must be the specific assigned approver to decide, and submissions assigning the applicant anywhere are rejected.
+列表及决策读回存储后再次检查身份。这是有界重授权，不是身份目录与数据库的原子事务；需要提交时严格撤权的宿主必须自行协调。
 
-Legacy list reads and every decision reload also recheck the acting identity after storage returns, matching the inbox read boundary. If the directory reports deactivation during that read, the service rejects the operation before releasing the result or attempting a decision write, including an idempotent replay and the final retry observation. This is a bounded reauthorization check, not an atomic identity/storage transaction: a later revocation can still race with response delivery or a write already authorized or in progress. Hosts needing strict revocation at commit must coordinate their identity and transaction boundaries; this domain does not provide that guarantee.
+<!-- topic:persistence -->
+## 持久化与重试
 
-The default `JsonApprovalStore` uses a process-exclusive file lock, serialized transitions, atomic replacement, byte-exact immediately-preupgrade backups for compatible schema-1 through schema-12 data and strict history replay. Use it only with one process and a local filesystem. The optional JDBC module has separate schema, transaction and scaling boundaries. Neither adapter provides tenant isolation or all the features needed for a production workflow service. Avoid exposing the store file or active user directory beyond the host's authorization scope.
+- 默认 JSON 使用独占文件锁、串行状态转换、原子替换和升级前逐字节备份，只支持本地单进程写者。
+- 当前读取 wrapper 1–13；流程定义 schema、文件 wrapper 和 SQL revision 是不同版本。完整矩阵、升级步骤和回退限制见[存储迁移](../../docs/development/PERSISTENCE.md)。
+- 键控提交原子绑定申请人、键和不可变意图。相同意图返回原申请当前状态，变更意图冲突；无键则每次创建。第三方存储不支持该能力时明确失败。
+- 决策重试在精确步骤上重载并重授权，避免重复历史或错误推进下一步。内部修订号为 `history.size() - 1`，不是 HTTP 返回字段。
+- `process()`/`list()` 将读取错误包装为 `UncheckedIOException`；其他声明 `IOException` 的方法保留契约。宿主应返回一般服务错误，不能假装空列表或成功。关闭后读操作失败。
 
-The standalone Vue/HTTP and native RuoYi hosts support schema 3. Schema-3 hosts must use `ApprovalService.pendingApproverIds(request)` or derive the equivalent unvoted membership from the snapshotted current stage and history; the legacy `approverId` field names only one participant. Do not use it as group authorization or a full inbox filter.
+存储不提供租户隔离、业务系统事务、自动通知或生产运维保障。用印仅记录审核，不盖章或抓取文件；付款不转账，合同不签署，收货不入库。
 
-## Business document boundary / 业务单据边界
+<!-- topic:inbox -->
+## 成员收件箱
 
-Current `main` supports nine explicit immutable types: leave, procurement,
-quoteDiscount, expense, travel, sealUse, receiving, paymentRequest and contractApproval, through the shared approval lifecycle.
-The strict reader accepts JSON wrappers 1–13; minimum typed wrappers are 5 for leave and
-procurement, 6 for quotes, 7 for Expense, 8 for Travel, 9 for Seal-use and 10 for Receiving, 11 for Payment and 12 for Contract.
-Writes use a monotonic maximum; valid higher wrappers can hold lower-minimum types. Reads
-never force files to the maximum wrapper. Legacy fields and process definitions (schema 2/3) keep their existing behavior. Definition schema 4 and frozen routes require wrapper 13, including publication without requests.
-Unknown types/versions and invalid type-wrapper combinations remain rejected.
+`inbox(actor, box, limit, status, processVersion, cursor)` 返回申请级分页。PENDING 包含当前阶段尚未表决的全部合格成员；HANDLED 只包含实际留下决策事件的人，同一申请可以同时出现。默认 25、最大 100，按不可变创建时间/ID 排序，游标绑定身份与过滤条件。`list(actor)` 保持原语义，不能把兼容字段 `approverId` 当作分组授权或完整待办名单。
 
-Type registration does not open generic hosts to every type. Generic standalone/native
-HTTP still accepts only leave/procurement; CRM and all six compiled scenarios retain
-separate exact-type/process/authorization boundaries. Expense and Travel views contain
-`{request,total:string}`; Seal views `{request,total:null}`; Receiving alone adds its
-unit-grouped `summary`. Restricted typed conditions are available only for payment, receiving and contract; no arbitrary expression or arbitrary-field form engine is provided.
-See [business-document contract](../../docs/BUSINESS_DOCUMENTS.md) and
-[combined integration history](../../docs/UNIFIED_SCENARIO_INTEGRATION.md).
+<!-- topic:verify -->
+## 验证与扩展
 
-## Bounded member inbox
+```sh
+mvn -f examples/approval-domain/pom.xml verify
+```
 
-`ApprovalService.inbox(actor, box, limit, status, processVersion, cursor)` is an additive authenticated request-level inbox. `PENDING` includes every current unvoted ALL/ANY participant; `HANDLED` includes only actors with actual decision events and may overlap pending in a later stage. The default limit is 25, maximum 100. Results use immutable creation-time/ID keyset order and actor/filter-bound cursors. Existing `list(actor)` remains unchanged. Unsupported third-party store adapters fail explicitly instead of replaying their full list. See the [complete contract and verification boundaries](../../docs/MEMBER_INBOX.md).
+更改领域契约后重新安装，再验证两个宿主、默认 JSON、可选 JDBC 与受影响客户端。不要用原型测试或单场景结果替代合并版本验收。
 
-## Synthetic Seal-use scenario / 合成用印申请
-
-The compiled ScenarioCatalog.sealUse(managerId, financeId) registers the oa-seal-use
-process with documentReview and sealReview steps. Its version-1 BusinessDocument.SealUse
-contains the business reference, title, business purpose (reason), document name, inert
-document reference, synthetic OFFICIAL/CONTRACT/FINANCE category and 1–100 copies.
-This is review state only: it does not apply a seal, sign, upload or fetch a document.
-The current template DTO is unchanged: seven required visible fields, an integer count
-widget with raw-input maxLength 16, and null lineItems. ScenarioCase.View.total
-is explicitly null for Seal; Expense retains its exact monetary string.
-
-Seal text lengths are checked before normalization in UTF-16 units (title 120, reason 2,000,
-document name 160). Only edge U+0000–U+0020 is trimmed. Values consisting entirely of C0,
-the fixed Unicode White_Space set and/or U+FEFF are invalid. References and categories are
-never trimmed or case-folded. The strict mapper rejects unknown/missing fields, duplicate
-JSON keys, trailing tokens, scalar coercions and floating-point count/version tokens.
-Typed data is validated before submission and canonicalized before immutable snapshotting.
-All normalized fields and the original process ID/version participate in applicant-scoped
-idempotency. A changed intent conflicts; a same-intent retry returns the current durable
-request, including after a decision or restart. References do not impose uniqueness.
-
-### Explicit snapshot compatibility
-
-The current reader supports JSON wrappers **1–13**, including valid Travel/schema-8 and
-Seal/schema-9 data. Seal requires at least 9 and remains valid at 10; Receiving requires at
-least 10. Every type retains strict wire name, exact Java record, field and version validation.
-Unknown/future types, noninteger/overflow wrappers and wrappers above 13 fail closed. Wrapper 13 additionally retains published schema-4 definitions and validates frozen routes against their immutable business snapshots. See the [current storage matrix](../../docs/development/PERSISTENCE.md).
-
-Compatible files are read without rewriting or touching backups. Every actual upgrade
-retains the byte-exact immediately preceding snapshot before atomic replacement, including
-same-session changes. Existing backups are preserved on collision. Failed replacement
-publishes neither requests nor submission keys; later writes never lower the schema.
-Historical backup restore loses later changes and is not a lossless downgrade. Deploy
-unified readers everywhere and stop incompatible writers before new scenario writes.
-SQL revision 3 and already-ready member indexes require no DDL or rebuild for these types.
-
-Seal's tests retain the 65 reviewed data-only contract vectors without a prototype runtime
-dependency. The combined suite must additionally cover legal 8/9/10 reads, each type's lower
-schema rejection, all three new-type write orders, exact upgrade backups, strict Receiving
-raw negative-zero decoding, failures/restart, authorization and scenario isolation. Existing
-single-candidate reports do not establish that this integrated source passed those gates.
-
-The payment and contract extension has dedicated exact-decimal allocation/milestone models and stores. See [complete model and migration contract](../../docs/PAYMENT_CONTRACT_SCENARIOS.md). Payment adds its typed `paymentSummary` response; the other five envelopes retain their scenario-specific shape.
+继续阅读：[架构与扩展](../../docs/development/ARCHITECTURE.md)、[接口参考](../../docs/api/API_REFERENCE.md)、[成员待办](../../docs/MEMBER_INBOX.md)、[条件路由](../../docs/CONDITIONAL_ROUTING.md)、[提交幂等](../../docs/SUBMISSION_IDEMPOTENCY.md)。
