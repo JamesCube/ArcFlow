@@ -1,40 +1,464 @@
 {
   "zh": {
-    "lang": "zh-CN", "title": "ArcFlow · 把审批，接进你的业务", "description": "面向 Java 业务系统的开源审批项目。用可视化设计器配置顺序审批，运行请假、采购、报价和报销示例，查看清晰的能力边界。",
-    "nav": ["流程设计", "业务场景", "能力边界", "开始使用"], "switch": "EN", "skip": "跳到内容",
-    "eyebrow": "OPEN SOURCE / JAVA WORKFLOWS", "hero": "把审批，<br>接进你的<span>业务。</span>", "intro": "从流程设计，到每一次审批。<br>用看得见、跑得通的示例，搭起你的业务流程。", "primary": "本地跑起来", "secondary": "探索真实界面", "heroNote": "Apache-2.0 · 源码预览 · 自托管示例",
-    "screenTitle": "顺序清晰，规则可见。", "screenSub": "选择节点，配置人员与审批方式。每一笔申请，保留提交时的流程。", "screenLabel": "真实界面 / 合成演示数据", "expand": "查看完整截图", "close": "关闭截图", "provenance": "截图来源与拍摄版本",
-    "proof": [["01", "设计流程", "安排步骤，设置 SINGLE / ALL / ANY"], ["02", "发起申请", "保存业务字段与流程版本快照"], ["03", "逐步审批", "处理当前待办，保留每个人的决定"]],
-    "designerKicker": "DESIGN THE PROCESS", "designerTitle": "让规则，<br>一眼说清楚。", "designerIntro": "给审批步骤命名，选好参与人，再发布。流程变了，新申请用新版本；已提交的申请保留原样。", "designerFeatures": [["1–8 个顺序步骤", "插入、删除、上下调整，保持每一步的先后关系。"], ["三种审批方式", "单人处理、全员同意（ALL），或任一人同意（ANY）。"], ["版本与只读快照", "发布检查期望版本，提交保存步骤、人员与规则。"]], "designerLink": "查看设计器完整图集", "flowLabels": ["申请提交", "主管审批", "团队会签", "复核确认", "流程完成"], "flowNote": "示意流程 · 顺序步骤，非通用并行网关", "flowPerson": "指定人员", "flowAll": "所有成员同意", "flowFinal": "保留逐人记录",
-    "scenariosKicker": "START WITH YOUR BUSINESS", "scenariosTitle": "从一笔真实业务，<br>走完整个流程。", "scenariosIntro": "四种可运行示例，各有明确范围。先体验，再决定怎么接进自己的系统。", "tabLabel": "选择业务场景", "scenarioLink": "阅读场景说明", "screenNote": "真实产品截图，使用合成数据；点击查看完整画面。",
-    "scenarios": [
-      {"id":"expense","tab":"费用报销","tag":"OA / 独立工作区","title":"把每笔费用，说清楚。","body":"成本中心、币种、1–20 行费用明细，连同审批流程一起保存。通过、驳回与逐人记录，都有迹可循。","points":["固定版本表单元数据","精确金额合计","业务与流程只读快照"],"boundary":"票据引用为文字，不上传或验真；审批通过不会打款。当前未接入若依与 H5。","image":"02-filled-expense-zh-desktop.png","alt":"费用报销工作区：包含成本中心、币种和多行费用明细的已填写表单","doc":"docs/EXPENSE_SCENARIO.md"},
-      {"id":"leave","tab":"请假申请","tag":"OA / 共享工作区","title":"从请假，理解每一步。","body":"填写整天天数和事由，由当前审批人处理，再进入后续复核。待办和记录随身份切换。","points":["整天天数与事由","当前步骤待办","逐人决定与意见"],"boundary":"这是审批示例，不计算考勤或假期余额，也不支持自动寻找直属主管。","image":"oa-03-inbox-zh.png","alt":"请假审批待办：左侧申请列表，右侧当前审批、流程顺序和操作记录","doc":"docs/CASE_GALLERY.md#oa"},
-      {"id":"procurement","tab":"采购申请","tag":"ERP / 共享工作区","title":"让采购申请，有据可审。","body":"物品、数量、单价与币种，随申请进入审批。需要审批的业务信息与当时的流程一起保留。","points":["单项采购明细","固定审批参与人","审批过程可查看"],"boundary":"示例不自动下单、付款或入库；审批结果需要由宿主业务继续处理。","image":"erp-01-form-zh.png","alt":"采购申请表：单项物品、数量、单价和币种字段","doc":"docs/CASE_GALLERY.md#erp"},
-      {"id":"quote","tab":"报价折扣","tag":"CRM / 独立案例","title":"报价有调整，决策有记录。","body":"核对源报价与申请价格，依次由销售经理和财务审核。业务读权与审批权限分别检查。","points":["源报价版本核对","经理、财务顺序审核","申请价格只读快照"],"boundary":"与共享工作区隔离；未连接真实 CRM，不自动报价、通知客户或回写业务。","image":"crm-01-form-zh.png","alt":"独立 CRM 报价折扣申请页，展示源报价、申请价格和审批说明","doc":"docs/CRM_QUOTE_CASE.md"}
+    "lang": "zh-CN",
+    "title": "ArcFlow · 把审批，接进你的业务",
+    "description": "面向 Java 业务系统的开源审批项目。用可视化设计器配置顺序审批，运行请假、采购、报价和报销示例，查看清晰的能力边界。",
+    "nav": [
+      "流程设计",
+      "业务场景",
+      "能力边界",
+      "开始使用"
     ],
-    "architectureKicker":"BUILT TO BE UNDERSTOOD", "architectureTitle":"内核、审批、界面。<br>各自做好自己的事。", "architectureIntro":"从最小的 Java 内核，到可运行的宿主示例。你可以看清依赖，再选择适合自己的接入层。",
-    "layers":[["01 / ENGINE","同步 DAG 内核","按依赖顺序运行处理器，管理变量与事件。内核无第三方运行时依赖。","不承载人工等待或持久运行状态。"],["02 / DOMAIN","审批领域与存储","人员权限、顺序步骤、快照与审批记录。默认 JSON，可选 JDBC 适配器。","审批模块有自身依赖；JDBC 需要显式接线与迁移。"],["03 / EXPERIENCE","宿主与客户端","Spring Boot、Vue、若依与 H5 示例，展示不同系统的接入方式。","各客户端覆盖范围不同，不代表完整生产服务。"]],
-    "capKicker":"KNOW THE BOUNDARIES", "capTitle":"能做什么，<br>也说清还不能做什么。", "capIntro":"开源的价值，也在于边界透明。把缺项算进接入计划，而不是上线后再发现。", "capLink":"逐项查看能力目录",
-    "caps":[["ready","已实现","顺序审批与固定人员组","SINGLE、ALL、ANY；流程版本、申请快照、审批历史。"],["partial","有限支持","多宿主与存储适配","JSON 默认单写者；JDBC 需接线，客户端支持范围不同。"],["planned","尚未实现","动态路由与高级流程","条件分支、动态主管、撤回、转办、定时催办、BPMN。"]],
-    "startKicker":"FROM SOURCE TO YOUR SCREEN", "startTitle":"下一步，<br>跑一笔自己的申请。", "startIntro":"在本地启动示例，用 Alice 发起、Bob 审批，再由 Carol 复核。先把整个过程走一遍。", "requirements":"Linux / macOS / WSL · Python 3.9+ · 完整 JDK 17+ · Maven 3.9+ · Node 22.22.2+（22.x，含 npm）", "terminalLabel":"终端 / 固定到本页功能基线", "copy":"复制命令", "copied":"已复制", "copyFail":"无法访问剪贴板，请手动选择命令", "runNote":"等待终端显示就绪地址，从本次密码文件读取演示账号。Ctrl-C 会停止服务并删除本次试用数据；需要保留数据，请按手动启动说明操作。", "startLink":"完整运行说明", "versionsTitle":"先看版本，再开始", "versions":[["本页功能基线","main · 71910bfc","包含报销工作区与能力目录。文案核对于 2026-10-09。"],["已发布源码预览","v0.1.0-alpha.3","较早版本，提交 ab428327；不含报销等后续主线更新。"],["开发中的候选","PR #39 · 未合并","组合场景仍是候选预览，不作为本页已交付能力。"]],
-    "closing":"把下一条流程，<br>交给你来定义。", "closingBody":"读源码，跑示例，告诉我们你的使用场景。", "star":"在 GitHub 上支持项目", "footerNote":"开源审批项目 · Apache-2.0", "footerLinks":["源码","问题反馈","能力目录","路线图"], "footerDisclosure":"本页为静态项目介绍，不提供在线审批服务。无追踪脚本、无数据收集表单。", "mobileMenu":"打开导航", "noJS":"页面内容和源码链接无需 JavaScript。开启 JavaScript 可切换场景与放大截图。"
+    "switch": "EN",
+    "skip": "跳到内容",
+    "eyebrow": "OPEN SOURCE / JAVA WORKFLOWS",
+    "hero": "把审批，<br>接进你的<span>业务。</span>",
+    "intro": "从流程设计，到每一次审批。<br>用看得见、跑得通的示例，搭起你的业务流程。",
+    "primary": "本地跑起来",
+    "secondary": "探索真实界面",
+    "heroNote": "Apache-2.0 · 源码预览 · 自托管示例",
+    "screenTitle": "顺序清晰，规则可见。",
+    "screenSub": "选择节点，配置人员与审批方式。每一笔申请，保留提交时的流程。",
+    "screenLabel": "真实界面 / 合成演示数据",
+    "expand": "查看完整截图",
+    "close": "关闭截图",
+    "provenance": "截图来源与拍摄版本",
+    "proof": [
+      [
+        "01",
+        "设计流程",
+        "安排步骤，设置 SINGLE / ALL / ANY"
+      ],
+      [
+        "02",
+        "发起申请",
+        "保存业务字段与流程版本快照"
+      ],
+      [
+        "03",
+        "逐步审批",
+        "处理当前待办，保留每个人的决定"
+      ]
+    ],
+    "designerKicker": "DESIGN THE PROCESS",
+    "designerTitle": "让规则，<br>一眼说清楚。",
+    "designerIntro": "给审批步骤命名，选好参与人，再发布。流程变了，新申请用新版本；已提交的申请保留原样。",
+    "designerFeatures": [
+      [
+        "1–8 个顺序步骤",
+        "插入、删除、上下调整，保持每一步的先后关系。"
+      ],
+      [
+        "三种审批方式",
+        "单人处理、全员同意（ALL），或任一人同意（ANY）。"
+      ],
+      [
+        "版本与只读快照",
+        "发布检查期望版本，提交保存步骤、人员与规则。"
+      ]
+    ],
+    "designerLink": "查看设计器完整图集",
+    "flowLabels": [
+      "申请提交",
+      "主管审批",
+      "团队会签",
+      "复核确认",
+      "流程完成"
+    ],
+    "flowNote": "示意流程 · 顺序步骤，非通用并行网关",
+    "flowPerson": "指定人员",
+    "flowAll": "所有成员同意",
+    "flowFinal": "保留逐人记录",
+    "scenariosKicker": "START WITH YOUR BUSINESS",
+    "scenariosTitle": "从一笔真实业务，<br>走完整个流程。",
+    "scenariosIntro": "四种可运行示例，各有明确范围。先体验，再决定怎么接进自己的系统。",
+    "tabLabel": "选择业务场景",
+    "scenarioLink": "阅读场景说明",
+    "screenNote": "真实产品截图，使用合成数据；点击查看完整画面。",
+    "scenarios": [
+      {
+        "id": "expense",
+        "tab": "费用报销",
+        "tag": "OA / 独立工作区",
+        "title": "把每笔费用，说清楚。",
+        "body": "成本中心、币种、1–20 行费用明细，连同审批流程一起保存。通过、驳回与逐人记录，都有迹可循。",
+        "points": [
+          "固定版本表单元数据",
+          "精确金额合计",
+          "业务与流程只读快照"
+        ],
+        "boundary": "票据引用为文字，不上传或验真；审批通过不会打款。当前未接入若依与 H5。",
+        "image": "02-filled-expense-zh-desktop.png",
+        "alt": "费用报销工作区：包含成本中心、币种和多行费用明细的已填写表单",
+        "doc": "docs/EXPENSE_SCENARIO.md"
+      },
+      {
+        "id": "leave",
+        "tab": "请假申请",
+        "tag": "OA / 共享工作区",
+        "title": "从请假，理解每一步。",
+        "body": "填写整天天数和事由，由当前审批人处理，再进入后续复核。待办和记录随身份切换。",
+        "points": [
+          "整天天数与事由",
+          "当前步骤待办",
+          "逐人决定与意见"
+        ],
+        "boundary": "这是审批示例，不计算考勤或假期余额，也不支持自动寻找直属主管。",
+        "image": "oa-03-inbox-zh.png",
+        "alt": "请假审批待办：左侧申请列表，右侧当前审批、流程顺序和操作记录",
+        "doc": "docs/CASE_GALLERY.md#oa"
+      },
+      {
+        "id": "procurement",
+        "tab": "采购申请",
+        "tag": "ERP / 共享工作区",
+        "title": "让采购申请，有据可审。",
+        "body": "物品、数量、单价与币种，随申请进入审批。需要审批的业务信息与当时的流程一起保留。",
+        "points": [
+          "单项采购明细",
+          "固定审批参与人",
+          "审批过程可查看"
+        ],
+        "boundary": "示例不自动下单、付款或入库；审批结果需要由宿主业务继续处理。",
+        "image": "erp-01-form-zh.png",
+        "alt": "采购申请表：单项物品、数量、单价和币种字段",
+        "doc": "docs/CASE_GALLERY.md#erp"
+      },
+      {
+        "id": "quote",
+        "tab": "报价折扣",
+        "tag": "CRM / 独立案例",
+        "title": "报价有调整，决策有记录。",
+        "body": "核对源报价与申请价格，依次由销售经理和财务审核。业务读权与审批权限分别检查。",
+        "points": [
+          "源报价版本核对",
+          "经理、财务顺序审核",
+          "申请价格只读快照"
+        ],
+        "boundary": "与共享工作区隔离；未连接真实 CRM，不自动报价、通知客户或回写业务。",
+        "image": "crm-01-form-zh.png",
+        "alt": "独立 CRM 报价折扣申请页，展示源报价、申请价格和审批说明",
+        "doc": "docs/CRM_QUOTE_CASE.md"
+      }
+    ],
+    "architectureKicker": "BUILT TO BE UNDERSTOOD",
+    "architectureTitle": "内核、审批、界面。<br>各自做好自己的事。",
+    "architectureIntro": "从最小的 Java 内核，到可运行的宿主示例。你可以看清依赖，再选择适合自己的接入层。",
+    "layers": [
+      [
+        "01 / ENGINE",
+        "同步 DAG 内核",
+        "按依赖顺序运行处理器，管理变量与事件。内核无第三方运行时依赖。",
+        "不承载人工等待或持久运行状态。"
+      ],
+      [
+        "02 / DOMAIN",
+        "审批领域与存储",
+        "人员权限、顺序步骤、快照与审批记录。默认 JSON，可选 JDBC 适配器。",
+        "审批模块有自身依赖；JDBC 需要显式接线与迁移。"
+      ],
+      [
+        "03 / EXPERIENCE",
+        "宿主与客户端",
+        "Spring Boot、Vue、若依与 H5 示例，展示不同系统的接入方式。",
+        "各客户端覆盖范围不同，不代表完整生产服务。"
+      ]
+    ],
+    "capKicker": "KNOW THE BOUNDARIES",
+    "capTitle": "能做什么，<br>也说清还不能做什么。",
+    "capIntro": "开源的价值，也在于边界透明。把缺项算进接入计划，而不是上线后再发现。",
+    "capLink": "逐项查看能力目录",
+    "caps": [
+      [
+        "ready",
+        "已实现",
+        "顺序审批与固定人员组",
+        "SINGLE、ALL、ANY；流程版本、申请快照、审批历史。"
+      ],
+      [
+        "partial",
+        "有限支持",
+        "多宿主与存储适配",
+        "JSON 默认单写者；JDBC 需接线，客户端支持范围不同。"
+      ],
+      [
+        "planned",
+        "尚未实现",
+        "动态路由与高级流程",
+        "条件分支、动态主管、撤回、转办、定时催办、BPMN。"
+      ]
+    ],
+    "startKicker": "FROM SOURCE TO YOUR SCREEN",
+    "startTitle": "下一步，<br>跑一笔自己的申请。",
+    "startIntro": "在本地启动示例，用 Alice 发起、Bob 审批，再由 Carol 复核。先把整个过程走一遍。",
+    "requirements": "Linux / macOS / WSL · Git · Python 3.9+ · 完整 JDK 17+ · Maven 3.9+ · Node 22.22.2+（22.x，含 npm）",
+    "terminalLabel": "终端 / 固定到本页功能基线",
+    "copy": "复制命令",
+    "copied": "已复制",
+    "copyFail": "无法访问剪贴板，请手动选择命令",
+    "runNote": "首次运行需要联网下载依赖。等待终端显示就绪地址，从本次密码文件读取演示账号。Ctrl-C 会停止服务并删除本次试用数据；需要保留数据，请按手动启动说明操作。",
+    "startLink": "完整运行说明",
+    "versionsTitle": "先看版本，再开始",
+    "versions": [
+      [
+        "本页功能基线",
+        "main · 71910bfc",
+        "包含报销工作区与能力目录。文案核对于 2026-10-09。"
+      ],
+      [
+        "已发布源码预览",
+        "v0.1.0-alpha.3",
+        "较早版本，提交 ab428327；不含报销等后续主线更新。"
+      ],
+      [
+        "开发中的候选",
+        "PR #39 · 未合并",
+        "组合场景仍是候选预览，不作为本页已交付能力。"
+      ]
+    ],
+    "closing": "把下一条流程，<br>交给你来定义。",
+    "closingBody": "读源码，跑示例，告诉我们你的使用场景。",
+    "star": "在 GitHub 上支持项目",
+    "footerNote": "开源审批项目 · Apache-2.0",
+    "footerLinks": [
+      "源码",
+      "问题反馈",
+      "能力目录",
+      "路线图"
+    ],
+    "footerDisclosure": "本页为静态项目介绍，不提供在线审批服务。无追踪脚本、无数据收集表单。",
+    "mobileMenu": "打开导航",
+    "noJS": "页面内容和源码链接无需 JavaScript。开启 JavaScript 可切换场景与放大截图。"
   },
   "en": {
-    "lang":"en", "title":"ArcFlow · Bring approvals into your business", "description":"An open-source approval project for Java applications. Configure sequential steps, run business examples, and explore clear capability boundaries.",
-    "nav":["Designer","Scenarios","Capabilities","Get started"], "switch":"中文", "skip":"Skip to content", "eyebrow":"OPEN SOURCE / JAVA WORKFLOWS", "hero":"Your business.<br>Your <span>workflow.</span>", "intro":"From the first step to the final decision.<br>Build on examples you can see, run, and understand.", "primary":"Run it locally", "secondary":"Explore the interface", "heroNote":"Apache-2.0 · Source preview · Self-hosted examples", "screenTitle":"Clear steps. Visible rules.", "screenSub":"Choose a node, its reviewers, and an approval mode. Every request keeps the workflow it started with.", "screenLabel":"REAL INTERFACE / SYNTHETIC DEMO DATA", "expand":"View full screenshot", "close":"Close screenshot", "provenance":"Screenshot sources and capture commits",
-    "proof":[["01","Design the process","Set steps and SINGLE / ALL / ANY rules"],["02","Submit a request","Keep business and workflow snapshots"],["03","Review, step by step","Record each participant’s decision"]],
-    "designerKicker":"DESIGN THE PROCESS", "designerTitle":"Make the rules<br>easy to follow.", "designerIntro":"Name the steps, choose the people, and publish. New requests use the new version. Existing requests keep the original.", "designerFeatures":[["1–8 sequential steps","Insert, remove, and move steps while keeping a clear sequence."],["Three approval modes","One reviewer, everyone agrees (ALL), or anyone agrees (ANY)."],["Versions and snapshots","Publishing checks the expected version; requests preserve their steps, people, and rules."]], "designerLink":"Explore the designer gallery", "flowLabels":["Request submitted","Manager review","Team approval","Final review","Completed"], "flowNote":"Illustrative sequence · Not a general parallel gateway", "flowPerson":"Assigned reviewer", "flowAll":"Every member agrees", "flowFinal":"Individual decisions retained",
-    "scenariosKicker":"START WITH YOUR BUSINESS", "scenariosTitle":"One business request.<br>The whole journey.", "scenariosIntro":"Four runnable examples, each with an explicit scope. Try them before choosing how to integrate.", "tabLabel":"Choose a business scenario", "scenarioLink":"Read the scenario guide", "screenNote":"Real product screenshots with synthetic data. Open an image to see it in full.",
-    "scenarios":[
-      {"id":"expense","tab":"Expenses","tag":"OA / DEDICATED WORKSPACE","title":"Every expense, accounted for.","body":"A cost center, currency, and 1–20 expense lines, saved alongside the approval process. Follow decisions and individual review records.","points":["Fixed, versioned form metadata","Exact monetary totals","Read-only business and process snapshots"],"boundary":"Receipt references are text, not uploads or validation. Approval never sends a payment. Not yet integrated with RuoYi or H5.","image":"02-filled-expense-en-desktop.png","alt":"Completed expense form with cost center, currency, and multiple expense lines","doc":"docs/EXPENSE_SCENARIO.md"},
-      {"id":"leave","tab":"Leave","tag":"OA / SHARED WORKSPACE","title":"Start with a leave request.","body":"Enter whole days and a reason. The current reviewer makes a decision before the next step begins. Inbox and records follow the active identity.","points":["Whole days and a reason","Current-step inbox","Individual decisions and comments"],"boundary":"An approval example, without attendance calculations, leave balances, or automatic line-manager lookup.","image":"oa-03-inbox-en.png","alt":"Leave approval inbox with the request, current review step, workflow sequence, and history","doc":"docs/CASE_GALLERY.md#oa"},
-      {"id":"procurement","tab":"Procurement","tag":"ERP / SHARED WORKSPACE","title":"Give reviewers the details.","body":"An item, quantity, unit price, and currency travel with the request. Business details and the workflow are preserved as submitted.","points":["Single-item procurement","Fixed approval participants","Visible review history"],"boundary":"No automatic purchasing, payments, or inventory updates. The host business must handle the outcome.","image":"erp-01-form-en.png","alt":"Procurement request form for an item, quantity, unit price, and currency","doc":"docs/CASE_GALLERY.md#erp"},
-      {"id":"quote","tab":"Quote discounts","tag":"CRM / SEPARATE EXAMPLE","title":"A price change with a record.","body":"Compare a source quote with the requested price, then review through sales management and finance. Business read access and approval rights are checked separately.","points":["Source quote version check","Manager, then finance","Read-only requested-price snapshot"],"boundary":"Separate from the shared workspace. No live CRM connection, automatic quoting, customer notification, or business write-back.","image":"crm-01-form-en.png","alt":"Separate CRM quote-discount page with source quote, requested price, and review information","doc":"docs/CRM_QUOTE_CASE.md"}
+    "lang": "en",
+    "title": "ArcFlow · Bring approvals into your business",
+    "description": "An open-source approval project for Java applications. Configure sequential steps, run business examples, and explore clear capability boundaries.",
+    "nav": [
+      "Designer",
+      "Scenarios",
+      "Capabilities",
+      "Get started"
     ],
-    "architectureKicker":"BUILT TO BE UNDERSTOOD", "architectureTitle":"Engine. Domain. Interface.<br>Each with its own job.", "architectureIntro":"From a small Java engine to runnable host examples. See the dependencies, then choose the right layer for your application.", "layers":[["01 / ENGINE","Synchronous DAG engine","Runs handlers in dependency order, with variables and events. No third-party runtime dependencies in the core.","Does not manage human waits or persistent execution state."],["02 / DOMAIN","Approvals and storage","Identity checks, sequential steps, snapshots, and history. JSON by default, with an optional JDBC adapter.","Has its own dependencies. JDBC needs explicit wiring and migrations."],["03 / EXPERIENCE","Hosts and clients","Spring Boot, Vue, RuoYi, and H5 examples demonstrate different integration approaches.","Client coverage varies. Examples are not a production-readiness guarantee."]],
-    "capKicker":"KNOW THE BOUNDARIES", "capTitle":"Clear about what works.<br>Honest about what’s next.", "capIntro":"Know the gaps before you integrate. Open source should make that easier, too.", "capLink":"Read the capability checklist", "caps":[["ready","Implemented","Sequential reviews and fixed groups","SINGLE, ALL, ANY; workflow versions, request snapshots, and approval history."],["partial","Limited support","Multiple hosts and storage adapters","Default JSON is single-writer. JDBC requires wiring; client coverage differs."],["planned","Not implemented","Dynamic routing and advanced workflows","Conditional branches, dynamic managers, withdrawal, delegation, timed reminders, and BPMN."]],
-    "startKicker":"FROM SOURCE TO YOUR SCREEN", "startTitle":"Next, run a request<br>of your own.", "startIntro":"Start locally. Submit as Alice, approve as Bob, then review as Carol. Walk through the whole process first.", "requirements":"Linux / macOS / WSL · Python 3.9+ · Full JDK 17+ · Maven 3.9+ · Node 22.22.2+ (22.x, with npm)", "terminalLabel":"TERMINAL / PINNED CONTENT BASELINE", "copy":"Copy commands", "copied":"Copied", "copyFail":"Clipboard unavailable. Select and copy the commands manually.", "runNote":"Wait for the ready URLs and read demo accounts from this run’s password file. Ctrl-C stops the services and deletes this run’s data. Use the manual setup guide if you need to retain data.", "startLink":"Full setup guide", "versionsTitle":"Choose your version", "versions":[["This page’s feature baseline","main · 71910bfc","Includes the expense workspace and capability catalog. Checked on 2026-10-09."],["Published source preview","v0.1.0-alpha.3","Earlier commit ab428327. Excludes expenses and later main-branch updates."],["Development candidate","PR #39 · Not merged","Combined scenarios remain a candidate preview, not delivered capabilities on this page."]],
-    "closing":"Your next process.<br>Your next contribution.", "closingBody":"Read the code, run an example, share your use case.", "star":"Support the project on GitHub", "footerNote":"Open-source approvals · Apache-2.0", "footerLinks":["Source","Issues","Capabilities","Roadmap"], "footerDisclosure":"A static project website, not an online approval service. No tracking scripts or data collection forms.", "mobileMenu":"Open navigation", "noJS":"Content and source links work without JavaScript. Enable it for scenario tabs and full-screen images."
+    "switch": "中文",
+    "skip": "Skip to content",
+    "eyebrow": "OPEN SOURCE / JAVA WORKFLOWS",
+    "hero": "Your business.<br>Your <span>workflow.</span>",
+    "intro": "From the first step to the final decision.<br>Build on examples you can see, run, and understand.",
+    "primary": "Run it locally",
+    "secondary": "Explore the interface",
+    "heroNote": "Apache-2.0 · Source preview · Self-hosted examples",
+    "screenTitle": "Clear steps. Visible rules.",
+    "screenSub": "Choose a node, its reviewers, and an approval mode. Every request keeps the workflow it started with.",
+    "screenLabel": "REAL INTERFACE / SYNTHETIC DEMO DATA",
+    "expand": "View full screenshot",
+    "close": "Close screenshot",
+    "provenance": "Screenshot sources and capture commits",
+    "proof": [
+      [
+        "01",
+        "Design the process",
+        "Set steps and SINGLE / ALL / ANY rules"
+      ],
+      [
+        "02",
+        "Submit a request",
+        "Keep business and workflow snapshots"
+      ],
+      [
+        "03",
+        "Review, step by step",
+        "Record each participant’s decision"
+      ]
+    ],
+    "designerKicker": "DESIGN THE PROCESS",
+    "designerTitle": "Make the rules<br>easy to follow.",
+    "designerIntro": "Name the steps, choose the people, and publish. New requests use the new version. Existing requests keep the original.",
+    "designerFeatures": [
+      [
+        "1–8 sequential steps",
+        "Insert, remove, and move steps while keeping a clear sequence."
+      ],
+      [
+        "Three approval modes",
+        "One reviewer, everyone agrees (ALL), or anyone agrees (ANY)."
+      ],
+      [
+        "Versions and snapshots",
+        "Publishing checks the expected version; requests preserve their steps, people, and rules."
+      ]
+    ],
+    "designerLink": "Explore the designer gallery",
+    "flowLabels": [
+      "Request submitted",
+      "Manager review",
+      "Team approval",
+      "Final review",
+      "Completed"
+    ],
+    "flowNote": "Illustrative sequence · Not a general parallel gateway",
+    "flowPerson": "Assigned reviewer",
+    "flowAll": "Every member agrees",
+    "flowFinal": "Individual decisions retained",
+    "scenariosKicker": "START WITH YOUR BUSINESS",
+    "scenariosTitle": "One business request.<br>The whole journey.",
+    "scenariosIntro": "Four runnable examples, each with an explicit scope. Try them before choosing how to integrate.",
+    "tabLabel": "Choose a business scenario",
+    "scenarioLink": "Read the scenario guide",
+    "screenNote": "Real product screenshots with synthetic data. Open an image to see it in full.",
+    "scenarios": [
+      {
+        "id": "expense",
+        "tab": "Expenses",
+        "tag": "OA / DEDICATED WORKSPACE",
+        "title": "Every expense, accounted for.",
+        "body": "A cost center, currency, and 1–20 expense lines, saved alongside the approval process. Follow decisions and individual review records.",
+        "points": [
+          "Fixed, versioned form metadata",
+          "Exact monetary totals",
+          "Read-only business and process snapshots"
+        ],
+        "boundary": "Receipt references are text, not uploads or validation. Approval never sends a payment. Not yet integrated with RuoYi or H5.",
+        "image": "02-filled-expense-en-desktop.png",
+        "alt": "Completed expense form with cost center, currency, and multiple expense lines",
+        "doc": "docs/EXPENSE_SCENARIO.md"
+      },
+      {
+        "id": "leave",
+        "tab": "Leave",
+        "tag": "OA / SHARED WORKSPACE",
+        "title": "Start with a leave request.",
+        "body": "Enter whole days and a reason. The current reviewer makes a decision before the next step begins. Inbox and records follow the active identity.",
+        "points": [
+          "Whole days and a reason",
+          "Current-step inbox",
+          "Individual decisions and comments"
+        ],
+        "boundary": "An approval example, without attendance calculations, leave balances, or automatic line-manager lookup.",
+        "image": "oa-03-inbox-en.png",
+        "alt": "Leave approval inbox with the request, current review step, workflow sequence, and history",
+        "doc": "docs/CASE_GALLERY.md#oa"
+      },
+      {
+        "id": "procurement",
+        "tab": "Procurement",
+        "tag": "ERP / SHARED WORKSPACE",
+        "title": "Give reviewers the details.",
+        "body": "An item, quantity, unit price, and currency travel with the request. Business details and the workflow are preserved as submitted.",
+        "points": [
+          "Single-item procurement",
+          "Fixed approval participants",
+          "Visible review history"
+        ],
+        "boundary": "No automatic purchasing, payments, or inventory updates. The host business must handle the outcome.",
+        "image": "erp-01-form-en.png",
+        "alt": "Procurement request form for an item, quantity, unit price, and currency",
+        "doc": "docs/CASE_GALLERY.md#erp"
+      },
+      {
+        "id": "quote",
+        "tab": "Quote discounts",
+        "tag": "CRM / SEPARATE EXAMPLE",
+        "title": "A price change with a record.",
+        "body": "Compare a source quote with the requested price, then review through sales management and finance. Business read access and approval rights are checked separately.",
+        "points": [
+          "Source quote version check",
+          "Manager, then finance",
+          "Read-only requested-price snapshot"
+        ],
+        "boundary": "Separate from the shared workspace. No live CRM connection, automatic quoting, customer notification, or business write-back.",
+        "image": "crm-01-form-en.png",
+        "alt": "Separate CRM quote-discount page with source quote, requested price, and review information",
+        "doc": "docs/CRM_QUOTE_CASE.md"
+      }
+    ],
+    "architectureKicker": "BUILT TO BE UNDERSTOOD",
+    "architectureTitle": "Engine. Domain. Interface.<br>Each with its own job.",
+    "architectureIntro": "From a small Java engine to runnable host examples. See the dependencies, then choose the right layer for your application.",
+    "layers": [
+      [
+        "01 / ENGINE",
+        "Synchronous DAG engine",
+        "Runs handlers in dependency order, with variables and events. No third-party runtime dependencies in the core.",
+        "Does not manage human waits or persistent execution state."
+      ],
+      [
+        "02 / DOMAIN",
+        "Approvals and storage",
+        "Identity checks, sequential steps, snapshots, and history. JSON by default, with an optional JDBC adapter.",
+        "Has its own dependencies. JDBC needs explicit wiring and migrations."
+      ],
+      [
+        "03 / EXPERIENCE",
+        "Hosts and clients",
+        "Spring Boot, Vue, RuoYi, and H5 examples demonstrate different integration approaches.",
+        "Client coverage varies. Examples are not a production-readiness guarantee."
+      ]
+    ],
+    "capKicker": "KNOW THE BOUNDARIES",
+    "capTitle": "Clear about what works.<br>Honest about what’s next.",
+    "capIntro": "Know the gaps before you integrate. Open source should make that easier, too.",
+    "capLink": "Read the capability checklist",
+    "caps": [
+      [
+        "ready",
+        "Implemented",
+        "Sequential reviews and fixed groups",
+        "SINGLE, ALL, ANY; workflow versions, request snapshots, and approval history."
+      ],
+      [
+        "partial",
+        "Limited support",
+        "Multiple hosts and storage adapters",
+        "Default JSON is single-writer. JDBC requires wiring; client coverage differs."
+      ],
+      [
+        "planned",
+        "Not implemented",
+        "Dynamic routing and advanced workflows",
+        "Conditional branches, dynamic managers, withdrawal, delegation, timed reminders, and BPMN."
+      ]
+    ],
+    "startKicker": "FROM SOURCE TO YOUR SCREEN",
+    "startTitle": "Next, run a request<br>of your own.",
+    "startIntro": "Start locally. Submit as Alice, approve as Bob, then review as Carol. Walk through the whole process first.",
+    "requirements": "Linux / macOS / WSL · Git · Python 3.9+ · Full JDK 17+ · Maven 3.9+ · Node 22.22.2+ (22.x, with npm)",
+    "terminalLabel": "TERMINAL / PINNED CONTENT BASELINE",
+    "copy": "Copy commands",
+    "copied": "Copied",
+    "copyFail": "Clipboard unavailable. Select and copy the commands manually.",
+    "runNote": "The first run downloads dependencies. Wait for the ready URLs and read demo accounts from this run’s password file. Ctrl-C stops the services and deletes this run’s data. Use the manual setup guide if you need to retain data.",
+    "startLink": "Full setup guide",
+    "versionsTitle": "Choose your version",
+    "versions": [
+      [
+        "This page’s feature baseline",
+        "main · 71910bfc",
+        "Includes the expense workspace and capability catalog. Checked on 2026-10-09."
+      ],
+      [
+        "Published source preview",
+        "v0.1.0-alpha.3",
+        "Earlier commit ab428327. Excludes expenses and later main-branch updates."
+      ],
+      [
+        "Development candidate",
+        "PR #39 · Not merged",
+        "Combined scenarios remain a candidate preview, not delivered capabilities on this page."
+      ]
+    ],
+    "closing": "Your next process.<br>Your next contribution.",
+    "closingBody": "Read the code, run an example, share your use case.",
+    "star": "Support the project on GitHub",
+    "footerNote": "Open-source approvals · Apache-2.0",
+    "footerLinks": [
+      "Source",
+      "Issues",
+      "Capabilities",
+      "Roadmap"
+    ],
+    "footerDisclosure": "A static project website, not an online approval service. No tracking scripts or data collection forms.",
+    "mobileMenu": "Open navigation",
+    "noJS": "Content and source links work without JavaScript. Enable it for scenario tabs and full-screen images."
   }
 }

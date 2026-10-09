@@ -35,6 +35,12 @@ test('keyboard tabs, image dialog, repeat use, and language navigation',async({p
   for(let i=0;i<2;i++){
     const opener=page.getByRole('tabpanel').locator('[data-zoom]');await opener.click();
     await expect(page.getByRole('dialog')).toBeVisible();
+    await page.getByRole('dialog').evaluate(el=>{el.scrollTop=el.scrollHeight;});
+    const close=page.locator('.dialog-close');
+    const dialogRect=await page.getByRole('dialog').boundingBox();
+    const closeRect=await close.boundingBox();
+    expect(closeRect.y).toBeGreaterThanOrEqual(dialogRect.y);
+    await expect(close).toBeInViewport();
     await page.keyboard.press('Escape');await expect(page.getByRole('dialog')).not.toBeVisible();
     await expect(opener).toBeFocused();
   }
