@@ -3,6 +3,8 @@ import { expect } from '@playwright/test'
 // Match the combined backend's stable full-ID order, including the ERP prefix.
 // UI selectors are explicit because the sealUse wire type is not its field prefix.
 export const SCENARIO_CARDS = [
+  { id: 'crm-contract', documentType: 'contractApproval', prefix: 'contract' },
+  { id: 'erp-payment', documentType: 'paymentRequest', prefix: 'payment' },
   { id: 'erp-receiving', documentType: 'receiving', prefix: 'receiving' },
   { id: 'oa-expense', documentType: 'expense', prefix: 'expense' },
   { id: 'oa-seal-use', documentType: 'sealUse', prefix: 'seal' },

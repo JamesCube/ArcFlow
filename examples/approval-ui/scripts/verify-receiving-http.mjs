@@ -45,7 +45,7 @@ try {
     await pause(1000)
   }
   assert.equal(ready, true, 'Disposable Java backend must become ready')
-  await login('alice'); assert.deepEqual(s.catalog.map(entry => entry.id), ['erp-receiving', 'oa-expense', 'oa-seal-use', 'oa-travel']); assert.equal(s.process.id, 'erp-receiving')
+  await login('alice'); assert.deepEqual(s.catalog.map(entry => entry.id), ['crm-contract', 'erp-payment', 'erp-receiving', 'oa-expense', 'oa-seal-use', 'oa-travel']); assert.equal(s.process.id, 'erp-receiving')
   workspace.setForm(receipt('retry')); loseNextSubmission = true; await workspace.submit()
   assert.equal(s.uncertainSubmission, true); assert.equal(s.form.title, 'Receiving retry')
   await workspace.submit(); noError('Idempotent retry'); const saved = s.items[0], id = saved.request.id

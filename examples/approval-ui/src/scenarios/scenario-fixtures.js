@@ -16,7 +16,7 @@ export function catalogFixture() {
       field('spentOn', 'date'), field('category', 'select', 0, ['TRAVEL', 'MEALS', 'OFFICE', 'OTHER']),
       field('description', 'text', 240), field('amount', 'money'), field('receiptRef', 'text', 128),
     ] },
-  }, travelTemplateFixture(), sealTemplateFixture(), receivingCatalogFixture()]
+  }, travelTemplateFixture(), sealTemplateFixture(), receivingCatalogFixture(), paymentTemplateFixture(), contractTemplateFixture()]
 }
 export function expenseFixture(overrides = {}) {
   return { type: 'expense', documentVersion: 1, businessId: 'EXP-2026-001', title: 'Client visit expenses', reason: 'Synthetic expense fixture; no personal information.', costCenter: 'ENGINEERING', currency: 'CNY', lines: [
@@ -151,4 +151,57 @@ export function receivingViewFixture(overrides = {}) {
   const business = receivingFixture(), definition = receivingProcessFixture()
   const view = viewFixture({ id: 'receiving-1', title: business.title, reason: business.reason, business, definition, processId: 'erp-receiving', currentStepId: 'receiving-inspection', ...overrides })
   return { ...view, total: null, summary: { kind: 'receiving', lineCount: 2, exceptionLineCount: 1, quantities: [ { unit: 'PCS', received: 80, accepted: 78, rejected: 2 }, { unit: 'BOX', received: 10, accepted: 10, rejected: 0 } ] } }
+}
+
+const labelled = (path, kind, en, zh, length = 0, values = []) => ({ ...field(path, kind, length, values), label: translated(en, zh) })
+export function paymentTemplateFixture() {
+  return { id: 'erp-payment', domain: 'ERP', documentType: 'paymentRequest', documentVersion: 1, formVersion: 1,
+    title: translated('Payment request', '付款申请'), description: translated('Reconcile synthetic invoice allocations and deductions for human review.', '核对合成发票分配与扣减，提交人工审批。'),
+    sections: [{ id: 'payment-details', title: translated('Payment request details', '付款申请信息'), fields: [
+      labelled('businessId', 'text', 'Request reference', '申请编号', 128), labelled('title', 'text', 'Title', '申请标题', 120), labelled('reason', 'textarea', 'Business purpose', '申请事由', 2000), labelled('supplierRef', 'text', 'Synthetic supplier reference', '合成供应商编号', 128), labelled('currency', 'select', 'Currency', '币种', 0, ['CNY', 'USD', 'EUR', 'GBP', 'JPY']), labelled('requestedPaymentOn', 'date', 'Requested payment date', '申请付款日', 10),
+    ] }], lineItems: { path: 'lines', label: translated('Invoice allocation', '发票分配明细'), minItems: 1, maxItems: 20, fields: [
+      labelled('invoiceRef', 'text', 'Invoice reference', '发票编号', 128), labelled('description', 'text', 'Description', '明细说明', 240), labelled('invoiceAmount', 'money', 'Invoice amount', '发票金额'), labelled('previouslySettledAmount', 'money', 'Previously settled', '声明已结金额'), labelled('allocationAmount', 'money', 'Allocation', '本次分配'), labelled('deductionAmount', 'money', 'Deduction', '本次扣减'), { ...labelled('deductionReason', 'textarea', 'Deduction reason', '扣减说明', 1000), required: false },
+    ] },
+  }
+}
+export function contractTemplateFixture() {
+  return { id: 'crm-contract', domain: 'CRM', documentType: 'contractApproval', documentVersion: 1, formVersion: 1,
+    title: translated('Contract approval', '合同审批'), description: translated('Review synthetic terms and a conserved milestone schedule.', '审核合成合同条款与金额守恒的里程碑。'),
+    sections: [ { id: 'contract-details', title: translated('Contract dossier', '合同信息'), fields: [
+      labelled('businessId', 'text', 'Request reference', '申请编号', 128), labelled('title', 'text', 'Title', '合同标题', 120), labelled('customerRef', 'text', 'Synthetic customer reference', '合成客户编号', 128), labelled('contractRevision', 'integer', 'Contract revision', '合同修订', 16), labelled('contractCategory', 'select', 'Contract category', '合同类别', 0, ['PRODUCT', 'SERVICE']), labelled('documentRef', 'text', 'Synthetic document reference', '合成文件编号', 128),
+    ] }, { id: 'contract-term', title: translated('Term and value', '期限与金额'), fields: [labelled('currency', 'select', 'Currency', '币种', 0, ['CNY', 'USD', 'EUR', 'GBP', 'JPY']), labelled('contractAmount', 'money', 'Contract amount', '合同金额'), labelled('startOn', 'date', 'Start date', '开始日期', 10), labelled('endOn', 'date', 'End date', '结束日期', 10)] }, { id: 'contract-terms', title: translated('Terms for review', '条款审核'), fields: [labelled('termsKind', 'select', 'Terms kind', '条款类型', 0, ['STANDARD', 'NONSTANDARD']), { ...labelled('deviationReason', 'textarea', 'Deviation reason', '非标说明', 2000), required: false }, labelled('reason', 'textarea', 'Business purpose', '申请事由', 2000)] } ],
+    lineItems: { path: 'lines', label: translated('Delivery milestones', '交付里程碑'), minItems: 1, maxItems: 20, fields: [labelled('milestoneRef', 'text', 'Milestone reference', '里程碑编号', 128), labelled('description', 'text', 'Description', '里程碑说明', 240), labelled('dueOn', 'date', 'Due date', '到期日', 10), labelled('amount', 'money', 'Milestone amount', '里程碑金额'), labelled('acceptanceCriteria', 'textarea', 'Acceptance criteria', '验收标准', 1000)] },
+  }
+}
+export function paymentFixture(overrides = {}) {
+  return { type: 'paymentRequest', documentVersion: 1, businessId: 'PAY-DEMO-001', title: 'Synthetic supplier invoice allocation', reason: 'Synthetic request only; no payment execution.', supplierRef: 'SUPPLIER-DEMO-A', currency: 'CNY', requestedPaymentOn: '2099-01-15', lines: [
+    { lineId: 'payment-line-1', invoiceRef: 'INV-DEMO-01', description: 'Workshop components', invoiceAmount: '10000.00', previouslySettledAmount: '4000.00', allocationAmount: '4500.00', deductionAmount: '500.00', deductionReason: 'Synthetic quality deduction' },
+    { lineId: 'payment-line-2', invoiceRef: 'INV-DEMO-02', description: 'Delivery supplies', invoiceAmount: '4000.00', previouslySettledAmount: '0.00', allocationAmount: '2500.00', deductionAmount: '0.00', deductionReason: '' },
+  ], ...overrides }
+}
+export function contractFixture(overrides = {}) {
+  return { type: 'contractApproval', documentVersion: 1, businessId: 'CONTRACT-DEMO-001', title: 'Synthetic project delivery contract', reason: 'Synthetic internal review only.', customerRef: 'CUSTOMER-DEMO-A', contractRevision: 1, contractCategory: 'SERVICE', currency: 'CNY', contractAmount: '100000.00', startOn: '2099-01-01', endOn: '2099-12-31', termsKind: 'NONSTANDARD', deviationReason: 'Synthetic limitation of liability deviation; manual review required.', documentRef: 'DOC-CONTRACT-DEMO-01', lines: [
+    { lineId: 'contract-line-1', milestoneRef: 'M1', description: 'Proposal delivery', dueOn: '2099-01-15', amount: '30000.00', acceptanceCriteria: 'Proposal delivered and manually confirmed' },
+    { lineId: 'contract-line-2', milestoneRef: 'M2', description: 'Interim delivery', dueOn: '2099-06-30', amount: '40000.00', acceptanceCriteria: 'Interim deliverables accepted' },
+    { lineId: 'contract-line-3', milestoneRef: 'M3', description: 'Final delivery', dueOn: '2099-12-15', amount: '30000.00', acceptanceCriteria: 'Final deliverables accepted' },
+  ], ...overrides }
+}
+export function complexProcessFixture(id = 'erp-payment', overrides = {}) {
+  const payment = id === 'erp-payment'
+  return { schemaVersion: 3, id, version: 1, name: payment ? 'Payment request review' : 'Contract internal review', nodes: [
+    { id: 'start', type: 'start', name: 'Submit for review', assigneeId: null },
+    ...(payment ? [{ id: 'payment-check', type: 'parallelApproval', name: 'Joint payment check', assigneeId: null, assigneeIds: ['bob', 'carol'], completionMode: 'ALL' }, { id: 'payment-final', type: 'parallelApproval', name: 'Final payment review', assigneeId: null, assigneeIds: ['bob', 'carol'], completionMode: 'ANY' }]
+      : [{ id: 'commercial-review', type: 'approval', name: 'Commercial review', assigneeId: 'bob' }, { id: 'contract-review', type: 'parallelApproval', name: 'Joint contract review', assigneeId: null, assigneeIds: ['bob', 'carol'], completionMode: 'ALL' }]),
+    { id: 'end', type: 'end', name: 'Review complete', assigneeId: null },
+  ], ...overrides }
+}
+export function paymentViewFixture(overrides = {}) {
+  const business = paymentFixture(), definition = complexProcessFixture()
+  const view = viewFixture({ id: 'payment-1', title: business.title, reason: business.reason, business, definition, processId: definition.id, currentStepId: 'payment-check', ...overrides })
+  return { ...view, total: '6500.00', paymentSummary: { type: 'paymentRequest', declaredOutstanding: '10000.00', grossAllocation: '7000.00', deductionTotal: '500.00', netTotal: '6500.00' } }
+}
+export function contractViewFixture(overrides = {}) {
+  const business = contractFixture(), definition = complexProcessFixture('crm-contract')
+  const view = viewFixture({ id: 'contract-1', title: business.title, reason: business.reason, business, definition, processId: definition.id, currentStepId: 'commercial-review', ...overrides })
+  return { ...view, total: '100000.00' }
 }

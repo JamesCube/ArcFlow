@@ -47,8 +47,8 @@ def main():
             raise RuntimeError('Disposable backend did not become ready')
         try:
             start(); catalog=call('alice','GET','/api/scenarios')
-            assert [item['id'] for item in catalog]==['erp-receiving','oa-expense','oa-seal-use','oa-travel']
-            assert catalog[1]['lineItems']['maxItems']==20 and catalog[3]['lineItems'] is None
+            assert [item['id'] for item in catalog]==['crm-contract','erp-payment','erp-receiving','oa-expense','oa-seal-use','oa-travel']
+            assert next(item for item in catalog if item['id']=='oa-expense')['lineItems']['maxItems']==20 and next(item for item in catalog if item['id']=='oa-travel')['lineItems'] is None
             definition=call('alice','GET',route+'/process'); assert definition['id']=='oa-travel'
             body={'business':{'type':'travel','documentVersion':1,'businessId':'TRAVEL-HTTP-001','title':'Synthetic project delivery trip',
                 'reason':'Demonstration itinerary and budget only','destination':' Shanghai ','startDate':'2028-02-28','endDate':'2028-03-01',

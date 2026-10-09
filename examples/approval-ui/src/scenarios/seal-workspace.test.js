@@ -104,7 +104,7 @@ const visibleDesigner = wrapper => wrapper.findAll('.designer-workbench').find(d
 describe('mounted real Catalog switching', () => {
   it('shows a distinct nonmonetary Seal card and preserves raw fields and independent designer undo', async () => {
     const { wrapper } = await mounted()
-    expect(wrapper.findAll('.sf-template-card')).toHaveLength(4)
+    expect(wrapper.findAll('.sf-template-card')).toHaveLength(6)
     const card = wrapper.findAll('.sf-template-card').find(card => card.find('[data-testid=open-seal]').exists()); expect(card.text()).toContain('1–100 copies'); expect(card.text()).not.toContain('1,280.50')
     await click(wrapper, 'open-expense'); await wrapper.find('#expense-title').setValue('Expense draft')
     await click(wrapper, 'designer-tab'); await visibleDesigner(wrapper).find('[data-testid=process-name]').setValue('Expense local flow')

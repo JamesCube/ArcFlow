@@ -27,7 +27,7 @@ class UnifiedBusinessSchemaTest {
             new BusinessDocument.Procurement("P-1", "Purchase", "Reason", "Item", 2, new BigDecimal("1.25"), "CNY"),
             new BusinessDocument.QuoteDiscount("Q-1", "Quote", "Reason", "C-1", 1, "Item", 1,
                 new BigDecimal("2.00"), new BigDecimal("1.00"), "CNY", "2099-01-01"),
-            ExpenseScenarioTest.expense(), TravelScenarioTest.travel(), SealUseDocumentTest.seal(), ReceivingScenarioTest.receipt());
+            ExpenseScenarioTest.expense(), TravelScenarioTest.travel(), SealUseDocumentTest.seal(), ReceivingScenarioTest.receipt(), PaymentContractDocumentTest.payment(), PaymentContractDocumentTest.contract());
     }
     Map<Path,byte[]> backups() throws IOException {
         var result = new HashMap<Path,byte[]>();
@@ -47,13 +47,13 @@ class UnifiedBusinessSchemaTest {
         for (var type : BusinessDocument.class.getAnnotation(JsonSubTypes.class).value()) assertNull(jackson.put(type.name(), type.value()));
         Map<String,Class<?>> registered = new HashMap<>();
         for (var entry : BusinessDocumentSchema.ENTRIES) assertNull(registered.put(entry.wireType(), entry.documentClass()));
-        assertEquals(jackson, registered); assertEquals(7, registered.size());
+        assertEquals(jackson, registered); assertEquals(9, registered.size());
         assertEquals(new HashSet<>(Arrays.asList(BusinessDocument.class.getPermittedSubclasses())), new HashSet<>(registered.values()));
-        assertEquals(List.of(5,5,6,7,8,9,10), BusinessDocumentSchema.ENTRIES.stream().map(BusinessDocumentSchema.Entry::minimumSnapshotSchema).toList());
+        assertEquals(List.of(5,5,6,7,8,9,10,11,12), BusinessDocumentSchema.ENTRIES.stream().map(BusinessDocumentSchema.Entry::minimumSnapshotSchema).toList());
         assertNull(BusinessDocumentSchema.forType("Travel")); assertNull(BusinessDocumentSchema.forType("future"));
     }
     @TestFactory Stream<DynamicTest> everyKnownWrapperReadsEligibleTypesWithoutChangingBytesOrBackups() {
-        return java.util.stream.IntStream.rangeClosed(1,10).mapToObj(version -> DynamicTest.dynamicTest("wrapper " + version, () -> {
+        return java.util.stream.IntStream.rangeClosed(1,12).mapToObj(version -> DynamicTest.dynamicTest("wrapper " + version, () -> {
             Path path = dir.resolve("read-" + version + ".json");
             List<ApprovalService.Request> expected;
             try (var service = open(path)) {
@@ -77,7 +77,7 @@ class UnifiedBusinessSchemaTest {
         }));
     }
     @Test void wrappersEightNineTenReadEmptyAndOldOnlyFilesWithoutRewriteAndNeverDowngradeOnWrites() throws Exception {
-        for (int wrapper : List.of(8,9,10)) for (boolean empty : List.of(false,true)) {
+        for (int wrapper : List.of(8,9,10,11,12)) for (boolean empty : List.of(false,true)) {
             Path path = dir.resolve("old-only-"+wrapper+"-"+empty+".json");
             try(var service=open(path)){ service.submitDocument("101", ExpenseScenarioTest.expense(),1,"old"); }
             var root=(ObjectNode)mapper.readTree(Files.readAllBytes(path)); root.put("schemaVersion",wrapper);
@@ -128,6 +128,61 @@ class UnifiedBusinessSchemaTest {
             assertArrayEquals(finalBytes,Files.readAllBytes(path));sameBackups(finalBackups);
         }));
     }
+    @TestFactory Stream<DynamicTest> fiveNewTypesInAll120WriteOrdersNeverDowngradeAndKeepImmediateBackups() {
+        var orders = new ArrayList<List<Integer>>(); permutations(new ArrayList<>(), List.of(4,5,6,7,8), orders);
+        assertEquals(120, orders.size());
+        return orders.stream().map(order -> DynamicTest.dynamicTest("five-type order " + order, () -> {
+            Path path = dir.resolve("five-order-" + order.toString().replaceAll("[^0-9]", "") + ".json");
+            int current = 7;
+            try (var service = open(path)) {
+                service.submitDocument("101", ExpenseScenarioTest.expense(), 1, "expense");
+                for (int index : order) {
+                    byte[] immediate = Files.readAllBytes(path);
+                    var document = documents().get(index);
+                    int next = Math.max(current, BusinessDocumentSchema.forDocument(document).minimumSnapshotSchema());
+                    service.submitDocument("101", document, 1, "new-" + index);
+                    assertEquals(next, schema(path));
+                    if (next > current) assertArrayEquals(immediate, Files.readAllBytes(backup(path,current)));
+                    current = next;
+                }
+                for (int index = 0; index < documents().size(); index++) service.submitDocument("101", documents().get(index), 1, "again-"+index);
+                var first = service.list("101").get(0); service.decide("202", first.id(), "manager", "APPROVE", "Old type decision");
+                service.publish("1",1,service.process());
+                service.submit("101","Legacy after all types","Rest",1,2,"legacy"); assertEquals(12,schema(path));
+            }
+            byte[] finalBytes=Files.readAllBytes(path);
+            try (var service=open(path)) {
+                assertEquals(16,service.list("101").size());
+                for(int index:order) assertEquals(documents().get(index).withText(documents().get(index).title().trim(),documents().get(index).reason().trim()),service.submitDocument("101",documents().get(index),1,"new-"+index).business());
+                assertEquals(12,schema(path));
+            }
+            assertArrayEquals(finalBytes,Files.readAllBytes(path));
+        }));
+    }
+    private static void permutations(List<Integer> prefix,List<Integer> remaining,List<List<Integer>> result) {
+        if(remaining.isEmpty()){result.add(List.copyOf(prefix));return;}
+        for(int value:remaining){var next=new ArrayList<>(prefix);next.add(value);var rest=new ArrayList<>(remaining);rest.remove(Integer.valueOf(value));permutations(next,rest,result);}
+    }
+    @Test void paymentAndContractFailedUpgradesRetainImmediateBytesAndNeverPublishKeys() throws Exception {
+        for(int index:List.of(7,8)){
+            Path path=dir.resolve("failure-schema-"+index+".json");
+            try(var service=open(path)){
+                for(int i=0;i<index;i++)service.submitDocument("101",documents().get(i),1,"seed-"+i);
+                var request=service.list("101").get(0);service.decide("202",request.id(),"manager","APPROVE","Before next upgrade");service.publish("1",1,service.process());
+            }
+            byte[] immediate=noncanonical(path);int from=index==7?10:11;
+            Files.writeString(backup(path,from),"Existing historical backup");var old=backups();
+            try(var store=new JsonApprovalStore(mapper,path.toString(),process);var service=new ApprovalService(store,actors)){
+                var requests=service.list("101");Path saved=path.resolveSibling(path.getFileName()+".saved");Files.move(path,saved);Files.createDirectory(path);Files.writeString(path.resolve("block"),"block");
+                try{assertThrows(IOException.class,()->service.submitDocument("101",documents().get(index),2,"new"));assertEquals(requests,service.list("101"));assertNull(store.submission("101","new"));}
+                finally{Files.delete(path.resolve("block"));Files.delete(path);Files.move(saved,path);}
+                assertArrayEquals(immediate,Files.readAllBytes(path));for(var item:old.entrySet())assertArrayEquals(item.getValue(),Files.readAllBytes(item.getKey()));
+                var all=backups();assertEquals(old.size()+1,all.size());var fresh=all.entrySet().stream().filter(e->!old.containsKey(e.getKey())).findFirst().orElseThrow();assertArrayEquals(immediate,fresh.getValue());
+                var created=service.submitDocument("101",documents().get(index),2,"new");assertEquals(created,store.submission("101","new"));assertEquals(from+1,schema(path));sameBackups(all);
+            }
+            try(var service=open(path)){assertEquals(index+1,service.list("101").size());assertEquals(2,service.submitDocument("101",documents().get(index),2,"new").processVersion());}
+        }
+    }
     @Test void everyTypeBelowItsMinimumAndUnknownTypeFailWithoutChangingAnySavedBytes() throws Exception {
         for(int index=0;index<documents().size();index++){
             var document=documents().get(index);Path path=dir.resolve("minimum-"+index+".json");
@@ -138,7 +193,7 @@ class UnifiedBusinessSchemaTest {
                 assertThrows(IOException.class,()->open(path));assertArrayEquals(bytes,Files.readAllBytes(path));sameBackups(before);
             }
             for(String type:List.of("unknown","Travel","SealUse","Receiving","")){
-                var bad=valid.deepCopy().put("schemaVersion",10);((ObjectNode)bad.path("requests").get(0).path("business")).put("type",type);
+                var bad=valid.deepCopy().put("schemaVersion",12);((ObjectNode)bad.path("requests").get(0).path("business")).put("type",type);
                 byte[] bytes=mapper.writeValueAsBytes(bad);Files.write(path,bytes);var before=backups();
                 assertThrows(IOException.class,()->open(path));assertArrayEquals(bytes,Files.readAllBytes(path));sameBackups(before);
             }

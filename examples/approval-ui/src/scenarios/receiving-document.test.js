@@ -64,7 +64,7 @@ describe('receiving exact quantity boundary', () => {
 })
 describe('strict receiving metadata and acknowledged snapshots', () => {
   it('accepts its metadata, integer summary and completed repeated-Bob stages', () => {
-    expect(validateScenarioCatalog(catalogFixture())).toHaveLength(4)
+    expect(validateScenarioCatalog(catalogFixture())).toHaveLength(6)
     const start = receivingViewFixture(); expect(handler.validateView(start)).toBe(start)
     const warehouse = decidedFixture(start, 'bob'), quality = decidedFixture(warehouse, 'carol'), procurement = decidedFixture(quality, 'bob')
     expect(handler.validateDecision(warehouse, start, 'bob', 'receiving-inspection', 'APPROVE')).toBe(warehouse)

@@ -26,7 +26,7 @@ export function validateScenarioCatalog(catalog) {
     const lineItems = template.lineItems
     if (lineKinds === null) { if (lineItems !== null) invalid(); continue }
     if (!exactKeys(lineItems, ['path', 'label', 'minItems', 'maxItems', 'fields']) || lineItems.path !== 'lines' || !translated(lineItems.label) || lineItems.minItems !== 1 || lineItems.maxItems !== 20) invalid()
-    fields(lineItems.fields, lineKinds, handler)
+    fields(lineItems.fields, lineKinds, handler, handler.lineLengths)
     if (lineItems.fields.length !== Object.keys(lineKinds).length || new Set(lineItems.fields.map(field => field.path)).size !== lineItems.fields.length) invalid()
   }
   return catalog

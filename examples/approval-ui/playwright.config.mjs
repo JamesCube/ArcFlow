@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto'
 import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { prepareBackendArtifact } from './scripts/backend-artifact.mjs'
 
 // Disposable accounts, fresh single-writer store, and loopback-only servers.
 // No trace, HAR or video: those could retain Authorization headers/passwords.
@@ -10,6 +11,9 @@ for (const user of ['ALICE', 'BOB', 'CAROL']) {
   process.env[`APPROVAL_${user}_PASSWORD`] ||= randomUUID()
 }
 const dataDirectory = mkdtempSync(join(tmpdir(), 'arcflow-e2e-'))
+// Keep the actual launched archive stable if a parallel build repackages target.
+// Evidence hashes this disposable copy, never a later file at the build path.
+prepareBackendArtifact(process.env, dataDirectory, '../approval-demo/backend/target/approval-demo-0.1.0-SNAPSHOT.jar')
 export default defineConfig({
   testDir: './e2e',
   workers: 1,
@@ -25,7 +29,7 @@ export default defineConfig({
   },
   webServer: [
     {
-      command: 'java -jar ../approval-demo/backend/target/approval-demo-0.1.0-SNAPSHOT.jar',
+      command: 'node scripts/start-backend.mjs',
       url: 'http://127.0.0.1:8080/api/me',
       reuseExistingServer: false,
       timeout: 90_000,

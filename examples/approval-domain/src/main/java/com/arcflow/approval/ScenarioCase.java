@@ -9,8 +9,10 @@ import org.springframework.web.server.ResponseStatusException;
 /** Isolated synthetic scenario host. No source system, attachment, payment or writeback side effects. */
 public final class ScenarioCase implements AutoCloseable {
     public record View(ApprovalService.Request request,String total,
-        @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) BusinessDocument.ReceivingSummary summary) {
-        public View(ApprovalService.Request request, String total) { this(request, total, null); }
+        @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) BusinessDocument.ReceivingSummary summary,
+        @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) BusinessDocument.PaymentSummary paymentSummary) {
+        public View(ApprovalService.Request request, String total) { this(request, total, null, null); }
+        public View(ApprovalService.Request request, String total, BusinessDocument.ReceivingSummary summary) { this(request, total, summary, null); }
     }
     private final ScenarioCatalog.Entry entry;
     private final ApprovalService approvals;
@@ -42,7 +44,8 @@ public final class ScenarioCase implements AutoCloseable {
         if (request.business() == null || !entry.documentClass().equals(request.business().getClass()))
             throw new IllegalStateException("Unexpected business type in isolated scenario process");
         return new View(request,entry.displayTotal().apply(request.business()),
-            request.business() instanceof BusinessDocument.Receiving receiving ? receiving.summary() : null);
+            request.business() instanceof BusinessDocument.Receiving receiving ? receiving.summary() : null,
+            request.business() instanceof BusinessDocument.PaymentRequest payment ? payment.paymentSummary() : null);
     }
     private void active(String actor) {
         if (!ProcessDefinition.validActorId(actor) || actors.findActive(actor).filter(person -> actor.equals(person.id())).isEmpty())

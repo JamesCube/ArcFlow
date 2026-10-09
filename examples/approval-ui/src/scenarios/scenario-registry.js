@@ -1,3 +1,5 @@
+import { PAYMENT_ID, emptyPayment, emptyPaymentLine, paymentErrors, normalizePayment, paymentTotal, paymentSummary, serializePaymentPayload, paymentErrorText } from './payment-document.js'
+import { CONTRACT_ID, CONTRACT_CATEGORIES, TERMS_KINDS, emptyContract, emptyContractLine, contractErrors, contractServerErrors, normalizeContract, normalizeContractServer, contractTotal, contractSummary, serializeContractPayload, contractErrorText } from './contract-document.js'
 import { CURRENCIES, COST_CENTERS, CATEGORIES, TEMPLATE_ID, emptyExpense, emptyLine, expenseErrors, expenseTotal, formatExpenseMoney, normalizeExpense, serializeExpensePayload, exactKeys } from './expense-document.js'
 import { TEMPLATE_ID as TRAVEL_ID, TRAVEL_PURPOSES, emptyTravel, travelErrors, travelTotal, normalizeTravel, serializeTravelPayload, travelDurationDays } from './travel-document.js'
 import { SEAL_TEMPLATE_ID, SEAL_TYPES, emptySeal, sealFormErrors, sealErrors, normalizeSealForm, normalizeSeal, serializeSealPayload, sealSummary, sealDraftSummary, sealErrorText } from './seal-document.js'
@@ -16,6 +18,36 @@ function validReceivingSummary(actual, business) {
 // Explicit compiled handlers own codecs, document rules, arithmetic and strict
 // response envelopes. Presentation metadata cannot register behavior or routes.
 export const scenarioHandlers = Object.freeze({
+  [PAYMENT_ID]: Object.freeze({
+    id: PAYMENT_ID, domain: 'ERP', documentType: 'paymentRequest', documentVersion: 1, formVersion: 1,
+    monetary: true, prefix: 'payment', createDraft: emptyPayment, createLine: emptyPaymentLine,
+    errors: paymentErrors, normalize: normalizePayment, serialize: serializePaymentPayload,
+    total: paymentTotal, calculation: paymentSummary, money: formatExpenseMoney, errorText: paymentErrorText,
+    summary: (business, total) => formatExpenseMoney(total, business.currency),
+    enums: Object.freeze({ currency: CURRENCIES }), optionalFields: Object.freeze(['deductionReason']),
+    rootKinds: Object.freeze({ businessId: 'text', title: 'text', reason: 'textarea', supplierRef: 'text', currency: 'select', requestedPaymentOn: 'date' }),
+    rootLengths: Object.freeze({ businessId: 128, title: 120, reason: 2000, supplierRef: 128, currency: 0, requestedPaymentOn: 10 }),
+    lineLengths: Object.freeze({ invoiceRef: 128, description: 240, invoiceAmount: 0, previouslySettledAmount: 0, allocationAmount: 0, deductionAmount: 0, deductionReason: 1000 }),
+    lineKinds: Object.freeze({ invoiceRef: 'text', description: 'text', invoiceAmount: 'money', previouslySettledAmount: 'money', allocationAmount: 'money', deductionAmount: 'money', deductionReason: 'textarea' }),
+    ...createScenarioValidators({ id: PAYMENT_ID, errors: paymentErrors, normalize: normalizePayment, viewKeys: ['request', 'total', 'paymentSummary'], validEnvelope: (view, business) => {
+      const expected = paymentSummary(business)
+      return expected !== null && view.total === expected.netTotal && exactKeys(view.paymentSummary, Object.keys(expected)) && Object.keys(expected).every(key => view.paymentSummary[key] === expected[key])
+    } }),
+  }),
+  [CONTRACT_ID]: Object.freeze({
+    id: CONTRACT_ID, domain: 'CRM', documentType: 'contractApproval', documentVersion: 1, formVersion: 1,
+    monetary: true, prefix: 'contract', createDraft: emptyContract, createLine: emptyContractLine,
+    errors: contractErrors, normalize: normalizeContract, serialize: serializeContractPayload,
+    total: contractTotal, calculation: contractSummary, money: formatExpenseMoney, errorText: contractErrorText,
+    summary: (business, total) => formatExpenseMoney(total, business.currency),
+    enums: Object.freeze({ currency: CURRENCIES, contractCategory: CONTRACT_CATEGORIES, termsKind: TERMS_KINDS }), optionalFields: Object.freeze(['deviationReason']),
+    rootKinds: Object.freeze({ businessId: 'text', title: 'text', reason: 'textarea', customerRef: 'text', contractRevision: 'integer', contractCategory: 'select', currency: 'select', contractAmount: 'money', startOn: 'date', endOn: 'date', termsKind: 'select', deviationReason: 'textarea', documentRef: 'text' }),
+    rootLengths: Object.freeze({ businessId: 128, title: 120, reason: 2000, customerRef: 128, contractRevision: 16, contractCategory: 0, currency: 0, contractAmount: 0, startOn: 10, endOn: 10, termsKind: 0, deviationReason: 2000, documentRef: 128 }),
+    lineLengths: Object.freeze({ milestoneRef: 128, description: 240, dueOn: 10, amount: 0, acceptanceCriteria: 1000 }),
+    lineKinds: Object.freeze({ milestoneRef: 'text', description: 'text', dueOn: 'date', amount: 'money', acceptanceCriteria: 'textarea' }),
+    ...monetaryValidators(CONTRACT_ID, contractServerErrors, normalizeContractServer, contractTotal),
+  }),
+
   [TEMPLATE_ID]: Object.freeze({
     id: TEMPLATE_ID, domain: 'OA', documentType: 'expense', documentVersion: 1, formVersion: 1,
     monetary: true, prefix: 'expense',

@@ -30,7 +30,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 /** Inherited unchanged by actual H2, PostgreSQL and MySQL server suites. */
-abstract class MemberInboxStoreContract extends ServerApprovalStoreContract {
+abstract class MemberInboxStoreContract extends PaymentContractStoreContract {
     private JdbcApprovalStore store() throws IOException {
         return new JdbcApprovalStore(dataSource, new ObjectMapper(), ProcessDefinition.legacy("bob"));
     }
@@ -613,6 +613,41 @@ abstract class MemberInboxStoreContract extends ServerApprovalStoreContract {
         assertEquals(3, count("arc_request")); assertEquals(4, count("arc_request_event"));
         assertEquals(3, count("arc_submission_key")); assertEquals(4, count("arc_request_member"));
         assertEquals(0, JdbcApprovalStore.backfillMembers(dataSource, new ObjectMapper(), 1).processed());
+    }
+
+    @Test void paymentAndContractBackfillPreservesTypedSnapshotsKeysAndRepeatedActorMembership() throws Exception {
+        var paymentDefinition=com.arcflow.approval.ScenarioCatalog.paymentRequest("bob","carol").initialProcess();
+        var contractDefinition=com.arcflow.approval.ScenarioCatalog.contractApproval("bob","carol").initialProcess();
+        Request payment,contract;
+        try(var payments=new ApprovalService(new JdbcApprovalStore(dataSource,new ObjectMapper(),paymentDefinition),USERS);
+            var contracts=new ApprovalService(new JdbcApprovalStore(dataSource,new ObjectMapper(),contractDefinition),USERS)) {
+            var p=payments.submitDocument("alice",paymentDocument(),1,"backfill-payment");
+            payment=payments.decide("bob",p.id(),"payment-check","APPROVE","Partial ALL vote");
+            var c=contracts.submitDocument("alice",contractDocument(),1,"backfill-contract");
+            contract=contracts.decide("bob",c.id(),"commercial-review","APPROVE","First independent stage");
+        }
+        var originalJson=new java.util.HashMap<String,String>();
+        try(var connection=dataSource.getConnection();var statement=connection.createStatement();var rows=statement.executeQuery("SELECT request_id, request_json FROM arc_request")) {
+            while(rows.next())originalJson.put(rows.getString(1),rows.getString(2));
+        }
+        migrateRevisionThree();
+        var first=JdbcApprovalStore.backfillMembers(dataSource,new ObjectMapper(),1);assertFalse(first.ready());assertEquals(1,first.processed());
+        var inserted=new AtomicBoolean();var failing=ServerTestSupport.failAfterStatement(dataSource,"INSERT INTO arc_request_member",inserted);
+        assertThrows(IOException.class,()->JdbcApprovalStore.backfillMembers(failing,new ObjectMapper(),1));assertTrue(inserted.get());assertEquals(2,count("arc_request_member"));
+        var resumed=JdbcApprovalStore.backfillMembers(dataSource,new ObjectMapper(),1);assertTrue(resumed.ready());assertEquals(1,resumed.processed());
+        try(var payments=new JdbcApprovalStore(dataSource,new ObjectMapper(),paymentDefinition);
+            var contracts=new JdbcApprovalStore(dataSource,new ObjectMapper(),contractDefinition)) {
+            assertEquals(payment,payments.submission("alice","backfill-payment"));assertEquals(contract,contracts.submission("alice","backfill-contract"));
+            assertEquals(List.of(payment),payments.inbox(query("carol",Bucket.PENDING,10)));assertTrue(payments.inbox(query("bob",Bucket.PENDING,10)).isEmpty());
+            assertEquals(List.of(payment),payments.inbox(query("bob",Bucket.HANDLED,10)));
+            assertEquals(List.of(contract),contracts.inbox(query("bob",Bucket.PENDING,10)));assertEquals(List.of(contract),contracts.inbox(query("bob",Bucket.HANDLED,10)));
+            assertEquals(List.of(contract),contracts.inbox(query("carol",Bucket.PENDING,10)));assertTrue(contracts.inbox(query("carol",Bucket.HANDLED,10)).isEmpty());
+        }
+        try(var connection=dataSource.getConnection();var statement=connection.createStatement();var rows=statement.executeQuery("SELECT request_id, request_json FROM arc_request")) {
+            while(rows.next())assertEquals(originalJson.get(rows.getString(1)),rows.getString(2));
+        }
+        assertEquals(2,count("arc_request"));assertEquals(2,count("arc_submission_key"));assertEquals(4,count("arc_request_event"));assertEquals(4,count("arc_request_member"));
+        assertEquals(0,JdbcApprovalStore.backfillMembers(dataSource,new ObjectMapper(),1).processed());
     }
 
     private void migrateRevisionThree() throws Exception {

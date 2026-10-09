@@ -4,11 +4,13 @@ import ScenarioApp from './ScenarioApp.vue'
 import {
   catalogFixture, clone, people, processFixture, viewFixture,
   travelProcessFixture, travelViewFixture, sealProcessFixture, sealViewFixture,
-  receivingProcessFixture, receivingViewFixture,
+  receivingProcessFixture, receivingViewFixture, complexProcessFixture, paymentViewFixture, contractViewFixture,
 } from './scenario-fixtures.js'
 
 enableAutoUnmount(afterEach)
 const scenes = [
+  { id: 'erp-payment', prefix: 'payment', process: () => complexProcessFixture('erp-payment'), view: paymentViewFixture },
+  { id: 'crm-contract', prefix: 'contract', process: () => complexProcessFixture('crm-contract'), view: contractViewFixture },
   { id: 'oa-expense', prefix: 'expense', process: processFixture, view: viewFixture },
   { id: 'oa-travel', prefix: 'travel', process: travelProcessFixture, view: travelViewFixture },
   { id: 'oa-seal-use', prefix: 'seal', process: sealProcessFixture, view: sealViewFixture },
@@ -40,10 +42,10 @@ async function open(c, prefix, destination = 'new') {
 }
 
 describe('unified compiled scenario component catalog', () => {
-  it.each(['en', 'zh'])('keeps all four forms and drafts independent in %s', async locale => {
+  it.each(['en', 'zh'])('keeps all six forms and drafts independent in %s', async locale => {
     const c = setup(); await login(c)
     await c.wrapper.get('.sf-topbar select').setValue(locale)
-    expect(c.wrapper.findAll('.sf-template-card')).toHaveLength(4)
+    expect(c.wrapper.findAll('.sf-template-card')).toHaveLength(6)
     expect(c.wrapper.find('.sf-travel-art').exists()).toBe(true)
     expect(c.wrapper.find('.sf-seal-art').exists()).toBe(true)
     for (const scene of scenes) {
@@ -114,7 +116,7 @@ describe('unified compiled scenario component catalog', () => {
     }
   })
 
-  it('preserves four independent designer undo stacks with only the active controls mounted', async () => {
+  it('preserves six independent designer undo stacks with only the active controls mounted', async () => {
     const c = setup(); await login(c)
     for (const scene of scenes) {
       await open(c, scene.prefix, 'designer')

@@ -166,3 +166,7 @@ and the individual [Travel](../../../docs/TRAVEL_SCENARIO.md),
 
 The declared runtime remains Boot 4.1.1. Supplementary runs on an external Boot 3 compatibility
 runner do not verify this runtime or satisfy the original-image/pixel acceptance gate.
+
+## Payment and contract review candidate / 付款与合同审批候选
+
+This unmerged extension adds independent ERP payment allocation and CRM contract milestone reviews to the six-entry `/scenarios.html` catalog. It uses nine exact business types, monotonic JSON wrappers 1–12 and separate compiled API/store boundaries. Actual ALL/ANY and versioned human review do not execute payment, signing or external writes. See [business models, workflow semantics, compatibility and verification gates](../../../docs/PAYMENT_CONTRACT_SCENARIOS.md). Earlier candidate descriptions refer to the PR39 baseline. This extension requires matching frontend and backend versions; old schema-10 readers cannot read the new documents.

@@ -17,8 +17,10 @@ import java.time.format.DateTimeParseException;
     @JsonSubTypes.Type(value = BusinessDocument.Expense.class, name = "expense"),
     @JsonSubTypes.Type(value = BusinessDocument.Travel.class, name = "travel"),
     @JsonSubTypes.Type(value = BusinessDocument.SealUse.class, name = "sealUse"),
-    @JsonSubTypes.Type(value = BusinessDocument.Receiving.class, name = "receiving")})
-public sealed interface BusinessDocument permits BusinessDocument.Leave, BusinessDocument.Procurement, BusinessDocument.QuoteDiscount, BusinessDocument.Expense, BusinessDocument.Travel, BusinessDocument.SealUse, BusinessDocument.Receiving {
+    @JsonSubTypes.Type(value = BusinessDocument.Receiving.class, name = "receiving"),
+    @JsonSubTypes.Type(value = BusinessDocument.PaymentRequest.class, name = "paymentRequest"),
+    @JsonSubTypes.Type(value = BusinessDocument.ContractApproval.class, name = "contractApproval")})
+public sealed interface BusinessDocument permits BusinessDocument.Leave, BusinessDocument.Procurement, BusinessDocument.QuoteDiscount, BusinessDocument.Expense, BusinessDocument.Travel, BusinessDocument.SealUse, BusinessDocument.Receiving, BusinessDocument.PaymentRequest, BusinessDocument.ContractApproval {
     String businessId();
     String title();
     String reason();
@@ -287,6 +289,128 @@ public sealed interface BusinessDocument permits BusinessDocument.Leave, Busines
             catch (DateTimeParseException invalid) { throw new IllegalArgumentException("Expense date must be a real calendar date", invalid); }
         }
     }
+
+    /** Synthetic invoice allocation review. This does not reserve invoices or instruct a bank. */
+    record PaymentRequest(@JsonProperty(required = true) int documentVersion,
+                          @JsonProperty(required = true) String businessId, @JsonProperty(required = true) String title,
+                          @JsonProperty(required = true) String reason, @JsonProperty(required = true) String supplierRef,
+                          @JsonProperty(required = true) String currency, @JsonProperty(required = true) String requestedPaymentOn,
+                          @JsonProperty(required = true) java.util.List<PaymentLine> lines) implements BusinessDocument {
+        public PaymentRequest { if (lines != null) lines = java.util.List.copyOf(lines); }
+        @Override public void validate() {
+            validateComplexCommon(documentVersion, businessId, title, reason, currency, lines);
+            if (!validReference(supplierRef)) throw new IllegalArgumentException("A synthetic supplier reference is required");
+            complexDate(requestedPaymentOn);
+            var ids = new java.util.HashSet<String>(); var invoices = new java.util.HashSet<String>();
+            for (PaymentLine line : lines) {
+                line.validate(currency);
+                if (!ids.add(line.lineId()) || !invoices.add(line.invoiceRef()))
+                    throw new IllegalArgumentException("Payment line IDs and invoice references must each be distinct within this request");
+            }
+            if (netTotal().signum() <= 0) throw new IllegalArgumentException("The net requested payment must be positive");
+        }
+        @Override public PaymentRequest withText(String title, String reason) {
+            return new PaymentRequest(documentVersion, businessId, title, reason, supplierRef, currency, requestedPaymentOn,
+                lines.stream().map(line -> new PaymentLine(line.lineId(), line.invoiceRef(), line.description().trim(),
+                    line.invoiceAmount().stripTrailingZeros(), line.previouslySettledAmount().stripTrailingZeros(),
+                    line.allocationAmount().stripTrailingZeros(), line.deductionAmount().stripTrailingZeros(), line.deductionReason().trim())).toList());
+        }
+        public BigDecimal declaredOutstanding() { return lines.stream().map(line -> line.invoiceAmount().subtract(line.previouslySettledAmount())).reduce(BigDecimal.ZERO, BigDecimal::add); }
+        public BigDecimal grossAllocation() { return lines.stream().map(PaymentLine::allocationAmount).reduce(BigDecimal.ZERO, BigDecimal::add); }
+        public BigDecimal deductionTotal() { return lines.stream().map(PaymentLine::deductionAmount).reduce(BigDecimal.ZERO, BigDecimal::add); }
+        public BigDecimal netTotal() { return grossAllocation().subtract(deductionTotal()); }
+        public PaymentSummary paymentSummary() { return new PaymentSummary("paymentRequest", displayMoney(declaredOutstanding(), currency),
+            displayMoney(grossAllocation(), currency), displayMoney(deductionTotal(), currency), displayMoney(netTotal(), currency)); }
+    }
+    record PaymentLine(@JsonProperty(required = true) String lineId, @JsonProperty(required = true) String invoiceRef,
+                       @JsonProperty(required = true) String description, @JsonProperty(required = true) BigDecimal invoiceAmount,
+                       @JsonProperty(required = true) BigDecimal previouslySettledAmount, @JsonProperty(required = true) BigDecimal allocationAmount,
+                       @JsonProperty(required = true) BigDecimal deductionAmount, @JsonProperty(required = true) String deductionReason) {
+        public void validate(String currency) {
+            if (!validReference(lineId) || !validReference(invoiceRef) || !receivingText(description, 240) ||
+                deductionReason == null || deductionReason.length() > 1000)
+                throw new IllegalArgumentException("Payment lines require distinct references, a description and a bounded deduction explanation");
+            complexMoney(invoiceAmount, currency, false); complexMoney(previouslySettledAmount, currency, true);
+            complexMoney(allocationAmount, currency, false); complexMoney(deductionAmount, currency, true);
+            if (previouslySettledAmount.compareTo(invoiceAmount) > 0 ||
+                allocationAmount.compareTo(invoiceAmount.subtract(previouslySettledAmount)) > 0 ||
+                deductionAmount.compareTo(allocationAmount) > 0 ||
+                (deductionAmount.signum() > 0 && !receivingText(deductionReason, 1000)))
+                throw new IllegalArgumentException("Allocation must fit the declared outstanding balance; deductions must fit allocation and include an explanation");
+        }
+    }
+    record PaymentSummary(String type, String declaredOutstanding, String grossAllocation, String deductionTotal, String netTotal) {}
+
+    /** Internal review of a synthetic contract draft. Approval neither signs nor activates it. */
+    record ContractApproval(@JsonProperty(required = true) int documentVersion,
+                            @JsonProperty(required = true) String businessId, @JsonProperty(required = true) String title,
+                            @JsonProperty(required = true) String reason, @JsonProperty(required = true) String customerRef,
+                            @JsonProperty(required = true) int contractRevision, @JsonProperty(required = true) String contractCategory,
+                            @JsonProperty(required = true) String currency, @JsonProperty(required = true) BigDecimal contractAmount,
+                            @JsonProperty(required = true) String startOn, @JsonProperty(required = true) String endOn,
+                            @JsonProperty(required = true) String termsKind, @JsonProperty(required = true) String deviationReason,
+                            @JsonProperty(required = true) String documentRef,
+                            @JsonProperty(required = true) java.util.List<ContractMilestone> lines) implements BusinessDocument {
+        public ContractApproval { if (lines != null) lines = java.util.List.copyOf(lines); }
+        @Override public void validate() {
+            validateComplexCommon(documentVersion, businessId, title, reason, currency, lines);
+            if (!validReference(customerRef) || !validReference(documentRef) || contractRevision < 1 ||
+                !java.util.Set.of("PRODUCT", "SERVICE").contains(contractCategory == null ? "" : contractCategory) ||
+                !java.util.Set.of("STANDARD", "NONSTANDARD").contains(termsKind == null ? "" : termsKind) ||
+                deviationReason == null || deviationReason.length() > 2000)
+                throw new IllegalArgumentException("Contract review requires valid references, a positive revision, category and terms kind");
+            // General notes belong to reason. This field describes deviations only, so STANDARD cannot retain one.
+            if (("NONSTANDARD".equals(termsKind) && !receivingText(deviationReason, 2000)) ||
+                ("STANDARD".equals(termsKind) && !deviationReason.trim().isEmpty()))
+                throw new IllegalArgumentException("Nonstandard terms require a deviation explanation; standard terms must leave that field empty (use general notes for ordinary remarks)");
+            complexMoney(contractAmount, currency, false);
+            LocalDate start = complexDate(startOn), end = complexDate(endOn), previous = null;
+            if (start.isAfter(end)) throw new IllegalArgumentException("The contract end date must not precede its start date");
+            var ids = new java.util.HashSet<String>(); var milestones = new java.util.HashSet<String>();
+            BigDecimal total = BigDecimal.ZERO;
+            for (ContractMilestone line : lines) {
+                line.validate(currency); LocalDate due = complexDate(line.dueOn());
+                if (!ids.add(line.lineId()) || !milestones.add(line.milestoneRef()))
+                    throw new IllegalArgumentException("Contract line IDs and milestone references must each be distinct");
+                if (due.isBefore(start) || due.isAfter(end) || (previous != null && due.isBefore(previous)))
+                    throw new IllegalArgumentException("Milestone dates must be ordered and fall within the contract term");
+                previous = due; total = total.add(line.amount());
+            }
+            if (total.compareTo(contractAmount) != 0) throw new IllegalArgumentException("Milestone amounts must exactly equal the contract amount");
+        }
+        @Override public ContractApproval withText(String title, String reason) {
+            return new ContractApproval(documentVersion, businessId, title, reason, customerRef, contractRevision,
+                contractCategory, currency, contractAmount.stripTrailingZeros(), startOn, endOn, termsKind,
+                deviationReason.trim(), documentRef, lines.stream().map(line -> new ContractMilestone(line.lineId(), line.milestoneRef(),
+                    line.description().trim(), line.dueOn(), line.amount().stripTrailingZeros(), line.acceptanceCriteria().trim())).toList());
+        }
+    }
+    record ContractMilestone(@JsonProperty(required = true) String lineId, @JsonProperty(required = true) String milestoneRef,
+                             @JsonProperty(required = true) String description, @JsonProperty(required = true) String dueOn,
+                             @JsonProperty(required = true) BigDecimal amount, @JsonProperty(required = true) String acceptanceCriteria) {
+        public void validate(String currency) {
+            if (!validReference(lineId) || !validReference(milestoneRef) || !receivingText(description, 240) || !receivingText(acceptanceCriteria, 1000))
+                throw new IllegalArgumentException("Contract milestones require references, description and explicit acceptance criteria");
+            complexDate(dueOn); complexMoney(amount, currency, false);
+        }
+    }
+    private static void validateComplexCommon(int version, String businessId, String title, String reason, String currency, java.util.List<?> lines) {
+        if (version != 1 || !validReference(businessId) || !receivingText(title, 120) || !receivingText(reason, 2000) ||
+            !java.util.Set.of("CNY", "USD", "EUR", "GBP", "JPY").contains(currency == null ? "" : currency) ||
+            lines == null || lines.isEmpty() || lines.size() > 20)
+            throw new IllegalArgumentException("This scenario requires version 1, valid identity and text, a supported currency and 1–20 lines");
+    }
+    private static void complexMoney(BigDecimal amount, String currency, boolean allowZero) {
+        if (amount == null || (allowZero ? amount.signum() < 0 : amount.signum() <= 0) || amount.scale() > 2 ||
+            amount.compareTo(new BigDecimal("1000000000")) > 0 || ("JPY".equals(currency) && amount.stripTrailingZeros().scale() > 0))
+            throw new IllegalArgumentException("Amounts must be exact, nonnegative (positive where required), at most 1,000,000,000 and at most two decimals; JPY uses whole amounts");
+    }
+    private static LocalDate complexDate(String value) {
+        if (value == null || !value.matches("[0-9]{4}-[0-9]{2}-[0-9]{2}")) throw new IllegalArgumentException("Dates must use YYYY-MM-DD");
+        try { LocalDate date = LocalDate.parse(value); if (date.getYear() < 1) throw new IllegalArgumentException("Date year must be positive"); return date; }
+        catch (DateTimeParseException invalid) { throw new IllegalArgumentException("Dates must be real calendar dates", invalid); }
+    }
+    static String displayMoney(BigDecimal amount, String currency) { return amount.setScale("JPY".equals(currency) ? 0 : 2).toPlainString(); }
 
     private static boolean validReference(String value) { return value != null && value.matches("[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}"); }
     private static void validateCommon(BusinessDocument document) {

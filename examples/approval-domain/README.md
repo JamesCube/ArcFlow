@@ -32,22 +32,22 @@ Publishing, submitting and deciding each recheck that the acting user is active.
 
 Legacy list reads and every decision reload also recheck the acting identity after storage returns, matching the inbox read boundary. If the directory reports deactivation during that read, the service rejects the operation before releasing the result or attempting a decision write, including an idempotent replay and the final retry observation. This is a bounded reauthorization check, not an atomic identity/storage transaction: a later revocation can still race with response delivery or a write already authorized or in progress. Hosts needing strict revocation at commit must coordinate their identity and transaction boundaries; this domain does not provide that guarantee.
 
-The default `JsonApprovalStore` uses a process-exclusive file lock, serialized transitions, atomic replacement, byte-exact immediately-preupgrade backups for compatible schema-1 through schema-10 data and strict history replay. Use it only with one process and a local filesystem. The optional JDBC module has separate schema, transaction and scaling boundaries. Neither adapter provides tenant isolation or all the features needed for a production workflow service. Avoid exposing the store file or active user directory beyond the host's authorization scope.
+The default `JsonApprovalStore` uses a process-exclusive file lock, serialized transitions, atomic replacement, byte-exact immediately-preupgrade backups for compatible schema-1 through schema-12 data and strict history replay. Use it only with one process and a local filesystem. The optional JDBC module has separate schema, transaction and scaling boundaries. Neither adapter provides tenant isolation or all the features needed for a production workflow service. Avoid exposing the store file or active user directory beyond the host's authorization scope.
 
 The standalone Vue/HTTP and native RuoYi hosts support schema 3. Schema-3 hosts must use `ApprovalService.pendingApproverIds(request)` or derive the equivalent unvoted membership from the snapshotted current stage and history; the legacy `approverId` field names only one participant. Do not use it as group authorization or a full inbox filter.
 
 ## Business document boundary / 业务单据边界
 
-The local unified candidate supports seven explicit immutable types: leave, procurement,
-quoteDiscount, expense, travel, sealUse and receiving, through the shared approval lifecycle.
-The strict reader accepts JSON wrappers 1–10; minimum typed wrappers are 5 for leave and
-procurement, 6 for quotes, 7 for Expense, 8 for Travel, 9 for Seal-use and 10 for Receiving.
+The local unified candidate supports nine explicit immutable types: leave, procurement,
+quoteDiscount, expense, travel, sealUse, receiving, paymentRequest and contractApproval, through the shared approval lifecycle.
+The strict reader accepts JSON wrappers 1–12; minimum typed wrappers are 5 for leave and
+procurement, 6 for quotes, 7 for Expense, 8 for Travel, 9 for Seal-use and 10 for Receiving, 11 for Payment and 12 for Contract.
 Writes use a monotonic maximum; valid higher wrappers can hold lower-minimum types. Reads
 never force all files to 10. Legacy fields and process definitions (schema 2/3) are unchanged.
 Unknown types/versions and invalid type-wrapper combinations remain rejected.
 
 Type registration does not open generic hosts to every type. Generic standalone/native
-HTTP still accepts only leave/procurement; CRM and all four compiled scenarios retain
+HTTP still accepts only leave/procurement; CRM and all six compiled scenarios retain
 separate exact-type/process/authorization boundaries. Expense and Travel views contain
 `{request,total:string}`; Seal views `{request,total:null}`; Receiving alone adds its
 unit-grouped `summary`. No dynamic conditional-routing or arbitrary-field form engine is added.
@@ -81,10 +81,10 @@ request, including after a decision or restart. References do not impose uniquen
 
 ### Explicit snapshot compatibility
 
-This unified reader supports JSON wrappers **1–10**, including valid Travel/schema-8 and
+This unified reader supports JSON wrappers **1–12**, including valid Travel/schema-8 and
 Seal/schema-9 data. Seal requires at least 9 and remains valid at 10; Receiving requires at
 least 10. Every type retains strict wire name, exact Java record, field and version validation.
-Unknown/future types, noninteger/overflow wrappers and wrapper 11+ fail closed.
+Unknown/future types, noninteger/overflow wrappers and wrapper 13+ fail closed.
 
 Compatible files are read without rewriting or touching backups. Every actual upgrade
 retains the byte-exact immediately preceding snapshot before atomic replacement, including
@@ -99,3 +99,5 @@ dependency. The combined suite must additionally cover legal 8/9/10 reads, each 
 schema rejection, all three new-type write orders, exact upgrade backups, strict Receiving
 raw negative-zero decoding, failures/restart, authorization and scenario isolation. Existing
 single-candidate reports do not establish that this integrated source passed those gates.
+
+The payment and contract extension has dedicated exact-decimal allocation/milestone models and stores. See [complete model and migration contract](../../docs/PAYMENT_CONTRACT_SCENARIOS.md). Payment adds its typed `paymentSummary` response; the other five envelopes retain their scenario-specific shape.
