@@ -9,6 +9,7 @@ for (const lang of ['zh','en']) {
       await expect(page.locator('h1')).toBeVisible();
       await expect(page.locator('html')).toHaveAttribute('lang',lang==='en'?'en':'zh-CN');
       const dimensions=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,inner:innerWidth}));
+      if(dimensions.scroll>dimensions.inner) console.log('overflow',await page.locator('body *').evaluateAll(nodes=>nodes.map(e=>({tag:e.tagName,cls:e.className,width:e.getBoundingClientRect().width,right:e.getBoundingClientRect().right})).filter(e=>e.right>innerWidth+1)));
       expect(dimensions.scroll).toBeLessThanOrEqual(dimensions.inner);
       await expect.poll(()=>page.locator('.hero-screen img').evaluate(i=>i.complete&&i.naturalWidth>0)).toBe(true);
       for (const tab of await page.getByRole('tab').all()) {
