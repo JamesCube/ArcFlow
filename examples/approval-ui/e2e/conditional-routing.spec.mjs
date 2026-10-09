@@ -72,7 +72,7 @@ test('conditional routing: payment: configure conditions, preserve old snapshot,
   expect(published.schemaVersion).toBe(4); expect(published.nodes[1].runIf.predicates[0].threshold).toBe(10000)
   await capture(page, info, 'payment-conditions-en'); await language(page, 'zh'); await capture(page, info, 'payment-conditions-zh', true); await page.setViewportSize(DESKTOP); await language(page, 'en')
   const business = paymentFixture({ businessId: `PAY-LOW-${suffix}`, title: `Payment below threshold ${suffix}` })
-  await fill(page, 'payment', business); await expect(page.getByTestId('route-preview')).toContainText('1 approval stages included')
+  await fill(page, 'payment', business); await expect(page.getByTestId('route-preview')).toContainText('1 approval stage included')
   let documentPosts = 0; page.on('request', req => { if (req.method() === 'POST' && req.url().endsWith(`${base}/documents`)) documentPosts++ })
   await page.locator('#payment-currency').selectOption('USD'); await page.getByTestId('submit-payment').click()
   await expect(page.locator('.sf-alert')).toContainText('currency does not match'); expect(documentPosts).toBe(0)

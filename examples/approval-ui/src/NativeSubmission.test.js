@@ -301,7 +301,7 @@ describe('native typed display and permissions', () => {
     expect(state.documentView(result)).toEqual({ type: 'leave', business: null })
     const business = { type: 'leave', businessId: 'LV-1', title: result.title, reason: result.reason, days: result.days }
     expect(state.documentView({ ...result, business })).toEqual({ type: 'leave', business })
-    expect(state.summary(result)).toBe('2 天数')
+    expect(state.summary(result)).toBe('2天')
   })
   it('retains RuoYi permission directives for both typed authoring and decisions', async () => {
     const { wrapper, state } = await setup({ render: true, permissions: ['arcflow:request:read'] })

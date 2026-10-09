@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {authorization, priceMinor, money, preview, submissionBody, canDecide, validateViews} from '../../public/crm-quote/model.mjs';
+import {authorization, priceMinor, money, preview, submissionBody, canDecide, validateViews, currentStepName} from '../../public/crm-quote/model.mjs';
 const quote = {businessId:'Q-DEMO-001', revision:1, customerRef:'CUSTOMER-DEMO-A', item:'Equipment', quantity:10, listUnitPrice:1000, currency:'CNY', validUntil:'2099-12-31'};
 test('exact 15 percent sample and small decimals', () => {
   assert.deepEqual(preview(quote,'850.00'),{listTotal:'10000.00', requestedTotal:'8500.00', reductionTotal:'1500.00'});
@@ -32,4 +32,24 @@ test('response amount checks reject stale mixed-document or corrupted data',()=>
 
 test('UTF-8 Basic authorization accepts Chinese and accented passwords',()=>{
   assert.equal(authorization('alice','演示密码-é'), 'Basic '+Buffer.from('alice:演示密码-é','utf8').toString('base64'));
+});
+
+for (const [id, name, zh, en] of [
+  ['salesManager', '销售经理审核 / Sales manager review', '销售经理审核', 'Sales manager review'],
+  ['finance', '财务复核 / Finance review', '财务复核', 'Finance review'],
+]) test(`current step uses the frozen ${id} name in both locales without changing its ID`, () => {
+  const request = { currentStepId: id, definition: { nodes: [{ id, name }] } };
+  assert.equal(currentStepName(request, 'zh'), zh); assert.equal(currentStepName(request, 'en'), en);
+  assert.equal(request.currentStepId, id); assert.equal(request.definition.nodes[0].name, name);
+});
+for (const name of ['Historic custom review', 'Sales manager', '<img src=x onerror=alert(1)>']) test(`current step preserves custom name ${name}`, () => {
+  const request = { currentStepId: 'salesManager', definition: { nodes: [{ id: 'salesManager', name }] } };
+  for (const language of ['en', 'zh']) assert.equal(currentStepName(request, language), name);
+});
+for (const request of [null, {}, {currentStepId:null}, {currentStepId:42}]) test(`missing current step safely displays no stage: ${JSON.stringify(request)}`, () => {
+  for (const language of ['en','zh']) assert.equal(currentStepName(request, language), '—');
+});
+for (const definition of [undefined, {nodes:null}, {nodes:{}}, {nodes:[]}, {nodes:[null]}, {nodes:[{id:'salesManager',name:42}]}, {nodes:[{id:'salesManager',name:'  '}]}]) test(`unknown snapshot stage is not inferred from its ID: ${JSON.stringify(definition)}`, () => {
+  const request = {currentStepId:'salesManager',definition};
+  assert.equal(currentStepName(request,'en'),'Unknown step'); assert.equal(currentStepName(request,'zh'),'未知步骤');
 });
