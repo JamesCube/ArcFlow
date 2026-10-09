@@ -5,7 +5,7 @@ import java.util.List;
 /** Explicit wire-type/class/schema contract. Decoding support does not enable a scenario endpoint. */
 public final class BusinessDocumentSchema {
     private BusinessDocumentSchema() {}
-    public static final int MAX_SNAPSHOT_SCHEMA = 12;
+    public static final int MAX_SNAPSHOT_SCHEMA = 13;
     public record Entry(String wireType, Class<? extends BusinessDocument> documentClass, int minimumSnapshotSchema) {}
     public static final List<Entry> ENTRIES = List.of(
         new Entry("leave", BusinessDocument.Leave.class, 5),

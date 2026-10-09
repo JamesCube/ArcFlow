@@ -40,12 +40,12 @@ public record InboxQuery(String actor, Bucket bucket, String status, Integer pro
         return order == 0 ? a.requestId().compareTo(b.requestId()) : order;
     }
 
-    /** Complete snapshotted participant projection, including future and never-voted members. */
+    /** Complete selected-path participant projection, including future and never-voted selected members. */
     public static List<Member> members(Request request) {
         Set<String> pending = new HashSet<>(ApprovalService.pendingApproverIds(request));
         Set<String> handled = new HashSet<>();
         request.history().stream().skip(1).forEach(event -> handled.add(event.actorId()));
-        return request.definition().approvals().stream().flatMap(node -> node.participants().stream()).distinct()
+        return ApprovalService.effectiveApprovals(request).stream().flatMap(node -> node.participants().stream()).distinct()
             .map(actor -> new Member(actor, pending.contains(actor), handled.contains(actor))).toList();
     }
 

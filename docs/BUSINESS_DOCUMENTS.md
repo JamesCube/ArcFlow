@@ -39,7 +39,7 @@ The shared catalog exposes all six compiled scenario entries. Their business typ
 processes, fixed JSON file suffixes and browser drafts/retry intents remain isolated;
 Receiving also keeps `/receiving.html`. Registration does not allow any new type through
 legacy/generic/native hosts. These are fixed versioned forms and 1–8-stage reviewer flows,
-without a dynamic conditional-routing or arbitrary-field form engine. See
+with no arbitrary-field form engine. Payment/Receiving/Contract can use [restricted frozen routing](CONDITIONAL_ROUTING.md). See
 [unified integration status and release gates](UNIFIED_SCENARIO_INTEGRATION.md).
 
 - `BusinessDocument.Leave(businessId, title, reason, days)` retains the 1–365 day rule.
@@ -147,7 +147,7 @@ submission event is committed.
 
 ## 持久化兼容 / Storage compatibility
 
-The unified reader accepts known JSON snapshot wrapper schemas **1–12**, while retaining
+The unified reader accepts known JSON snapshot wrapper schemas **1–13**, while retaining
 the strict field shape of each older version. Empty or old-type-only snapshots at schemas
 8, 9 and 10 are valid. Reading a valid snapshot does not rewrite it or create/replace a backup.
 This is compatibility of the new reader with existing candidates, not future-format support.
@@ -167,10 +167,10 @@ This is compatibility of the new reader with existing candidates, not future-for
   its minimum schema and pass strict field/version/business validation. A higher supported
   wrapper may contain a lower-minimum type. Travel at 9/10 and Seal at 10 are legal;
   Receiving at 8/9 is not. Unknown types, case aliases, future document versions, wrapper
-  13+, non-integer/overflow wrapper numbers and inconsistent projections fail closed.
+  14+, non-integer/overflow wrapper numbers and inconsistent projections fail closed.
 - Legacy schemas 1–4 retain their original shapes; no typed payload may bypass those gates.
   Older leave/procurement/quote documents gain no artificial `documentVersion` field.
-  Definition schemas remain 2 (sequential) and 3 (parallel).
+  Definition schemas 2 (sequential) and 3 (parallel) are unchanged; schema4 adds [restricted frozen routes](CONDITIONAL_ROUTING.md) and requires wrapper13 plus retained routing definitions.
 - Every write takes the maximum of the current wrapper and all requirements: minimum 2,
   current/historical definitions, keyed submissions (4), typed business (5), and each
   document type's minimum. Opening a file never forces schema 10; the first Expense

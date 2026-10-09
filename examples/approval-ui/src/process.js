@@ -1,3 +1,6 @@
+import { effectiveApprovalNodes, validateRoutingDefinition } from './routing.js'
+import { canonical } from './scenarios/expense-document.js'
+
 export const MAX_APPROVALS = 8
 export const MAX_NAME_LENGTH = 120
 export const cloneDefinition = definition => definition ? JSON.parse(JSON.stringify(definition)) : null
@@ -10,7 +13,7 @@ const isVote = event => ['APPROVE', 'APPROVED', 'REJECT', 'REJECTED'].includes(e
 const votesFor = (request, node) => (request?.history || []).filter(event => event.stepId === node?.id && isVote(event))
 export function pendingParticipants(request) {
   if (request?.status !== 'PENDING' || !request.currentStepId) return []
-  const node = request.definition?.nodes?.find(node => node.id === request.currentStepId)
+  const node = effectiveApprovalNodes(request).find(node => node.id === request.currentStepId)
   const voters = new Set(votesFor(request, node).map(event => event.actorId))
   return participants(node).filter(id => !voters.has(id))
 }
@@ -23,8 +26,9 @@ export function setApprovalMode(definition, nodeId, mode, availableIds = ['bob',
   if (mode !== 'SINGLE') {
     node.assigneeIds = old.type === 'parallelApproval' ? [...members] : [...new Set([...members, ...availableIds])]
     node.completionMode = mode
-    copy.schemaVersion = 3
+    if (copy.schemaVersion !== 4) copy.schemaVersion = 3
   }
+  if (Object.hasOwn(old, 'runIf')) node.runIf = old.runIf
   copy.nodes[index] = node
   return copy
 }
@@ -38,13 +42,14 @@ export function validateDefinition(definition, expectedProcessId = 'leave-approv
   if (!isRecord(definition)) return ['The process template is unavailable. Refresh to load it.']
   const errors = []
   if (Object.keys(definition).some(key => !['schemaVersion', 'id', 'version', 'name', 'nodes'].includes(key))) errors.push('The process contains unsupported fields.')
-  if (![2, 3].includes(definition.schemaVersion) || definition.id !== expectedProcessId || !Number.isInteger(definition.version) || definition.version < 1) errors.push(`Use schema 2 or 3, the ${expectedProcessId} process, and a positive whole-number version.`)
+  if (![2, 3, 4].includes(definition.schemaVersion) || definition.id !== expectedProcessId || !Number.isInteger(definition.version) || definition.version < 1) errors.push(`Use schema 2, 3, or 4, the ${expectedProcessId} process, and a positive whole-number version.`)
   if (typeof definition.name !== 'string' || !definition.name.trim()) errors.push('Give the process a name.')
   else if (hasControlCharacters(definition.name)) errors.push('The process name cannot contain control characters.')
   else if (definition.name.length > MAX_NAME_LENGTH) errors.push(`Keep the process name to ${MAX_NAME_LENGTH} characters.`)
   if (!Array.isArray(definition.nodes)) return [...errors, 'The process must contain an ordered sequence of nodes.']
   const nodes = definition.nodes
   if (nodes.some(node => !isRecord(node))) return [...errors, 'Every process node must have an identifier, type, name, and assignment.']
+  errors.push(...validateRoutingDefinition(definition))
   const approvals = approvalNodes(definition)
   if (nodes[0]?.type !== 'start' || nodes[0]?.id !== 'start' || nodes.at(-1)?.type !== 'end' || nodes.at(-1)?.id !== 'end' || nodes.slice(1, -1).some(node => !isApproval(node))) errors.push('The sequence must have a fixed start, approval steps, and a fixed end.')
   if (approvals.length < 1 || approvals.length > MAX_APPROVALS || nodes.length < 3 || nodes.length > MAX_APPROVALS + 2) errors.push(`Use between 1 and ${MAX_APPROVALS} approval steps.`)
@@ -57,9 +62,10 @@ export function validateDefinition(definition, expectedProcessId = 'leave-approv
     else if (hasControlCharacters(node.name)) errors.push(`${label[0].toUpperCase() + label.slice(1)}'s name cannot contain control characters.`)
     else if (node.name.length > MAX_NAME_LENGTH) errors.push(`Keep ${label}'s name to ${MAX_NAME_LENGTH} characters.`)
     const allowed = node.type === 'parallelApproval' ? ['id', 'type', 'name', 'assigneeId', 'assigneeIds', 'completionMode'] : ['id', 'type', 'name', 'assigneeId']
-    if (Object.keys(node).some(key => !allowed.includes(key)) || allowed.some(key => !Object.hasOwn(node, key))) errors.push(`Use the supported fields for ${label}.`)
+    const supported = definition.schemaVersion === 4 && isApproval(node) ? [...allowed, 'runIf'] : allowed
+    if (Object.keys(node).some(key => !supported.includes(key)) || allowed.some(key => !Object.hasOwn(node, key))) errors.push(`Use the supported fields for ${label}.`)
     if (node.type === 'parallelApproval') {
-      if (definition.schemaVersion !== 3 || node.assigneeId !== null || !['ALL', 'ANY'].includes(node.completionMode)) errors.push(`Use schema 3 and ALL or ANY for approval step ${index}, with no single assignee.`)
+      if (![3, 4].includes(definition.schemaVersion) || node.assigneeId !== null || !['ALL', 'ANY'].includes(node.completionMode)) errors.push(`Use schema 3 or 4 and ALL or ANY for approval step ${index}, with no single assignee.`)
       if (!Array.isArray(node.assigneeIds) || node.assigneeIds.length < 2 || node.assigneeIds.length > 16 || new Set(node.assigneeIds).size !== node.assigneeIds.length || node.assigneeIds.some(id => !['bob', 'carol'].includes(id))) errors.push(`Choose at least two distinct participants (Bob and Carol) for approval step ${index}.`)
     }
     if (node.type === 'approval' && !['bob', 'carol'].includes(node.assigneeId)) errors.push(`Choose Bob or Carol for approval step ${index}.`)
@@ -70,6 +76,7 @@ export function validateDefinition(definition, expectedProcessId = 'leave-approv
 export function stepState(request, node) {
   if (node.type === 'start') return 'completed'
   if (node.type === 'end') return request.status === 'APPROVED' ? 'completed' : request.status === 'REJECTED' ? 'skipped' : 'upcoming'
+  if (request.definition?.schemaVersion === 4 && !effectiveApprovalNodes(request).some(step => step.id === node.id)) return 'conditional-skipped'
   const votes = votesFor(request, node)
   if (node.type === 'parallelApproval') {
     const approvals = new Set(votes.filter(event => isApprove(event.action)).map(event => event.actorId))
@@ -82,16 +89,16 @@ export function stepState(request, node) {
   if (request.status === 'PENDING' && request.currentStepId === node.id) return 'current'
   return request.status === 'PENDING' ? 'upcoming' : 'skipped'
 }
-export const stepStateLabel = state => ({ completed: 'Completed', approved: 'Approved', rejected: 'Rejected', current: 'Awaiting review', upcoming: 'Upcoming', skipped: 'Not reached' })[state]
+export const stepStateLabel = state => ({ completed: 'Completed', approved: 'Approved', rejected: 'Rejected', current: 'Awaiting review', upcoming: 'Upcoming', skipped: 'Not reached', 'conditional-skipped': 'Condition not met' })[state]
 
 export function participantVotes(request, node) {
   const votes = votesFor(request, node), state = stepState(request, node)
   return participants(node).map(actorId => {
     const event = votes.find(event => event.actorId === actorId)
-    return { actorId, state: event ? (isApprove(event.action) ? 'approved' : 'rejected') : ['approved', 'rejected'].includes(state) ? 'not-needed' : state === 'current' ? 'pending' : state === 'upcoming' ? 'upcoming' : 'skipped', comment: event?.comment || '', at: event?.at || null }
+    return { actorId, state: event ? (isApprove(event.action) ? 'approved' : 'rejected') : ['approved', 'rejected'].includes(state) ? 'not-needed' : state === 'current' ? 'pending' : state === 'upcoming' ? 'upcoming' : state === 'conditional-skipped' ? 'conditional-skipped' : 'skipped', comment: event?.comment || '', at: event?.at || null }
   })
 }
-export const participantStateLabel = state => ({ approved: 'Approved', rejected: 'Rejected', pending: 'Awaiting vote', upcoming: 'Upcoming', 'not-needed': 'Not required', skipped: 'Not reached' })[state]
+export const participantStateLabel = state => ({ approved: 'Approved', rejected: 'Rejected', pending: 'Awaiting vote', upcoming: 'Upcoming', 'not-needed': 'Not required', skipped: 'Not reached', 'conditional-skipped': 'Condition not met' })[state]
 
 // Publication must acknowledge the exact ordered process sent by this editor.
 // Object key order is irrelevant; stage and participant order are preserved by
@@ -99,8 +106,9 @@ export const participantStateLabel = state => ({ approved: 'Approved', rejected:
 export function validatePublicationResponse(published, submitted, expectedProcessId = 'leave-approval') {
   const content = definition => [definition.schemaVersion, definition.id, definition.name,
     definition.nodes.map(node => [node.id, node.type, node.name, node.assigneeId,
-      ...(node.type === 'parallelApproval' ? [node.assigneeIds, node.completionMode] : [])])]
-  if (validateDefinition(published, expectedProcessId).length || published.version !== submitted.version + 1
+      ...(node.type === 'parallelApproval' ? [node.assigneeIds, node.completionMode] : []),
+      ...(Object.hasOwn(node, 'runIf') ? [canonical(node.runIf)] : [])])]
+  if (validateDefinition(submitted, expectedProcessId).length || validateDefinition(published, expectedProcessId).length || published.version !== submitted.version + 1
     || JSON.stringify(content(published)) !== JSON.stringify(content(submitted))) {
     throw Object.assign(new Error('The publication response did not confirm the submitted template and next version.'), { name: 'InvalidPublicationResponseError' })
   }

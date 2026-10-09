@@ -7,13 +7,13 @@ let sequence=0;
 const process={id:'quote-discount',version:1,nodes:[{id:'start',type:'start',name:'Start'},{id:'salesManager',type:'approval',name:'Sales manager',assigneeId:'bob'},{id:'finance',type:'approval',name:'Finance',assigneeId:'carol'},{id:'end',type:'end',name:'End'}]};
 const quote={businessId:'Q-DEMO-001',revision:1,customerRef:'CUSTOMER-DEMO-A',item:'Equipment',quantity:10,listUnitPrice:1000,currency:'CNY',validUntil:'2099-12-31',ownerId:'alice'};
 const view={request:{id:'quote-request',business:{...quote,type:'quoteDiscount',quoteRevision:1,requestedUnitPrice:850},title:'Quote',applicantId:'alice',status:'PENDING',currentStepId:'salesManager',history:[],definition:process},listTotal:'10000.00',requestedTotal:'8500.00',reductionTotal:'1500.00',discountPercent:'15',expired:false,quoteUpdated:false,thresholdReached:true};
-async function mount(actor='bob') {
+async function mount(actor='bob', { currentProcess = process, items = [view] } = {}) {
   const dom=new JSDOM(page,{url:'http://localhost:5173/quote-discount.html'});
   globalThis.document=dom.window.document; globalThis.window=dom.window; globalThis.matchMedia=()=>({matches:false});
   const requests=[];
   globalThis.fetch=async(path,options)=>{
     requests.push({path,options});
-    const data=path==='/api/me'?{id:actor,displayName:actor}:path==='/api/crm/process'?process:path==='/api/crm/quotes'?[quote]:[view];
+    const data=path==='/api/me'?{id:actor,displayName:actor}:path==='/api/crm/process'?currentProcess:path==='/api/crm/quotes'?[quote]:items;
     return {ok:true,json:async()=>structuredClone(data)};
   };
   await import(`../../public/crm-quote/app.mjs?test=${sequence++}`);
@@ -204,4 +204,38 @@ test('a mutation recovery from an old session never publishes its result into a 
   assert.equal(ui.$('message').textContent,'');
   await Promise.all(pending.map(finish=>finish()));await ui.tick();await ui.tick();
   assert.equal(ui.$('message').textContent,'');ui.dom.window.close();
+});
+
+for (const [id, name, zh, en] of [
+  ['salesManager', '销售经理审核 / Sales manager review', '销售经理审核', 'Sales manager review'],
+  ['finance', '财务复核 / Finance review', '财务复核', 'Finance review'],
+]) test(`current-step card translates frozen ${id} labels across language switches`, async()=>{
+  const saved = structuredClone(view); saved.request.currentStepId = id; saved.request.definition.nodes.find(node=>node.id===id).name = name;
+  const latest = structuredClone(process); latest.nodes.find(node=>node.id===id).name = 'Latest replacement';
+  const ui = await mount('bob',{currentProcess:latest,items:[saved]}); await ui.login();
+  const current = () => ui.$('requests').querySelector('dl').lastElementChild;
+  assert.equal(current().textContent,zh);
+  ui.$('language').value='en'; ui.$('language').dispatchEvent(new ui.dom.window.Event('change'));
+  assert.equal(current().textContent,en); assert.equal(saved.request.currentStepId,id);
+  assert.equal(saved.request.definition.nodes.find(node=>node.id===id).name,name);
+  ui.dom.window.close();
+});
+test('current-step custom snapshot names stay verbatim and escaped, independently of latest process',async()=>{
+  const saved=structuredClone(view), custom='<img src=x onerror=alert(1)> & Old review';
+  saved.request.definition.nodes.find(node=>node.id==='salesManager').name=custom;
+  const ui=await mount('bob',{items:[saved]}); await ui.login();
+  for(const language of ['en','zh']) {
+    ui.$('language').value=language;ui.$('language').dispatchEvent(new ui.dom.window.Event('change'));
+    const cell=ui.$('requests').querySelector('dl').lastElementChild;
+    assert.equal(cell.textContent,custom);assert.equal(cell.querySelector('img'),null);assert.match(cell.innerHTML,/&lt;img/);
+  }
+  ui.dom.window.close();
+});
+test('unknown saved current step uses localized fallback without inventing an assigned role',async()=>{
+  const saved=structuredClone(view);saved.request.currentStepId='unknown-step';
+  const ui=await mount('bob',{items:[saved]});await ui.login();
+  assert.equal(ui.$('requests').querySelector('dl').lastElementChild.textContent,'未知步骤');
+  ui.$('language').value='en';ui.$('language').dispatchEvent(new ui.dom.window.Event('change'));
+  assert.equal(ui.$('requests').querySelector('dl').lastElementChild.textContent,'Unknown step');
+  assert.equal(ui.$('requests').querySelectorAll('button').length,0);ui.dom.window.close();
 });

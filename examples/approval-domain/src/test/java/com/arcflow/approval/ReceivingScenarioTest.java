@@ -131,7 +131,7 @@ class ReceivingScenarioTest {
         byte[] before=Files.readAllBytes(file());assertEquals(7,mapper.readTree(before).path("schemaVersion").asInt());
         try(var service=service()) {service.submitDocument("101",receipt(),1,"new");assertArrayEquals(before,Files.readAllBytes(file().resolveSibling("receiving.json.schema7.bak")));}
         byte[] good=Files.readAllBytes(file());
-        for(int schema:List.of(7,8,9,13)) {var bad=(ObjectNode)mapper.readTree(good);bad.put("schemaVersion",schema);byte[] bytes=mapper.writeValueAsBytes(bad);Files.write(file(),bytes);assertThrows(IOException.class,this::service);assertArrayEquals(bytes,Files.readAllBytes(file()));}
+        for(int schema:List.of(7,8,9,14)) {var bad=(ObjectNode)mapper.readTree(good);bad.put("schemaVersion",schema);byte[] bytes=mapper.writeValueAsBytes(bad);Files.write(file(),bytes);assertThrows(IOException.class,this::service);assertArrayEquals(bytes,Files.readAllBytes(file()));}
         var oversized=(ObjectNode)mapper.readTree(good);oversized.put("schemaVersion",4294967306L);Files.write(file(),mapper.writeValueAsBytes(oversized));assertThrows(IOException.class,this::service);
         Files.write(file(),good);try(var service=service()){assertEquals(2,service.list("101").size());}
         var bad=(ObjectNode)mapper.readTree(good);((ObjectNode)bad.path("requests").get(1).path("business").path("lines").get(0)).put("accepted",9);Files.write(file(),mapper.writeValueAsBytes(bad));assertThrows(IOException.class,this::service);

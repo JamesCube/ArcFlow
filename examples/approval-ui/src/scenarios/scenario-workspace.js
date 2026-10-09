@@ -1,4 +1,5 @@
 import { reactive, shallowRef } from 'vue'
+import { evaluateRouting } from '../routing.js'
 import { newSubmissionKey, isRejectedSubmissionVersion } from '../submission-intent.js'
 import { cloneDefinition, validateDefinition, validatePublicationResponse, pendingParticipants, participants, approvalNodes } from '../process.js'
 import { TEMPLATE_ID, InvalidScenarioPayload, invalid, same } from './expense-document.js'
@@ -92,7 +93,7 @@ function createScope(api, keyFactory, id, session) {
     const existing = state.items.find(item => item.request.id === view.request.id)
     if (existing) {
       const before = existing.request.history, after = view.request.history
-      if (!same(view.request.business, existing.request.business) || !same(view.request.definition, existing.request.definition) || view.request.createdAt !== existing.request.createdAt || view.request.applicantId !== existing.request.applicantId) invalid()
+      if (!same(view.request.routing ?? null, existing.request.routing ?? null) || !same(view.request.business, existing.request.business) || !same(view.request.definition, existing.request.definition) || view.request.createdAt !== existing.request.createdAt || view.request.applicantId !== existing.request.applicantId) invalid()
       if (after.length < before.length) { if (!same(before.slice(0, after.length), after)) invalid(); return false }
       if (!same(after.slice(0, before.length), before)) invalid()
     }
@@ -140,7 +141,10 @@ function createScope(api, keyFactory, id, session) {
     state.attempted = true; state.error = null; state.notice = ''
     if (handler.errors(state.form).length) { state.error = { operation: 'validation' }; return }
     const pinned = intent?.definition || state.process
-    if (validateDefinition(pinned, id).length || approvalNodes(pinned).some(node => participants(node).includes(state.me.id))) { state.error = { operation: 'selfAssigned' }; return }
+    if (validateDefinition(pinned, id).length) { state.error = { operation: 'selfAssigned' }; return }
+    try { evaluateRouting(pinned, handler.normalize(state.form)) }
+    catch (cause) { state.error = { operation: 'routing', cause }; return }
+    if (approvalNodes(pinned).some(node => participants(node).includes(state.me.id))) { state.error = { operation: 'selfAssigned' }; return }
     const current = session.generation(), navigation = session.navigation(); state.busy = true
     try {
       if (!intent) intent = { key: keyFactory(), actor: state.me.id, fingerprint: fingerprint(state.form), payload: { business: handler.normalize(state.form), processVersion: state.process.version }, definition: cloneDefinition(state.process) }

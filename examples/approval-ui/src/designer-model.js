@@ -55,6 +55,17 @@ export function updateApproval(definition, id, changes) {
   return copy
 }
 
+// Clearing the last condition keeps schema 4 and omits runIf; no null sentinel.
+export function setRunIf(definition, id, runIf) {
+  const copy = cloneDefinition(definition)
+  if (!editableSequence(copy) || !['erp-payment', 'erp-receiving', 'crm-contract'].includes(copy.id)) return copy
+  const node = copy.nodes.find(node => node.id === id && isApproval(node))
+  if (!node) return copy
+  if (runIf === undefined) delete node.runIf
+  else { node.runIf = JSON.parse(JSON.stringify(runIf)); copy.schemaVersion = 4 }
+  return copy
+}
+
 const cloneSelection = selection => selection == null ? selection : JSON.parse(JSON.stringify(selection))
 const snapshot = (definition, selection) => ({ definition: cloneDefinition(definition), selection: cloneSelection(selection) })
 

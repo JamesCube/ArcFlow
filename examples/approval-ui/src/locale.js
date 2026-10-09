@@ -1,3 +1,4 @@
+import { approvalStageCount } from './display-count.js'
 // UI copy only. Names, comments, request content and saved definitions remain untouched.
 export const appCopy = {
   en: {
@@ -35,7 +36,7 @@ export const appCopy = {
     language: 'Workspace language', languageShort: 'Language', storyEyebrow: 'APPROVAL DEMO', storyTitle: 'Try submitting', storyTitleSecond: 'a request.', storyDescription: 'Set up an approval process, submit a leave or procurement request, and follow its progress.', request: 'Request', reviews: 'Reviews', outcome: 'Outcome', storyFootnote: 'Approval prototype · sequential and parallel reviews',
     welcome: 'DEMO SIGN-IN', choosePerspective: 'Choose a demo account', signInDescription: 'Sign in with a demo account and its server-configured password.', demoAccount: 'Demo account', aliceAccount: 'Alice · process designer', bobAccount: 'Bob · approver', carolAccount: 'Carol · approver', password: 'Password', signingIn: 'Signing in…', enterWorkspace: 'Enter workspace →', credentialsNote: 'Credentials stay in this tab’s memory. This demonstration is localhost-only; use synthetic data.',
     workspace: 'Workspace', workspaceLabel: 'WORKSPACE', navigation: 'Main navigation', requests: 'Requests', needsMyReview: 'Needs my review', processDesigner: 'Process designer', signOut: 'Sign out', prototype: 'LOCAL DEMO', leaveApprovals: 'Leave approvals', keepMoving: 'APPROVAL REQUESTS', needsReview: 'Needs your review', designerDescription: 'Arrange steps. Choose single, ALL, or ANY review. Publish when ready.', requestsDescription: 'Every request follows its own saved approval sequence.', working: 'Working…', refresh: '↻ Refresh',
-    summary: 'Request summary', visibleRequests: 'Visible requests', pendingRequests: 'Awaiting a decision', completedRequests: 'Decisions complete', publishedVersion: 'Published template', reviewSteps: '{count} approval stages',
+    summary: 'Request summary', visibleRequests: 'Visible requests', pendingRequests: 'Awaiting a decision', completedRequests: 'Decisions complete', publishedVersion: 'Published template', reviewSteps: ({ count }) => approvalStageCount(count, 'en'),
     startHere: 'START HERE', newRequest: 'New leave request', savedTemplate: 'The published template is saved with your request.', draftNotUsed: 'Your unpublished draft is not used.', selfAssignedWarning: 'You cannot submit: this template includes an approval assigned to you. Ask Alice to publish a sequence without you before submitting.', title: 'Title', titlePlaceholder: 'e.g. Annual leave · October', days: 'Days', reason: 'Reason', reasonPlaceholder: 'Add context for your approvers…', sentAs: 'Sent as {name}', submit: 'Submit request', pendingDecisions: 'Pending decisions', yourVisibleRequests: 'Your visible requests', caughtUp: 'You’re all caught up. No requests need your review.', noRequests: 'No requests yet. Start with the form above.', day: 'day', dayPlural: 'days', awaiting: 'Awaiting {names}',
     requestDetails: 'REQUEST DETAILS', applicant: 'Applicant', awaitingVotes: 'Awaiting votes from', lastVoter: 'Last voter', duration: 'Duration', savedProcess: 'Saved process', savedSequence: 'Saved approval sequence', readOnlySnapshot: 'Read-only snapshot from submission', participantVotes: '{name} participant votes', now: 'Now:', next: 'Next:', finalStep: 'Final approval step', activity: 'Activity', awaitingReview: 'Awaiting review', reviewing: 'Reviewing:', decisionComment: 'Decision comment', optional: '(optional)', rejectVote: 'Reject vote', rejectRequest: 'Reject request', approveVote: 'Approve vote', approveStep: 'Approve step', approveRequest: 'Approve request', whoCanDecide: 'Only the designated approver for the current step, or a group participant who has not yet voted, can record a decision.', inspectSnapshot: 'Inspect saved snapshot JSON', fullPicture: 'Select a request', selectRequest: 'Select a request to see its details, approval sequence, and activity.', footer: 'ArcFlow approval example', footerNote: 'Local JSON snapshot · synthetic data only',
     status_PENDING: 'pending', status_APPROVED: 'approved', status_REJECTED: 'rejected', vote_approved: 'Approved', vote_rejected: 'Rejected', vote_pending: 'Awaiting vote', vote_upcoming: 'Upcoming', 'vote_not-needed': 'Not required', vote_skipped: 'Not reached', state_completed: 'Completed', state_approved: 'Approved', state_rejected: 'Rejected', state_current: 'Awaiting review', state_upcoming: 'Upcoming', state_skipped: 'Not reached', state_pending: 'Awaiting vote', 'state_not-needed': 'Not required',
@@ -79,7 +80,7 @@ export const appCopy = {
     language: '工作区语言', languageShort: '语言', storyEyebrow: '业务审批演示', storyTitle: '试着提交', storyTitleSecond: '一份申请', storyDescription: '设置审批流程，提交请假或采购申请，再查看审批进度和处理记录。', request: '发起申请', reviews: '逐步审批', outcome: '查看结果', storyFootnote: '审批原型 · 顺序审批与多人审批',
     welcome: '登录演示', choosePerspective: '选择示例账号', signInDescription: '选择示例账号，并输入服务器为该账号配置的密码。', demoAccount: '示例账号', aliceAccount: 'Alice · 流程设计者', bobAccount: 'Bob · 审批人', carolAccount: 'Carol · 审批人', password: '密码', signingIn: '正在登录…', enterWorkspace: '进入工作区 →', credentialsNote: '凭据仅保存在当前标签页内存中。本演示仅限本机使用，请勿输入真实个人信息。',
     workspace: '工作区', workspaceLabel: '工作区', navigation: '主导航', requests: '申请列表', needsMyReview: '待我审批', processDesigner: '流程设计器', signOut: '退出登录', prototype: '本机演示', leaveApprovals: '请假审批', keepMoving: '业务申请', needsReview: '待你审批', designerDescription: '安排节点，选择单人、全员同意或任一同意，确认后发布。', requestsDescription: '每份申请都按提交时保存的审批流程运行。', working: '处理中…', refresh: '↻ 更新数据',
-    summary: '工作区概览', visibleRequests: '可见申请', pendingRequests: '审批中', completedRequests: '已完成审批', publishedVersion: '已发布流程', reviewSteps: '{count} 个审批节点',
+    summary: '工作区概览', visibleRequests: '可见申请', pendingRequests: '审批中', completedRequests: '已完成审批', publishedVersion: '已发布流程', reviewSteps: ({ count }) => approvalStageCount(count, 'zh'),
     startHere: '从这里开始', newRequest: '新建请假申请', savedTemplate: '提交时会保存已发布流程的快照。', draftNotUsed: '未发布的草稿不会用于申请。', selfAssignedWarning: '暂时无法提交：此流程包含由你审批的节点。请先让 Alice 发布不包含你的审批流程。', title: '标题', titlePlaceholder: '例如：十月年假', days: '天数', reason: '请假事由', reasonPlaceholder: '补充审批人需要了解的信息…', sentAs: '申请人：{name}', submit: '提交申请', pendingDecisions: '待处理审批', yourVisibleRequests: '你可查看的申请', caughtUp: '都处理好了，暂时没有待你审批的申请。', noRequests: '还没有申请，从上方表单发起第一份吧。', day: '天', dayPlural: '天', awaiting: '等待 {names}',
     requestDetails: '申请详情', applicant: '申请人', awaitingVotes: '等待以下人员审批', lastVoter: '最后决定人', duration: '请假时长', savedProcess: '保存的流程', savedSequence: '提交时的审批顺序', readOnlySnapshot: '提交时保存的只读快照', participantVotes: '{name} 的参与人决定', now: '当前：', next: '下一步：', finalStep: '最后一个审批节点', activity: '操作记录', awaitingReview: '等待审批', reviewing: '正在审批：', decisionComment: '审批意见', optional: '（选填）', rejectVote: '投拒绝票', rejectRequest: '驳回申请', approveVote: '投同意票', approveStep: '通过此节点', approveRequest: '通过申请', whoCanDecide: '只有当前节点的指定审批人，或该节点中尚未作出决定的参与人，才可以审批。', inspectSnapshot: '查看流程快照 JSON', fullPicture: '先选择一份申请', selectRequest: '选择一份申请，查看详细信息、审批顺序和操作记录。', footer: 'ArcFlow 审批示例', footerNote: '本地 JSON 快照 · 仅使用合成数据',
     status_PENDING: '审批中', status_APPROVED: '已通过', status_REJECTED: '已驳回', vote_approved: '已同意', vote_rejected: '已拒绝', vote_pending: '等待决定', vote_upcoming: '尚未开始', 'vote_not-needed': '无需决定', vote_skipped: '未执行', state_completed: '已完成', state_approved: '已通过', state_rejected: '已拒绝', state_current: '等待审批', state_upcoming: '尚未开始', state_skipped: '未执行', state_pending: '等待决定', 'state_not-needed': '无需决定',
@@ -91,7 +92,8 @@ export const appCopy = {
 }
 
 export function translate(locale, key, values = {}) {
-  const template = (appCopy[locale] || appCopy.en)[key] ?? appCopy.en[key] ?? key
+  const entry = (appCopy[locale] || appCopy.en)[key] ?? appCopy.en[key] ?? key
+  const template = typeof entry === 'function' ? entry(values) : entry
   return template.replace(/\{(\w+)\}/g, (_, name) => String(values[name] ?? ''))
 }
 
@@ -100,6 +102,7 @@ export function validationText(message, locale = 'en') {
   const exact = {
     'The process template is unavailable. Refresh to load it.': '流程模板不可用，请更新数据后重试。',
     'The process contains unsupported fields.': '流程包含不受支持的字段。',
+    'Use schema 2, 3, or 4, the leave-approval process, and a positive whole-number version.': '请使用支持的流程架构版本、leave-approval 流程及正整数版本号。',
     'Use schema 2 or 3, the leave-approval process, and a positive whole-number version.': '请使用架构版本 2 或 3、leave-approval 流程及正整数版本号。',
     'Give the process a name.': '请填写流程名称。',
     'The process name cannot contain control characters.': '流程名称不能包含控制字符。',
@@ -119,7 +122,7 @@ export function validationText(message, locale = 'en') {
   if (/name cannot contain control characters\.$/.test(message)) return `${label}名称不能包含控制字符。`
   if (/^Keep .+'s name to 120 characters\.$/.test(message)) return `${label}名称不能超过 120 个字符。`
   if (/^Use the supported fields for /.test(message)) return `请为${label}使用受支持的字段。`
-  if (/^Use schema 3 and ALL or ANY/.test(message)) return `${label}须使用架构版本 3 及 ALL 或 ANY 规则，且不能设置单人审批人。`
+  if (/^Use schema 3(?: or 4)? and ALL or ANY/.test(message)) return `${label}须使用架构版本 3 或 4 及 ALL 或 ANY 规则，且不能设置单人审批人。`
   if (/^Choose at least two distinct participants/.test(message)) return `${label}请选择至少两位不同的参与人（Bob 和 Carol）。`
   if (/^Choose Bob or Carol/.test(message)) return `${label}请选择 Bob 或 Carol。`
   // Unknown server/validation text remains explicitly identified as original text.

@@ -44,7 +44,7 @@
 | [草稿撤销／重做](docs/DESIGNER_GALLERY.md#undo) | 🟡 | 独立设计器的标签页内撤销／重做；没有持久草稿 |
 | [发布与版本冲突](docs/DESIGNER_GALLERY.md#publish) | ✅ | 校验后发布新版本；期望版本冲突会被拒绝 |
 | [申请固定流程版本](docs/DESIGNER_GALLERY.md#versions) | ✅ | 旧申请固定提交时的规则、参与人和流程版本 |
-| 条件路由 | — | 没有金额／字段条件分支；报价阈值只是提示 |
+| [受限条件路由](docs/CONDITIONAL_ROUTING.md) | 🟡 | 本地候选：付款净额／收货异常／合同条款选择额外人工步骤，提交即冻结；真实浏览器验收仍未完成 |
 
 [范围、缺失项和测试依据](docs/CAPABILITIES.md#zh-design)
 
@@ -162,7 +162,7 @@ python3 scripts/tryout.py
 
 费用报销使用编译期版本化 `ScenarioCatalog`、专用 `/api/scenarios/oa-expense` 路由和独立数据文件；表单字段固定，设计器可配置 1–8 个固定人员审批步骤。它不接入共享工作区、若依或 H5，也不连接真实财务系统。
 
-[出差](docs/TRAVEL_SCENARIO.md)、[用印](docs/SEAL_USE_SCENARIO.md)与[收货验收](docs/RECEIVING_SCENARIO.md)已纳入本地统一集成候选。`/scenarios.html` 目录包含报销、出差、用印、收货、ERP付款申请与CRM合同审批六项；收货另保留 `/receiving.html`。各自使用独立业务类型、流程、固定存储文件和会话工作区；没有动态条件／任意字段表单引擎。该候选未合并或部署，本文不声称完整组合 CI／发布验收已通过。原候选截图下载遇到 HTTP 403／1010，原图字节与独立逐图验收仍未核实。详见[统一兼容及验收门槛](docs/UNIFIED_SCENARIO_INTEGRATION.md)。
+[出差](docs/TRAVEL_SCENARIO.md)、[用印](docs/SEAL_USE_SCENARIO.md)与[收货验收](docs/RECEIVING_SCENARIO.md)已纳入本地统一集成候选。`/scenarios.html` 目录包含报销、出差、用印、收货、ERP付款申请与CRM合同审批六项；收货另保留 `/receiving.html`。各自使用独立业务类型、流程、固定存储文件和会话工作区；付款／收货／合同可选用[类型化受限条件路由](docs/CONDITIONAL_ROUTING.md)，仍无任意字段表单引擎。该候选未合并或部署，本文不声称完整组合 CI／发布验收已通过。原候选截图下载遇到 HTTP 403／1010，原图字节与独立逐图验收仍未核实。详见[统一兼容及验收门槛](docs/UNIFIED_SCENARIO_INTEGRATION.md)。
 
 <a id="看看实际页面"></a>
 
@@ -211,11 +211,11 @@ python3 scripts/tryout.py
 | [若依集成](examples/ruoyi-vue3/README.md) | RuoYi-Vue + RuoYi-Vue3 的接入步骤 |
 | [JDBC 存储](examples/approval-jdbc/README.md) | 用数据库保存审批数据和审计记录 |
 
-类型化请假与采购写入至少使用 JSON 快照 schema 5；首次报价写入升级到 schema 6，首次报销写入升级到 schema 7，后续写入不会降级。启用新类型前先升级全部读取端、停止不兼容写入端并备份；schema 6 读取端不能读取报销／schema 7。报销使用 `approval.data-file + ".scenario-oa-expense.json"`；升级前的逐字节备份只保存历史状态，回退不能无损保留升级后的新写入，详见[费用报销及迁移说明](docs/EXPENSE_SCENARIO.md)。成员待办索引继续使用 SQL revision 3，CRM 和报销均不新增 SQL 迁移；旧数据库仍需要显式迁移与分批回填。本地统一 reader 严格读取 schema 1–12；出差最低 8、用印最低 9、收货最低 10、付款申请最低 11、合同审批最低 12，写入按当前版本及全部类型要求取最大值，绝不降级或在读取时强制升到 12。注册新类型不需要重建已 ready 的成员索引。先停止不兼容写者、备份并升级所有读取／写入端，再开放新类型；原独立候选不能互相兼容，历史备份不能无损降级。见[组合版本迁移与验证](docs/UNIFIED_SCENARIO_INTEGRATION.md)。
+类型化请假与采购写入至少使用 JSON 快照 schema 5；首次报价写入升级到 schema 6，首次报销写入升级到 schema 7，后续写入不会降级。启用新类型前先升级全部读取端、停止不兼容写入端并备份；schema 6 读取端不能读取报销／schema 7。报销使用 `approval.data-file + ".scenario-oa-expense.json"`；升级前的逐字节备份只保存历史状态，回退不能无损保留升级后的新写入，详见[费用报销及迁移说明](docs/EXPENSE_SCENARIO.md)。成员待办索引继续使用 SQL revision 3，CRM 和报销均不新增 SQL 迁移；旧数据库仍需要显式迁移与分批回填。本地统一 reader 严格读取 schema 1–13；出差最低 8、用印最低 9、收货最低 10、付款申请最低 11、合同审批最低 12，写入按当前版本及全部类型要求取最大值，绝不降级或在读取时强制升到 12。注册新类型不需要重建已 ready 的成员索引。先停止不兼容写者、备份并升级所有读取／写入端，再开放新类型；原独立候选不能互相兼容，历史备份不能无损降级。见[组合版本迁移与验证](docs/UNIFIED_SCENARIO_INTEGRATION.md)。
 
 两个演示默认把审批数据写进本地 JSON，只支持单实例。若依的 MySQL 保存的是用户、角色和菜单，审批不会自动改用数据库。JDBC 需要显式接入和迁移；已提供成员待办／已办分页。租户隔离、业务表联合事务及 outbox 仍未实现。
 
-条件路由、动态角色解析、定时器、撤回和转办也还没有实现。App、小程序和飞书／企微／钉钉接入尚未完成；目前没有生产就绪承诺或 BPMN 兼容性。后续工作见[路线图](docs/ROADMAP.md)。
+受限条件路由仅开放上述三个独立场景；动态角色解析、定时器、撤回和转办还没有实现。App、小程序和飞书／企微／钉钉接入尚未完成；目前没有生产就绪承诺或 BPMN 兼容性。后续工作见[路线图](docs/ROADMAP.md)。
 
 ## 只运行 Java 内核
 
@@ -244,3 +244,5 @@ java -cp target/classes com.arcflow.example.QuickStart
 ## 付款与合同审批候选
 
 独立ERP付款申请支持多发票原额、已结、冲销、扣减与净申请额核对；独立CRM合同审批支持条款差异、合同期限及多期付款与交付条件，里程碑金额须精确守恒。两场景共用真实ALL/ANY与版本快照审批能力，并使用独立API与存储；不支付、不签约、不回写外部系统。该扩展仍是未合并候选，必须同步使用匹配的前后端，旧schema10读取端不能读取新单据。详见[完整业务、流程、迁移与验收约定](docs/PAYMENT_CONTRACT_SCENARIOS.md)。
+
+条件定义使用 DSL schema 4，发布时即将 JSON wrapper 升到13并备份；完整定义、版本索引与冻结路径一起保存。旧2/3定义与申请保持原路径，SQL revision3不变。该本地候选已完成领域／HTTP／H2／MySQL验证，但尚未完成本次真实浏览器与PostgreSQL验收、未推送或部署。详见[条件路由合同](docs/CONDITIONAL_ROUTING.md)。

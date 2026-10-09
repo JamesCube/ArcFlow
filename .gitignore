@@ -43,3 +43,6 @@ examples/approval-ui/receiving-visual-results/
 
 # Payment/contract real-backend screenshots and provenance
 examples/approval-ui/complex-visual-results/
+
+# Conditional-routing real-backend screenshots and provenance
+examples/approval-ui/routing-visual-results/

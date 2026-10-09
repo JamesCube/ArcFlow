@@ -222,7 +222,8 @@ test('gallery: isolated CRM quote journey', async ({ page, request }, info) => {
   }
   await login(page, 'carol', true)
   record = page.locator('#requests .record')
-  await expect(record).toContainText('finance')
+  // Display the saved stage name; its canonical wire key is checked below.
+  await expect(record.locator('dt').filter({ hasText: /^Current step$/ }).locator('xpath=following-sibling::dd[1]')).toHaveText('Finance review')
   const partial = (await api(request, 'carol', '/crm/requests'))[0].request
   expect(partial.currentStepId).toBe('finance')
   expect(partial.history.map(event => event.actorId)).toEqual(['alice', 'bob'])

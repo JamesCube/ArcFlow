@@ -52,9 +52,11 @@ export function parseScenarioJson(source) {
   function materialize(current, key, currency) {
     if (current instanceof NumberToken) {
       if (MONEY_FIELDS.has(key)) return exactAmount(current.source, currency, ZERO_MONEY_FIELDS.has(key))
+      if (key === 'threshold') return exactThreshold(current.source, currency)
       if (!/^-?(?:0|[1-9]\d*)$/.test(current.source) || !Number.isSafeInteger(Number(current.source))) return invalid()
       return Number(current.source)
     }
+    if (key === 'threshold') return invalid()
     if (Array.isArray(current)) return current.map(entry => materialize(entry, undefined, currency))
     if (isRecord(current)) return Object.fromEntries(Object.entries(current).map(([field, entry]) => [field, materialize(entry, field, current.currency ?? currency)]))
     if (MONEY_FIELDS.has(key)) return invalid()
@@ -62,6 +64,27 @@ export function parseScenarioJson(source) {
   }
   return materialize(raw)
 }
+// Route thresholds are numeric decimals, not formatted business-money strings.
+// Java may emit a stripped BigDecimal as 1E+4. Inspect its exact coefficient
+// before Number conversion so 1.0000000000000000001 cannot become a valid 1.
+function exactThreshold(source, currency) {
+  if (!CURRENCIES.includes(currency) || source.length > 256) return invalid()
+  const parts = /^(\d+)(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/.exec(source)
+  if (!parts) return invalid()
+  const fraction = parts[2] || '', rawCoefficient = `${parts[1]}${fraction}`.replace(/^0+/, '')
+  // BigDecimal rejects overflowing exponent or original scale even for zero.
+  const exponent = BigInt(parts[3] || '0'), originalScale = BigInt(fraction.length) - exponent
+  if (exponent < -2147483648n || exponent > 2147483647n || originalScale < -2147483648n || originalScale > 2147483647n) return invalid()
+  if (!rawCoefficient) return 0
+  const trailingZeros = /0*$/.exec(rawCoefficient)[0].length
+  const coefficient = rawCoefficient.slice(0, rawCoefficient.length - trailingZeros)
+  const scale = originalScale - BigInt(trailingZeros), shift = 2n - scale
+  if (scale > 2n || BigInt(coefficient.length) + shift > 13n) return invalid()
+  const cents = BigInt(coefficient) * 10n ** shift
+  if (cents > 2000000000000n || currency === 'JPY' && cents % 100n !== 0n) return invalid()
+  return Number(cents) / 100
+}
+
 function exactAmount(source, currency, allowZero = false) {
   if (!CURRENCIES.includes(currency)) return invalid()
   const parts = /^(\d+)(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/.exec(source)

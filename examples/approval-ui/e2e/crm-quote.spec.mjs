@@ -185,6 +185,7 @@ test('crm quote: real source checks, lost acknowledgement, immutable revision, t
     for (const language of ['zh', 'en']) {
       await page.locator('#language').selectOption(language)
       await expect(record.locator('textarea')).toHaveValue(managerOpinion)
+      await expect(record.locator('dl').first().locator('dd').last()).toHaveText(language === 'zh' ? '销售经理审核' : 'Sales manager review')
       await capture(page, testInfo, `crm-review-${language}-${viewport.width === 390 ? '390' : 'desktop'}`)
     }
   }
@@ -221,6 +222,10 @@ test('crm quote: real source checks, lost acknowledgement, immutable revision, t
 
   await login(page, 'carol')
   record = await readRecord(page)
+  await expect(record.locator('dl').first().locator('dd').last()).toHaveText('Finance review')
+  await page.locator('#language').selectOption('zh')
+  await expect(record.locator('dl').first().locator('dd').last()).toHaveText('财务复核')
+  await page.locator('#language').selectOption('en')
   await record.locator('textarea').fill('Synthetic finance review / 合成财务复核')
   await record.getByRole('button', { name: 'Approve', exact: true }).click()
   await expect(page.locator('#message')).toHaveText('Your review is saved.')

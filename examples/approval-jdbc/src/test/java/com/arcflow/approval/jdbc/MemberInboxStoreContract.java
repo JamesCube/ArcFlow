@@ -30,7 +30,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 /** Inherited unchanged by actual H2, PostgreSQL and MySQL server suites. */
-abstract class MemberInboxStoreContract extends PaymentContractStoreContract {
+abstract class MemberInboxStoreContract extends ConditionalRoutingStoreContract {
     private JdbcApprovalStore store() throws IOException {
         return new JdbcApprovalStore(dataSource, new ObjectMapper(), ProcessDefinition.legacy("bob"));
     }

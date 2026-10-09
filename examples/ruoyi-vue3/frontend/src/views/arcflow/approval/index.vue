@@ -7,7 +7,7 @@ import { approvals, approvalMode, canVote, clone, modeLabel, modeRule, participa
 import { createSubmissionForms, isRejectedSubmissionVersion } from './submission-intent'
 import { validateSubmissionResponse, validateDecisionResponse } from './submission-response'
 import { SUPPORTED_CURRENCIES, businessDocumentErrors, formatMoney, parseUnitPrice, procurementTotal, requestBusiness } from './business-document'
-import { nativeMessages, translateProcess } from './locale'
+import { nativeMessages, translateProcess, formatLeaveDays } from './locale'
 
 const locale = ref('zh-CN'), t = computed(() => nativeMessages(locale.value))
 const tr = value => translateProcess(value, locale.value)
@@ -129,7 +129,7 @@ const businessTotal = value => money(procurementTotal(value.quantity, value.unit
 const businessPrice = value => money(parseUnitPrice(value.unitPrice, value.currency), value.currency)
 function summary(request) {
   const view = documentView(request)
-  return view.type === 'invalid' ? t.value.invalid : view.type === 'procurement' ? businessTotal(view.business) : `${view.business?.days ?? request.days} ${t.value.days}`
+  return view.type === 'invalid' ? t.value.invalid : view.type === 'procurement' ? businessTotal(view.business) : formatLeaveDays(view.business?.days ?? request.days, locale.value)
 }
 function resetDraft() {
   if (busy.value || !process.value) return

@@ -345,3 +345,53 @@ All references, invoice balances and contract revisions are synthetic inputs.
 There is no verified ERP/CRM source, cross-request invoice reservation, currency
 conversion, bank data, payment execution, signing, customer delivery, receivable
 creation or external writeback. Approval is an internal review result only.
+
+## Restricted conditional routes / 受限条件路径
+
+The designer exposes “When this step runs / 节点执行条件” only for ERP Payment,
+ERP Receiving and CRM Contract. Select a stage, keep it always included or add
+flat ALL/ANY conditions. This is separate from a group's ALL/ANY voting rule.
+Schema 4 supports:
+
+- Payment net total: EQ, GT, GTE, LT, LTE against a threshold in CNY, USD, EUR,
+  GBP or JPY. Use 0–20,000,000,000, at most two decimals; JPY requires whole
+  amounts. Every amount condition in one process must use the same currency.
+- Receiving: whether any receipt line has rejected goods, equal to true or false.
+- Contract: STANDARD or NONSTANDARD terms, with EQ or IN.
+
+Keep at least one unconditional approval and at most eight predicates across
+the whole process. Conditions cannot be nested or assigned to start/end. A
+payment's currency must match every amount condition; a mismatch blocks
+submission, never triggers conversion or a silent skip. Changing SINGLE/ALL/ANY
+review mode preserves conditions. Clearing all conditions keeps schema 4 and
+omits absent runIf fields. Existing schema-2/3 wire shapes are unchanged.
+
+The form previews the route from the published (or retry-pinned) process and
+current valid document. The server independently evaluates and freezes the
+selected step IDs plus ordered per-condition actual values/results at submit.
+The UI recomputes that snapshot and rejects forged results before displaying or
+acting on it. Progress, pending actions and history replay use selected stages;
+the full saved route explicitly shows “Condition not met / 条件未满足，未纳入”.
+Skipped stages are never shown as approved. The detail includes the saved rule,
+actual value, each predicate's result and overall inclusion outcome. Applicant
+self-approval exclusions still check the entire definition, including skipped
+stages. Submitted instances keep their definition and route after publication.
+
+仅付款、收货、合同三类场景展示条件编辑器。条件匹配与多人表决的 ALL/ANY
+互相独立。提交时冻结实际路径与判定依据；详情保留完整流程，并明确标记未纳入节点。
+后续发布不会改变旧申请；不提供通用表达式、嵌套条件、汇率换算或动态人员解析。
+
+Focused DOM/model tests cover bilingual editing, undo/redo, mode changes,
+read-only roles, predicate limits, currency/precision boundaries, exact numeric
+response lexemes, forged snapshots and selected-route history. The dependency-
+free HTTP acceptance script uses the actual frontend workspace/codecs against a
+fresh backend, including lost-response retries across later publication:
+
+```sh
+node scripts/verify-routing-http.mjs ../approval-demo/backend/target/approval-demo-0.1.0-SNAPSHOT.jar
+npm run test:e2e -- e2e/conditional-routing.spec.mjs
+```
+
+The Playwright suite contains real-backend payment/receiving/contract journeys
+and 390px Chinese/English captures. Its presence alone is not browser evidence;
+see [routing acceptance](e2e/CONDITIONAL_ROUTING.md) for run status and limits.

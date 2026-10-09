@@ -70,3 +70,6 @@ const processEnglish = {
 }
 export const nativeMessages = locale => locale === 'en' ? en : zh
 export const translateProcess = (value, locale) => locale === 'en' ? processEnglish[value] || value : value
+
+// A duration value is distinct from the Days / 天数 form label.
+export const formatLeaveDays = (days, locale) => locale === 'en' ? `${days} ${days === 1 ? 'day' : 'days'}` : `${days}天`

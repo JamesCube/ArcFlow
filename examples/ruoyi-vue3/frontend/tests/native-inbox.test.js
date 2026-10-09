@@ -371,3 +371,16 @@ describe('controlled native inbox version input', () => {
     state.tab = 'inbox'; await flushPromises(); expect(control(wrapper).element.value).toBe('')
   })
 })
+
+describe('native leave summary units', () => {
+  it.each([1, 2])('shows %i day(s) naturally without changing the form label', async days => {
+    const { state } = await setup()
+    const saved = item('duration-copy', { days })
+    expect(state.summary(saved)).toBe(`${days}天`)
+    expect(state.t.days).toBe('天数')
+    state.locale = 'en'; await flushPromises()
+    expect(state.summary(saved)).toBe(`${days} ${days === 1 ? 'day' : 'days'}`)
+    expect(state.t.days).toBe('Days')
+    expect(saved.days).toBe(days)
+  })
+})

@@ -25,14 +25,22 @@ public class ApprovalService implements AutoCloseable {
                           String status, String createdAt, String updatedAt, String decision, String comment,
                           String processId, int processVersion, List<Event> history,
                           ProcessDefinition definition, String currentStepId,
-                          @JsonInclude(JsonInclude.Include.NON_NULL) BusinessDocument business) {
+                          @JsonInclude(JsonInclude.Include.NON_NULL) BusinessDocument business,
+                          @JsonInclude(JsonInclude.Include.NON_NULL) ConditionalRouting.FrozenRoute routing) {
         public Request { if (history != null) history = List.copyOf(history); }
         /** Preserve the existing source API and byte shape for legacy leave requests. */
         public Request(String id, String title, String reason, int days, String applicantId, String approverId,
                        String status, String createdAt, String updatedAt, String decision, String comment,
                        String processId, int processVersion, List<Event> history, ProcessDefinition definition, String currentStepId) {
             this(id, title, reason, days, applicantId, approverId, status, createdAt, updatedAt, decision, comment,
-                processId, processVersion, history, definition, currentStepId, null);
+                processId, processVersion, history, definition, currentStepId, null, null);
+        }
+        public Request(String id, String title, String reason, int days, String applicantId, String approverId,
+                       String status, String createdAt, String updatedAt, String decision, String comment,
+                       String processId, int processVersion, List<Event> history, ProcessDefinition definition, String currentStepId,
+                       BusinessDocument business) {
+            this(id, title, reason, days, applicantId, approverId, status, createdAt, updatedAt, decision, comment,
+                processId, processVersion, history, definition, currentStepId, business, null);
         }
         private static final ObjectMapper DECODER = strictMapper(new ObjectMapper())
             .enable(DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES);
@@ -43,6 +51,7 @@ public class ApprovalService implements AutoCloseable {
                 "createdAt", "updatedAt", "decision", "comment", "processId", "processVersion", "history", "definition", "currentStepId"));
             if (node == null || !node.isObject()) throw new IOException("Invalid request object");
             if (node.has("business")) expected.add("business");
+            if (node.has("routing")) expected.add("routing");
             var actual = new HashSet<String>(); node.fieldNames().forEachRemaining(actual::add);
             if (!expected.equals(actual)) throw new IOException("Missing or unknown request fields");
             ObjectMapper decoder = DECODER;
@@ -58,7 +67,11 @@ public class ApprovalService implements AutoCloseable {
                 string(node,"applicantId"), string(node,"approverId"), string(node,"status"), string(node,"createdAt"),
                 string(node,"updatedAt"), string(node,"decision"), string(node,"comment"), string(node,"processId"),
                 integer(node,"processVersion"), events, decoder.treeToValue(node.get("definition"), ProcessDefinition.class),
-                string(node,"currentStepId"), business);
+                string(node,"currentStepId"), business, node.has("routing") ? decodeRouting(node.get("routing")) : null);
+        }
+        private static ConditionalRouting.FrozenRoute decodeRouting(JsonNode node) throws IOException {
+            if (!node.isObject()) throw new IOException("Routing must be an object when present");
+            return DECODER.treeToValue(node, ConditionalRouting.FrozenRoute.class);
         }
         private static String string(JsonNode node, String key) throws IOException {
             JsonNode value = node.get(key);
@@ -117,6 +130,8 @@ public class ApprovalService implements AutoCloseable {
         mapper.enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES,
             DeserializationFeature.FAIL_ON_TRAILING_TOKENS, DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS);
         mapper.disable(DeserializationFeature.ACCEPT_FLOAT_AS_INT);
+        for (var shape : List.of(CoercionInputShape.String, CoercionInputShape.Integer, CoercionInputShape.Float, CoercionInputShape.EmptyString))
+            mapper.coercionConfigFor(LogicalType.Boolean).setCoercion(shape, CoercionAction.Fail);
         mapper.enable(StreamReadFeature.STRICT_DUPLICATE_DETECTION.mappedFeature());
         for (var shape : List.of(CoercionInputShape.Integer, CoercionInputShape.Float, CoercionInputShape.Boolean))
             mapper.coercionConfigFor(LogicalType.Textual).setCoercion(shape, CoercionAction.Fail);
@@ -133,9 +148,24 @@ public class ApprovalService implements AutoCloseable {
     }
 
     public ProcessDefinition publish(String actor, int expectedVersion, ProcessDefinition proposed) throws IOException {
+        return publish(actor, expectedVersion, proposed, null);
+    }
+
+    /** Typed hosts explicitly opt into the restricted condition field family. */
+    public ProcessDefinition publishForDocument(String actor, int expectedVersion, ProcessDefinition proposed,
+                                                Class<? extends BusinessDocument> type) throws IOException {
+        return publish(actor, expectedVersion, proposed, Objects.requireNonNull(type));
+    }
+    private ProcessDefinition publish(String actor, int expectedVersion, ProcessDefinition proposed,
+                                      Class<? extends BusinessDocument> type) throws IOException {
         requirePerson(actor);
         if (!actors.canPublish(actor)) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Process publication is not permitted");
-        try { ProcessDefinition.validate(proposed); }
+        try {
+            ProcessDefinition.validate(proposed);
+            if (proposed.schemaVersion() == 4 && type == null)
+                throw new IllegalArgumentException("Conditional definitions require a dedicated typed scenario host");
+            if (type != null) ConditionalRouting.validateForDocument(proposed, type);
+        }
         catch (IllegalArgumentException ex) { throw badRequest(ex.getMessage()); }
         requireActiveAssignees(proposed);
         var definition = store.process();
@@ -264,11 +294,14 @@ public class ApprovalService implements AutoCloseable {
             }
             throw changed;
         }
+        ConditionalRouting.FrozenRoute routing;
+        try { routing = ConditionalRouting.freeze(definition, business); }
+        catch (IllegalArgumentException invalid) { throw badRequest(invalid.getMessage()); }
         String now = Instant.now().toString();
-        var first = definition.approvals().get(0);
+        var first = definition.approvals().stream().filter(node -> routing == null || routing.stepIds().contains(node.id())).findFirst().orElseThrow();
         Request r = new Request(UUID.randomUUID().toString(), normalized.get("title"), normalized.get("reason"), days, actor, first.participants().get(0),
             "PENDING", now, now, null, null, definition.id(), definition.version(),
-            List.of(new Event(actor, "SUBMIT", "", now, null)), definition, first.id(), business);
+            List.of(new Event(actor, "SUBMIT", "", now, null)), definition, first.id(), business, routing);
         if (idempotencyKey != null) {
             Request saved = store.create(processVersion, r, idempotencyKey);
             if (saved != null) return submissionReplay(actor, normalized, days, definition.id(), processVersion, business, saved);
@@ -314,7 +347,7 @@ public class ApprovalService implements AutoCloseable {
             // Recheck the exact stored request on every CAS attempt, before replay or mutation.
             if (expected != null && (old.business() == null || !expected.equals(old.business().getClass())))
                 throw new IOException("Unexpected business type in isolated scenario decision");
-            var steps = old.definition().approvals();
+            var steps = effectiveApprovals(old);
             var step = steps.stream().filter(n -> n.id().equals(stepId)).findFirst()
                 .orElseThrow(() -> conflict("Step does not belong to this request"));
             if (!step.participants().contains(actor))
@@ -335,11 +368,11 @@ public class ApprovalService implements AutoCloseable {
             String cleanComment = comment == null ? "" : comment.trim();
             var history = new ArrayList<>(old.history());
             history.add(new Event(actor, decision, cleanComment, now, stepId));
-            Progress progress = replay(old.definition(), history);
+            Progress progress = replay(effectiveApprovals(old), history);
             boolean pending = "PENDING".equals(progress.status);
             Request next = new Request(old.id(), old.title(), old.reason(), old.days(), old.applicantId(),
                 pending ? progress.pendingActors().get(0) : actor, progress.status, old.createdAt(), now, decision, cleanComment,
-                old.processId(), old.processVersion(), history, old.definition(), progress.currentStepId(), old.business());
+                old.processId(), old.processVersion(), history, old.definition(), progress.currentStepId(), old.business(), old.routing());
             if (store.update(old.history().size() - 1, next)) return next;
         }
         throw conflict("The request changed concurrently; retry the decision");
@@ -368,7 +401,7 @@ public class ApprovalService implements AutoCloseable {
         if (first == null || !"SUBMIT".equals(first.action()) || !r.applicantId().equals(first.actorId()) ||
             !r.createdAt().equals(first.at()) || !"".equals(first.comment()) || first.stepId() != null)
             throw new IllegalArgumentException("Invalid submission event");
-        Progress progress = new Progress(r.definition());
+        Progress progress = new Progress(effectiveApprovals(r));
         for (int i = 1; i < r.history().size(); i++) {
             Event e = r.history().get(i);
             progress.apply(e);
@@ -388,11 +421,15 @@ public class ApprovalService implements AutoCloseable {
     /** Full current worklist; approverId is only the first pending participant for compatibility. */
     public static List<String> pendingApproverIds(Request request) {
         validateRequest(request);
-        return replay(request.definition(), request.history()).pendingActors();
+        return replay(effectiveApprovals(request), request.history()).pendingActors();
     }
 
-    private static Progress replay(ProcessDefinition definition, List<Event> history) {
-        Progress progress = new Progress(definition);
+    public static List<ProcessDefinition.ProcessNode> effectiveApprovals(Request request) {
+        return ConditionalRouting.effectiveApprovals(request);
+    }
+
+    private static Progress replay(List<ProcessDefinition.ProcessNode> steps, List<Event> history) {
+        Progress progress = new Progress(steps);
         for (int i = 1; i < history.size(); i++) progress.apply(history.get(i));
         return progress;
     }
@@ -403,7 +440,7 @@ public class ApprovalService implements AutoCloseable {
         private final Set<String> voted = new HashSet<>();
         private int index;
         private String status = "PENDING";
-        Progress(ProcessDefinition definition) { steps = definition.approvals(); }
+        Progress(List<ProcessDefinition.ProcessNode> steps) { this.steps = steps; }
         String currentStepId() { return "PENDING".equals(status) ? steps.get(index).id() : null; }
         List<String> pendingActors() {
             return "PENDING".equals(status)
@@ -435,14 +472,14 @@ public class ApprovalService implements AutoCloseable {
         if (!Objects.equals(old.id(), next.id()) || !Objects.equals(old.title(), next.title()) ||
             !Objects.equals(old.reason(), next.reason()) || old.days() != next.days() || !Objects.equals(old.business(), next.business()) ||
             !Objects.equals(old.applicantId(), next.applicantId()) || !Objects.equals(old.createdAt(), next.createdAt()) ||
-            !Objects.equals(old.definition(), next.definition()) || !"PENDING".equals(old.status()) ||
+            !Objects.equals(old.definition(), next.definition()) || !Objects.equals(old.routing(), next.routing()) || !"PENDING".equals(old.status()) ||
             next.history().size() != old.history().size() + 1 ||
             !next.history().subList(0, old.history().size()).equals(old.history()))
             throw new IllegalArgumentException("Request updates must append exactly one decision without rewriting prior state");
     }
 
     private static boolean visibleTo(Request r, String actor) {
-        return r.applicantId().equals(actor) || r.definition().approvals().stream().anyMatch(n -> n.participants().contains(actor));
+        return r.applicantId().equals(actor) || effectiveApprovals(r).stream().anyMatch(n -> n.participants().contains(actor));
     }
     private static boolean validText(String value, int max) { return value != null && !value.isBlank() && value.length() <= max; }
     private void requirePerson(String actor) {

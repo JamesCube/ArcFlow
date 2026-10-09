@@ -242,3 +242,14 @@ describe('locale changes during mutations', () => {
   })
 
 })
+
+describe('published-template stage count grammar', () => {
+  it.each([1, 2])('renders %i stages naturally across a workspace language switch', async count => {
+    const { wrapper, server } = setup('alice', [])
+    if (count === 2) server.definition.nodes.splice(2, 0, { id: 'extra', type: 'approval', name: 'Extra', assigneeId: 'bob' })
+    await login(wrapper)
+    expect(wrapper.findAll('.summary-stat').at(-1).text()).toContain(`${count} approval ${count === 1 ? 'stage' : 'stages'}`)
+    await locale(wrapper, 'zh')
+    expect(wrapper.findAll('.summary-stat').at(-1).text()).toContain(`${count} 个审批节点`)
+  })
+})

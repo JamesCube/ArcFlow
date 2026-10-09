@@ -1,5 +1,5 @@
 import { copy } from './copy.mjs';
-import { authorization, preview, submissionBody, canDecide, validateViews } from './model.mjs';
+import { authorization, preview, submissionBody, canDecide, validateViews, currentStepName } from './model.mjs';
 const $ = id => document.getElementById(id);
 let language = 'zh', auth = '', actor = '', process = null, quotes = [], views = [], busy = false, loaded = false, generation = 0, messageKey = null;
 // Unsubmitted opinions belong to one signed-in actor and one saved review step.
@@ -41,7 +41,7 @@ function renderRequests() {
   for (const view of views) {
     const request = view.request, quote = request.business, card = element('article', null, 'record');
     card.append(element('h3', request.title), element('span', t(request.status.toLowerCase()), 'status'));
-    const data = element('dl'); details(data, [['reference', quote.businessId], ['revision', quote.quoteRevision], ['submittedBy', request.applicantId], ['item', quote.item], ['quantity', quote.quantity], ['listPrice', `${quote.currency} ${quote.listUnitPrice}`], ['requestedPrice', `${quote.currency} ${quote.requestedUnitPrice}`], ['requestedTotal', `${quote.currency} ${view.requestedTotal}`], ['reductionTotal', `${quote.currency} ${view.reductionTotal}`], ['discount', `${view.discountPercent}%`], ['validUntil', quote.validUntil], ['reason', quote.reason], ['awaiting', request.currentStepId || '—']].map(([key, value]) => [t(key), value])); card.append(data);
+    const data = element('dl'); details(data, [['reference', quote.businessId], ['revision', quote.quoteRevision], ['submittedBy', request.applicantId], ['item', quote.item], ['quantity', quote.quantity], ['listPrice', `${quote.currency} ${quote.listUnitPrice}`], ['requestedPrice', `${quote.currency} ${quote.requestedUnitPrice}`], ['requestedTotal', `${quote.currency} ${view.requestedTotal}`], ['reductionTotal', `${quote.currency} ${view.reductionTotal}`], ['discount', `${view.discountPercent}%`], ['validUntil', quote.validUntil], ['reason', quote.reason], ['awaiting', currentStepName(request, language)]].map(([key, value]) => [t(key), value])); card.append(data);
     if (view.quoteUpdated) card.append(element('p', t('updated'), 'warning'));
     if (view.expired) card.append(element('p', t('expired'), 'warning'));
     card.append(element('p', t('rule'), 'hint'), element('p', t('notConnected'), 'hint'));

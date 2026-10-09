@@ -47,3 +47,18 @@ export function validateViews(views) {
   }
   return views;
 }
+
+// Display only: resolve the saved request's stage, never the latest process.
+// Translate only these exact built-in bilingual names. Preserve custom names.
+export function currentStepName(request, language = 'zh') {
+  if (typeof request?.currentStepId !== 'string' || !request.currentStepId) return '—';
+  const nodes = request.definition?.nodes;
+  const step = Array.isArray(nodes) ? nodes.find(node => node?.id === request.currentStepId) : null;
+  if (typeof step?.name !== 'string' || !step.name.trim()) return language === 'en' ? 'Unknown step' : '未知步骤';
+  const defaults = {
+    salesManager: ['销售经理审核 / Sales manager review', '销售经理审核', 'Sales manager review'],
+    finance: ['财务复核 / Finance review', '财务复核', 'Finance review'],
+  };
+  const known = Object.hasOwn(defaults, step.id) ? defaults[step.id] : null;
+  return known && step.name === known[0] ? known[language === 'en' ? 2 : 1] : step.name;
+}

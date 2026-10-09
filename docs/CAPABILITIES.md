@@ -38,7 +38,7 @@
 | 定义校验 | ✅ | 校验 schema、边界、唯一节点 ID、名称、步骤数和组成员；界面错误可定位字段，服务端再校验。 | [定义 / Definition][definition] · [测试 / Tests][designer-tests] · [Screen](DESIGNER_GALLERY.md#validation) |
 | 发布与版本冲突 | ✅ | 发布要求发布权限和期望版本；并发发布发生版本冲突，不能静默覆盖。 | [服务 / Service][service] · [Screen](DESIGNER_GALLERY.md#publish) |
 | 申请固定流程版本 | ✅ | 提交后固定顺序、参与人和规则；后续发布仅用于新申请，不迁移运行中实例。 | [服务 / Service][service] · [Screen](DESIGNER_GALLERY.md#versions) |
-| 条件路由 | — | 没有金额、天数或字段表达式驱动的分支；报价折扣阈值只是提示。 | [报价宿主 / Quote host][quote-host] · [路线图 / Roadmap][roadmap] |
+| 受限条件路由 | 🟡 | 本地候选：付款净额、收货拒收、合同条款选择额外人工步骤；schema4/JSON13，提交冻结完整路径。无任意表达式，报价阈值仍只是提示；本轮浏览器验收未完成。 | [合同 / Contract](CONDITIONAL_ROUTING.md) |
 | 任意分支／汇聚 | — | 人工审批是顺序步骤；ALL／ANY 人员组不等于通用并行网关。 | [定义 / Definition][definition] |
 | 运行中实例迁移 | — | 没有把已有申请迁到新流程版本的操作。 | [服务 / Service][service] |
 | BPMN 导入／导出与执行 | — | 没有 BPMN 兼容实现；路线图也未承诺完整规范。 | [路线图 / Roadmap][roadmap] |
@@ -214,7 +214,7 @@
 | CRM | 信用额度申请 | — | 后续候选；客户主数据、额度来源和版本策略未定义 |
 | CRM | 退款申请 | — | 后续候选；原交易、可退余额及重复退款边界未定义，不执行退款 |
 
-当前 main 已提供报销的可运行表单、流程发布及真实图集。本地统一候选加入出差、用印与收货，严格 reader 支持 schema 1–10；已有单 PR 的本地／CI 记录不代表组合版本通过。最终组合 head 仍须重跑全部迁移、HTTP、UI、浏览器、H2/PostgreSQL/MySQL 验收。原候选图片下载遇到 HTTP 403／1010，未取得可核验原图，逐图哈希、来源与独立像素验收仍未完成。未合并、未部署，不能宣称三场景已交付。见[统一门槛][unified]。这些都是固定、版本化结构化表单；可编辑审核步骤不等于动态条件路由或任意字段表单引擎。
+当前 main 已提供报销的可运行表单、流程发布及真实图集。本地统一候选加入出差、用印与收货，严格 reader 支持 schema 1–10；已有单 PR 的本地／CI 记录不代表组合版本通过。最终组合 head 仍须重跑全部迁移、HTTP、UI、浏览器、H2/PostgreSQL/MySQL 验收。原候选图片下载遇到 HTTP 403／1010，未取得可核验原图，逐图哈希、来源与独立像素验收仍未完成。未合并、未部署，不能宣称三场景已交付。见[统一门槛][unified]。这些都是固定、版本化结构化表单；可编辑审核步骤不等于任意字段表单引擎；后续本地候选增加三种类型化受限条件，见[路由合同](CONDITIONAL_ROUTING.md)。
 
 **每个新增场景的交付清单：** 可解释的字段与状态契约、服务端验证、身份／业务读权、可配置的固定人员流程、不可变快照、重复操作与失败测试，以及中英文的“流程配置 → 填写 → 待审 → 通过 → 驳回”真实截图。六个首批场景至少需要 60 张不同场景／语言状态图；这是完整场景组的验收要求，不是已完成数量，当前报销 16 张单独记录。新能力还应补相应冲突、权限拒绝与恢复证据。
 
@@ -256,7 +256,7 @@ The flow designer configures approval stages. A business-form designer is still 
 | Definition validation | ✅ | Validate schema, boundaries, unique IDs, names and stage/member counts; UI errors locate fields, and the server validates again. | [定义 / Definition][definition] · [测试 / Tests][designer-tests] · [Screen](DESIGNER_GALLERY.md#validation) |
 | Publication conflicts | ✅ | Publication requires permission and an expected version; a conflicting publication cannot silently overwrite the current version. | [服务 / Service][service] · [Screen](DESIGNER_GALLERY.md#publish) |
 | Pinned process version | ✅ | Submission freezes order, people and rules. Later publications apply to new requests; running instances are not migrated. | [服务 / Service][service] · [Screen](DESIGNER_GALLERY.md#versions) |
-| Conditional routing | — | No branches driven by amounts, days or field expressions; quote thresholds are informational. | [报价宿主 / Quote host][quote-host] · [路线图 / Roadmap][roadmap] |
+| Restricted conditional routing | 🟡 | Local candidate: typed payment/receipt/contract predicates select extra manual stages with frozen schema4/JSON13 routes. No arbitrary expressions; quote thresholds remain informational. Browser acceptance is incomplete. | [合同 / Contract](CONDITIONAL_ROUTING.md) |
 | Arbitrary forks/joins | — | Human stages remain sequential; ALL/ANY reviewer groups are not general parallel gateways. | [定义 / Definition][definition] |
 | Running-instance migration | — | No operation migrates an existing request to a new process version. | [服务 / Service][service] |
 | BPMN import/export/execution | — | No BPMN-compatible implementation or commitment to the full specification. | [路线图 / Roadmap][roadmap] |
@@ -432,7 +432,7 @@ The sequence now records progress: the first Expense slice is merged; Travel/Sea
 | CRM | Credit-limit request | — | Later candidate; customer master data, limit source and revision policy remain undefined |
 | CRM | Refund request | — | Later candidate; source transaction, refundable balance and duplicate-refund boundaries remain undefined; no refund execution |
 
-Current main provides the Expense form, process publication and real gallery. This local unified candidate adds Travel, Seal-use and Receiving with a strict schema-1–10 reader. Historical single-PR local/CI results do not establish a combined-head pass. The final combined head must rerun all migration, HTTP, UI, browser and H2/PostgreSQL/MySQL gates. Original candidate image downloads returned HTTP 403 / 1010; original PNG bytes, hashes/provenance and independent pixel acceptance remain unverified. The candidate is not merged or deployed and the three scenarios are not claimed as delivered. See [unified gates][unified]. These are fixed versioned forms; editable review stages do not provide dynamic conditional routing or an arbitrary-field form engine.
+Current main provides the Expense form, process publication and real gallery. This local unified candidate adds Travel, Seal-use and Receiving with a strict schema-1–10 reader. Historical single-PR local/CI results do not establish a combined-head pass. The final combined head must rerun all migration, HTTP, UI, browser and H2/PostgreSQL/MySQL gates. Original candidate image downloads returned HTTP 403 / 1010; original PNG bytes, hashes/provenance and independent pixel acceptance remain unverified. The candidate is not merged or deployed and the three scenarios are not claimed as delivered. See [unified gates][unified]. These are fixed versioned forms; editable review stages do not provide an arbitrary-field form engine. A later local candidate adds three typed condition families; see [the routing contract](CONDITIONAL_ROUTING.md).
 
 **Completion checklist for every new case:** clear field/state contracts, server validation, identity/business access, configurable fixed-reviewer stages, immutable snapshots, repeat-operation/failure tests, and real Chinese/English captures of configuration → entry → pending → approved → rejected. Six initial cases require at least 60 distinct scenario/language-state images; that is an acceptance target for the complete set, not a completed count. Expense currently has 16 originals recorded separately. Add conflict, authorization-denial and recovery evidence where applicable.
 
