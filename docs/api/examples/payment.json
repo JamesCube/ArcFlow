@@ -1,0 +1,35 @@
+{
+  "business": {
+    "type": "paymentRequest",
+    "documentVersion": 1,
+    "businessId": "PAY-DEMO-001",
+    "title": "Synthetic developer example",
+    "reason": "Synthetic data for a disposable local test only",
+    "supplierRef": "SUPPLIER-DEMO-A",
+    "currency": "CNY",
+    "requestedPaymentOn": "2099-01-15",
+    "lines": [
+      {
+        "lineId": "line-1",
+        "invoiceRef": "INV-DEMO-01",
+        "description": "Equipment",
+        "invoiceAmount": 10000.0,
+        "previouslySettledAmount": 4000.0,
+        "allocationAmount": 4500.0,
+        "deductionAmount": 500.0,
+        "deductionReason": "Synthetic quality deduction"
+      },
+      {
+        "lineId": "line-2",
+        "invoiceRef": "INV-DEMO-02",
+        "description": "Supplies",
+        "invoiceAmount": 4000.0,
+        "previouslySettledAmount": 0,
+        "allocationAmount": 2500.0,
+        "deductionAmount": 0,
+        "deductionReason": ""
+      }
+    ]
+  },
+  "processVersion": 1
+}

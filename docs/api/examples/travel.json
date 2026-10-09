@@ -1,0 +1,17 @@
+{
+  "business": {
+    "type": "travel",
+    "documentVersion": 1,
+    "businessId": "TRAVEL-DOCS-001",
+    "title": "Synthetic developer example",
+    "reason": "Synthetic data for a disposable local test only",
+    "destination": "Shanghai",
+    "startDate": "2028-02-28",
+    "endDate": "2028-03-01",
+    "purpose": "PROJECT_DELIVERY",
+    "estimatedCost": 2800.29,
+    "currency": "CNY",
+    "costCenter": "ENGINEERING"
+  },
+  "processVersion": 1
+}

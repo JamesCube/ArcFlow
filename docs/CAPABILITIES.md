@@ -6,7 +6,7 @@
 
 ## 简体中文
 
-这份清单把“可运行”“需接入”和“尚未实现”逐项分开，方便判断能否用于你的业务。按 `0.1.0-SNAPSHOT` 源码核对，原始 91 项能力核对基线为 [`4ff4bcf`](https://github.com/JamesCube/ArcFlow/commit/4ff4bcf0b90cc07ac26d5483847e8b41fd25ed08)，本次保留全部条目，并以 main 的 [`71910bfc`](https://github.com/JamesCube/ArcFlow/commit/71910bfc2ac1b9d58e0f7f1b85e6bbb206321ec1)为费用报销已交付状态及文案核对基线。出差、用印和收货单列为本地统一集成候选，不属于 main 已交付内容；本文不声称组合版本已测试通过、合并或部署。源码／测试链接用于定位依据；有测试文件不代表任意提交都已通过，使用前仍须查看对应提交的 CI。
+这份清单把“可运行”“需接入”和“尚未实现”逐项分开，保留原始 91 项能力条目。当前范围按 `0.1.0-SNAPSHOT` 的 main [`666ff64b`](https://github.com/JamesCube/ArcFlow/commit/666ff64b280157e44a86f07a15fcb42f859ec11a) 核对：九种业务类型、六项独立场景目录，付款／收货／合同三种受限条件路由均已在源码中合入。合并不等于已部署或生产就绪；源码／测试链接用于定位依据，具体提交的 CI、真实浏览器与数据库结果必须另查。
 
 ✅ 已实现，限于写明的范围；🟡 有限支持，仍有宿主接线、客户端或验证范围限制；— 尚未实现。下文建议顺序不改变这些状态，也没有交付日期。
 
@@ -16,9 +16,9 @@
 | --- | --- | --- |
 | Java DAG 内核 | 图校验、同步处理器、变量与事件 | 无第三方运行时依赖；没有持久运行状态、人工等待或异步调度 |
 | 审批领域与存储 | 顺序人工步骤、固定组、权限、快照、历史和持久化 | 位于 examples 下的独立模块，有自己的 Spring／Jackson／数据库依赖 |
-| 宿主与界面 | 独立 Vue、原生若依、H5、隔离 CRM 页面与独立报销场景页 | 入口支持不同；默认单写者 JSON，没有完整生产服务的就绪保证 |
+| 宿主与界面 | 独立 Vue、原生若依、H5、隔离 CRM 页面与六场景页 | 入口支持不同；默认单写者 JSON，没有完整生产服务的就绪保证 |
 
-流程设计器配置的是审批步骤；它还不是业务表单设计器。现有请假、采购、报价和报销字段均由代码定义；报销表单按编译期版本化 `ScenarioCatalog` 元数据渲染，不支持任意字段拖拽或表单 schema 发布。页面能力链接真实截图；并发、权限、幂等和事务必须看源码与测试，截图不能证明这些保证。
+流程设计器配置的是审批步骤；它还不是业务表单设计器。现有九种业务字段均由代码定义；六场景表单按编译期版本化 `ScenarioCatalog` 元数据渲染，不支持任意字段拖拽或表单 schema 发布。页面能力链接真实截图；并发、权限、幂等和事务必须看源码与测试，截图不能证明这些保证。
 
 
 [流程设计与版本](#zh-design) · [审批规则与表决](#zh-rules) · [人员、身份与权限](#zh-people) · [任务处理与记录](#zh-tasks) · [业务表单与场景](#zh-forms) · [可靠性、存储与恢复](#zh-reliability) · [集成、客户端与内核](#zh-integration) · [场景与建设顺序](#zh-scenarios)
@@ -38,7 +38,7 @@
 | 定义校验 | ✅ | 校验 schema、边界、唯一节点 ID、名称、步骤数和组成员；界面错误可定位字段，服务端再校验。 | [定义 / Definition][definition] · [测试 / Tests][designer-tests] · [Screen](DESIGNER_GALLERY.md#validation) |
 | 发布与版本冲突 | ✅ | 发布要求发布权限和期望版本；并发发布发生版本冲突，不能静默覆盖。 | [服务 / Service][service] · [Screen](DESIGNER_GALLERY.md#publish) |
 | 申请固定流程版本 | ✅ | 提交后固定顺序、参与人和规则；后续发布仅用于新申请，不迁移运行中实例。 | [服务 / Service][service] · [Screen](DESIGNER_GALLERY.md#versions) |
-| 受限条件路由 | 🟡 | 本地候选：付款净额、收货拒收、合同条款选择额外人工步骤；schema4/JSON13，提交冻结完整路径。无任意表达式，报价阈值仍只是提示；本轮浏览器验收未完成。 | [合同 / Contract](CONDITIONAL_ROUTING.md) |
+| 受限条件路由 | 🟡 | 当前 main 已提供付款净额、收货拒收、合同条款的类型化条件，选择额外人工步骤；定义 schema 4／JSON wrapper 13，提交冻结完整路径。仅限三个独立场景，无任意表达式；具体提交的浏览器／数据库 CI 需另查。 | [合同 / Contract](CONDITIONAL_ROUTING.md) |
 | 任意分支／汇聚 | — | 人工审批是顺序步骤；ALL／ANY 人员组不等于通用并行网关。 | [定义 / Definition][definition] |
 | 运行中实例迁移 | — | 没有把已有申请迁到新流程版本的操作。 | [服务 / Service][service] |
 | BPMN 导入／导出与执行 | — | 没有 BPMN 兼容实现；路线图也未承诺完整规范。 | [路线图 / Roadmap][roadmap] |
@@ -68,7 +68,7 @@
 | 宿主人员目录 | 🟡 | ActorDirectory 查询活动账号及发布／指派资格；账号管理由宿主负责。 | [接口 / Interface][identity] · [测试 / Tests][identity-tests] |
 | 独立演示人员选择 | 🟡 | 默认申请人 Alice，设计器审批人仅 Bob、Carol；领域的 16 人组上限不代表演示提供 16 个账号。 | [后端 / Backend][backend] · [Screen](DESIGNER_GALLERY.md#all) |
 | 若依真实账号选择 | ✅ | 原生编辑器从若依用户目录选择固定账号，复用登录、菜单及按钮权限。 | [控制器 / Controller][ruoyi-controller] · [Screen](CASE_GALLERY.md#other-clients) |
-| 申请可见范围 | ✅ | 申请人与快照内参与人可见；待办另限当前未投票成员，管理员不能凭通配权限代投。 | [服务 / Service][service] · [权限测试 / Tests][identity-tests] |
+| 申请可见范围 | ✅ | 申请人与快照内有效路径参与人可见；仅位于跳过步骤的人员不获访问权。待办另限当前未投票成员，管理员不能凭通配权限代投。 | [服务 / Service][service] · [权限测试 / Tests][identity-tests] |
 | 禁止申请人自审 | ✅ | 新提交时拒绝把申请人列在任何审批步骤；不是仅排除当前步骤。 | [服务 / Service][service] · [测试 / Tests][identity-tests] |
 | 活动身份复核 | ✅ | 领域列表／收件箱读取在存储 I/O 后再次检查身份；历史账号标识仍保留。 | [读取边界测试 / Read tests][read-identity-tests] |
 | 报价业务读权与归属 | ✅ | 专用宿主核对源报价版本读权和归属销售；审批权限不能绕过源业务读权。 | [宿主 / Host][quote-host] · [测试 / Tests][quote-domain-tests] |
@@ -113,9 +113,9 @@
 | 源报价版本与提示 | ✅ | 校验源字段、版本和有效日期；折扣百分比、10% 提示及过期提示都不自动路由。 | [模型测试 / Tests][quote-model-tests] · [宿主 / Host][quote-host] · [Screen](CASE_GALLERY.md#crm-manager-review) |
 | 可视化表单设计器 | — | 现有表单由代码定义；没有拖拽字段、字段面板或发布表单 schema 的界面。 | [业务契约 / Contract][business] · [表单源码 / UI](../examples/approval-ui/src/App.vue) |
 | 字段联动与节点字段权限 | — | 没有配置式显隐、跨字段公式或按审批步骤编辑字段的规则；已提交业务字段始终只读。 | [业务契约 / Contract][business] |
-| 场景模板库 | 🟡 | 已合并编译期版本化 ScenarioCatalog 与 /scenarios.html 报销入口；模板结构由代码定义，无运行时安装、复制或任意表单发布。统一候选目录含报销／出差／用印／收货四项，保持独立工作区；新三项未完成发布验收。 | [业务契约 / Contract][business] · [目录源码 / Catalog][scenario-catalog] · [报销契约 / Expense][expense] |
+| 场景模板库 | 🟡 | 当前 main 的编译期 ScenarioCatalog 与 /scenarios.html 包含报销、出差、用印、收货、付款、合同六项，各自独立流程／存储；请假／采购和报价另有入口。无运行时安装、复制或任意表单发布。 | [业务契约 / Contract][business] · [目录源码 / Catalog][scenario-catalog] · [报销契约 / Expense][expense] |
 | 附件 | — | 没有上传、权限下载、病毒扫描或附件留存服务。 | [字段定义 / Fields][business-model] · [H5 范围 / H5 scope][mobile] |
-| 多行明细 | 🟡 | 报销支持 1–20 行类型化明细、增删、逐行校验及精确合计；行号与合成票据引用在单内唯一。采购与报价仍为单行，不提供通用明细设计器。 | [字段定义 / Fields][business-model] · [报销测试 / Tests][expense-tests] · [Screen][expense-gallery] |
+| 多行明细 | 🟡 | 报销、收货、付款、合同支持 1–20 行类型化明细及各自验证；金额精确计算，收货数量按单位汇总。采购与报价仍为单行，不提供通用明细设计器。 | [字段定义 / Fields][business-model] · [报销测试 / Tests][expense-tests] · [Screen][expense-gallery] |
 | 审批后业务回写 | — | 通过仅保存审批状态；不创建采购订单、更新真实 CRM、发货、开票或付款。 | [采购边界 / Procurement](PROCUREMENT_UI.md) · [报价边界 / Quotes](CRM_QUOTE_CASE.md) |
 
 <a id="zh-reliability"></a>
@@ -124,8 +124,8 @@
 
 | 能力 | 状态 | 范围与限制 | 依据 / Evidence |
 | --- | --- | --- | --- |
-| 提交幂等 | ✅ | 通用接口可选申请人作用域键，无键每次新建；报销专用提交必须带一个 Idempotency-Key。同键同原始意图返回持久申请当前状态，字段、明细或原流程版本变化即冲突。 | [契约 / Contract][idempotency] · [测试 / Tests][idempotency-tests] · [报销契约 / Expense][expense] |
-| 页面重试键 | 🟡 | 请假／采购及报销的未确认提交键保存在会话内存，刷新或退出丢失；服务端持久绑定可在重启后重放，业务编号本身不是去重键。 | [提交契约 / Contract][idempotency] · [表单边界 / Forms](PROCUREMENT_UI.md) |
+| 提交幂等 | ✅ | 通用接口可选申请人作用域键，无键每次新建；全部六场景专用提交必须带一个 Idempotency-Key。同键同原始意图返回持久申请当前状态，字段、明细或原流程版本变化即冲突。 | [契约 / Contract][idempotency] · [测试 / Tests][idempotency-tests] · [报销契约 / Expense][expense] |
+| 页面重试键 | 🟡 | 请假／采购及六场景的未确认提交键保存在页面内存，刷新或退出丢失；服务端持久绑定可在重启后重放，业务编号本身不是去重键。 | [提交契约 / Contract][idempotency] · [表单边界 / Forms](PROCUREMENT_UI.md) |
 | 报价版本幂等绑定 | ✅ | CRM 专用宿主按不可变报价版本生成持久键；不接收自定义 Idempotency-Key。 | [宿主 / Host][quote-host] · [HTTP 测试 / Tests][quote-tests] |
 | 审批决定幂等 | ✅ | 同一申请／步骤／成员重试相同决定不追加事件或改意见；相反决定冲突。 | [测试 / Tests][retry-tests] |
 | 并发状态更新 | ✅ | 修订号 CAS 与存储原子更新保护审批状态；不保证外部付款或消息恰好执行一次。 | [竞争测试 / Race tests][race-tests] · [JDBC 测试 / Tests][jdbc-tests] |
@@ -135,8 +135,8 @@
 | H2 契约测试 | ✅ | H2 存储契约用于本地测试，不代替 PostgreSQL／MySQL 服务器兼容性结果。 | [测试 / Tests][h2-tests] |
 | PostgreSQL 验证范围 | 🟡 | 真实 PostgreSQL 17.6 CI；核对所用提交中未跳过的结果，不能泛化到全部版本和配置。 | [CI][jdbc-ci] · [测试 / Tests][postgres-tests] |
 | MySQL 验证范围 | 🟡 | 实验性 MySQL 8.0／8.4 真服务器矩阵；不涵盖 MariaDB、5.7、9 或全部 8.x 配置。 | [CI][jdbc-ci] · [测试 / Tests][mysql-tests] |
-| JSON schema 升级 | 🟡 | 类型化请假／采购至少 schema 5，报价 schema 6，报销 schema 7；先升级全部读取端、停止不兼容写者再启用，升级保留旧字节备份且后续写入不降级；历史备份不能无损恢复升级后的新写入。统一候选 reader 严格支持 1–10，出差最低 8、用印最低 9、收货最低 10；写入单调取最大值，新类型不重建已 ready 的 SQL revision 3 成员索引。 | [契约 / Contract][business] · [测试 / Tests][json-tests] · [报销契约 / Expense][expense] |
-| SQL 迁移与回填 | 🟡 | 成员索引仍为 SQL revision 3，报销不新增 DDL；已有迁移与分批回填须显式完成，无自动 JSON→SQL 导入或混合版本写者支持。 | [迁移契约 / Migration][jdbc] |
+| JSON schema 升级 | 🟡 | 严格读取 wrapper 1–13；请假／采购最低 5、报价 6、报销 7、出差 8、用印 9、收货 10、付款 11、合同 12，定义 schema 4 需 13。只读不升级，写入不降级；先停不兼容读写端并备份，旧备份恢复会丢失后续写入。SQL revision 3 不变不代表旧 reader 兼容。 | [契约 / Contract][business] · [测试 / Tests][json-tests] · [报销契约 / Expense][expense] |
+| SQL 迁移与回填 | 🟡 | 成员索引仍用 SQL revision 3；新类型与条件本身不新增 DDL，不重建已 ready 的旧索引。旧库仍须显式迁移／有界回填；没有自动 JSON→SQL 导入或混版本写者支持。 | [迁移契约 / Migration][jdbc] |
 | 业务表联合事务 | — | JdbcApprovalStore 不自动加入宿主业务表事务或 Spring @Transactional。 | [事务契约 / Contract][jdbc] |
 | 事务 outbox | — | 没有事务消息表、投递确认或消息重放服务。 | [存储边界 / Storage][jdbc] |
 | 持久化异步执行 | — | Java DAG 内核同步串行运行，不保存可恢复运行状态或人工等待点。 | [内核 / Core][core] |
@@ -149,10 +149,10 @@
 
 | 能力 | 状态 | 范围与限制 | 依据 / Evidence |
 | --- | --- | --- | --- |
-| 独立 Spring Boot + Vue | 🟡 | 中英文设计、表单和审批工作区，报销另有独立场景页与文件；固定演示账号、默认单写者 JSON，非生产账号系统。 | [后端 / Backend][backend] · [界面测试 / Tests][standalone-tests] |
+| 独立 Spring Boot + Vue | 🟡 | 中英文设计／表单／审批工作区，另有报价与六场景入口及隔离文件；固定演示账号和单写者 JSON，不是生产身份系统。 | [后端 / Backend][backend] · [界面测试 / Tests][standalone-tests] |
 | 原生 RuoYi-Vue + Vue3 | 🟡 | 官方宿主参考接入；若依 MySQL 用户库不表示审批自动使用 SQL，仍需单独接线。 | [接入 / Setup][ruoyi] · [宿主测试 / Tests][ruoyi-tests] |
 | H5 手机浏览器 | 🟡 | 中英文待办／已办、只读请假／采购详情和审批；没有手机发起、设计、报价或报销支持；报销的窄屏网页截图不代表 H5 客户端接入。 | [客户端 / Client][mobile] · [Screen](CASE_GALLERY.md#other-clients) |
-| Java／HTTP 接口 | ✅ | main 领域支持请假、采购、报价与报销四类单据；通用 HTTP 仅接受请假／采购，报价走业务授权宿主，报销走 oa-expense 专用场景路由。统一候选另含出差／用印／收货独立宿主，通用入口限制不变。 | [业务契约 / Contract][business] · [HTTP 测试 / Tests][http-tests] |
+| Java／HTTP 接口 | ✅ | main 注册九类业务；通用 HTTP 仅接受请假／采购，报价走 /api/crm 专用授权宿主，其余六类走准确类型的 /api/scenarios 路由。只在付款／收货／合同场景开放条件路由。 | [业务契约 / Contract][business] · [HTTP 测试 / Tests][http-tests] |
 | 存储适配接口 | ✅ | ApprovalStore 可替换；第三方适配器须实现契约，未实现 inbox 时会显式失败。 | [接口 / SPI][store] · [收件箱契约 / Inbox][inbox] |
 | DAG 依赖校验 | ✅ | Java 17 目标，内核无第三方运行时依赖；检查重复节点、未知依赖和环。 | [实现 / Implementation][workflow] · [测试 / Tests][core-tests] |
 | DAG 同步执行 | ✅ | 按依赖顺序逐节点执行，传递变量快照；再次运行会重新执行，外部副作用不自动回滚。 | [实现 / Implementation][core] · [测试 / Tests][core-tests] |
@@ -167,7 +167,7 @@
 
 ### 已有场景与逐步截图
 
-主线已交付请假、采购、报价和费用报销四类业务案例。原有前三类案例及其设计器、人员组、若依、H5 图集包含 33 个不同场景、61 张中英文原始截图；这不是 33 种业务模板，语言变体不重复算场景。该历史计数不含已合并的报销图集，后者单独为 8 个状态／视口组合、16 张中英文原图。
+当前 main 注册九类业务：请假、采购、报价、报销、出差、用印、收货、付款与合同。下面保留已有图集及其历史计数；代码实现数量与可核验截图数量是不同口径。原有前三类案例及其设计器、人员组、若依、H5 图集包含 33 个不同场景、61 张中英文原始截图；这不是 33 种业务模板，语言变体不重复算场景。该历史计数不含已合并的报销图集，后者单独为 8 个状态／视口组合、16 张中英文原图。
 
 | 业务 | 配置与表单 | 提交／待审／下一步 | 通过／驳回 | 边界 |
 | --- | --- | --- | --- | --- |
@@ -186,15 +186,15 @@
 
 ### 建议建设顺序：场景库、可视化表单与配置
 
-下面保留分阶段顺序并标明当前进度：第一阶段报销已合并；出差／用印／收货已纳入统一候选但未完成组合发布验收，其余仍为建议，没有交付排期。每个新场景都须从配置、表单到持久审批结果做完整，不能仅增加名称、表单截图或未接后端的成功状态。
+下面保留分阶段建设顺序：报销、出差、用印、收货、付款与合同已合入 main 的六场景目录，真实源业务接线、任意表单配置和更多操作仍是后续工作，没有排期。各阶段的合并范围与具体提交的验收结果分别记录。
 
 | 顺序 | 建设范围 | 完成时应能核验什么 |
 | --- | --- | --- |
 | 1 · 第一条完整链路 | 已合并费用报销：类型化单据、版本化场景目录、独立流程、固定结构表单和只读详情 | [报销契约][expense]、源码／测试及 [16 张真实图][expense-gallery]；使用时仍核对对应提交的 CI |
-| 2 · 扩展 OA | 出差与用印为统一集成候选，待组合验收；保留各自字段和规则 | 每种场景有自己的入口、流程配置、业务验证与验收，不能把改标题当成新模板 |
-| 3 · 源业务绑定 | 收货为手工合成候选，无真实源绑定；ERP 付款申请、CRM 合同评审仍待实现 | 明确源单据版本、业务读权及归属、重复提交规则；审批不自动付款、入库或签署 |
+| 2 · 扩展 OA | 出差与用印已合入 main，保留各自字段与规则；按具体提交核对验收 | 每种场景有自己的入口、流程配置、业务验证与验收，不能把改标题当成新模板 |
+| 3 · 源业务绑定 | 收货、付款、合同合成场景已合入 main；真实源版本、权限与余额集成仍待实现 | 明确源单据版本、业务读权及归属、重复提交规则；审批不自动付款、入库或签署 |
 | 4 · 可视化表单配置 | 在固定／版本化表单之上增加字段面板、预览、校验和发布；另行定义字段 schema 与兼容性 | 从界面配置产生服务端验证的单据，旧申请仍可读取；未完成前不能称为通用拖拽表单设计器 |
-| 5 · 更多流转规则 | 条件路由、动态角色／部门选人、退回、撤回、加签、转办逐项建立契约 | 每项先写清权限、终态、版本和并发语义，再补执行、客户端及负向测试 |
+| 5 · 更多流转规则 | 三种受限条件已实现；动态角色／部门选人、退回、撤回、加签、转办仍需逐项建立契约 | 每项先写清权限、终态、版本和并发语义，再补执行、客户端及负向测试 |
 | 6 · 宿主与交付保障 | 按需要接入真实系统、事务 outbox、消息、租户隔离及移动端能力 | 独立适配与故障测试；源码示例通过不直接等于生产环境验收 |
 
 <a id="候选业务模板逐项标明尚未实现"></a>
@@ -204,17 +204,17 @@
 | 分类 | 场景 | 状态 | 首批边界／前置条件 |
 | --- | --- | --- | --- |
 | OA | 费用报销 | 🟡 | 已合并、可运行的有界合成演示；1–20 行费用、日期、类别、精确金额、币种与票据文字引用，不打款、不上传或验真发票；[契约与图集][expense-gallery] |
-| OA | 出差申请 | 🟡 统一候选 | [统一集成候选][travel]，未合并到 main：目的地、用途、起止日期与精确预算，1–90 个自然日，独立宿主与 schema 8；尚待发布验收，不订票、不报销或付款 |
-| OA | 用印申请 | 🟡 统一候选 | [固定版本用印契约][seal]：文件引用、印章类别、用途和份数，最低 schema 9；未完成组合验收，不处理真实印章或电子签章 |
-| ERP | 付款申请 | — | 先明确应付源单、版本、读权和金额校验；只审批，不执行资金划转 |
-| ERP | 收货验收 | 🟡 统一候选 | [手工合成收货契约][receiving]：1–20 行数量及差异、ALL→Bob 复核、最低 schema 10；未完成组合验收，无真实采购源绑定、跨单余额或自动入库 |
-| CRM | 合同评审 | — | 先明确合同源版本、金额和业务读权；不签署或发送给客户 |
+| OA | 出差申请 | 🟡 已合入 main | [出差契约][travel]：目的地、用途、日期与精确预算，1–90 个自然日，独立宿主、最低 wrapper 8；不订票、不报销或付款 |
+| OA | 用印申请 | 🟡 已合入 main | [用印契约][seal]：文件引用、印章类别、用途和份数，最低 wrapper 9；不处理真实印章或电子签章 |
+| ERP | 付款申请 | 🟡 已合入 main | [付款契约](PAYMENT_CONTRACT_SCENARIOS.md)：1–20 行发票分配与扣减、精确净额、最低 wrapper 11；不查真实余额、不跨单占票、不转账 |
+| ERP | 收货验收 | 🟡 已合入 main | [合成收货契约][receiving]：1–20 行数量与差异，初始 ALL→Bob，最低 wrapper 10；无真实采购源绑定、跨单余额或自动入库 |
+| CRM | 合同评审 | 🟡 已合入 main | [合同契约](PAYMENT_CONTRACT_SCENARIOS.md)：条款、期限、1–20 个付款里程碑及交付条件，最低 wrapper 12；不签署、不发送客户、不写回 CRM |
 | OA | 加班申请 | — | 后续候选；工作日历、时区、时长与冲突规则未定义 |
 | ERP | 采购退货 | — | 后续候选；原收货记录、可退数量和库存处理契约未定义 |
 | CRM | 信用额度申请 | — | 后续候选；客户主数据、额度来源和版本策略未定义 |
 | CRM | 退款申请 | — | 后续候选；原交易、可退余额及重复退款边界未定义，不执行退款 |
 
-当前 main 已提供报销的可运行表单、流程发布及真实图集。本地统一候选加入出差、用印与收货，严格 reader 支持 schema 1–10；已有单 PR 的本地／CI 记录不代表组合版本通过。最终组合 head 仍须重跑全部迁移、HTTP、UI、浏览器、H2/PostgreSQL/MySQL 验收。原候选图片下载遇到 HTTP 403／1010，未取得可核验原图，逐图哈希、来源与独立像素验收仍未完成。未合并、未部署，不能宣称三场景已交付。见[统一门槛][unified]。这些都是固定、版本化结构化表单；可编辑审核步骤不等于任意字段表单引擎；后续本地候选增加三种类型化受限条件，见[路由合同](CONDITIONAL_ROUTING.md)。
+当前 main 已合入全部六个独立场景和付款／收货／合同条件路由，严格 reader 支持 wrapper 1–13。领域共九类型，通用入口仍限请假／采购，报价另有专用宿主。请按所用提交检查迁移、HTTP、UI、浏览器及 H2/PostgreSQL/MySQL 结果，不以历史单 PR 通过代替。历史统一候选曾遭遇原图下载 HTTP 403／1010；该检查点未取得原始 PNG、哈希与独立像素验收的事实保留在[历史记录][unified]，不据此推断当前 CI 成败。固定版本表单不等于任意字段引擎，见[当前开发架构](development/ARCHITECTURE.md#zh)与[条件契约](CONDITIONAL_ROUTING.md)。
 
 **每个新增场景的交付清单：** 可解释的字段与状态契约、服务端验证、身份／业务读权、可配置的固定人员流程、不可变快照、重复操作与失败测试，以及中英文的“流程配置 → 填写 → 待审 → 通过 → 驳回”真实截图。六个首批场景至少需要 60 张不同场景／语言状态图；这是完整场景组的验收要求，不是已完成数量，当前报销 16 张单独记录。新能力还应补相应冲突、权限拒绝与恢复证据。
 
@@ -224,7 +224,7 @@
 
 ## English
 
-This checklist separates runnable features, bounded integrations and missing capabilities so you can assess a concrete use case. The original 91 capabilities were checked against `0.1.0-SNAPSHOT` at [`4ff4bcf`](https://github.com/JamesCube/ArcFlow/commit/4ff4bcf0b90cc07ac26d5483847e8b41fd25ed08). All entries are retained, with main commit [`71910bfc`](https://github.com/JamesCube/ArcFlow/commit/71910bfc2ac1b9d58e0f7f1b85e6bbb206321ec1) as the baseline for shipped Expense support and its corrected documentation. Travel, Seal-use and Receiving are separately labeled as local unified integration candidates, not main-delivered features. No fresh combined-head pass, merge or deployment is claimed here. Code/test links identify evidence; a test file does not mean every revision passed. Check CI for the commit you use.
+This checklist separates runnable features, bounded integrations and missing capabilities, retaining all original 91 entries. Current scope is checked against main [`666ff64b`](https://github.com/JamesCube/ArcFlow/commit/666ff64b280157e44a86f07a15fcb42f859ec11a), version `0.1.0-SNAPSHOT`: nine business types, six standalone catalog scenarios, and restricted payment/receiving/contract routing are merged in source. Merge is not deployment or production readiness. Code/test links locate evidence; check CI, real-browser and database results for the exact revision you use.
 
 ✅ Implemented within the stated scope; 🟡 bounded support with integration, client or verification limits; — not implemented. The proposed sequence below does not change these statuses or promise release dates.
 
@@ -234,9 +234,9 @@ This checklist separates runnable features, bounded integrations and missing cap
 | --- | --- | --- |
 | Java DAG core | Graph validation, synchronous handlers, variables and events | No third-party runtime dependencies; no durable execution state, human waits or async scheduling |
 | Approval domain and storage | Ordered human stages, fixed groups, permissions, snapshots, history and persistence | Separate examples modules with their own Spring/Jackson/database dependencies |
-| Hosts and UI | Standalone Vue, native RuoYi, H5, isolated CRM page and separate Expense scenario page | Different entry-point scopes; single-writer JSON by default, with no complete production-service readiness guarantee |
+| Hosts and UI | Standalone Vue, native RuoYi, H5, isolated CRM page and six-scenario workspace | Different entry-point scopes; single-writer JSON by default, with no complete production-service readiness guarantee |
 
-The flow designer configures approval stages. A business-form designer is still missing: leave, procurement, quote and expense fields are defined in code. Expense renders compiled, versioned ScenarioCatalog metadata, without arbitrary-field drag/drop or form-schema publishing. Visible capabilities link real captures; concurrency, authorization, idempotency and transactions require code/test evidence rather than screenshots.
+The flow designer configures approval stages. A business-form designer is still missing: all nine document types are defined in code. The six scenarios render compiled, versioned ScenarioCatalog metadata, without arbitrary-field drag/drop or form-schema publishing. Visible capabilities link real captures; concurrency, authorization, idempotency and transactions require code/test evidence rather than screenshots.
 
 
 [Flow design and versions](#en-design) · [Approval rules and voting](#en-rules) · [People, identity and permissions](#en-people) · [Task handling and history](#en-tasks) · [Business forms and scenarios](#en-forms) · [Reliability, storage and recovery](#en-reliability) · [Integration, clients and core](#en-integration) · [Scenarios and next steps](#en-scenarios)
@@ -256,7 +256,7 @@ The flow designer configures approval stages. A business-form designer is still 
 | Definition validation | ✅ | Validate schema, boundaries, unique IDs, names and stage/member counts; UI errors locate fields, and the server validates again. | [定义 / Definition][definition] · [测试 / Tests][designer-tests] · [Screen](DESIGNER_GALLERY.md#validation) |
 | Publication conflicts | ✅ | Publication requires permission and an expected version; a conflicting publication cannot silently overwrite the current version. | [服务 / Service][service] · [Screen](DESIGNER_GALLERY.md#publish) |
 | Pinned process version | ✅ | Submission freezes order, people and rules. Later publications apply to new requests; running instances are not migrated. | [服务 / Service][service] · [Screen](DESIGNER_GALLERY.md#versions) |
-| Restricted conditional routing | 🟡 | Local candidate: typed payment/receipt/contract predicates select extra manual stages with frozen schema4/JSON13 routes. No arbitrary expressions; quote thresholds remain informational. Browser acceptance is incomplete. | [合同 / Contract](CONDITIONAL_ROUTING.md) |
+| Restricted conditional routing | 🟡 | Current main includes typed payment/receipt/contract conditions selecting extra human stages, using definition schema 4 and JSON wrapper 13 with frozen routes. Only three standalone scenarios support them; no arbitrary expressions. Check browser/database CI for the exact commit. | [合同 / Contract](CONDITIONAL_ROUTING.md) |
 | Arbitrary forks/joins | — | Human stages remain sequential; ALL/ANY reviewer groups are not general parallel gateways. | [定义 / Definition][definition] |
 | Running-instance migration | — | No operation migrates an existing request to a new process version. | [服务 / Service][service] |
 | BPMN import/export/execution | — | No BPMN-compatible implementation or commitment to the full specification. | [路线图 / Roadmap][roadmap] |
@@ -286,7 +286,7 @@ The flow designer configures approval stages. A business-form designer is still 
 | Host identity directory | 🟡 | ActorDirectory resolves active accounts and publication/assignment eligibility; the host owns account management. | [接口 / Interface][identity] · [测试 / Tests][identity-tests] |
 | Standalone demo picker | 🟡 | The default applicant is Alice; the designer offers Bob and Carol. The domain group limit does not supply 16 demo accounts. | [后端 / Backend][backend] · [Screen](DESIGNER_GALLERY.md#all) |
 | Native RuoYi users | ✅ | The native editor selects fixed users from RuoYi and reuses its login, menus and button permissions. | [控制器 / Controller][ruoyi-controller] · [Screen](CASE_GALLERY.md#other-clients) |
-| Request visibility | ✅ | Applicants and snapshotted participants can see a request; pending is narrower. Administrator wildcard permission does not permit proxy voting. | [服务 / Service][service] · [权限测试 / Tests][identity-tests] |
+| Request visibility | ✅ | Applicants and effective-path participants can see a request; skipped-only assignments grant no access. Pending membership is narrower. Administrator wildcard permissions never permit proxy voting. | [服务 / Service][service] · [权限测试 / Tests][identity-tests] |
 | Applicant cannot review own request | ✅ | New submission rejects the applicant appearing anywhere in the approval sequence, not only in the current stage. | [服务 / Service][service] · [测试 / Tests][identity-tests] |
 | Active-identity rechecks | ✅ | Domain list/inbox reads recheck active identity after storage I/O; historical actor IDs remain in records. | [读取边界测试 / Read tests][read-identity-tests] |
 | Quote access and ownership | ✅ | The dedicated host checks source revision access and sales ownership; approval membership does not bypass business access. | [宿主 / Host][quote-host] · [测试 / Tests][quote-domain-tests] |
@@ -301,7 +301,7 @@ The flow designer configures approval stages. A business-form designer is still 
 
 | Capability | Status | Scope and limits | Evidence |
 | --- | --- | --- | --- |
-| Submit a request | ✅ | Standalone/RuoYi desktop forms submit leave and procurement; quotes use a separate page and Expense uses /scenarios.html; H5 has no authoring. | [采购表单 / Forms](PROCUREMENT_UI.md) · [Screen](CASE_GALLERY.md#oa-submitted) |
+| Submit a request | ✅ | Standalone/RuoYi desktop forms submit leave and procurement; quotes use a separate page and six scenarios use /scenarios.html; H5 has no authoring. | [采购表单 / Forms](PROCUREMENT_UI.md) · [Screen](CASE_GALLERY.md#oa-submitted) |
 | Pending worklist | ✅ | Pending means an unvoted member of the current stage, including every ALL/ANY member; future stages are not pending yet. | [契约 / Contract][inbox] · [Screen](CASE_GALLERY.md#oa-inbox) |
 | Handled worklist | ✅ | Requires an actual saved APPROVE/REJECT by that actor. Submission does not count; the request may still be pending. | [测试 / Tests][inbox-tests] · [Screen](CASE_GALLERY.md#oa-pending-next) |
 | Cursor paging and filters | ✅ | 1–100 rows per page, default 25; filter by status/process version. Cursors bind actor and filters; pages are not a frozen global snapshot. | [契约 / Contract][inbox] · [测试 / Tests][inbox-tests] |
@@ -331,9 +331,9 @@ The flow designer configures approval stages. A business-form designer is still 
 | Source quote revision and hints | ✅ | Validate source fields, revision and validity; discount percentages, the 10% hint and expiry hints do not route requests. | [模型测试 / Tests][quote-model-tests] · [宿主 / Host][quote-host] · [Screen](CASE_GALLERY.md#crm-manager-review) |
 | Visual form designer | — | Current forms are defined in code; no drag-and-drop fields, field inspector or form-schema publishing UI. | [业务契约 / Contract][business] · [表单源码 / UI](../examples/approval-ui/src/App.vue) |
 | Field dependencies/stage permissions | — | No configurable visibility, cross-field formulas or stage-specific field editing; submitted fields remain read-only. | [业务契约 / Contract][business] |
-| Scenario template library | 🟡 | Merged compiled/versioned ScenarioCatalog and /scenarios.html Expense entry; code-defined templates, without runtime installation, cloning or arbitrary-form publishing. The unified candidate catalogs Expense/Travel/Seal/Receiving with isolated workspaces; the three new slices await combined release acceptance. | [业务契约 / Contract][business] · [目录源码 / Catalog][scenario-catalog] · [报销契约 / Expense][expense] |
+| Scenario template library | 🟡 | Current main has six compiled ScenarioCatalog entries at /scenarios.html: Expense, Travel, Seal-use, Receiving, Payment and Contract, with isolated processes/stores. Leave/procurement and quotes have other entry points. No runtime installation, cloning or arbitrary-form publishing. | [业务契约 / Contract][business] · [目录源码 / Catalog][scenario-catalog] · [报销契约 / Expense][expense] |
 | Attachments | — | No upload, authorized download, malware scanning or attachment-retention service. | [字段定义 / Fields][business-model] · [H5 范围 / H5 scope][mobile] |
-| Repeating line items | 🟡 | Expense supports 1–20 typed lines, add/remove, per-line validation and exact totals; line IDs and synthetic receipt references are unique within a claim. Procurement/quotes remain single-item; no generic line-item designer. | [字段定义 / Fields][business-model] · [报销测试 / Tests][expense-tests] · [Screen][expense-gallery] |
+| Repeating line items | 🟡 | Expense, Receiving, Payment and Contract support 1–20 typed lines with their own validation; money is exact and receipt quantities are grouped by unit. Procurement/quotes remain single-item; no generic line-item designer. | [字段定义 / Fields][business-model] · [报销测试 / Tests][expense-tests] · [Screen][expense-gallery] |
 | Business writeback | — | Approval records a workflow state; it does not create orders, update a real CRM, ship, invoice or pay. | [采购边界 / Procurement](PROCUREMENT_UI.md) · [报价边界 / Quotes](CRM_QUOTE_CASE.md) |
 
 <a id="en-reliability"></a>
@@ -342,8 +342,8 @@ The flow designer configures approval stages. A business-form designer is still 
 
 | Capability | Status | Scope and limits | Evidence |
 | --- | --- | --- | --- |
-| Submission idempotency | ✅ | Generic endpoints accept optional applicant-scoped keys; no key creates anew. Expense requires exactly one Idempotency-Key: identical original intent replays durable current state, while changed fields, lines or original process version conflict. | [契约 / Contract][idempotency] · [测试 / Tests][idempotency-tests] · [报销契约 / Expense][expense] |
-| Browser retry keys | 🟡 | Unresolved leave/procurement and Expense keys live in session memory and are lost on reload/sign-out. Durable server bindings replay after restart; business ID alone does not deduplicate requests. | [提交契约 / Contract][idempotency] · [表单边界 / Forms](PROCUREMENT_UI.md) |
+| Submission idempotency | ✅ | Generic endpoints accept optional applicant-scoped keys; no key creates anew. All six scenarios require exactly one Idempotency-Key: original intent replays durable current state, while changed fields, lines or original process version conflict. | [契约 / Contract][idempotency] · [测试 / Tests][idempotency-tests] · [报销契约 / Expense][expense] |
+| Browser retry keys | 🟡 | Unresolved leave/procurement and six-scenario keys live in page memory and are lost on reload/sign-out. Durable server bindings replay after restart; business ID alone does not deduplicate. | [提交契约 / Contract][idempotency] · [表单边界 / Forms](PROCUREMENT_UI.md) |
 | Quote-revision binding | ✅ | The dedicated CRM host derives a durable key from the immutable quote revision and rejects a custom Idempotency-Key. | [宿主 / Host][quote-host] · [HTTP 测试 / Tests][quote-tests] |
 | Decision idempotency | ✅ | Same request/stage/member decision retries do not add events or rewrite notes; the opposite decision conflicts. | [测试 / Tests][retry-tests] |
 | Concurrent state updates | ✅ | Revision CAS and atomic store updates protect approval state; they do not guarantee exactly-once external payments or messages. | [竞争测试 / Race tests][race-tests] · [JDBC 测试 / Tests][jdbc-tests] |
@@ -353,8 +353,8 @@ The flow designer configures approval stages. A business-form designer is still 
 | H2 contracts | ✅ | H2 storage contracts support local verification; they do not establish PostgreSQL/MySQL server compatibility. | [测试 / Tests][h2-tests] |
 | PostgreSQL verification scope | 🟡 | Real PostgreSQL 17.6 CI; inspect non-skipped results for your commit, without generalizing to every version/configuration. | [CI][jdbc-ci] · [测试 / Tests][postgres-tests] |
 | MySQL verification scope | 🟡 | Experimental real-server MySQL 8.0/8.4 matrix; excludes MariaDB, 5.7, 9 and blanket coverage of 8.x configurations. | [CI][jdbc-ci] · [测试 / Tests][mysql-tests] |
-| JSON schema upgrades | 🟡 | Typed leave/procurement require at least schema 5, quotes 6 and Expense 7. Upgrade all readers and stop incompatible writers before enabling writes; retain byte-exact upgrade backups and never downgrade. Historical backups cannot losslessly recover later writes. The unified candidate reader strictly accepts 1–10: Travel ≥8, Seal ≥9, Receiving ≥10; writes take a monotonic maximum. New type registration does not rebuild ready SQL revision-3 member indexes. | [契约 / Contract][business] · [测试 / Tests][json-tests] · [报销契约 / Expense][expense] |
-| SQL migration and backfill | 🟡 | Member indexes retain SQL revision 3; Expense adds no DDL. Existing migration/bounded backfill remain explicit; no automatic JSON→SQL import or mixed-version writers. | [迁移契约 / Migration][jdbc] |
+| JSON schema upgrades | 🟡 | Strict readers support wrappers 1–13: leave/procurement ≥5, quotes 6, Expense 7, Travel 8, Seal 9, Receiving 10, Payment 11, Contract 12; definition schema 4 needs 13. Reads do not upgrade; writes never downgrade. Stop incompatible readers/writers and back up first; old backup restore loses later writes. Unchanged SQL revision 3 does not imply old-reader compatibility. | [契约 / Contract][business] · [测试 / Tests][json-tests] · [报销契约 / Expense][expense] |
+| SQL migration and backfill | 🟡 | Member indexes retain SQL revision 3. New types/conditions alone add no DDL and do not rebuild ready old indexes. Existing databases still need explicit migration/bounded backfill; no automatic JSON→SQL import or mixed-version writers. | [迁移契约 / Migration][jdbc] |
 | Transactions with business tables | — | JdbcApprovalStore does not automatically join host business-table or Spring @Transactional transactions. | [事务契约 / Contract][jdbc] |
 | Transactional outbox | — | No transactional message table, delivery acknowledgement or message replay service. | [存储边界 / Storage][jdbc] |
 | Durable asynchronous execution | — | The Java DAG core runs synchronously/serially with no resumable execution state or human wait points. | [内核 / Core][core] |
@@ -367,10 +367,10 @@ The flow designer configures approval stages. A business-form designer is still 
 
 | Capability | Status | Scope and limits | Evidence |
 | --- | --- | --- | --- |
-| Standalone Spring Boot + Vue | 🟡 | Bilingual design/forms/review workspace, plus a separate Expense page and file; fixed demo accounts and single-writer JSON, not a production identity system. | [后端 / Backend][backend] · [界面测试 / Tests][standalone-tests] |
+| Standalone Spring Boot + Vue | 🟡 | Bilingual design/forms/review workspace, plus isolated quote and six-scenario entries/files; fixed demo accounts and single-writer JSON, not a production identity system. | [后端 / Backend][backend] · [界面测试 / Tests][standalone-tests] |
 | Native RuoYi-Vue + Vue3 | 🟡 | Reference integration with the official hosts; RuoYi’s MySQL identity database does not automatically put approvals in SQL. | [接入 / Setup][ruoyi] · [宿主测试 / Tests][ruoyi-tests] |
 | H5 browser client | 🟡 | Bilingual pending/handled lists, read-only leave/procurement details and decisions; no authoring, designer, quote or Expense support. Expense narrow-browser captures do not establish H5 client integration. | [客户端 / Client][mobile] · [Screen](CASE_GALLERY.md#other-clients) |
-| Java/HTTP interfaces | ✅ | Main supports leave, procurement, quotes and expenses. Generic HTTP accepts leave/procurement; quotes use a business-authorized host and Expense uses dedicated oa-expense routes. The unified candidate adds separate Travel/Seal/Receiving hosts without widening generic routes. | [业务契约 / Contract][business] · [HTTP 测试 / Tests][http-tests] |
+| Java/HTTP interfaces | ✅ | Main registers nine types. Generic HTTP accepts only leave/procurement; /api/crm is the authorized quote host, and six exact-type hosts use /api/scenarios. Only payment/receiving/contract scenarios expose conditions. | [业务契约 / Contract][business] · [HTTP 测试 / Tests][http-tests] |
 | Storage SPI | ✅ | ApprovalStore is replaceable; custom adapters must meet its contract, and unsupported inbox access fails explicitly. | [接口 / SPI][store] · [收件箱契约 / Inbox][inbox] |
 | DAG dependency validation | ✅ | Java 17 target with no third-party core runtime dependencies; rejects duplicate nodes, unknown dependencies and cycles. | [实现 / Implementation][workflow] · [测试 / Tests][core-tests] |
 | Synchronous DAG execution | ✅ | Run handlers one at a time in dependency order with variable snapshots; reruns repeat nodes and do not roll back external effects. | [实现 / Implementation][core] · [测试 / Tests][core-tests] |
@@ -385,7 +385,7 @@ The flow designer configures approval stages. A business-form designer is still 
 
 ### Existing cases and step-by-step screens
 
-Main provides four business cases: leave, procurement, quotes and expenses. The original leave, procurement and quote galleries, including their designer, group, RuoYi and H5 coverage, contain 33 distinct scenes and 61 original Chinese/English captures. These are not 33 business templates; language variants are not new scenes. This historical count excludes the merged Expense gallery, separately counted as 8 state/viewport combinations and 16 Chinese/English originals.
+Current main registers nine types: leave, procurement, quotes, expenses, travel, seal use, receiving, payments and contracts. The galleries and historical counts below measure captured evidence, separately from implemented types. The original leave, procurement and quote galleries, including their designer, group, RuoYi and H5 coverage, contain 33 distinct scenes and 61 original Chinese/English captures. These are not 33 business templates; language variants are not new scenes. This historical count excludes the merged Expense gallery, separately counted as 8 state/viewport combinations and 16 Chinese/English originals.
 
 | Case | Configuration and form | Submit / pending / next stage | Approved / rejected | Boundary |
 | --- | --- | --- | --- | --- |
@@ -404,15 +404,15 @@ The [Expense contract and real gallery][expense-gallery] separately cover catalo
 
 ### Proposed sequence: scenarios, visual forms and configuration
 
-The sequence now records progress: the first Expense slice is merged; Travel/Seal/Receiving are included in a unified candidate awaiting combined acceptance; the rest remain proposals without a delivery schedule. Every new case must connect configuration and form entry to persisted decisions. New labels, form-only screenshots or disconnected success states do not establish a runnable scenario.
+This sequence records progress: Expense, Travel, Seal-use, Receiving, Payment and Contract are merged into the six-entry main catalog. Live source integration, arbitrary form configuration and further operations remain future work without a delivery schedule. Merged scope and exact-commit acceptance results are separate records.
 
 | Order | Scope | Evidence required for completion |
 | --- | --- | --- |
 | 1 · First complete slice | Merged Expense reimbursement: typed document, versioned scenario catalog, isolated process, fixed-layout form and read-only detail | [Expense contract][expense], source/tests and [16 real captures][expense-gallery]; still check CI for the commit you use |
-| 2 · More OA cases | Travel and Seal-use are unified integration candidates awaiting combined acceptance; each retains distinct fields and rules | Each case has its own entry point, flow configuration, validation and acceptance; renaming a case is not a new template |
-| 3 · Source-bound cases | Receiving is a manually entered synthetic candidate without source binding; ERP payments and CRM contract review remain proposals | Source revision, business access/ownership and duplicate-submission contracts; approval does not pay, post inventory or sign |
+| 2 · More OA cases | Travel and Seal-use are merged into main with distinct fields/rules; verify acceptance for the selected commit | Each case has its own entry point, flow configuration, validation and acceptance; renaming a case is not a new template |
+| 3 · Source-bound cases | Synthetic Receiving, Payment and Contract are merged; live source revision, access and balance integration remain future work | Source revision, business access/ownership and duplicate-submission contracts; approval does not pay, post inventory or sign |
 | 4 · Visual form configuration | Add a field inspector, preview, validation and publication over fixed/versioned forms; define form schema and compatibility separately | UI configuration yields server-validated documents while old requests remain readable; no generic drag/drop form-designer claim before this exists |
-| 5 · More routing operations | Define conditional routing, role/department resolution, return, withdrawal, added reviewers and delegation separately | Permissions, terminal states, versions and concurrency semantics before execution, clients and negative tests |
+| 5 · More routing operations | Three restricted condition families exist; separately design role/department resolution, return, withdrawal, added reviewers and delegation | Permissions, terminal states, versions and concurrency semantics before execution, clients and negative tests |
 | 6 · Hosts and delivery safeguards | Integrate real systems, transactional outbox, messaging, tenant isolation and mobile capabilities as needed | Separate adapters and failure testing; passing source examples does not establish production acceptance |
 
 <a id="candidate-business-templates-each-still-unimplemented"></a>
@@ -422,17 +422,17 @@ The sequence now records progress: the first Expense slice is merged; Travel/Sea
 | Area | Scenario | Status | Initial boundary / prerequisite |
 | --- | --- | --- | --- |
 | OA | Expense reimbursement | 🟡 | Merged runnable bounded synthetic demo: 1–20 lines with dates, categories, exact money, currency and textual receipt references; no payments, uploads or invoice verification; [contract/gallery][expense-gallery] |
-| OA | Travel request | 🟡 Unified candidate | [Unified implementation candidate][travel], not merged into main: destination, purpose, dates and exact budget, 1–90 calendar days, dedicated host and schema 8. Release acceptance pending; no booking, reimbursement or payment |
-| OA | Seal-use request | 🟡 Unified candidate | [Versioned Seal contract][seal]: document reference, category, purpose and copy count, minimum schema 9; combined acceptance pending, no physical/electronic stamping |
-| ERP | Payment request | — | Define payable-source revision, access and money validation first; approval only, no transfer |
-| ERP | Goods-receipt review | 🟡 Unified candidate | [Synthetic Receiving contract][receiving]: 1–20 quantity/discrepancy lines, ALL then Bob review, minimum schema 10; combined acceptance pending, no real PO source binding, cross-request balances or stock posting |
-| CRM | Contract review | — | Define contract revision, amounts and business access first; no signing or customer delivery |
+| OA | Travel request | 🟡 Merged in main | [Travel contract][travel]: destination, purpose, dates and exact budget, 1–90 calendar days, isolated host and minimum wrapper 8; no booking, reimbursement or payment |
+| OA | Seal-use request | 🟡 Merged in main | [Seal contract][seal]: document reference, category, purpose and copy count, minimum wrapper 9; no physical/electronic stamping |
+| ERP | Payment request | 🟡 Merged in main | [Payment contract](PAYMENT_CONTRACT_SCENARIOS.md): 1–20 invoice allocations/deductions and exact net totals, minimum wrapper 11; no live balances, cross-request reservations or money transfer |
+| ERP | Goods-receipt review | 🟡 Merged in main | [Synthetic Receiving contract][receiving]: 1–20 quantity/discrepancy lines, initial ALL then Bob, minimum wrapper 10; no real PO binding, cross-request balances or stock posting |
+| CRM | Contract review | 🟡 Merged in main | [Contract review model](PAYMENT_CONTRACT_SCENARIOS.md): terms, dates, 1–20 milestones and acceptance criteria, minimum wrapper 12; no signing, customer delivery or CRM update |
 | OA | Overtime request | — | Later candidate; work calendars, time zones, durations and conflict rules remain undefined |
 | ERP | Purchase return | — | Later candidate; source receipt, returnable quantities and inventory contract remain undefined |
 | CRM | Credit-limit request | — | Later candidate; customer master data, limit source and revision policy remain undefined |
 | CRM | Refund request | — | Later candidate; source transaction, refundable balance and duplicate-refund boundaries remain undefined; no refund execution |
 
-Current main provides the Expense form, process publication and real gallery. This local unified candidate adds Travel, Seal-use and Receiving with a strict schema-1–10 reader. Historical single-PR local/CI results do not establish a combined-head pass. The final combined head must rerun all migration, HTTP, UI, browser and H2/PostgreSQL/MySQL gates. Original candidate image downloads returned HTTP 403 / 1010; original PNG bytes, hashes/provenance and independent pixel acceptance remain unverified. The candidate is not merged or deployed and the three scenarios are not claimed as delivered. See [unified gates][unified]. These are fixed versioned forms; editable review stages do not provide an arbitrary-field form engine. A later local candidate adds three typed condition families; see [the routing contract](CONDITIONAL_ROUTING.md).
+Current main includes all six standalone scenarios and payment/receiving/contract conditions, with strict wrapper-1–13 readers. The domain registers nine types; generic endpoints remain leave/procurement-only, with a dedicated quote host. Check migration, HTTP, UI, browser and H2/PostgreSQL/MySQL evidence for your exact commit. The historical unified checkpoint encountered HTTP 403/1010 downloading original images; its missing PNG/hash/independent-pixel evidence remains recorded in the [integration history][unified] and does not determine current CI status. Fixed versioned forms are not an arbitrary-field engine; see [current architecture](development/ARCHITECTURE.md#en) and [conditional routing](CONDITIONAL_ROUTING.md).
 
 **Completion checklist for every new case:** clear field/state contracts, server validation, identity/business access, configurable fixed-reviewer stages, immutable snapshots, repeat-operation/failure tests, and real Chinese/English captures of configuration → entry → pending → approved → rejected. Six initial cases require at least 60 distinct scenario/language-state images; that is an acceptance target for the complete set, not a completed count. Expense currently has 16 originals recorded separately. Add conflict, authorization-denial and recovery evidence where applicable.
 

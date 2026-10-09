@@ -57,3 +57,19 @@ test('reduced motion and no-JavaScript baseline',async({browser})=>{
   await expect(fallback.locator('h1')).toBeVisible();await expect(fallback.locator('.scenario-panel')).toHaveCount(4);
   for(const panel of await fallback.locator('.scenario-panel').all()) await expect(panel).toBeVisible();await noJS.close();
 });
+
+for (const lang of ['zh','en']) {
+  test(`${lang} developer and API entry points`, async ({page}) => {
+    await page.setViewportSize({width:390,height:900});
+    await page.goto(lang==='en'?'./en/':'./');
+    const links=page.locator('.developer-links');
+    await links.scrollIntoViewIfNeeded();
+    await expect(links.locator('a').nth(0)).toHaveAttribute('href','https://github.com/JamesCube/ArcFlow/blob/main/docs/development/README.md');
+    await expect(links.locator('a').nth(1)).toHaveAttribute('href',`https://github.com/JamesCube/ArcFlow/blob/main/docs/api/API_REFERENCE${lang==='en'?'.en':''}.md`);
+    await expect(links.locator('a').nth(0)).toBeVisible();
+    await expect(links.locator('a').nth(1)).toBeVisible();
+    await expect(page.locator('#command')).toContainText('666ff64b280157e44a86f07a15fcb42f859ec11a');
+    await expect(page.locator('.versions')).not.toContainText('Not merged');
+    await expect(page.locator('.versions')).not.toContainText('未合并');
+  });
+}

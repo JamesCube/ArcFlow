@@ -1,0 +1,10 @@
+{
+  "business": {
+    "type": "leave",
+    "businessId": "LEAVE-DOCS-001",
+    "title": "Synthetic developer example",
+    "reason": "Synthetic data for a disposable local test only",
+    "days": 2
+  },
+  "processVersion": 1
+}

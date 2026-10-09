@@ -1,0 +1,46 @@
+{
+  "business": {
+    "type": "contractApproval",
+    "documentVersion": 1,
+    "businessId": "CONTRACT-DEMO-001",
+    "title": "Synthetic developer example",
+    "reason": "Synthetic data for a disposable local test only",
+    "customerRef": "CUSTOMER-DEMO-A",
+    "contractRevision": 1,
+    "contractCategory": "SERVICE",
+    "currency": "CNY",
+    "contractAmount": 100000.0,
+    "startOn": "2099-01-01",
+    "endOn": "2099-12-31",
+    "termsKind": "NONSTANDARD",
+    "deviationReason": "Synthetic liability limit deviation",
+    "documentRef": "DOC-CONTRACT-DEMO-01",
+    "lines": [
+      {
+        "lineId": "line-1",
+        "milestoneRef": "M1",
+        "description": "Proposal",
+        "dueOn": "2099-01-15",
+        "amount": 30000.0,
+        "acceptanceCriteria": "Proposal delivered and confirmed"
+      },
+      {
+        "lineId": "line-2",
+        "milestoneRef": "M2",
+        "description": "Interim delivery",
+        "dueOn": "2099-06-30",
+        "amount": 40000.0,
+        "acceptanceCriteria": "Interim acceptance"
+      },
+      {
+        "lineId": "line-3",
+        "milestoneRef": "M3",
+        "description": "Final delivery",
+        "dueOn": "2099-12-15",
+        "amount": 30000.0,
+        "acceptanceCriteria": "Final acceptance"
+      }
+    ]
+  },
+  "processVersion": 1
+}

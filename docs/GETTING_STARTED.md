@@ -1,8 +1,10 @@
 # First approval / 第一次审批
 
-[English](#english) · [简体中文](#简体中文) · [Repository home](../README.md)
+[English](#english) · [简体中文](#简体中文) · [Repository home](../README.md) · [Developer guide / 开发文档](development/README.md) · [API reference / 接口参考](api/API_REFERENCE.en.md)
 
 ## English
+
+This walkthrough follows current `main`. Historical release archives may contain fewer scenarios or older contracts; use their own bundled documentation. For source setup and module-specific tests, see the [developer quickstart](development/QUICKSTART.md#en).
 
 ### 1. Start the standalone demo
 
@@ -82,6 +84,8 @@ All three cases use the same running standalone backend and UI. No additional se
 
 One quote revision binds to one request. Repeating the same submission returns that record; changing its price or reason conflicts. The preset source has only revision 1. For a fresh exercise, finish and stop the disposable launcher, then start a new run; do not delete a persistent store just to repeat the demo. See [the quote contract](CRM_QUOTE_CASE.md) for details. Quotes are not listed in the shared workspace, RuoYi or H5. This synthetic case makes no external CRM or AI calls and performs no business writeback.
 
+**Six dedicated scenarios:** Open `/scenarios.html` on the same origin for expense, travel, seal-use, receiving, payment, and contract reviews. Each has its own process, requests, and store, separate from the main leave/procurement workspace and quote page. Only payment, receiving, and contract expose conditional routing. These are synthetic reviews, without payments, stock posting, signing, or external writeback. See the [scenario map](development/ARCHITECTURE.md#en) and [API examples](api/examples/README.md).
+
 **Other clients:** [RuoYi](../examples/ruoyi-vue3/README.md) has its own installation, accounts, ArcFlow menu and role permissions. It supports leave and procurement; standalone Alice/Bob/Carol passwords do not log in to RuoYi. [H5](../examples/approval-mobile/README.md#run-locally--本地运行) is a separate review-only client for existing leave/procurement requests, with its own startup and origin configuration. The standalone launcher starts neither client.
 
 ### 5. Check restart persistence
@@ -104,11 +108,15 @@ If you open a new terminal, set the passwords again and set `APPROVAL_DATA_FILE`
 
 ### Next steps
 
+- For development, use the [developer index](development/README.md#en), [API reference](api/API_REFERENCE.en.md), and [persistence/migration guide](development/PERSISTENCE.md#en).
+
 - To use RuoYi’s users, login, menus and role permissions, follow the [official upstream overlay guide](../examples/ruoyi-vue3/README.md). It needs disposable local MySQL/Redis and additional setup. Approval data still goes into a JSON file.
 - The [backend guide](../examples/approval-demo/backend/README.md), [UI guide](../examples/approval-ui/README.md) and [sequential contract](SEQUENTIAL_APPROVAL.md) explain the APIs, tests, security and storage limits.
 - To run the non-browser standalone checks: `mvn verify`, `bash scripts/test.sh`, `mvn install`, `mvn -f examples/approval-domain/pom.xml install`, `mvn -f examples/approval-demo/backend/pom.xml verify`, then `(cd examples/approval-ui && npm ci && npm test && npm run build)` from the repository root. The root build alone does not test the examples. For the actual Chromium journey, see [real-browser first-run checks](../examples/approval-ui/README.md#real-browser-first-run-check).
 
 ## 简体中文
+
+本页按当前 `main` 编写。历史发布压缩包可能缺少后续场景或采用旧契约，请使用对应版本内的文档。源码开发与分层测试见[开发环境指南](development/QUICKSTART.md#zh)。
 
 ### 1. 启动独立演示
 
@@ -188,6 +196,8 @@ npm run dev
 
 同一报价版本只绑定一笔申请：原样重复提交会返回原记录，改价格或理由会冲突。预设报价只有第 1 版。如需从头体验，完成本次试用后停止临时启动脚本，再启动新的一轮；不要为重试随意删除持久化数据。详见[报价契约](CRM_QUOTE_CASE.md)。报价不会进入共享工作区、若依或 H5 列表；此合成案例不调用外部 CRM 或 AI，也不回写业务系统。
 
+**六个专用场景：**同一界面地址下打开 `/scenarios.html`，可进入报销、出差、用印、收货、付款和合同审批。各场景有自己的流程、申请和文件，与请假／采购主工作区和报价页隔离。只有付款、收货、合同提供条件路由。这些合成审批不会支付、入库、签约或回写外部系统。见[场景入口与边界](development/ARCHITECTURE.md#zh)及[接口示例](api/examples/README.md)。
+
 **其他客户端：**[若依](../examples/ruoyi-vue3/README.md)需单独安装，并配置自己的账号、ArcFlow 菜单和角色权限，支持请假与采购；独立端 Alice／Bob／Carol 密码不能登录若依。[H5](../examples/approval-mobile/README.md#run-locally--本地运行)也需单独启动并配置允许的 Origin，只能查看和审批已创建的请假／采购单。独立端启动脚本不会启动这两个客户端。
 
 ### 5. 验证重启恢复
@@ -207,6 +217,8 @@ npm run dev
 - **重启后似乎丢失数据：**确认使用相同的绝对 `APPROVAL_DATA_FILE`。不要删除或编辑校验失败的快照来绕过检查。
 
 ### 下一步
+
+开发接入请从[开发文档索引](development/README.md#zh)、[接口参考](api/API_REFERENCE.md)及[存储迁移](development/PERSISTENCE.md#zh)开始。
 
 需要真实若依用户、登录、菜单和角色权限时，查看 [官方上游参考集成](../examples/ruoyi-vue3/README.md)。需要额外准备可丢弃的本地 MySQL / Redis 测试环境；审批仍保存在 JSON 文件中。
 

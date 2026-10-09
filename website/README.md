@@ -20,8 +20,9 @@ npm test
 ## Content and assets
 
 - Edit bilingual copy in `content.json`, page structure in `scripts/build.py`, presentation in `style.css`, and progressive enhancement in `app.js`.
-- Feature baseline: main `71910bfc2ac1b9d58e0f7f1b85e6bbb206321ec1`.
-- The published `v0.1.0-alpha.3` is older than that baseline. PR #39 is an unmerged candidate, not advertised as a delivered feature.
+- Feature baseline: main `666ff64b280157e44a86f07a15fcb42f859ec11a`.
+- The published `v0.1.0-alpha.3` is older than that baseline. PRs #39, #41, #42 and #40 are merged; this does not make them part of alpha.3.
+- Developer and API links target current `main`; other feature links and launch commands remain pinned to the verified baseline. Publish this navigation only after its linked documentation is merged.
 - `assets/provenance.json` preserves original screenshot paths, capture commits, workflow URLs, and SHA-256 hashes. All 10 screenshots are original bytes from the public repository and contain synthetic demo data. They do not prove production readiness or current CI.
 - `assets/social-card.svg` is the editable source for the committed 1200 × 630 PNG. It contains original vector artwork and text, without a fabricated product interface. Regenerate with Inkscape when changing it.
 
@@ -29,6 +30,6 @@ npm test
 
 GitHub Pages was verified disabled before this work: Deploy from a branch, source None. The intended publication uses an independent `gh-pages` branch, root directory `/`, with only the contents of `dist/`. This follows GitHub's branch-publishing route and requires no custom `pages: write` or `id-token: write` workflow grant. No credentials, custom domain, paid service, application PR merge, or security-policy change is required.
 
-The source PR remains a draft for review. Publishing this static site does not merge the source PR or application candidates. Future publication should always build and check the intended source commit, then update only the separate Pages branch. Do not copy source files, local evidence, logs, node_modules, or private data into the public deployment.
+Website source is maintained on `main`. A source change does not by itself publish the static site. Future publication should always build and check the intended source commit, then update only the separate Pages branch. Do not copy source files, local evidence, logs, node_modules, or private data into the public deployment.
 
 Official guidance: https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site

@@ -8,3 +8,6 @@
 dialog{padding:0 16px 16px}dialog form{position:sticky;top:0;left:0;height:auto;width:100%;margin:0;padding:10px 0;background:#f3f6ed;border-bottom:1px solid #d9e2ce}dialog .dialog-close{top:auto}
 @media(max-width:540px){dialog{padding:0 8px 12px}dialog form{top:0}dialog .dialog-close{top:auto}}
 .icon{display:inline-block;width:1em;height:1em;vertical-align:-.12em;flex-shrink:0}.layer-icon .icon{width:27px;height:27px}.label-three>.icon{color:var(--lime)}
+
+/* Developer entry points remain reachable when the compact header hides navigation. */
+.developer-links{display:flex;flex-wrap:wrap;gap:18px;margin-top:20px}.footer-top nav{flex-wrap:wrap}.site-header nav{gap:22px}

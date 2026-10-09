@@ -1,0 +1,34 @@
+{
+  "expectedVersion": 1,
+  "definition": {
+    "schemaVersion": 3,
+    "id": "leave-approval",
+    "version": 1,
+    "name": "Synthetic group review",
+    "nodes": [
+      {
+        "id": "start",
+        "type": "start",
+        "name": "Submit",
+        "assigneeId": null
+      },
+      {
+        "id": "team",
+        "type": "parallelApproval",
+        "name": "Team review",
+        "assigneeId": null,
+        "assigneeIds": [
+          "bob",
+          "carol"
+        ],
+        "completionMode": "ALL"
+      },
+      {
+        "id": "end",
+        "type": "end",
+        "name": "Complete",
+        "assigneeId": null
+      }
+    ]
+  }
+}
