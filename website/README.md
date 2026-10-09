@@ -15,7 +15,7 @@ npx playwright install --with-deps chromium
 npm test
 ```
 
-`dist/` is the deployable output. The test server intentionally serves the real `/ArcFlow/` project prefix. Playwright covers both languages at 320, 390, 768, and 1440 pixels; scenario tabs; keyboard navigation; repeated image-dialog opening and dismissal; language navigation with Back/Forward; reduced motion; JavaScript-disabled content; image loading; overflow; console exceptions; and unexpected third-party requests.
+`dist/` is the deployable output. CSS and JavaScript filenames include content hashes so returning visitors never mix new HTML with old cached code. The test server intentionally serves the real `/ArcFlow/` project prefix. Playwright covers both languages at 320, 390, 768, and 1440 pixels; scenario tabs; keyboard navigation; repeated image-dialog opening and dismissal; language navigation with Back/Forward; reduced motion; JavaScript-disabled content; image loading; overflow; console exceptions; and unexpected third-party requests.
 
 ## Content and assets
 

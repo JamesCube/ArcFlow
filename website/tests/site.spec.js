@@ -7,6 +7,8 @@ for (const lang of ['zh','en']) {
       await page.setViewportSize({width,height:900});
       await page.goto(lang==='en'?'./en/':'./');
       await expect(page.locator('h1')).toBeVisible();
+      await expect(page.locator('link[rel=stylesheet]')).toHaveAttribute('href',/style\.[a-f0-9]{12}\.css$/);
+      await expect(page.locator('script[src]')).toHaveAttribute('src',/app\.[a-f0-9]{12}\.js$/);
       await expect(page.locator('html')).toHaveAttribute('lang',lang==='en'?'en':'zh-CN');
       const dimensions=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,inner:innerWidth}));
       if(dimensions.scroll>dimensions.inner) console.log('overflow',await page.locator('body *').evaluateAll(nodes=>nodes.map(e=>({tag:e.tagName,cls:e.className,width:e.getBoundingClientRect().width,right:e.getBoundingClientRect().right})).filter(e=>e.right>innerWidth+1)));
