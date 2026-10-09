@@ -4,6 +4,23 @@ const names = {
   'contract.termsKind': ['Contract terms kind', '合同条款类型'],
 }
 export function routingFieldLabel(field, locale = 'en') { return names[field]?.[locale === 'zh' ? 1 : 0] || field }
+// Display-only labels. Keep the saved canonical fact untouched for validation,
+// replay and audit comparisons; unknown strings remain escaped text in Vue.
+const actualValueLabels = {
+  'receiving.hasRejectedLines': {
+    true: ['Has lines with rejected goods', '有不合格明细'],
+    false: ['No lines with rejected goods', '无不合格明细'],
+  },
+  'contract.termsKind': {
+    STANDARD: ['Standard terms', '标准条款'],
+    NONSTANDARD: ['Nonstandard terms', '非标准条款'],
+  },
+}
+export function routingActualValueLabel(field, actualValue, locale = 'en') {
+  if (typeof actualValue !== 'string') return '—'
+  const labels = Object.hasOwn(actualValueLabels, field) ? actualValueLabels[field] : null
+  return labels && Object.hasOwn(labels, actualValue) ? labels[actualValue][locale === 'zh' ? 1 : 0] : actualValue
+}
 export function routingPredicateLabel(atom, locale = 'en') {
   const zh = locale === 'zh', name = routingFieldLabel(atom.field, locale)
   if (atom.field === 'payment.netTotal') return `${name} ${{ EQ: '=', GT: '>', GTE: '≥', LT: '<', LTE: '≤' }[atom.operator]} ${atom.currency} ${atom.threshold}`

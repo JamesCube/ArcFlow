@@ -31,3 +31,34 @@ describe('conditional route presentation', () => {
     expect(wrapper.text()).toContain('Condition preview pending'); wrapper.unmount()
   })
 })
+
+describe('localized saved routing facts', () => {
+  const cases = [
+    ['receiving.hasRejectedLines', 'true', { operator: 'EQ', expected: true }, 'Has lines with rejected goods', '有不合格明细'],
+    ['receiving.hasRejectedLines', 'false', { operator: 'EQ', expected: true }, 'No lines with rejected goods', '无不合格明细'],
+    ['contract.termsKind', 'STANDARD', { operator: 'EQ', values: ['NONSTANDARD'] }, 'Standard terms', '标准条款'],
+    ['contract.termsKind', 'NONSTANDARD', { operator: 'EQ', values: ['NONSTANDARD'] }, 'Nonstandard terms', '非标准条款'],
+  ]
+  it.each(cases)('renders %s %s naturally across a language switch while retaining canonical data', async (field, actualValue, predicate, en, zh) => {
+    const { default: RoutingExplanation } = await import('./RoutingExplanation.vue')
+    const node = { id: 'review', runIf: { mode: 'ALL', predicates: [{ field, ...predicate }] } }
+    const routing = { evaluations: [{ stepId: 'review', result: true, predicates: [{ field, actualValue, result: true }] }] }
+    const original = JSON.stringify(routing)
+    const wrapper = mount(RoutingExplanation, { props: { node, routing, locale: 'en' } })
+    expect(wrapper.get('.routing-fact').text()).toBe(`Actual value: ${en} · Matched`)
+    await wrapper.setProps({ locale: 'zh' })
+    expect(wrapper.get('.routing-fact').text()).toBe(`实际值: ${zh} · 满足`)
+    expect(JSON.stringify(routing)).toBe(original)
+    wrapper.unmount()
+  })
+  it('renders unknown actual-value strings as escaped text rather than markup', async () => {
+    const { default: RoutingExplanation } = await import('./RoutingExplanation.vue')
+    const actualValue = '<img src=x onerror=alert(1)>', node = { id: 'review', runIf: { mode: 'ALL', predicates: [{ field: 'receiving.hasRejectedLines', operator: 'EQ', expected: true }] } }
+    const routing = { evaluations: [{ stepId: 'review', result: false, predicates: [{ field: 'future.field', actualValue, result: false }] }] }
+    const wrapper = mount(RoutingExplanation, { props: { node, routing, locale: 'zh' } })
+    expect(wrapper.get('.routing-fact').text()).toContain(actualValue)
+    expect(wrapper.find('img').exists()).toBe(false)
+    expect(wrapper.get('.routing-fact').html()).toContain('&lt;img')
+    wrapper.unmount()
+  })
+})
