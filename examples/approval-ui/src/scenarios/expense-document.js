@@ -8,7 +8,7 @@ export const isRecord = value => value !== null && typeof value === 'object' && 
 export const exactKeys = (value, keys) => isRecord(value) && Object.keys(value).length === keys.length && keys.every(key => Object.hasOwn(value, key))
 export const reference = value => typeof value === 'string' && /^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$/.test(value)
 export const serverTrim = value => value.replace(/^[\u0000-\u0020]+|[\u0000-\u0020]+$/g, '')
-const text = (value, max) => typeof value === 'string' && !!value.trim() && !!serverTrim(value) && value.length <= max
+export const text = (value, max) => typeof value === 'string' && !!value.trim() && !!serverTrim(value) && value.length <= max
 export class InvalidScenarioPayload extends Error { constructor() { super('Invalid scenario response'); this.name = 'InvalidScenarioPayload' } }
 export const invalid = () => { throw new InvalidScenarioPayload() }
 export const canonical = value => Array.isArray(value) ? value.map(canonical) : isRecord(value) ? Object.fromEntries(Object.keys(value).sort().map(key => [key, canonical(value[key])])) : value

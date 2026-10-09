@@ -73,7 +73,7 @@ The previous desktop and 390px stacked layouts passed the real Chromium workbenc
 
 The workspace has a navy navigation rail, shared text and status styles, compact stage cards and one inspector. On mobile, you can switch between the flow and its settings. Escape returns to the selected card, including read-only reviewers; switching views or languages preserves the draft and undo history. The request overview counts only records actually returned for the signed-in user.
 
-The [scenario suite](e2e/VISUAL_SCENARIOS.md) captures Chinese and English leave-request forms, sequential steps, ALL/ANY groups, saved snapshots and mobile views. It uses a fresh backend in a separate CI run. Check that the browser job passed for your revision, then inspect its screenshots; unit tests and a successful build do not show how the UI renders. Keep the example on localhost with synthetic leave requests and the fixed Bob/Carol accounts. Expense and contract forms, role resolution, tenant isolation and arbitrary branching are not included, and production use has not been verified.
+The [scenario suite](e2e/VISUAL_SCENARIOS.md) captures Chinese and English leave-request forms, sequential steps, ALL/ANY groups, saved snapshots and mobile views. It uses a fresh backend in a separate CI run. Check that the browser job passed for your revision, then inspect its screenshots; unit tests and a successful build do not show how the UI renders. Keep the example on localhost with synthetic leave requests and the fixed Bob/Carol accounts. These leave-workspace captures do not cover the separate scenario library described below. Dynamic role resolution, tenant isolation, arbitrary branching and production use have not been verified.
 
 ## Paginated member worklists
 
@@ -103,3 +103,192 @@ Returning to an unchanged document form reuses its unresolved submission key
 and original process snapshot, even after a publication refresh. A successful
 submission clears only that form. Sign-out clears both forms and retry slots;
 editing a form's normalized payload starts a new intent for that form.
+
+## Unified typed scenario library
+
+`/scenarios.html` includes all four explicitly compiled templates: OA Expense,
+OA Travel, OA Seal Use and ERP Receiving. The backend catalog is stably sorted
+by full ID: `erp-receiving`, `oa-expense`, `oa-seal-use`, `oa-travel`.
+The matching catalog and UI must be deployed together. Unknown templates,
+unknown metadata and malformed response envelopes fail closed; the registry
+does not execute arbitrary user-defined schemas.
+
+All four cards open their own active scope within the shared in-memory library
+sign-in. `/receiving.html` also remains an independent bilingual receiving desk.
+The existing `/` leave/procurement workspace remains available.
+
+Switching cards preserves each scenario's form, unresolved submission key and
+original process snapshot/version, unpublished process draft, designer
+undo/selection, selected records, review notes and original-stage retained notes.
+An unchanged uncertain retry keeps its original process version even after a
+refresh sees a newer publication. Refresh preserves a dirty draft. Successful
+submission clears only its originating form; delayed replies stay in their
+originating scope and cannot take over newer navigation. Lists and loaded-item
+counts belong to the selected scenario, rather than a cross-scenario inbox.
+Sign-out, identity change or an unauthorized response invalidates every scope.
+Credentials and unsaved work remain memory-only; browser reload clears them.
+
+Response contracts stay distinct: Expense and Travel require exactly
+`{request, total}` with a decimal-string total; Seal requires exactly
+`{request, total: null}`; Receiving requires exactly
+`{request, total: null, summary}`. A permissive union of those envelopes would
+hide wrong-scenario data and is not accepted.
+
+### Expense and Travel
+
+The reusable form renderer shows Expense line items or Travel destination,
+dates, purpose and estimated budget. Travel's inclusive 1–90-day duration is
+display-only, derived from its validated dates. Estimated cost uses exact decimal
+text internally and numeric JSON on the wire; JPY is whole yen. Travel metadata
+has no line items. Monetary totals retain Expense's exact decimal semantics.
+
+All data is synthetic. Travel approval does not book travel, reimburse expenses,
+issue payments, send notifications or write back to another system.
+
+The independent Expense and Travel browser journeys use the fresh real-backend
+launcher, preserving both single-scenario review and cross-scenario retry,
+draft, designer and retained-note isolation coverage:
+
+```sh
+npm run test:e2e -- e2e/scenarios.spec.mjs e2e/travel-scenarios.spec.mjs
+```
+
+Set `ARCFLOW_CAPTURE_SCENARIOS=1` for Expense captures or
+`ARCFLOW_CAPTURE_TRAVEL_SCENARIOS=1` for authenticated bilingual Travel captures
+and per-image revision/run/hash sidecars. Travel plans 20 images across 10
+bilingual states, including validation errors and narrow reviewer controls.
+Travel output uses unique `capture-travel-<UUID>/` directories; Expense output
+uses unique `capture-<UUID>/` directories. Capture is not publication.
+
+### Seal-use review
+
+Seal uses seven real input fields and the immutable nine-property `sealUse`
+document. Its copy count stays raw text while editing and becomes an integer
+from 1 through 100 only after validation. Decimal, exponent and malformed count
+input is preserved for correction, never truncated or treated as money.
+Metadata retains the existing DTO shape: `copyCount` has kind `integer`,
+`maxLength: 16`; `lineItems` is explicitly null. Fixed root text lengths and
+strict Seal-specific field validation remain enforced.
+
+Seal shows document, synthetic seal category and copy count in the form, list
+and saved detail. The initial process is Bob's `documentReview`, then Carol's
+`sealReview`. Approval records review only: it does not apply a physical or
+electronic seal, sign anything, upload or verify a file, or fetch the inert
+synthetic document reference.
+
+The unit/DOM suite includes shared raw Seal vectors, strict transport and metadata
+negatives, mounted bilingual form/detail cases, Catalog switching and retry
+identity/version, independent designer undo, note retention and interruption
+cases. `e2e/seal-use.spec.mjs` remains a separate real-backend journey covering
+publication, form validation, pending and next-stage review, approved/rejected
+results, reload and 390px reviewer controls:
+
+```sh
+npm run test:e2e -- e2e/seal-use.spec.mjs
+```
+
+It creates images only when `ARCFLOW_CAPTURE_SCENARIOS=1`, alongside per-image
+SHA-256 and run/source provenance in unique `capture-<UUID>/` directories.
+
+### ERP receiving
+
+The receiving desk records a synthetic purchase order reference, warehouse,
+delivery date, and 1–20 individually identified material lines. Each line has
+an independent purchase order line reference and a `PCS` or `BOX` unit.
+Ordered, received, accepted and rejected quantities are integers from 0 to
+100,000; ordered must be positive, received cannot exceed ordered, and accepted
+plus rejected must equal received. At least one line must receive goods.
+Rejected goods require an exception reason (up to 1,000 UTF-16 code units).
+The input preserves raw text until validation, so blanks, fractions, exponent
+notation, signed or oversized values cannot silently become valid integers.
+Line IDs and purchase order line references are unique within a document;
+there is no cross-document quantity allocation or order-balance validation.
+
+Quantities are reconciled and summarized separately per unit, in PCS then BOX
+order. No combined scalar total treats pieces and boxes as interchangeable.
+The receiving summary is
+`{kind: "receiving", lineCount, exceptionLineCount, quantities}`; each quantity
+row is `{unit, received, accepted, rejected}`. Optional exception reasons and
+Receiving-specific quantity/enumeration metadata remain strictly validated.
+
+The receiving namespace is `/api/scenarios/erp-receiving` with `/process`,
+`/documents`, `/requests`, and `/requests/{id}/decisions`. Its own process,
+records and business snapshots stay isolated from the other scenario stores.
+Submission keys retain the store's existing applicant-scoped binding; no new
+scenario scope is added to the shared JDBC key contract. The shared workspace
+preserves original submission keys and process snapshots for uncertain retries,
+suppresses repeated mutations, clears actor-scoped state on sign-out, rejects
+malformed acknowledgements, and retains unconfirmed comments under their
+original stage.
+
+The default schema-3 route is an ALL inspection by Bob and Carol followed by a
+separate procurement review by Bob. Bob deliberately serves both stages in this
+fixed-account demo. Alice can use the real ProcessDesigner to publish a changed
+ordered single/ALL/ANY process; submitted receipts retain their saved process.
+The displayed process defines actual assignments. There is no dynamic role
+resolution or separation-of-duties guarantee.
+
+This is a localhost synthetic-data demonstration. It does not fetch real
+purchase orders, check cumulative received quantities across receipts, post
+stock, create payments, or write back to an external ERP. Approval completes
+only the review lifecycle. Browser reload/sign-out clears unsaved forms,
+comments, retry keys and credentials; saved data remains in the backend.
+
+Receiving-specific tests cover exact raw quantity boundaries, per-unit summaries,
+metadata allow-lists, malformed acknowledgements, uncertain retries, identity
+changes, immutable process/business snapshots, Bob's repeated stages, ALL
+rejection, bilingual validation, focus and retained-note recovery. The separate
+browser journey is `e2e/receiving.spec.mjs`; it exercises real persisted
+transitions and an injected lost acknowledgement:
+
+```sh
+npm run test:e2e -- e2e/receiving.spec.mjs
+```
+
+`ARCFLOW_CAPTURE_RECEIVING=1` opts into credential-free screenshots of signed-in
+desktop/mobile workspaces with SHA-256 metadata. The [receiving evidence guide](e2e/RECEIVING_SCENARIOS.md)
+describes the clean-checkout, exact-revision provenance requirements and all
+15 expected captures. A compatibility-backend run must be labeled separately
+from acceptance against the repository's declared backend version.
+
+Run the real installed-client HTTP journey against a built backend jar:
+
+```sh
+node scripts/verify-receiving-http.mjs ../approval-demo/backend/target/approval-demo-0.1.0-SNAPSHOT.jar
+```
+
+It starts a fresh loopback backend on port 18089 with generated disposable
+credentials and a temporary store, checks the client transport and workspace,
+then stops its own backend. Set `JAVA` to a Java 17+ executable or
+`ARCFLOW_RECEIVING_TEST_PORT` to another free loopback port. This verifies HTTP
+behavior; it does not verify browser rendering.
+
+### Combined verification and visual boundary
+
+Run every retained scenario journey against the same combined backend and UI:
+
+```sh
+npm run test:e2e -- e2e/scenarios.spec.mjs e2e/travel-scenarios.spec.mjs e2e/seal-use.spec.mjs e2e/receiving.spec.mjs
+```
+
+The shared catalog checks require all four cards, localized titles and the
+backend's exact full-ID order. A combined browser case also checks independent
+four-scenario drafts and the standalone Receiving entry point. These assertions
+supplement the original candidate journeys; they do not replace them.
+
+Expense/Travel/Seal capture metadata prefers `ARCFLOW_SOURCE_REVISION` over
+`GITHUB_SHA`, so a CI checkout of an explicit PR head is not mislabeled with a
+synthetic merge revision. Supply the actual checked-out revision. Without a
+revision, local captures are labeled `LOCAL_UNVERIFIED_WORKTREE`. Receiving
+independently reads the actual Git HEAD and requires a clean tracked source tree
+for capture. No login screenshots, traces, HARs, saved browser sessions or
+credential logs are recorded.
+
+Test discovery, a unit/DOM pass or a successful production build does not prove
+browser, backend, database or visual acceptance. Individual candidate results
+are not proof for this combined tree: rerun the combined gates and retain their
+exact source and backend identity. The external reference image remains
+unavailable (HTTP 403); no pixel comparison or reference-image visual acceptance
+is claimed. Original bilingual browser captures and independent pixel review
+remain required. Unified reader support does not establish deployment or
+scenario acceptance, and older binaries cannot read every new scenario schema.

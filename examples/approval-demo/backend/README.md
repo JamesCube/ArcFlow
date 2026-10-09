@@ -132,3 +132,37 @@ The backend uses `com.arcflow.examples:approval-domain` for approval persistence
 ## Bounded member inbox API
 
 `GET /api/requests/inbox` adds authenticated `PENDING` / `HANDLED` queries with optional status/process-version filters and keyset pagination (default 25, maximum 100). The response is `{items, nextCursor}`. It uses every actual current group member and only actual historical decisions, rather than the representative `approverId`. The existing `/api/requests` endpoint remains compatible. Pending/handled frontend tabs use the bounded member API, while applicant/history and detail refresh retain the compatible visible-request list. See [全成员收件箱 / inbox contract](../../../docs/MEMBER_INBOX.md) for parameter validation, actor binding, ordering and concurrent-page semantics. `verify-parallel-http.py` covers the endpoint against a disposable live backend, including restart.
+
+
+## Unified scenario hosts and compatibility
+
+The compiled registry contains four isolated hosts. The catalog is sorted by exact ID:
+`erp-receiving`, `oa-expense`, `oa-seal-use`, `oa-travel`. Each route uses
+`/api/scenarios/{id}` and its own fixed `.scenario-{id}.json` file. Requests cannot choose
+paths, process IDs or business types outside that host. All four beans and the registry use
+explicit qualifiers. The generic `/api/documents` route continues to accept only Leave and
+Procurement; registering codecs does not grant access through that route.
+
+Every scenario submission requires exactly one applicant-scoped idempotency key. JSON keys
+are local to each isolated file; when hosts instead share one JDBC database, keys remain
+applicant-global across processes and types. Expense/Travel views are exactly
+`{request,total}` with a string total, Seal-use exactly `{request,total:null}`, and Receiving
+exactly `{request,total:null,summary}`. The summary is derived, not a persisted ledger.
+
+Seal-use additionally requires well-formed UTF-8 `application/json` and a raw submission
+no larger than 8,000,000 UTF-16 code units. Invalid bytes are rejected, alternate media-type
+routes cannot bypass this bound, and unsupported content types receive the explicit 415
+handler instead of a security-denied `/error` dispatch. This is an HTTP-envelope limit,
+not a maximum snapshot size. Approval does not stamp, sign, book, pay or post inventory.
+
+The unified reader accepts known wrapper schemas 1–10, with minimum schemas Expense=7,
+Travel=8, Seal-use=9 and Receiving=10. Writes preserve the maximum already required schema;
+opening a store does not rewrite it or force it to 10. Older binaries remain incompatible
+with types/wrappers they do not recognize. Upgrade all readers/writers before enabling new
+writes and never downgrade wrappers, remove typed records or rebuild ready JDBC members to
+simulate rollback. See [the unified migration gates](../../../docs/BUSINESS_DOCUMENTS.md)
+and the individual [Travel](../../../docs/TRAVEL_SCENARIO.md),
+[Seal-use](../../../docs/SEAL_USE_SCENARIO.md) and [Receiving](../../../docs/RECEIVING_SCENARIO.md) contracts.
+
+The declared runtime remains Boot 4.1.1. Supplementary runs on an external Boot 3 compatibility
+runner do not verify this runtime or satisfy the original-image/pixel acceptance gate.

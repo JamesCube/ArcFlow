@@ -13,6 +13,7 @@ import java.util.*;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -72,6 +73,11 @@ class ApiErrors {
     }
     @ExceptionHandler({MethodArgumentNotValidException.class, HttpMessageNotReadableException.class})
     ResponseEntity<Map<String,String>> invalid(Exception ex) { return ResponseEntity.badRequest().body(Map.of("message", "Invalid request body or fields")); }
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    ResponseEntity<Map<String,String>> mediaType(HttpMediaTypeNotSupportedException ex) {
+        // Resolve here rather than dispatching to /error, which is intentionally denied by the host's security policy.
+        return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body(Map.of("message", "Unsupported Content-Type"));
+    }
     @ExceptionHandler(IOException.class) ResponseEntity<Map<String,String>> storage(IOException ex) {
         return ResponseEntity.status(503).body(Map.of("message", "Storage unavailable; no change confirmed. Refresh before retrying."));
     }

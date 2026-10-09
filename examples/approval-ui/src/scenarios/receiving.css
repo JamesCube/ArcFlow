@@ -1,0 +1,67 @@
+/* ERP receiving: a warehouse ledger, visually distinct from expense reports. */
+.rf-shell,.rf-login { --accent:#157c71; --accent-soft:#e7f4f0; --accent-dark:#0b6259; }
+.rf-login .sf-login-story { background:#123d3c; background-image:radial-gradient(ellipse at 90% 85%,#27776a60,transparent 60%); }
+.rf-login .sf-login-story .sf-kicker,.rf-login .sf-product-tag { color:#a4cec4; }
+.rf-login .sf-login-story>div>p:not(.sf-kicker),.rf-login .sf-login-story>small { color:#b6d1cb; }
+.rf-login-document { margin-top:38px; padding:23px 28px; max-width:340px; border:1px solid #a2d6c640; border-radius:12px; background:#ffffff09; }
+.rf-login-document>span { font:600 10px ui-monospace,monospace; letter-spacing:2px; color:#abccc3; }
+.rf-login-document>strong { display:block; font-size:58px; font-weight:500; margin:9px 0; font-variant-numeric:tabular-nums; }
+.rf-login-document>strong small { font-size:10px; letter-spacing:1.5px; color:#c6dfd7; }
+.rf-login-document>div { display:flex; justify-content:space-between; gap:15px; color:#c1dbd3; font-size:10px; }
+.rf-login-document>i { display:block; margin-top:16px; padding-top:12px; border-top:1px solid #a2d6c640; font-size:12px; font-style:normal; color:#8de0bd; }
+.rf-shell .sf-sidebar { background:#153c3b; }
+.rf-shell .sf-sidebar nav>button.active { background:#21605a; }
+.rf-shell .sf-sidebar-title,.rf-shell .sf-sidebar-bottom { color:#a2c1b9; }
+.rf-shell .sf-person { border-top-color:#ffffff1c; }
+.rf-shell .logo,.rf-login .logo { background:#268a77; }
+.rf-back-link { color:inherit; text-decoration:none; font-size:12px; }
+.rf-back-link:hover { text-decoration:underline; }
+.rf-warehouse-badge { flex-shrink:0; color:#226757; padding:14px 18px; border:1px solid #c8dfd4; background:#f0f7f3; border-radius:8px; font-size:11px; letter-spacing:.8px; }
+.rf-warehouse-badge small { display:block; margin-top:5px; text-align:right; font-size:9px; color:#64857a; }
+.rf-form { min-width:0; background:white; border:1px solid var(--sf-line); border-radius:12px; overflow:hidden; }
+.rf-form .sf-form-section { border:none; border-bottom:1px solid var(--sf-line); border-radius:0; }
+.rf-form .sf-section-title>span { color:#287c68; background:#e8f2eb; }
+.rf-sample { margin-left:auto; white-space:nowrap; align-self:flex-start; font-size:11px; }
+.rf-form .sf-section-title { flex-wrap:wrap; }
+.rf-line-card { margin:0 0 24px; padding:18px; border:1px solid #d8e3dd; border-radius:8px; background:#fcfefd; min-width:0; }
+.rf-line-card legend { color:#4c7064; padding:0 9px; font-size:10px; letter-spacing:1.4px; font-weight:700; }
+.rf-line-meta { display:grid; grid-template-columns:1fr 1.35fr .65fr; gap:14px; }
+.rf-quantity-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-top:20px; }
+.rf-quantity-grid input { font-variant-numeric:tabular-nums; font-size:19px; font-weight:600; padding:12px; min-width:0; }
+.rf-quantity-grid .sf-field:first-child input { background:#f3f5f5; }
+.rf-quantity-grid .sf-field:nth-child(3) input { color:#15745a; }
+.rf-quantity-grid .sf-field:nth-child(4) input { color:#b37030; }
+.rf-quantity-grid .sf-field label { font-size:11px; }
+.rf-equation { display:flex; gap:8px; align-items:center; padding:10px 12px; margin:13px 0 18px; font-size:11px; color:#81766a; background:#f3f1ed; border-radius:5px; }
+.rf-equation.balanced { color:#30745b; background:#eaf3ec; }
+.rf-equation strong { margin-left:auto; font-size:10px; white-space:nowrap; }
+.rf-line-card textarea { min-height:64px; }
+.rf-summary { padding:18px; margin:15px 0; border:1px solid #d6e5db; border-radius:8px; background:#f4f9f5; }
+.rf-summary>div { display:grid; grid-template-columns:50px repeat(3,minmax(0,1fr)); gap:12px; align-items:center; padding:9px 0; font-size:10px; color:#607367; }
+.rf-summary>div+div { border-top:1px solid #dce8de; }
+.rf-summary>div>b { font-size:12px; color:#315c48; }
+.rf-summary strong { display:block; color:#1f4f3c; font-size:23px; font-weight:600; font-variant-numeric:tabular-nums; margin-top:3px; }
+.rf-summary>p:not(.sf-kicker) { color:#6b8073; font-size:10px; margin:8px 0 0; }
+.rf-form-summary { margin:0; border:none; border-bottom:1px solid var(--sf-line); border-radius:0; padding:24px 28px; }
+.rf-form-summary .sf-kicker { font-size:9px; margin:0 0 5px; }
+.rf-submit { display:flex; align-items:center; justify-content:space-between; gap:20px; padding:24px 28px; }
+.rf-submit>p { max-width:320px; font-size:11px; color:#738278; line-height:1.7; margin:0; }
+.rf-submit button { flex-shrink:0; }
+.rf-context .sf-mini-flow>li>span { color:#387d67; border-color:#c6decf; }
+.rf-context .sf-mini-flow>li.sf-mini-start>span { color:#fff; background:#317b65; }
+.rf-context .sf-context-note { background:#f0f6f1; }
+.rf-roles-note { color:#6c7d72; font-size:11px!important; line-height:1.8!important; padding-left:12px; border-left:2px solid #bdd4c5; }
+.rf-context .rf-roles-note { margin:20px 0; }
+.rf-exception-label { display:block; color:#a17335; font-size:10px; margin-top:7px; }
+.rf-document-mark { color:#467961!important; font-size:11px!important; letter-spacing:1px; text-align:right; }
+.rf-document-mark small { display:block; font-size:18px; font-weight:500; letter-spacing:0; margin-top:7px; }
+.rf-footer { align-items:flex-start; gap:30px; }
+.rf-footer>span:last-child { max-width:680px; text-align:right; line-height:1.7; }
+@media (max-width:1200px) { .rf-line-meta { grid-template-columns:1fr 1fr; }.rf-line-meta .sf-field:nth-child(2) { grid-column:1/-1; order:3; } }
+@media (max-width:700px) {
+ .rf-warehouse-badge { display:none; }.rf-line-meta { grid-template-columns:minmax(0,1fr) 90px; }.rf-line-card { padding:14px; }
+ .rf-quantity-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }.rf-equation { flex-wrap:wrap; }.rf-equation strong { margin-left:0; }
+ .rf-form-summary,.rf-submit { padding:20px; }.rf-submit { flex-direction:column; align-items:stretch; }.rf-submit>p { max-width:none; }
+ .rf-summary>div { grid-template-columns:36px repeat(3,minmax(0,1fr)); gap:8px; }.rf-summary strong { font-size:20px; }
+ .rf-footer { flex-direction:column; gap:8px; }.rf-footer>span:last-child { text-align:left; }.rf-sample { margin-left:0; }
+}

@@ -37,3 +37,6 @@ examples/approval-ui/gallery-rejection-results/
 
 # Expense scenario real-backend capture artifacts
 examples/approval-ui/scenario-visual-results/
+
+# Receiving real-backend screenshot artifacts
+examples/approval-ui/receiving-visual-results/

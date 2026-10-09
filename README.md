@@ -97,7 +97,7 @@
 ### 可靠性、存储与恢复
 | 能力 | 状态 | 当前范围 |
 | --- | --- | --- |
-| 提交幂等 | ✅ | 可选申请人作用域键；同键同内容重放，不同内容冲突 |
+| 提交幂等 | ✅ | 通用入口键可选；报销专用入口要求申请人作用域键，同键同内容重放、不同内容冲突 |
 | 审批决定幂等 | ✅ | 同一成员／步骤重试不多记一票；相反决定冲突 |
 | 并发状态更新 | ✅ | 修订号和原子更新保护审批状态；不涵盖外部副作用 |
 | 本地 JSON 恢复 | 🟡 | 默认文件持久化与重开恢复，只能单写者 |
@@ -111,15 +111,15 @@
 | --- | --- | --- |
 | 独立 Spring Boot + Vue | 🟡 | 中英文工作台，固定演示身份和本地 JSON |
 | 原生 RuoYi-Vue + Vue3 | 🟡 | 原生宿主参考集成，审批不会自动写入若依 MySQL |
-| [H5 手机浏览器](docs/CASE_GALLERY.md#other-clients) | 🟡 | 请假／采购的查看和审批；没有手机发起、设计器或报价 |
+| [H5 手机浏览器](docs/CASE_GALLERY.md#other-clients) | 🟡 | 请假／采购的查看和审批；没有手机发起、设计器、报价或报销 |
 | DAG 同步执行 | ✅ | 零第三方运行时依赖的同步串行内核，不保存人工等待 |
 | 飞书／企微／钉钉身份 | — | 飞书／企微／钉钉仅有未配置适配器占位 |
 
 [范围、缺失项和测试依据](docs/CAPABILITIES.md#zh-integration)
 
-除了上面标出的缺失项，完整目录还单列了任意分支／汇聚、多数表决、加签、领取、转办、抄送、批量审批、定时催办、逾期升级、附件、租户隔离、异步执行和 BPMN 等能力，均未实现。新场景和表单设计器见[按阶段推进的建设顺序](docs/CAPABILITIES.md#zh-next)。
+除了上面标出的缺失项，完整目录还单列了任意分支／汇聚、多数表决、加签、领取、转办、抄送、批量审批、定时催办、逾期升级、附件、租户隔离、异步执行和 BPMN 等能力，均未实现。多行明细已在报销中实现，采购和报价仍为单行；场景目录由编译期版本化元数据定义，尚无模板安装／复制或任意字段发布。新场景和表单设计器见[按阶段推进的建设顺序](docs/CAPABILITIES.md#zh-next)。
 
-[本地运行](#快速开始) · [看三类业务的完整过程](#业务案例) · [完整能力目录](docs/CAPABILITIES.md#zh)
+[本地运行](#快速开始) · [看业务案例的完整过程](#业务案例) · [完整能力目录](docs/CAPABILITIES.md#zh)
 
 <a id="先完成一笔请假审批"></a>
 <a id="先完成一次请假审批"></a>
@@ -143,21 +143,26 @@ python3 scripts/tryout.py
 
 想多加一级审批，就用 Alice 在设计器中给 Bob 后面加上 Carol，发布后再提交一份新申请。
 
-同一次启动也能试采购和报价：采购在当前工作区的“申请类型”中选择；报价打开终端打印的 `/quote-discount.html` 独立页面，使用同一份密码文件重新登录。各案例的填写示例、审批顺序和入口见[三种业务案例](docs/GETTING_STARTED.md#try-other-cases-zh)。
+同一次启动也能试采购、报价和报销：采购在当前工作区的“申请类型”中选择；报价打开终端打印的 `/quote-discount.html`，费用报销打开 `/scenarios.html` 场景库，均使用同一份密码文件在独立页面登录。请假／采购／报价入口见[原有三种业务案例](docs/GETTING_STARTED.md#try-other-cases-zh)；报销的字段、审批与重试规则见[费用报销说明](docs/EXPENSE_SCENARIO.md)，真实页面见[报销图集](docs/EXPENSE_SCENARIO.md#gallery)。
 
 按 Ctrl-C 会停止服务并删除这次试用数据。需要保留数据时，按[手动启动说明](docs/GETTING_STARTED.md#简体中文)运行。当前版本为 `0.1.0-SNAPSHOT`，请在本机使用测试数据；API 仍会调整。
 
 ## 业务案例
 
-从 OA 请假开始，再把审批接到采购、报价等业务中。各个案例的进度如下：
+从 OA 请假开始，再体验采购、报价和费用报销。各个案例的进度如下：
 
 | 应用 | 审批内容 | 当前进度 |
 | --- | --- | --- |
 | **智能 CRM** | 报价折扣：销售提交报价，经理核对折扣，财务复核金额 | [隔离的合成案例](docs/CRM_QUOTE_CASE.md)可运行，含独立中英文页面；尚未接入共享工作区或真实 CRM |
 | **OA** | 请假申请：填写天数和事由，由指定审批人逐步处理 | [可以运行](docs/GETTING_STARTED.md#简体中文)，也有若依示例 |
 | **ERP** | 采购申请：填写物品、数量和单价，审核采购需求与金额 | [接口与独立／若依表单](docs/PROCUREMENT_UI.md)均可运行，H5 可查看并审批采购单 |
+| **OA 费用报销** | 1–20 行费用明细、日期、类别、金额与合成票据引用，费用审核后由财务复核 | [已合并的独立场景](docs/EXPENSE_SCENARIO.md)，在 `/scenarios.html` 运行；不打款、不上传或验真发票 |
 
 报价案例使用合成客户和固定的销售经理 → 财务两步人工审批，通过专用 `/api/crm` 服务和 `/quote-discount.html` 页面运行。共享独立端、若依和 H5 工作区尚不支持报价；AI 功能、真实 CRM 连接、客户通知和业务回写均未实现。验收状态见 [CRM 兼容性与发布门槛](docs/CRM_COMPATIBILITY_READINESS.md)。
+
+费用报销使用编译期版本化 `ScenarioCatalog`、专用 `/api/scenarios/oa-expense` 路由和独立数据文件；表单字段固定，设计器可配置 1–8 个固定人员审批步骤。它不接入共享工作区、若依或 H5，也不连接真实财务系统。
+
+[出差](docs/TRAVEL_SCENARIO.md)、[用印](docs/SEAL_USE_SCENARIO.md)与[收货验收](docs/RECEIVING_SCENARIO.md)已纳入本地统一集成候选。`/scenarios.html` 目录包含报销、出差、用印和收货四项；收货另保留 `/receiving.html`。各自使用独立业务类型、流程、固定存储文件和会话工作区；没有动态条件／任意字段表单引擎。该候选未合并或部署，本文不声称完整组合 CI／发布验收已通过。原候选截图下载遇到 HTTP 403／1010，原图字节与独立逐图验收仍未核实。详见[统一兼容及验收门槛](docs/UNIFIED_SCENARIO_INTEGRATION.md)。
 
 <a id="看看实际页面"></a>
 
@@ -187,13 +192,17 @@ python3 scripts/tryout.py
 
 [完整六步图集：填写、提交、待审、下一步、通过与驳回](docs/CASE_GALLERY.md#crm)
 
-以上都是不同实际状态的原始截图；报价仍使用独立页面。[若依与 H5](docs/CASE_GALLERY.md#other-clients) · [截图版本与来源](docs/CASE_GALLERY.md#provenance)
+以上原有三类业务与设计器、人员组、若依、H5 图集共计 33 个不同场景、61 张中英文原图；该计数不含报销。报价仍使用独立页面。[若依与 H5](docs/CASE_GALLERY.md#other-clients) · [截图版本与来源](docs/CASE_GALLERY.md#provenance)
+
+#### OA · 费用报销
+
+[报销真实图集：8 组状态／视口、16 张中英文原图](docs/EXPENSE_SCENARIO.md#gallery)，单独统计。涵盖场景库、填写、流程配置、提交待审、当前审批人、390px 窄屏审批、通过和驳回；使用合成数据，来源与哈希见图集。
 
 ## 接到你的应用
 
 若依示例把审批页面放进原生菜单，复用现有账号和权限。接其他 Java 应用时，可以从审批领域库及存储接口开始。
 
-领域库支持类型化请假、采购、报价折扣和费用报销单，共用审批状态机、历史记录和提交重试。通用 Java／HTTP 示例及独立与若依工作区保留请假、采购体验；报价 HTTP 入口仅由专用宿主提供，额外核对源报价版本、业务读权和归属销售，通用单据入口拒绝报价。审批期间业务快照保持不变。字段、接口和升级限制见[业务单据契约](docs/BUSINESS_DOCUMENTS.md)。
+主分支领域库支持类型化请假、采购、报价折扣和费用报销单，共用审批状态机、历史记录和提交重试。通用 HTTP 入口及独立与若依工作区保留请假、采购体验；报价 HTTP 入口仅由专用宿主提供，额外核对源报价版本、业务读权和归属销售；报销使用专用场景宿主并要求 `Idempotency-Key`。本地统一候选另注册出差、用印与收货，分别走专用场景宿主；通用单据入口仍拒绝报价与全部四种场景单据。审批期间业务快照保持不变。字段、接口和升级限制见[业务单据契约](docs/BUSINESS_DOCUMENTS.md)。
 
 | 从哪里看 | 用途 |
 | --- | --- |
@@ -202,9 +211,7 @@ python3 scripts/tryout.py
 | [若依集成](examples/ruoyi-vue3/README.md) | RuoYi-Vue + RuoYi-Vue3 的接入步骤 |
 | [JDBC 存储](examples/approval-jdbc/README.md) | 用数据库保存审批数据和审计记录 |
 
-费用报销使用独立 `/scenarios.html` 页面和 `/api/scenarios/oa-expense` 宿主；通用单据入口不接受费用报销。首次费用写入升级为 schema 7，须先升级全部读取端并停止旧写者，回退不是无损操作。详见[费用报销及迁移说明](docs/EXPENSE_SCENARIO.md)。
-
-类型化请假与采购写入至少使用 JSON 快照 schema 5；首次报价写入升级到 schema 6，后续写入不会降级。启用报价前须升级全部读取端并停止旧写入端；只支持 schema 5 的程序不能读取报价，也不支持新旧版本混写。成员待办索引继续使用 SQL revision 3，CRM 不新增 SQL 迁移；旧数据库仍需要显式迁移与分批回填。
+类型化请假与采购写入至少使用 JSON 快照 schema 5；首次报价写入升级到 schema 6，首次报销写入升级到 schema 7，后续写入不会降级。启用新类型前先升级全部读取端、停止不兼容写入端并备份；schema 6 读取端不能读取报销／schema 7。报销使用 `approval.data-file + ".scenario-oa-expense.json"`；升级前的逐字节备份只保存历史状态，回退不能无损保留升级后的新写入，详见[费用报销及迁移说明](docs/EXPENSE_SCENARIO.md)。成员待办索引继续使用 SQL revision 3，CRM 和报销均不新增 SQL 迁移；旧数据库仍需要显式迁移与分批回填。本地统一 reader 严格读取 schema 1–10；出差最低 8、用印最低 9、收货最低 10，写入按当前版本及全部类型要求取最大值，绝不降级或在读取时强制升到 10。注册新类型不需要重建已 ready 的成员索引。先停止不兼容写者、备份并升级所有读取／写入端，再开放新类型；原独立候选不能互相兼容，历史备份不能无损降级。见[组合版本迁移与验证](docs/UNIFIED_SCENARIO_INTEGRATION.md)。
 
 两个演示默认把审批数据写进本地 JSON，只支持单实例。若依的 MySQL 保存的是用户、角色和菜单，审批不会自动改用数据库。JDBC 需要显式接入和迁移；已提供成员待办／已办分页。租户隔离、业务表联合事务及 outbox 仍未实现。
 
@@ -223,7 +230,7 @@ java -cp target/classes com.arcflow.example.QuickStart
 
 ## 文档与源码
 
-[首次审批与排障](docs/GETTING_STARTED.md#简体中文) · [分组审批规则](docs/PARALLEL_APPROVAL.md) · [提交幂等](docs/SUBMISSION_IDEMPOTENCY.md) · [集成设计](docs/INTEGRATION_DESIGN.md) · [贡献说明](CONTRIBUTING.md)
+[首次审批与排障](docs/GETTING_STARTED.md#简体中文) · [费用报销场景](docs/EXPENSE_SCENARIO.md) · [报销图集](docs/EXPENSE_SCENARIO.md#gallery) · [分组审批规则](docs/PARALLEL_APPROVAL.md) · [提交幂等](docs/SUBMISSION_IDEMPOTENCY.md) · [集成设计](docs/INTEGRATION_DESIGN.md) · [贡献说明](CONTRIBUTING.md)
 
 遇到问题请[提 issue](https://github.com/JamesCube/ArcFlow/issues)，附上提交版本、运行环境、命令和错误信息，去掉密码及真实个人数据。
 

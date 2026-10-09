@@ -49,13 +49,13 @@ export function parseScenarioJson(source) {
   const raw = value(0); whitespace(); if (position !== source.length) return invalid()
   function materialize(current, key, currency) {
     if (current instanceof NumberToken) {
-      if (key === 'amount') return exactAmount(current.source, currency)
+      if ((key === 'amount' || key === 'estimatedCost')) return exactAmount(current.source, currency)
       if (!/^-?(?:0|[1-9]\d*)$/.test(current.source) || !Number.isSafeInteger(Number(current.source))) return invalid()
       return Number(current.source)
     }
     if (Array.isArray(current)) return current.map(entry => materialize(entry, undefined, currency))
     if (isRecord(current)) return Object.fromEntries(Object.entries(current).map(([field, entry]) => [field, materialize(entry, field, current.currency ?? currency)]))
-    if (key === 'amount') return invalid()
+    if ((key === 'amount' || key === 'estimatedCost')) return invalid()
     return current
   }
   return materialize(raw)

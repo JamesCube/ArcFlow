@@ -46,7 +46,7 @@ def main():
                 except urllib.error.URLError: time.sleep(.1)
             raise RuntimeError('Disposable backend did not become ready')
         try:
-            start(); catalog=call('alice','GET','/api/scenarios'); assert catalog[0]['id']=='oa-expense' and catalog[0]['lineItems']['maxItems']==20
+            start(); catalog=call('alice','GET','/api/scenarios'); expense=next(item for item in catalog if item['id']=='oa-expense'); assert expense['lineItems']['maxItems']==20
             definition=call('alice','GET',route+'/process'); assert definition['id']=='oa-expense'
             body={'business':{'type':'expense','documentVersion':1,'businessId':'EXP-HTTP-001','title':'Synthetic office expenses','reason':'Demonstration receipt references only','costCenter':'ENGINEERING','currency':'CNY','lines':[
                 {'lineId':'line-1','spentOn':'2026-10-01','category':'OFFICE','description':'Demo supplies','amount':.1,'receiptRef':'R-HTTP-1'},

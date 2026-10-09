@@ -30,6 +30,8 @@ jobs:
       ARCFLOW_PG_PASSWORD: arcflow-ci-disposable
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -43,10 +45,25 @@ jobs:
           python3 - <<'PY'
           import xml.etree.ElementTree as ET
           report = ET.parse('examples/approval-jdbc/target/surefire-reports/TEST-com.arcflow.approval.jdbc.PostgresqlApprovalStoreTest.xml').getroot()
-          assert int(report.attrib['tests']) >= 79, report.attrib
+          assert int(report.attrib['tests']) >= 94, report.attrib
           for key in ('skipped', 'errors', 'failures'):
               assert int(report.attrib[key]) == 0, report.attrib
           required_business_tests = {
+              'mixedScenarioDatabaseReadsDecisionsAndInboxesRemainProcessIsolated',
+              'mixedScenarioDatabaseSubmissionKeysStayApplicantGlobalAcrossEveryType',
+              'mixedScenarioDatabaseRestartPreservesTypedSnapshotsKeysAndIndependentVersions',
+              'mixedScenarioDatabaseConcurrentDifferentTypesCreateOneGlobalKeyWinner',
+              'mixedScenarioDatabaseFailedWritesRollBackRequestAuditKeyAndMembersTogether',
+              'travelTypedSnapshotGlobalKeysAndMemberProjectionRemainProcessIsolated',
+              'travelConcurrentRetryCreatesOneRequestBindingAndExactAudit',
+              'sealUseTypedSnapshotGlobalKeysAndMemberProjectionRemainProcessIsolated',
+              'sealUseConcurrentRetryCreatesOneRequestBindingAndExactAudit',
+              'sealUseEveryFieldAndVersionBindsRetryAfterRejectionAndReopen',
+              'sealUseFailedAuditRollsBackTypedRequestMembersAndKey',
+              "receivingTypedSnapshotAllVotesAndProcessIsolation",
+              "receivingConcurrentRetryAndRepeatedReviewerRemainExact",
+              "receivingRawNegativeZeroPayloadCannotBeRead",
+              "receivingHostRejectsWrongBusinessTypeBeforeMutation",
               "expenseTypedSnapshotGlobalKeysAndMemberProjectionRemainProcessIsolated",
               "expenseConcurrentRetryCreatesOneRequestBindingAndExactAudit",
               'quoteSnapshotAndTwoStepInboxProgressionSurvivePublicationAndReopen',
@@ -95,6 +112,8 @@ jobs:
       ARCFLOW_MYSQL_PASSWORD: arcflow-ci-disposable
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -108,10 +127,25 @@ jobs:
           python3 - <<'PY'
           import xml.etree.ElementTree as ET
           report = ET.parse('examples/approval-jdbc/target/surefire-reports/TEST-com.arcflow.approval.jdbc.MysqlApprovalStoreTest.xml').getroot()
-          assert int(report.attrib['tests']) >= 85, report.attrib
+          assert int(report.attrib['tests']) >= 100, report.attrib
           for key in ('skipped', 'errors', 'failures'):
               assert int(report.attrib[key]) == 0, report.attrib
           required_business_tests = {
+              'mixedScenarioDatabaseReadsDecisionsAndInboxesRemainProcessIsolated',
+              'mixedScenarioDatabaseSubmissionKeysStayApplicantGlobalAcrossEveryType',
+              'mixedScenarioDatabaseRestartPreservesTypedSnapshotsKeysAndIndependentVersions',
+              'mixedScenarioDatabaseConcurrentDifferentTypesCreateOneGlobalKeyWinner',
+              'mixedScenarioDatabaseFailedWritesRollBackRequestAuditKeyAndMembersTogether',
+              'travelTypedSnapshotGlobalKeysAndMemberProjectionRemainProcessIsolated',
+              'travelConcurrentRetryCreatesOneRequestBindingAndExactAudit',
+              'sealUseTypedSnapshotGlobalKeysAndMemberProjectionRemainProcessIsolated',
+              'sealUseConcurrentRetryCreatesOneRequestBindingAndExactAudit',
+              'sealUseEveryFieldAndVersionBindsRetryAfterRejectionAndReopen',
+              'sealUseFailedAuditRollsBackTypedRequestMembersAndKey',
+              "receivingTypedSnapshotAllVotesAndProcessIsolation",
+              "receivingConcurrentRetryAndRepeatedReviewerRemainExact",
+              "receivingRawNegativeZeroPayloadCannotBeRead",
+              "receivingHostRejectsWrongBusinessTypeBeforeMutation",
               "expenseTypedSnapshotGlobalKeysAndMemberProjectionRemainProcessIsolated",
               "expenseConcurrentRetryCreatesOneRequestBindingAndExactAudit",
               'quoteSnapshotAndTwoStepInboxProgressionSurvivePublicationAndReopen',

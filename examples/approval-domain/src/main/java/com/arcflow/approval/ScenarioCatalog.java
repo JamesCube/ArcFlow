@@ -60,4 +60,75 @@ public final class ScenarioCatalog {
             return expense.total().setScale("JPY".equals(expense.currency()) ? 0 : 2).toPlainString();
         });
     }
+    public static Entry receiving(String warehouseId, String qualityId, String procurementId) {
+        var template = new Template("erp-receiving", "ERP", "receiving", 1, 1,
+            t("收货验收审批", "Goods receipt review"),
+            t("手工录入的合成订单与验收记录；不会查询订单余额、入库或付款。", "Manually entered synthetic PO and inspection records; no order-balance lookup, stock posting or payment."),
+            List.of(new Section("identity", t("到货信息", "Delivery details"), List.of(
+                f("businessId", "text", "验收单号", "Receipt reference", 128), f("title", "text", "验收标题", "Title", 120),
+                f("purchaseOrderRef", "text", "合成采购订单引用", "Synthetic purchase order reference", 128),
+                f("warehouse", "select", "收货仓库", "Receiving warehouse", 0, o("EAST", "东区演示仓", "East demo warehouse"), o("WEST", "西区演示仓", "West demo warehouse")),
+                f("receivedOn", "date", "收货日期", "Delivery date", 10))),
+                new Section("reason", t("验收说明", "Inspection context"), List.of(f("reason", "textarea", "验收背景与说明", "Inspection context and notes", 2000)))),
+            new LineItems("lines", t("物料与数量核对", "Materials and quantity reconciliation"), 1, 20, List.of(
+                f("orderLineRef", "text", "订单行引用", "PO line reference", 128), f("description", "text", "物料说明", "Material description", 240),
+                f("unit", "select", "计数单位", "Count unit", 0, o("PCS", "件", "Pieces"), o("BOX", "箱", "Boxes")),
+                f("ordered", "quantity", "订单数量", "Ordered", 0), f("received", "quantity", "本次到货", "Received now", 0),
+                f("accepted", "quantity", "合格数量", "Accepted", 0), f("rejected", "quantity", "不合格数量", "Rejected", 0),
+                new Field("exceptionReason", "textarea", t("异常原因（有不合格数量时必填）", "Exception reason (required for rejected quantity)"), false, 1000, List.of()))));
+        var process = new ProcessDefinition(3, "erp-receiving", 1, "收货验收审批 / Goods receipt review", List.of(
+            new ProcessDefinition.ProcessNode("start", "start", "提交验收 / Submit receipt", null),
+            new ProcessDefinition.ProcessNode("receiving-inspection", "parallelApproval", "仓库与质量会签 / Warehouse and quality", null, List.of(warehouseId, qualityId), "ALL"),
+            new ProcessDefinition.ProcessNode("procurement-review", "approval", "采购复核 / Procurement review", procurementId),
+            new ProcessDefinition.ProcessNode("end", "end", "验收审批完成 / Review complete", null)));
+        return new Entry(template, BusinessDocument.Receiving.class, process, document -> null);
+    }
+    public static Entry travel(String managerId,String financeId) {
+        var template = new Template("oa-travel","OA","travel",1,1,t("出差申请审批","Business travel review"),
+            t("合成行程与预算，审批通过不会预订、报销或付款。","Synthetic itinerary and budget. Approval does not book travel, reimburse expenses or issue a payment."),
+            List.of(new Section("identity",t("申请信息","Request details"),List.of(
+                f("businessId","text","出差单号","Travel reference",128),f("title","text","申请标题","Title",120),
+                f("costCenter","select","成本中心","Cost center",0,o("ENGINEERING","研发","Engineering"),o("SALES","销售","Sales"),o("OPERATIONS","运营","Operations")),
+                f("currency","select","币种","Currency",0,o("CNY","人民币 CNY","CNY"),o("USD","美元 USD","USD"),o("EUR","欧元 EUR","EUR"),o("GBP","英镑 GBP","GBP"),o("JPY","日元 JPY","JPY")))),
+                new Section("itinerary",t("行程与预算","Itinerary and budget"),List.of(
+                    f("destination","text","目的地","Destination",160),f("startDate","date","开始日期","Start date",10),
+                    f("endDate","date","结束日期","End date",10),
+                    f("purpose","select","出差用途","Travel purpose",0,o("CUSTOMER_VISIT","客户拜访","Customer visit"),o("PROJECT_DELIVERY","项目交付","Project delivery"),
+                        o("TRAINING","培训","Training"),o("CONFERENCE","会议","Conference"),o("OTHER","其他","Other")),
+                    f("estimatedCost","money","预计费用","Estimated cost",0))),
+                new Section("reason",t("出差说明","Business justification"),List.of(f("reason","textarea","出差事由与说明","Business justification",2000)))),null);
+        var process = new ProcessDefinition(2,"oa-travel",1,"出差申请审批 / Business travel review",List.of(
+            new ProcessDefinition.ProcessNode("start","start","提交出差申请 / Submit travel",null),
+            new ProcessDefinition.ProcessNode("tripReview","approval","行程审核 / Trip review",managerId),
+            new ProcessDefinition.ProcessNode("budget","approval","预算复核 / Budget review",financeId),
+            new ProcessDefinition.ProcessNode("end","end","审批完成 / Review complete",null)));
+        return new Entry(template,BusinessDocument.Travel.class,process,document -> {
+            var travel=(BusinessDocument.Travel)document;
+            return travel.estimatedCost().setScale("JPY".equals(travel.currency()) ? 0 : 2).toPlainString();
+        });
+    }    public static Entry sealUse(String managerId, String financeId) {
+        var template = new Template("oa-seal-use", "OA", "sealUse", 1, 1,
+            t("用印申请审批", "Seal-use request review"),
+            t("合成文件引用与印章类别；审批通过不代表已盖章或签署。", "Synthetic document references and seal categories. Approval does not apply a seal or sign a document."),
+            List.of(new Section("identity", t("申请信息", "Request details"), List.of(
+                f("businessId", "text", "用印申请编号", "Seal-use reference", 128),
+                f("title", "text", "申请标题", "Title", 120))),
+                new Section("document", t("文件与用印", "Document and seal use"), List.of(
+                    f("documentName", "text", "文件名称", "Document name", 160),
+                    f("documentRef", "text", "合成文件引用", "Synthetic document reference", 128),
+                    f("sealType", "select", "合成印章类别", "Synthetic seal category", 0,
+                        o("OFFICIAL", "公章（合成）", "Official (synthetic)"),
+                        o("CONTRACT", "合同章（合成）", "Contract (synthetic)"),
+                        o("FINANCE", "财务章（合成）", "Finance (synthetic)")),
+                    f("copyCount", "integer", "用印份数", "Copies", 16))),
+                new Section("reason", t("用途说明", "Business purpose"), List.of(
+                    f("reason", "textarea", "用途说明", "Business purpose", 2000)))), null);
+        var process = new ProcessDefinition(2, "oa-seal-use", 1, "用印申请审批 / Seal-use request review", List.of(
+            new ProcessDefinition.ProcessNode("start", "start", "提交申请 / Submit request", null),
+            new ProcessDefinition.ProcessNode("documentReview", "approval", "文件审核 / Document review", managerId),
+            new ProcessDefinition.ProcessNode("sealReview", "approval", "用印复核 / Seal-use review", financeId),
+            new ProcessDefinition.ProcessNode("end", "end", "审批完成 / Review complete", null)));
+        return new Entry(template, BusinessDocument.SealUse.class, process, document -> null);
+    }
+
 }

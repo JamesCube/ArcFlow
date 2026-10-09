@@ -1,0 +1,26 @@
+[
+  {
+    "name": "com.arcflow.contracts.sealuse.SealUseCodecTest",
+    "tests": "382",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0",
+    "time": "0.797"
+  },
+  {
+    "name": "com.arcflow.contracts.sealuse.SealUseRawInputLimitTest",
+    "tests": "5",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0",
+    "time": "0.218"
+  },
+  {
+    "name": "com.arcflow.contracts.sealuse.SealUseVectorsTest",
+    "tests": "65",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0",
+    "time": "0.175"
+  }
+]

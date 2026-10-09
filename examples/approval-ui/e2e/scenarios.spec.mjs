@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test'
 import { createHash, randomUUID } from 'node:crypto'
 import { mkdir, writeFile } from 'node:fs/promises'
 import { dirname } from 'node:path'
+import { SCENARIO_CARDS, expectUnifiedCatalog, expectCatalogCards } from './scenario-catalog.mjs'
 
 // Uses the configured fresh real backend and disposable accounts. Successful
 // saves are never fulfilled or fabricated. Capture is explicitly opt-in; no
@@ -15,7 +16,7 @@ const TIMEOUT = 15_000
 // A local capture is explicitly not evidence of a verified commit. Consumers
 // must compare sourceRevision, run identity and imageSHA256 before using proof.
 const CAPTURE_SESSION = randomUUID()
-const SOURCE_REVISION = process.env.GITHUB_SHA || 'LOCAL_UNVERIFIED_WORKTREE'
+const SOURCE_REVISION = process.env.ARCFLOW_SOURCE_REVISION || process.env.GITHUB_SHA || 'LOCAL_UNVERIFIED_WORKTREE'
 const GITHUB_RUN = process.env.GITHUB_RUN_ID && process.env.GITHUB_REPOSITORY
   ? { id: process.env.GITHUB_RUN_ID, repository: process.env.GITHUB_REPOSITORY, attempt: process.env.GITHUB_RUN_ATTEMPT || '1' }
   : null
@@ -155,14 +156,13 @@ test('expense scenario: real publication, exact document, persisted sequential r
   ] }
   const seeded = await backend(request, 'alice', `${BASE}/process`, { expectedVersion: initial.version, definition })
   const catalog = await backend(request, 'alice', '/scenarios')
-  expect(catalog).toHaveLength(1); expect(catalog[0]).toMatchObject({ id: 'oa-expense', documentType: 'expense', documentVersion: 1, formVersion: 1 })
+  expectUnifiedCatalog(catalog)
 
   await page.goto('/scenarios.html'); await login(page)
   await captureLocales(page, testInfo, '01-catalog', async locale => {
-    await expect(page.getByTestId('open-expense')).toBeVisible()
-    await expect(page.locator('.sf-template-info h2')).toHaveText(catalog[0].title[locale])
-    await expect(page.locator('.sf-template-card')).toHaveCount(1)
+    await expectCatalogCards(page, catalog, locale)
   })
+  await page.getByTestId('open-expense').click()
 
   await page.getByTestId('designer-tab').click()
   await page.getByTestId('process-name').fill('Expense approval · 项目费用审批')
@@ -283,4 +283,45 @@ test('expense scenario: real publication, exact document, persisted sequential r
     await expect(page.locator('.timeline')).toContainText('The expense needs correction.')
   })
   expect(errors).toEqual([])
+})
+
+
+test('unified scenario library: all four cards retain independent drafts and standalone receiving remains available', async ({ page, request }) => {
+  const errors = [], posts = []
+  page.on('pageerror', error => errors.push(error.message))
+  page.on('request', request => { if (request.method() === 'POST') posts.push(new URL(request.url()).pathname) })
+  const catalog = await backend(request, 'alice', '/scenarios')
+  expectUnifiedCatalog(catalog)
+  await page.goto('/scenarios.html'); await login(page)
+  for (const locale of ['zh', 'en']) {
+    await language(page, locale); await expectCatalogCards(page, catalog, locale)
+  }
+  for (const { prefix } of SCENARIO_CARDS) {
+    await page.getByTestId('catalog-tab').click(); await page.getByTestId(`open-${prefix}`).click()
+    await expect(page).toHaveURL(/\/scenarios\.html$/)
+    await expect(page.locator(`#${prefix}-title`)).toBeEnabled()
+    await page.locator(`#${prefix}-title`).fill(`Independent ${prefix} draft`)
+    await expect(page.getByTestId('scenario-refresh')).toBeEnabled()
+    await expect(page.getByRole('alert')).toHaveCount(0)
+  }
+  for (const { prefix } of [...SCENARIO_CARDS].reverse()) {
+    await page.getByTestId('catalog-tab').click(); await page.getByTestId(`open-${prefix}`).click()
+    await expect(page.locator(`#${prefix}-title`)).toHaveValue(`Independent ${prefix} draft`)
+    for (const other of SCENARIO_CARDS.filter(card => card.prefix !== prefix)) {
+      await expect(page.locator(`#${other.prefix}-title`)).toHaveCount(0)
+    }
+  }
+  expect(posts, 'Switching and editing local drafts must not publish or submit').toEqual([])
+
+  // The receiving card shares the library's active scope, while the independent
+  // receiving entry point still starts its own in-memory authenticated workspace.
+  await page.goto('/receiving.html')
+  await page.getByLabel('Demo account').selectOption('alice')
+  try { await page.getByLabel('Password', { exact: true }).fill(process.env.APPROVAL_ALICE_PASSWORD) }
+  catch { throw new Error('Could not enter disposable Alice password; private input details omitted') }
+  await page.getByRole('button', { name: 'Open workspace', exact: false }).click()
+  await expect(page.locator('.rf-shell')).toBeVisible()
+  await expect(page.locator('input[type=password]')).toHaveCount(0)
+  await expect(page.locator('#receiving-title')).not.toHaveValue('Independent receiving draft')
+  expect(posts).toEqual([]); expect(errors).toEqual([])
 })

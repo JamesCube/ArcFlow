@@ -1876,3 +1876,33 @@
 @media(max-width:640px) {
   .sf-retained-index { align-items:flex-start; flex-direction:column; gap:7px; }
 }
+
+/* Travel adds a distinct itinerary preview without changing Expense styling. */
+.sf-template-card + .sf-template-card { margin-top:24px; }
+.sf-travel-art { background:linear-gradient(145deg,#e4f0f0,#d8e7ec); }
+.sf-itinerary { width:218px; padding:25px 23px; background:#fff; border:1px solid #d8e5e8; border-radius:12px; box-shadow:0 16px 35px #324c6320; transform:rotate(-3deg); }
+.sf-itinerary>span { font-size:9px; letter-spacing:1.4px; color:#647b85; }
+.sf-itinerary>strong { display:block; margin:14px 0 20px; font-size:21px; color:#25465a; }
+.sf-itinerary>div { display:flex; gap:12px; margin-top:17px; align-items:center; }
+.sf-itinerary b { display:grid; place-items:center; width:29px; height:29px; border-radius:50%; background:#e8f1f1; color:#416d73; font-size:10px; }
+.sf-itinerary div span { font-size:11px; font-weight:700; color:#345467; }
+.sf-itinerary i { display:block; margin-top:4px; font-size:9px; font-style:normal; font-weight:400; color:#71848f; }
+.sf-derived-summary { padding:20px 25px; background:#edf4f4; border:1px solid #d8e6e7; border-radius:10px; margin-bottom:20px; }
+.sf-derived-summary>span { font-size:12px; color:#47606e; }
+.sf-derived-summary strong { display:block; margin-top:8px; font-size:24px; color:#21475a; }
+.sf-derived-summary p { color:#566e7a; font-size:11px; line-height:1.6; margin:8px 0 0; }
+@media(max-width:600px) { .sf-itinerary { width:205px; padding:18px 20px; } .sf-derived-summary { padding:18px; } }
+
+/* Seal has a document-led illustration and copy-count summary, with no amount. */
+.sf-seal-art { background: linear-gradient(140deg, #e6f3ef, #d6e7e2); }
+.sf-document-art { width: 245px; padding: 28px 24px; background: #fff; border: 1px solid #c4d9d0; border-radius: 8px; box-shadow: 0 16px 35px #274e3f20; transform: rotate(-5deg); }
+.sf-document-art > span { font-size: 10px; letter-spacing: .13em; color: #47745f; }
+.sf-document-art > strong { display: block; margin: 13px 0 22px; font-size: 19px; color: #193c2d; }
+.sf-document-art > i { display: block; height: 5px; margin: 11px 0; background: #e1eae5; border-radius: 3px; }
+.sf-document-art > i:nth-of-type(2) { width: 70%; }
+.sf-document-art > div { border-top: 1px solid #dfe8e3; margin-top: 22px; padding-top: 15px; font-size: 12px; color: #47745f; }
+.sf-seal-summary strong { font-size: 1.05rem; line-height: 1.5; }
+.sf-seal-summary small { max-width: 36rem; }
+.sf-detail-header > strong, .sf-request-item footer b { overflow-wrap: anywhere; }
+
+.sf-scenario-link { display:inline-flex; align-items:center; justify-content:center; padding:11px 17px; border-radius:7px; text-decoration:none; font-size:12px; font-weight:600; white-space:nowrap; }
