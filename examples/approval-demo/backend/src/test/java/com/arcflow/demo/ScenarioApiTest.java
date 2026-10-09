@@ -37,7 +37,8 @@ class ScenarioApiTest {
     ResultActions decide(String actor,String id,String step,String decision) throws Exception { return mvc.perform(write(BASE+"/requests/"+id+"/decisions",actor).content("{\"stepId\":\""+step+"\",\"decision\":\""+decision+"\",\"comment\":\"Synthetic review\"}")); }
     @Test void catalogAndTwoRealApprovalStagesAreIsolatedAndExactlyKeyed() throws Exception {
         var catalog=result(mvc.perform(get("/api/scenarios").with(httpBasic("alice","test-alice-password"))).andExpect(status().isOk()));
-        assertEquals("oa-expense",catalog.get(0).path("id").asText()); assertEquals(20,catalog.get(0).path("lineItems").path("maxItems").asInt());
+        var expense=java.util.stream.StreamSupport.stream(catalog.spliterator(),false).filter(item->"oa-expense".equals(item.path("id").asText())).findFirst().orElseThrow();
+        assertEquals(20,expense.path("lineItems").path("maxItems").asInt());
         var created=result(submit(input().toString(),"expense-one").andExpect(status().isCreated())); String id=created.path("request").path("id").asText();
         assertEquals("0.30",created.path("total").asText()); assertEquals("oa-expense",created.path("request").path("processId").asText());
         assertEquals(created,result(submit(input().toString(),"expense-one").andExpect(status().isCreated())));

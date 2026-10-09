@@ -136,3 +136,73 @@ describe('dedicated expense scenario application', () => {
     expect(c.api.logout).toHaveBeenCalled()
   })
 })
+
+
+describe('Expense repeated identity and saved-snapshot rendering', () => {
+  it('does not expose a formerly selected detail to a new actor whose visible list is empty', async () => {
+    const before = viewFixture(), c = setup({ items: [before] })
+    await login(c, 'alice'); await tab(c.wrapper, 'mine'); await c.wrapper.find('.sf-request-item').trigger('click')
+    expect(c.wrapper.find('.sf-request-detail h2').text()).toBe(before.request.title)
+    await c.wrapper.find('[data-testid=scenario-logout]').trigger('click')
+    c.server.items = []
+    await login(c, 'bob')
+    for (const section of ['review', 'handled', 'mine']) {
+      await tab(c.wrapper, section)
+      expect(c.wrapper.findAll('.sf-request-item')).toHaveLength(0)
+      expect(c.wrapper.find('.sf-request-detail').exists()).toBe(false)
+      expect(c.wrapper.text()).not.toContain(before.request.title)
+      expect(c.wrapper.find('[data-testid=approve-expense]').exists()).toBe(false)
+    }
+  })
+
+  it('ignores an old actor’s delayed decision after a new actor selects a different request', async () => {
+    const before = viewFixture(), c = setup({ items: [before] }), pending = deferred()
+    await login(c, 'bob'); await tab(c.wrapper, 'review'); await c.wrapper.find('.sf-request-item').trigger('click')
+    await c.wrapper.find('#scenario-comment').setValue('Old Bob comment')
+    c.server.onPost = () => pending.promise
+    await c.wrapper.find('[data-testid=approve-expense]').trigger('click')
+    await c.wrapper.find('[data-testid=scenario-logout]').trigger('click')
+    const otherDefinition = processFixture()
+    otherDefinition.nodes[1].assigneeId = 'carol'; otherDefinition.nodes[2].assigneeId = 'bob'
+    const other = viewFixture({ id: 'expense-2', definition: otherDefinition, approverId: 'carol', title: 'New actor request', business: { ...before.request.business, title: 'New actor request' } })
+    c.server.items = [other]; c.server.process = otherDefinition
+    await login(c, 'carol'); await tab(c.wrapper, 'review'); await c.wrapper.find('.sf-request-item').trigger('click')
+    await c.wrapper.find('#scenario-comment').setValue('Current Carol note')
+    pending.resolve(decidedFixture(before, 'bob', 'APPROVE', 'Old Bob comment')); await flushPromises()
+    expect(c.wrapper.find('.sf-detail-header h2').text()).toBe('New actor request')
+    expect(c.wrapper.find('#scenario-comment').element.value).toBe('Current Carol note')
+    expect(c.wrapper.findAll('.timeline li')).toHaveLength(1)
+    expect(c.wrapper.find('[data-testid=approve-expense]').exists()).toBe(true)
+    expect(c.wrapper.find('[data-testid=scenario-refresh]').attributes('disabled')).toBeUndefined()
+    expect(c.wrapper.find('[role=alert]').exists()).toBe(false)
+    expect(c.wrapper.find('[role=status]').exists()).toBe(false)
+    expect(c.wrapper.text()).not.toContain('Old Bob comment')
+  })
+  it('invalidates selected detail after Alice → Carol → Bob even when the default scenario ID never changes', async () => {
+    const originalDefinition = processFixture({ version: 3 })
+    const before = viewFixture({ definition: originalDefinition, processVersion: 3 })
+    const c = setup({ items: [before] })
+    c.server.process = processFixture({ version: 4, nodes: originalDefinition.nodes.map(node => node.id === 'manager' ? { ...node, assigneeId: 'carol' } : node.id === 'finance' ? { ...node, assigneeId: 'bob' } : node) })
+    await login(c, 'alice'); await tab(c.wrapper, 'mine'); await c.wrapper.find('.sf-request-item').trigger('click')
+    expect(c.wrapper.find('.sf-request-detail h2').text()).toBe(before.request.title)
+    await c.wrapper.find('[data-testid=scenario-logout]').trigger('click'); await login(c, 'carol'); await tab(c.wrapper, 'review')
+    expect(c.wrapper.findAll('.sf-request-item')).toHaveLength(0)
+    await tab(c.wrapper, 'designer'); await c.wrapper.find('[data-testid=scenario-logout]').trigger('click')
+    await login(c, 'bob'); await tab(c.wrapper, 'review'); await c.wrapper.find('.sf-request-item').trigger('click')
+    await c.wrapper.find('#scenario-comment').setValue('Receipts and purpose verified. / 已核对凭证和用途。')
+    await c.wrapper.find('.sf-topbar select').setValue('zh'); await c.wrapper.find('.sf-topbar select').setValue('en')
+    const pending = deferred(); c.server.onPost = () => pending.promise
+    const first = c.wrapper.find('[data-testid=approve-expense]').trigger('click')
+    await c.wrapper.find('[data-testid=approve-expense]').trigger('click'); await first
+    const after = decidedFixture(before, 'bob', 'APPROVE', 'Receipts and purpose verified. / 已核对凭证和用途。')
+    c.server.items = [after]; pending.resolve(after); await flushPromises()
+    expect(c.api.request.mock.calls.filter(([, options]) => options?.method === 'POST')).toHaveLength(1)
+    expect(c.wrapper.find('[role=alert]').exists()).toBe(false)
+    expect(c.wrapper.find('[data-testid=scenario-refresh]').attributes('disabled')).toBeUndefined()
+    expect(c.wrapper.find('[data-testid=approve-expense]').exists()).toBe(false)
+    expect(c.wrapper.find('.sf-request-detail').exists()).toBe(false)
+    await tab(c.wrapper, 'handled'); await c.wrapper.find('.sf-request-item').trigger('click')
+    expect(c.wrapper.findAll('.timeline li')).toHaveLength(2)
+    expect(c.wrapper.find('.sf-snapshot-flow').text()).toContain('Awaiting review')
+  })
+})

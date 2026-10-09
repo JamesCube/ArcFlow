@@ -3,14 +3,14 @@
 ## 本轮边界 / Scope
 
 审批的路由、参与人、ALL/ANY 表决、状态、审计和并发控制继续共用原状态机。
-不可变 `BusinessDocument` 边界明确支持 `leave`、`procurement`、`quoteDiscount` 和 `expense` 四类业务；
+不可变 `BusinessDocument` 边界明确支持 `leave`、`procurement`、`quoteDiscount`、`expense`、`travel`、`sealUse` 和 `receiving` 七类业务；
 不把任意 JSON 当作已经通过业务验证的单据。核心 DAG 仍执行公共标题/理由的 validate → normalize。
 业务规则在类型化单据中验证，存储恢复时再次验证，审批期间禁止重写。
 报价只通过专用 `/api/crm` 宿主和独立合成页面暴露；共享独立端、若依及 H5 工作区尚不支持报价。
 
 The approval lifecycle remains independent of business fields: routing, participants, votes,
 status, audit and optimistic concurrency use the same reducer. A sealed `BusinessDocument`
-boundary supports four explicit, validated document schemas. This is a bounded extraction,
+boundary supports seven explicit, validated document schemas in this unified integration candidate. This is a bounded extraction,
 not an arbitrary-schema plugin framework or a rewrite of the workflow engine.
 
 Expense is exposed only by the dedicated `/api/scenarios/oa-expense` host and `/scenarios.html`.
@@ -18,6 +18,29 @@ It has versioned form metadata, real line-item validation and immutable expense 
 are synthetic and approval never pays. See [Expense scenario](EXPENSE_SCENARIO.md). First Expense
 write requires JSON snapshot schema7; upgrade all readers and stop incompatible writers first.
 SQL revision3 is unchanged. Generic standalone/native document endpoints allow only leave/procurement.
+
+Travel is a distinct itinerary-and-budget document, exposed only by `/api/scenarios/oa-travel`
+and the shared scenario page. It has required destination, start/end calendar dates, purpose,
+exact estimated cost, currency and cost center; inclusive duration is 1–90 days. It performs
+no booking, reimbursement or payment. First Travel write requires schema8-compatible readers.
+See [Travel scenario, validation and rollout](TRAVEL_SCENARIO.md).
+
+Seal-use is a non-monetary document with an inert document reference, synthetic seal category
+and copy count. Its `/api/scenarios/oa-seal-use` host returns `{request,total:null}`; approval
+applies no seal or signature. See [Seal-use contract](SEAL_USE_SCENARIO.md).
+
+Receiving is a quantity-only document with a synthetic purchase-order reference and 1–20
+validated lines. Its `/api/scenarios/erp-receiving` host returns
+`{request,total:null,summary}` with per-unit quantities; approval does not post inventory.
+See [Receiving contract](RECEIVING_SCENARIO.md). Expense and Travel keep exactly
+`{request,total:string}`, without a receiving summary.
+
+The shared catalog exposes all four compiled scenario entries. Their business types,
+processes, fixed JSON file suffixes and browser drafts/retry intents remain isolated;
+Receiving also keeps `/receiving.html`. Registration does not allow any new type through
+legacy/generic/native hosts. These are fixed versioned forms and 1–8-stage reviewer flows,
+without a dynamic conditional-routing or arbitrary-field form engine. See
+[unified integration status and release gates](UNIFIED_SCENARIO_INTEGRATION.md).
 
 - `BusinessDocument.Leave(businessId, title, reason, days)` retains the 1–365 day rule.
 - `BusinessDocument.Procurement(businessId, title, reason, item, quantity, unitPrice, currency)`
@@ -31,7 +54,7 @@ SQL revision3 is unchanged. Generic standalone/native document endpoints allow o
   (≤128 characters), a positive integer revision and a real `YYYY-MM-DD` date. The host
   checks ownership, source fields, current read access and validity on new submission.
   Exact totals are derived rather than accepted as input; see the [quote case](CRM_QUOTE_CASE.md).
-- All three require a stable business ID of 1–128 ASCII letters/digits and `._:/-`, beginning
+- All document types require a stable business ID of 1–128 ASCII letters/digits and `._:/-`, beginning
   with a letter/digit; title ≤120 and reason ≤2,000 characters remain mandatory.
 - Common text and the item are trimmed. Prices are normalized with exact decimal arithmetic;
   no binary-floating rounding, currency conversion, purchase order transmission or payment occurs.
@@ -52,8 +75,8 @@ participants. Routing does not infer business policy from the process name.
 Generic endpoints accept typed leave and procurement: standalone `POST /api/documents`
 and RuoYi `POST /arcflow/documents`, with the existing `arcflow:request:submit` permission.
 Both use the authenticated principal and optional `Idempotency-Key` header exactly as the
-leave endpoint does. Both reject `quoteDiscount`; domain type support does not bypass the
-quote host's business authorization checks. Procurement example body:
+leave endpoint does. Both reject `quoteDiscount`, `expense`, `travel`, `sealUse` and `receiving`; domain type support does not bypass
+the dedicated hosts and their authorization boundaries. Procurement example body:
 
 ```json
 {
@@ -73,7 +96,7 @@ quote host's business authorization checks. Procurement example body:
 
 The returned request has an immutable `business` snapshot. Existing list/decision routes and
 participant authorization apply. For source/wire compatibility, `title` and `reason` remain
-flat projections and `days` is 0 for procurement and quote discounts, or the actual leave
+flat projections and `days` is 0 for all non-leave documents, or the actual leave
 days for typed leave.
 Storage rejects inconsistent projections. Business consumers must inspect `business.type`;
 `days: 0` alone is never accepted as a valid legacy leave submission.
@@ -124,42 +147,71 @@ submission event is committed.
 
 ## 持久化兼容 / Storage compatibility
 
-- JSON snapshots 1–4 retain their strict existing shape and remain readable. Reads do not
-  rewrite files. The first typed leave/procurement mutation requires snapshot schema 5;
-  a quote mutation requires schema 6; an Expense mutation requires schema 7. Process definitions still use schema 2 (sequential)
-  or 3 (parallel).
-- Schema 5 has `schemaVersion`, `definition`, `requests`, and `submissions`; unkeyed documents
-  use an empty submissions array. It can contain unchanged legacy requests and typed leave
-  or procurement requests. Schema 6 retains that envelope and adds `quoteDiscount` payloads;
-  a quote payload inside a schema-5 snapshot is rejected.
-- Before the first upgrade, the byte-exact old file is retained in a private
-  `.schemaN.bak` backup (or a unique backup if that name exists). Atomic replacement failure
-  does not publish in-memory state/bindings; a retry preserves the original backup.
-- A schema-5 file never downgrades when a later legacy/keyed request is added. The first
-  5→6 upgrade backs up the exact bytes immediately before that upgrade, including any
-  schema-5 writes in the same session. Schema 6 remains in use after later leave/procurement
-  writes; failed atomic writes expose neither a new request nor its submission binding.
-- A JSON file belongs to one process ID. Mixed-process historical rows or opening an existing
-  file using another configured process ID fail closed.
-- Typed documents continue using the existing `request_json` column. The accepted member
-  inbox baseline uses SQL revision 3 with explicit migration and bounded backfill. Quote
-  support retains revision 3 and does not add an SQL migration.
-  No automatic DDL or backfill runs. Old and new request JSON shapes are decoded strictly; explicit
-  `business: null`, missing/unknown fields and invalid projections are rejected.
-- Multiple JDBC store instances may bind different process IDs in one schema. Retained
-  definitions and request snapshots are checked against each request's own process/version.
+The unified reader accepts known JSON snapshot wrapper schemas **1–10**, while retaining
+the strict field shape of each older version. Empty or old-type-only snapshots at schemas
+8, 9 and 10 are valid. Reading a valid snapshot does not rewrite it or create/replace a backup.
+This is compatibility of the new reader with existing candidates, not future-format support.
 
-After writing typed documents, old application binaries cannot read the new payloads.
-Schema6 readers cannot read Expense/schema7. Schema7 never downgrades after later legacy writes;
-pre-upgrade byte backups are historical recovery and cannot provide a lossless downgrade.
-Schema-5 readers do not understand quote documents or schema-6 files. Deploy quote-compatible
-readers everywhere before enabling quote writes or backfilling rows containing quotes,
-and stop old writers. A JSON backup is a historical recovery aid,
-not a downgrade procedure: restoring it would discard later approvals/submissions. JDBC has
-no automatic rollback migration; retain normal database backups and avoid mixed-version
-writers after enabling typed documents.
+| Business wire type | Minimum JSON wrapper schema |
+| --- | --- |
+| `leave`, `procurement` | 5 |
+| `quoteDiscount` | 6 |
+| `expense` | 7 |
+| `travel` | 8 |
+| `sealUse` | 9 |
+| `receiving` | 10 |
+
+- Every non-null business payload must match an explicit wire type and Java record, satisfy
+  its minimum schema and pass strict field/version/business validation. A higher supported
+  wrapper may contain a lower-minimum type. Travel at 9/10 and Seal at 10 are legal;
+  Receiving at 8/9 is not. Unknown types, case aliases, future document versions, wrapper
+  11+, non-integer/overflow wrapper numbers and inconsistent projections fail closed.
+- Legacy schemas 1–4 retain their original shapes; no typed payload may bypass those gates.
+  Older leave/procurement/quote documents gain no artificial `documentVersion` field.
+  Definition schemas remain 2 (sequential) and 3 (parallel).
+- Every write takes the maximum of the current wrapper and all requirements: minimum 2,
+  current/historical definitions, keyed submissions (4), typed business (5), and each
+  document type's minimum. Opening a file never forces schema 10; the first Expense
+  write still needs only 7. Later Travel, Seal, Expense, legacy, decision and publication
+  writes never lower an already higher wrapper.
+- Each real upgrade retains the byte-exact snapshot immediately before that upgrade,
+  including earlier same-process writes, as a private `.schemaN.bak` (or a unique name on
+  collision). Existing backups are not overwritten. A failed atomic replacement must
+  publish neither an in-memory request nor a retry binding. Read/validation failures
+  change neither snapshots nor existing backups.
+- Each JSON file belongs to one configured process. Mixed-process history or opening a
+  file under another process ID fails closed. Scenario hosts additionally require their
+  exact business type; a domain migration fixture containing multiple business types does
+  not authorize mixed scenario files. JSON remains single-writer/local-filesystem storage.
+- Receiving's raw negative-zero guard remains active before polymorphic type-last/tree
+  buffering. Scenario decisions recheck the target business type on every CAS attempt.
+  Seal HTTP accepts only well-formed UTF-8 JSON and applies the 8,000,000 UTF-16-unit raw
+  submission envelope bound; that bound is not an aggregate snapshot file-size limit.
+- JDBC retains SQL revision 3, the existing `request_json` column and ready member
+  projection. New type registration requires no DDL, new revision or rebuild of an
+  already-ready member index. Databases still at revision 2 need the existing explicit
+  stopped-writer migration/backfill. No automatic DDL or backfill is introduced.
+- JDBC keys remain globally `(applicant_id, submission_key)` across processes. Stores
+  still isolate list/get/decision/inbox operations by configured process, retaining each
+  request's original definition version and actual-vote membership semantics.
+
+Before new writes, stop incompatible writers, back up and deploy this unified codec to
+**all** readers/writers of the affected JSON files or JDBC rows. Old main (schemas 1–7)
+and the separate Travel/Seal/Receiving candidates are not interchangeable readers for
+one another's payloads. SQL revision 3 alone does not make an old binary compatible.
+Restoring a historical backup discards later submissions, decisions and publications;
+it is point-in-time recovery, not lossless downgrade. Never lower a wrapper, delete a
+business type or rebuild the member index as an automatic rollback technique.
 
 ## Verification / 验证
+
+This is a local combined implementation candidate, with no merge, deployment or complete
+exact-head CI/release pass claimed by this document. Individual candidate reports do not establish
+joint compatibility. The [combined gates](UNIFIED_SCENARIO_INTEGRATION.md#verification-gates)
+require fresh migration, host, browser and H2/PostgreSQL/MySQL results on the final head.
+Original candidate screenshot downloads returned HTTP 403 / 1010; their image bytes and
+independent pixel acceptance remain unverified, separately from automated CI.
+
 
 `BusinessDocumentTest` covers real procurement transitions, ALL/ANY behavior, authorization,
 restart, immutable intent, strict numeric/type validation, concurrent retries, JSON 2/3/4→5

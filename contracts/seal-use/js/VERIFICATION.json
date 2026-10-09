@@ -1,0 +1,81 @@
+{
+  "scope": "Local-only pure JS seal-use contract/form proposal; not registered or runnable.",
+  "checkedAtUtc": "2026-10-08T17:54:13.524051+00:00",
+  "approvedUpstreamCommit": "3a4c9cc27b4bf1cee4343d9d7641c8e489d2a327",
+  "upstreamTree": "8445dfdde155cb6c501d76f089429d5634357f86",
+  "localReconstructionCommit": "125f949402fd58651b06d485eeea14c9f5ec746d",
+  "nodeVersion": "v24.19.0",
+  "baselineImportedSourcesSha256": {
+    "examples/approval-ui/src/scenarios/scenario-api.js": "f9b42ca095bff4d277d7b897aee4e9be4da0fb1e296f7876e0ae2550e1a39fac",
+    "examples/approval-ui/src/scenarios/expense-document.js": "eeabc9662594ddc8e8d71aeb9b3b31f6fa52e466e4278e920a647191d26a72f3"
+  },
+  "sourcesSha256": {
+    "contracts/seal-use/form-template.json": "4511c10d20259b4b2212d25fb34b9a841ce4800699cffd1c9cffa002d2841a34",
+    "contracts/seal-use/js/seal-use.mjs": "d0a9542f9c1f2ad9b1b3933fad8b4fa184c7bddcc1c05a6c6f148ce02ead75b3",
+    "contracts/seal-use/js/seal-use-form.mjs": "a9426e3baa18b5a0bc578eb2aae250d152859d559c8150e6aa530c6018d6fb6f",
+    "contracts/seal-use/js/prototype-intent.mjs": "7abb49bf19e510f2109591542207fb72273f024444aac3eb8f985299b70c5e37",
+    "contracts/seal-use/js/seal-use.test.mjs": "0a5bdfbdc25fe6a2b2dd9e4f77116d7a34753bceb75f9926d46c0534d95a82e2",
+    "contracts/seal-use/js/cross-language.test.mjs": "e5c19e50dc394c65c78977fd4984036b1a1f79101d4d14c1db22eed9adabec6e",
+    "contracts/seal-use/js/CONTRACT-NOTES.md": "93aa1a653133efe2cdd99dc7eac52e785036d728d1fd41d724168771ea23616e",
+    "contracts/seal-use/java/src/test/resources/seal-use-vectors.json": "e6bf437b6cd984f7d1db0083f7bfa87d0cb9624652f9402cde8bb2a71901bd45",
+    "contracts/seal-use/js/object-boundary.test.mjs": "625cccf6f6cdf1a2952e4e2f5d116d4de2d06924aaa906366a245b6aa103c547",
+    "contracts/seal-use/java/src/test/resources/seal-use-raw-input-policy.json": "93efb220d1b633968c5340687fbba4452e145f35df031452a9d1bce1172dc227"
+  },
+  "checks": [
+    {
+      "command": "node --test --test-reporter=tap contracts/seal-use/js/*.test.mjs",
+      "exitCode": 0,
+      "tests": 337,
+      "passed": 337,
+      "failed": 0,
+      "skipped": 0,
+      "ownTests": 269,
+      "sharedValidVectors": 16,
+      "sharedInvalidVectors": 49,
+      "log": "contracts/seal-use/js/node-test.log",
+      "sha256": "c9dbf79e1c969649750eb195e86d9291032df6b3808f855c6b4369bdff49c4b6",
+      "sharedRawSizeBoundaryTests": 3
+    },
+    {
+      "command": "node --test --experimental-test-coverage --test-coverage-include='contracts/seal-use/js/*.mjs' --test-coverage-exclude='**/*.test.mjs' --test-reporter=tap contracts/seal-use/js/*.test.mjs",
+      "exitCode": 0,
+      "tests": 337,
+      "passed": 337,
+      "linePercent": 100,
+      "branchPercent": 100,
+      "functionPercent": 100,
+      "coverageScope": [
+        "seal-use.mjs",
+        "seal-use-form.mjs",
+        "prototype-intent.mjs"
+      ],
+      "log": "contracts/seal-use/js/node-coverage.log",
+      "sha256": "fc02cfd7f812d357e5f750c46a9e4d13a3caace9e78c77d800267a13921f1474"
+    },
+    {
+      "command": "node --check for all six new .mjs files",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --exit-code",
+      "exitCode": 0,
+      "meaning": "Existing tracked files are unchanged; proposed files remain untracked local additions."
+    }
+  ],
+  "notRun": [
+    "Full repository regressions",
+    "Mounted Vue tests",
+    "Browser/screenshot checks",
+    "Authenticated HTTP lifecycle",
+    "Migration/persistence/database tests"
+  ],
+  "limitations": [
+    "The Java test command is run and reported independently by its owner; this log establishes JS vector parity only.",
+    "Coverage excludes the unchanged baseline parser and all existing app code.",
+    "No publication, external writes, package downloads or Library upload occurred.",
+    "Prototype intent framing is a local comparison aid, not a wire/persistence/signature/submission-key protocol."
+  ],
+  "formInputPolicy": "Retain raw text while editing; cap at 16 UTF-16 code units before ECMAScript trim; allow edge whitespace/leading zeros and ASCII digits representing 1\u2013100; normalize only on successful submission. Raw JSON remains strict.",
+  "objectApiBoundary": "Capture exact own enumerable data descriptors once into a frozen ordinary record. Reject accessors/extra/hidden/symbol/class shapes and failed Proxy reflection. Validate and normalize only captured values in business, form and outer-envelope APIs.",
+  "review": "Independent reviewer rechecked the original Proxy reproducer plus nested-envelope and draft/wire probes; no remaining object-boundary issue found."
+}

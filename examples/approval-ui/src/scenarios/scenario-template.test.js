@@ -4,7 +4,7 @@ import { InvalidScenarioPayload } from './expense-document.js'
 import { catalogFixture } from './scenario-fixtures.js'
 
 describe('allow-listed bilingual scenario metadata', () => {
-  it('accepts the supported single expense template without rewriting it', () => {
+  it('accepts the four supported typed templates without rewriting it', () => {
     const catalog = catalogFixture(); expect(validateScenarioCatalog(catalog)).toBe(catalog)
   })
   it.each([null, {}, [], [{ id: 'other' }]])('rejects unsupported catalog %j', value => expect(() => validateScenarioCatalog(value)).toThrow(InvalidScenarioPayload))

@@ -1,0 +1,8 @@
+Scope audit passed.
+Baseline local tree: 8445dfdde155cb6c501d76f089429d5634357f86
+Tracked baseline files: 384
+Tracked-file diff: empty.
+Independent module POM: no parent, no reactor modules, only Jackson core and test-scoped JUnit.
+Runtime source imports no approval-domain classes.
+Owned file subtree: contracts/seal-use/java/ only.
+Built JAR SHA-256: 47665b71fd26788fc16207d7c3530eba791bf93d6e8755b5b82c19b1477563bc

@@ -97,6 +97,355 @@ abstract class ServerApprovalStoreContract {
         }
     }
 
+    protected static BusinessDocument.Travel travelDocument() {
+        return new BusinessDocument.Travel(1,"TRIP-SQL-1","Customer visit","Synthetic itinerary only"," Shanghai ",
+            "2026-10-08","2026-10-10","CUSTOMER_VISIT",new BigDecimal("1234.50"),"CNY","SALES");
+    }
+    protected ApprovalService travelService() throws IOException {
+        return new ApprovalService(new JdbcApprovalStore(dataSource,new ObjectMapper(),com.arcflow.approval.ScenarioCatalog.travel("bob","carol").initialProcess()),USERS);
+    }
+    @Test void travelTypedSnapshotGlobalKeysAndMemberProjectionRemainProcessIsolated() throws Exception {
+        ApprovalService.Request approved;
+        try(var travel=travelService(); var leave=open(); var expenses=expenseService()) {
+            var created=travel.submitDocument("alice",travelDocument(),1,"travel-shared");
+            var document=(BusinessDocument.Travel)created.business(); assertEquals("Shanghai",document.destination());
+            assertEquals(new BigDecimal("1234.5"),document.estimatedCost()); assertEquals(3,document.durationDays()); assertEquals(0,created.days());
+            assertEquals(409,result(()->leave.submit("alice","Leave","Rest",1,1,"travel-shared")));
+            assertEquals(409,result(()->expenses.submitDocument("alice",expenseDocument(),1,"travel-shared")));
+            assertTrue(leave.list("alice").isEmpty()); assertTrue(expenses.list("alice").isEmpty());
+            assertEquals(404,result(()->leave.decide("bob",created.id(),"tripReview","APPROVE","")));
+            assertEquals(404,result(()->expenses.decide("bob",created.id(),"tripReview","APPROVE","")));
+            var pending=Map.of("box",List.of("PENDING")); var handled=Map.of("box",List.of("HANDLED"));
+            assertEquals(List.of(created),travel.inbox("bob",pending).items()); assertTrue(travel.inbox("carol",pending).items().isEmpty());
+            var first=travel.decide("bob",created.id(),"tripReview","APPROVE","Reviewed itinerary");
+            assertTrue(travel.inbox("bob",pending).items().isEmpty()); assertEquals(List.of(first),travel.inbox("bob",handled).items());
+            assertEquals(List.of(first),travel.inbox("carol",pending).items());
+            assertTrue(leave.inbox("carol",pending).items().isEmpty()); assertTrue(expenses.inbox("carol",pending).items().isEmpty());
+            travel.publish("alice",1,com.arcflow.approval.ScenarioCatalog.travel("carol","bob").initialProcess());
+            assertEquals(409,result(()->travel.submitDocument("alice",travelDocument(),1,"stale-fresh")));
+            approved=travel.decide("carol",created.id(),"budget","APPROVE","Reviewed budget");
+            assertEquals(created.business(),approved.business()); assertEquals(created.definition(),approved.definition());
+            assertEquals(1,approved.processVersion()); assertEquals("APPROVED",approved.status());
+            assertTrue(travel.inbox("carol",pending).items().isEmpty()); assertEquals(List.of(approved),travel.inbox("carol",handled).items());
+            assertEquals(List.of(approved),travel.inbox("bob",handled).items());
+            assertEquals(1,count("arc_request")); assertEquals(1,count("arc_submission_key")); assertEquals(3,count("arc_request_event")); assertEquals(2,count("arc_request_member"));
+        }
+        try(var reopened=travelService()) {
+            assertEquals(2,reopened.process().version()); assertEquals(List.of(approved),reopened.list("alice"));
+            assertEquals(approved,reopened.submitDocument("alice",travelDocument(),1,"travel-shared"));
+            var changed=new BusinessDocument.Travel(1,"TRIP-SQL-1","Customer visit","Synthetic itinerary only","Beijing",
+                "2026-10-08","2026-10-10","CUSTOMER_VISIT",new BigDecimal("1234.50"),"CNY","SALES");
+            assertEquals(409,result(()->reopened.submitDocument("alice",changed,1,"travel-shared")));
+            assertEquals(3,count("arc_request_event"));
+        }
+    }
+    @Test void travelConcurrentRetryCreatesOneRequestBindingAndExactAudit() throws Exception {
+        ApprovalService.Request saved;
+        try(var first=travelService(); var second=travelService()) {
+            var commands=new ArrayList<Callable<ApprovalService.Request>>();
+            var canonical=new BusinessDocument.Travel(1,"TRIP-SQL-1","Customer visit","Synthetic itinerary only","Shanghai",
+                "2026-10-08","2026-10-10","CUSTOMER_VISIT",new BigDecimal("1234.5"),"CNY","SALES");
+            for(int i=0;i<8;i++) { var service=i%2==0?first:second; var document=i%2==0?travelDocument():canonical; commands.add(()->service.submitDocument("alice",document,1,"travel-race")); }
+            var results=race(commands); saved=results.get(0); assertTrue(results.stream().allMatch(saved::equals));
+            assertEquals(1,count("arc_request")); assertEquals(1,count("arc_submission_key")); assertEquals(1,count("arc_request_event")); assertEquals(2,count("arc_request_member"));
+        }
+        try(var reopened=travelService()) { assertEquals(List.of(saved),reopened.list("alice")); assertEquals(saved,reopened.submitDocument("alice",travelDocument(),1,"travel-race")); }
+    }
+
+    protected static BusinessDocument.SealUse sealUseDocument() {
+        return new BusinessDocument.SealUse(1,"SEAL-SQL-1","Synthetic seal-use review","Review only, no stamping",
+            "Synthetic delivery document","DOC-SQL-1","OFFICIAL",2);
+    }
+    protected ApprovalService sealUseService() throws IOException {
+        return new ApprovalService(new JdbcApprovalStore(dataSource,new ObjectMapper(),
+            com.arcflow.approval.ScenarioCatalog.sealUse("bob","carol").initialProcess()),USERS);
+    }
+    @Test void sealUseTypedSnapshotGlobalKeysAndMemberProjectionRemainProcessIsolated() throws Exception {
+        ApprovalService.Request approved;
+        try(var seals=sealUseService(); var expenses=expenseService(); var leave=open()) {
+            var created=seals.submitDocument("alice",sealUseDocument(),1,"seal-shared");
+            assertEquals(sealUseDocument(),created.business());
+            assertEquals("oa-seal-use",created.processId());
+            assertEquals(409,result(()->expenses.submitDocument("alice",expenseDocument(),1,"seal-shared")));
+            assertEquals(409,result(()->leave.submit("alice","Leave","Rest",1,1,"seal-shared")));
+            assertTrue(expenses.list("alice").isEmpty()); assertTrue(leave.list("alice").isEmpty());
+            assertEquals(404,result(()->expenses.decide("bob",created.id(),"documentReview","APPROVE","")));
+            assertEquals(403,result(()->seals.decide("alice",created.id(),"documentReview","APPROVE","")));
+            var query=Map.of("box",List.of("PENDING"));
+            assertEquals(1,seals.inbox("bob",query).items().size());
+            assertEquals(0,expenses.inbox("bob",query).items().size());
+            seals.decide("bob",created.id(),"documentReview","APPROVE","Document reviewed");
+            assertEquals(0,seals.inbox("bob",query).items().size());
+            assertEquals(1,seals.inbox("carol",query).items().size());
+            approved=seals.decide("carol",created.id(),"sealReview","APPROVE","Review only, no seal applied");
+            assertEquals(created.business(),approved.business()); assertEquals("APPROVED",approved.status());
+            assertEquals(3,approved.history().size());
+        }
+        try(var reopened=sealUseService()) {
+            assertEquals(List.of(approved),reopened.list("alice"));
+            assertEquals(approved,reopened.submitDocument("alice",sealUseDocument(),1,"seal-shared"));
+            assertEquals(approved,reopened.decide("carol",approved.id(),"sealReview","APPROVE","Retry cannot rewrite notes"));
+        }
+    }
+    @Test void sealUseConcurrentRetryCreatesOneRequestBindingAndExactAudit() throws Exception {
+        try(var first=sealUseService(); var second=sealUseService()) {
+            var commands=new ArrayList<Callable<ApprovalService.Request>>();
+            for(int i=0;i<8;i++) { var service=i%2==0?first:second; commands.add(()->service.submitDocument("alice",sealUseDocument(),1,"seal-race")); }
+            var saved=race(commands); assertTrue(saved.stream().allMatch(saved.get(0)::equals));
+            assertEquals(1,count("arc_request")); assertEquals(1,count("arc_submission_key"));
+            assertEquals(1,count("arc_request_event")); assertEquals(2,count("arc_request_member"));
+        }
+    }
+    @Test void sealUseEveryFieldAndVersionBindsRetryAfterRejectionAndReopen() throws Exception {
+        ApprovalService.Request rejected;
+        var original=sealUseDocument();
+        var changes=List.of(
+            new BusinessDocument.SealUse(1,"SEAL-SQL-2",original.title(),original.reason(),original.documentName(),original.documentRef(),original.sealType(),original.copyCount()),
+            original.withText("Changed title",original.reason()), original.withText(original.title(),"Changed purpose"),
+            new BusinessDocument.SealUse(1,original.businessId(),original.title(),original.reason(),"Changed document",original.documentRef(),original.sealType(),original.copyCount()),
+            new BusinessDocument.SealUse(1,original.businessId(),original.title(),original.reason(),original.documentName(),"DOC-SQL-2",original.sealType(),original.copyCount()),
+            new BusinessDocument.SealUse(1,original.businessId(),original.title(),original.reason(),original.documentName(),original.documentRef(),"CONTRACT",original.copyCount()),
+            new BusinessDocument.SealUse(1,original.businessId(),original.title(),original.reason(),original.documentName(),original.documentRef(),original.sealType(),3));
+        try(var seals=sealUseService()) {
+            var saved=seals.submitDocument("alice",original,1,"seal-rejected");
+            var definition=seals.process();
+            seals.publish("alice",1,new ProcessDefinition(definition.schemaVersion(),definition.id(),1,"Changed policy",definition.nodes()));
+            rejected=seals.decide("bob",saved.id(),"documentReview","REJECT","Synthetic reason");
+            assertEquals("REJECTED",rejected.status()); assertEquals(definition,rejected.definition());
+        }
+        try(var seals=sealUseService()) {
+            assertEquals(rejected,seals.submitDocument("alice",original,1,"seal-rejected"));
+            for(var changed:changes) assertEquals(409,result(()->seals.submitDocument("alice",changed,1,"seal-rejected")));
+            assertEquals(409,result(()->seals.submitDocument("alice",original,2,"seal-rejected")));
+            assertEquals(409,result(()->seals.decide("bob",rejected.id(),"documentReview","APPROVE","")));
+            assertEquals(1,count("arc_request")); assertEquals(1,count("arc_submission_key")); assertEquals(2,count("arc_request_event"));
+            // References are not uniqueness constraints; a distinct valid key creates a new request.
+            var another=seals.submitDocument("alice",original,2,"seal-another");
+            assertNotEquals(rejected.id(),another.id()); assertEquals(2,count("arc_submission_key"));
+        }
+    }
+    @Test void sealUseFailedAuditRollsBackTypedRequestMembersAndKey() throws Exception {
+        try(var seals=sealUseService()) {
+            sql("ALTER TABLE arc_request_event ADD CONSTRAINT fail_seal_submission CHECK (event_index > 0)");
+            assertThrows(IOException.class,()->seals.submitDocument("alice",sealUseDocument(),1,"seal-failed"));
+            assertEquals(0,count("arc_request")); assertEquals(0,count("arc_submission_key"));
+            assertEquals(0,count("arc_request_event")); assertEquals(0,count("arc_request_member"));
+            sql("ALTER TABLE arc_request_event DROP CONSTRAINT fail_seal_submission");
+            var saved=seals.submitDocument("alice",sealUseDocument(),1,"seal-failed");
+            assertEquals(saved,seals.submitDocument("alice",sealUseDocument(),1,"seal-failed"));
+        }
+    }
+
+    protected static BusinessDocument.Receiving receivingDocument() {
+        return new BusinessDocument.Receiving(1,"GR-SQL-1","Goods receipt","Synthetic manually entered PO","PO-SQL-1","EAST","2026-10-09",List.of(
+            new BusinessDocument.ReceivingLine("line-1","PO-L1","Demo sensors","PCS",20,10,8,2,"Damaged casing"),
+            new BusinessDocument.ReceivingLine("line-2","PO-L2","Demo cables","BOX",10,5,5,0,"")));
+    }
+    protected ApprovalService receivingService() throws IOException {
+        return new ApprovalService(new JdbcApprovalStore(dataSource,new ObjectMapper(),com.arcflow.approval.ScenarioCatalog.receiving("bob","carol","bob").initialProcess()),USERS);
+    }
+    @Test void receivingTypedSnapshotAllVotesAndProcessIsolation() throws Exception {
+        ApprovalService.Request approved;
+        try(var receipts=receivingService();var leave=open()) {
+            var created=receipts.submitDocument("alice",receivingDocument(),1,"receiving-global");
+            assertEquals(409,result(()->leave.submit("alice","Leave","Rest",1,1,"receiving-global")));assertTrue(leave.list("alice").isEmpty());
+            assertEquals(404,result(()->leave.decide("bob",created.id(),"receiving-inspection","APPROVE","")));
+            var first=receipts.decide("bob",created.id(),"receiving-inspection","APPROVE","Warehouse");assertEquals("receiving-inspection",first.currentStepId());
+            assertEquals(1,receipts.inbox("carol",Map.of("box",List.of("PENDING"))).items().size());
+            assertEquals(0,receipts.inbox("bob",Map.of("box",List.of("PENDING"))).items().size());
+            var original=receipts.process();receipts.publish("alice",1,new ProcessDefinition(original.schemaVersion(),original.id(),1,"Updated receipt policy",original.nodes()));
+            var second=receipts.decide("carol",created.id(),"receiving-inspection","APPROVE","Quality");assertEquals("procurement-review",second.currentStepId());
+            assertEquals(1,receipts.inbox("bob",Map.of("box",List.of("PENDING"))).items().size());
+            approved=receipts.decide("bob",created.id(),"procurement-review","APPROVE","Procurement");
+            assertEquals("APPROVED",approved.status());assertEquals(4,approved.history().size());assertEquals(created.business(),approved.business());assertEquals(created.definition(),approved.definition());
+        }
+        try(var reopened=receivingService()){assertEquals(List.of(approved),reopened.list("alice"));assertEquals(approved,reopened.submitDocument("alice",receivingDocument(),1,"receiving-global"));}
+    }
+    @Test void receivingConcurrentRetryAndRepeatedReviewerRemainExact() throws Exception {
+        try(var first=receivingService();var second=receivingService()) {
+            var commands=new ArrayList<Callable<ApprovalService.Request>>();
+            for(int i=0;i<8;i++){var service=i%2==0?first:second;commands.add(()->service.submitDocument("alice",receivingDocument(),1,"receiving-race"));}
+            var saved=race(commands);assertTrue(saved.stream().allMatch(saved.get(0)::equals));String id=saved.get(0).id();
+            assertEquals(1,count("arc_request"));assertEquals(1,count("arc_submission_key"));assertEquals(1,count("arc_request_event"));assertEquals(2,count("arc_request_member"));
+            commands.clear();for(int i=0;i<8;i++){var service=i%2==0?first:second;commands.add(()->service.decide("bob",id,"receiving-inspection","APPROVE","Warehouse"));}
+            var votes=race(commands);assertTrue(votes.stream().allMatch(votes.get(0)::equals));assertEquals(2,count("arc_request_event"));
+            first.decide("carol",id,"receiving-inspection","APPROVE","Quality");var done=second.decide("bob",id,"procurement-review","APPROVE","Procurement");
+            assertEquals("APPROVED",done.status());assertEquals(4,count("arc_request_event"));
+        }
+    }
+    @Test void receivingRawNegativeZeroPayloadCannotBeRead() throws Exception {
+        String id;
+        try(var service=receivingService()){id=service.submitDocument("alice",receivingDocument(),1,"receiving-negative-zero").id();}
+        try(var connection=dataSource.getConnection();var query=connection.prepareStatement("SELECT request_json FROM arc_request WHERE request_id = ?")) {
+            query.setString(1,id);try(var rows=query.executeQuery()){assertTrue(rows.next());String original=rows.getString(1),bad=original.replace("\"rejected\":0","\"rejected\":-0");assertNotEquals(original,bad);
+                try(var update=connection.prepareStatement("UPDATE arc_request SET request_json = ? WHERE request_id = ?")){update.setString(1,bad);update.setString(2,id);assertEquals(1,update.executeUpdate());}}
+        }
+        try(var reopened=receivingService()){assertThrows(java.io.UncheckedIOException.class,()->reopened.list("alice"));}
+        assertEquals(1,count("arc_request_event"));
+    }
+    @Test void receivingHostRejectsWrongBusinessTypeBeforeMutation() throws Exception {
+        var entry=com.arcflow.approval.ScenarioCatalog.receiving("bob","carol","bob");
+        try(var service=receivingService();var host=new com.arcflow.approval.ScenarioCase(entry,service,USERS)) {
+            var wrong=service.submitDocument("alice",expenseDocument(),1,"receiving-wrong-type");
+            assertThrows(IllegalStateException.class,()->new com.arcflow.approval.ScenarioCase(entry,service,USERS));
+            assertThrows(IllegalStateException.class,()->host.decide("bob",wrong.id(),"receiving-inspection","APPROVE","Do not write"));
+            assertEquals(1,count("arc_request_event"));assertEquals(wrong,service.list("alice").get(0));
+        }
+    }
+
+    /** One fresh schema, four exact typed processes; SQL revision and member readiness stay unchanged. */
+    private final class MixedScenarios implements AutoCloseable {
+        final List<ProcessDefinition> definitions = List.of(
+            com.arcflow.approval.ScenarioCatalog.expense("bob","carol").initialProcess(),
+            com.arcflow.approval.ScenarioCatalog.travel("bob","carol").initialProcess(),
+            com.arcflow.approval.ScenarioCatalog.sealUse("bob","carol").initialProcess(),
+            com.arcflow.approval.ScenarioCatalog.receiving("bob","carol","bob").initialProcess());
+        final List<BusinessDocument> documents = List.of(expenseDocument(),travelDocument(),sealUseDocument(),receivingDocument());
+        final List<String> firstSteps = List.of("manager","tripReview","documentReview","receiving-inspection");
+        final List<ApprovalService> services = new ArrayList<>();
+        MixedScenarios() throws IOException {
+            try {
+                for (var definition : definitions)
+                    services.add(new ApprovalService(new JdbcApprovalStore(dataSource,new ObjectMapper(),definition),USERS));
+            } catch (IOException | RuntimeException failure) { close(); throw failure; }
+        }
+        List<ApprovalService.Request> submitAll(String prefix) throws IOException {
+            var result = new ArrayList<ApprovalService.Request>();
+            for (int i=0;i<services.size();i++)
+                result.add(services.get(i).submitDocument("alice",documents.get(i),1,prefix+i));
+            return List.copyOf(result);
+        }
+        @Override public void close() throws IOException { for (var service : services) service.close(); }
+    }
+    private void assertMixedCounts(int requests,int events) throws Exception {
+        assertEquals(requests,count("arc_request")); assertEquals(requests,count("arc_submission_key"));
+        assertEquals(events,count("arc_request_event")); assertEquals(2*requests,count("arc_request_member"));
+        assertEquals(4,count("arc_process_head"));
+        try(var connection=dataSource.getConnection();var statement=connection.createStatement();
+            var rows=statement.executeQuery("SELECT ready, last_request_id FROM arc_member_projection_state WHERE singleton_id = 1")) {
+            assertTrue(rows.next()); assertTrue(rows.getBoolean(1)); assertNull(rows.getString(2)); assertFalse(rows.next());
+        }
+    }
+    @Test void mixedScenarioDatabaseReadsDecisionsAndInboxesRemainProcessIsolated() throws Exception {
+        try(var mixed=new MixedScenarios()) {
+            var saved=mixed.submitAll("mixed-isolation-");
+            var pending=Map.of("box",List.of("PENDING")); var handled=Map.of("box",List.of("HANDLED"));
+            for(int i=0;i<4;i++) {
+                var service=mixed.services.get(i); var own=saved.get(i);
+                assertEquals(List.of(own),service.list("alice")); assertEquals(List.of(own),service.inbox("bob",pending).items());
+                for(int j=0;j<4;j++) if(i!=j) {
+                    var foreign=saved.get(j); String foreignStep=mixed.firstSteps.get(j);
+                    assertEquals(404,result(()->service.decide("bob",foreign.id(),foreignStep,"APPROVE","Wrong process")));
+                }
+                var first=service.decide("bob",own.id(),mixed.firstSteps.get(i),"APPROVE","First review");
+                assertEquals(List.of(first),service.inbox("bob",handled).items()); assertTrue(service.inbox("bob",pending).items().isEmpty());
+                assertEquals(List.of(first),service.inbox("carol",pending).items());
+            }
+            // Receiving reuses Bob: the first vote is handled while the next stage is pending.
+            var receipts=mixed.services.get(3); var receiving=saved.get(3);
+            var next=receipts.decide("carol",receiving.id(),"receiving-inspection","APPROVE","Quality review");
+            assertEquals(List.of(next),receipts.inbox("bob",handled).items()); assertEquals(List.of(next),receipts.inbox("bob",pending).items());
+            var finalSteps=List.of("finance","budget","sealReview","procurement-review");
+            for(int i=0;i<4;i++) {
+                var service=mixed.services.get(i);
+                var done=service.decide(i==3?"bob":"carol",saved.get(i).id(),finalSteps.get(i),"APPROVE","Final review");
+                assertEquals("APPROVED",done.status()); assertEquals(saved.get(i).business(),done.business());
+                assertEquals(saved.get(i).definition(),done.definition()); assertTrue(service.inbox("bob",pending).items().isEmpty());
+                assertTrue(service.inbox("carol",pending).items().isEmpty()); assertEquals(List.of(done),service.list("alice"));
+            }
+            assertMixedCounts(4,13);
+        }
+    }
+    @Test void mixedScenarioDatabaseSubmissionKeysStayApplicantGlobalAcrossEveryType() throws Exception {
+        try(var mixed=new MixedScenarios()) {
+            for(int winner=0;winner<4;winner++) {
+                String key="mixed-global-"+winner;
+                var saved=mixed.services.get(winner).submitDocument("alice",mixed.documents.get(winner),1,key);
+                for(int contender=0;contender<4;contender++) {
+                    var service=mixed.services.get(contender); var document=mixed.documents.get(contender);
+                    if(contender==winner) assertEquals(saved,service.submitDocument("alice",document,1,key));
+                    else assertEquals(409,result(()->service.submitDocument("alice",document,1,key)));
+                }
+            }
+            assertMixedCounts(4,4);
+            for(var service:mixed.services) assertEquals(1,service.list("alice").size());
+        }
+    }
+    @Test void mixedScenarioDatabaseRestartPreservesTypedSnapshotsKeysAndIndependentVersions() throws Exception {
+        var expected=new ArrayList<ApprovalService.Request>();
+        try(var mixed=new MixedScenarios()) {
+            var saved=mixed.submitAll("mixed-restart-");
+            for(int i=0;i<4;i++) expected.add(mixed.services.get(i).decide("bob",saved.get(i).id(),mixed.firstSteps.get(i),"APPROVE","Persisted first vote"));
+            var travel=mixed.services.get(1); var definition=travel.process();
+            travel.publish("alice",1,new ProcessDefinition(definition.schemaVersion(),definition.id(),1,"Independent travel revision",definition.nodes()));
+        }
+        try(var reopened=new MixedScenarios()) {
+            for(int i=0;i<4;i++) {
+                var service=reopened.services.get(i); var saved=expected.get(i);
+                assertEquals(List.of(saved),service.list("alice"));
+                assertEquals(saved,service.submitDocument("alice",reopened.documents.get(i),1,"mixed-restart-"+i));
+                assertEquals(saved,service.decide("bob",saved.id(),reopened.firstSteps.get(i),"APPROVE","Ignored retry"));
+                assertEquals(i==1?2:1,service.process().version());
+                assertEquals(List.of(saved),service.inbox("carol",Map.of("box",List.of("PENDING"))).items());
+            }
+            assertMixedCounts(4,8); assertEquals(5,count("arc_process_version"));
+        }
+    }
+    @Test void mixedScenarioDatabaseConcurrentDifferentTypesCreateOneGlobalKeyWinner() throws Exception {
+        var firstGate=new GateDataSource(dataSource,"INSERT INTO arc_submission_key");
+        var secondGate=new GateDataSource(dataSource,"INSERT INTO arc_submission_key");
+        var executor=Executors.newFixedThreadPool(2);
+        try(var mixed=new MixedScenarios()) {
+            var seeded=mixed.submitAll("mixed-race-seed-");
+            try(var travel=new ApprovalService(new JdbcApprovalStore(firstGate,new ObjectMapper(),mixed.definitions.get(1)),USERS);
+                var receiving=new ApprovalService(new JdbcApprovalStore(secondGate,new ObjectMapper(),mixed.definitions.get(3)),USERS)) {
+                var first=executor.submit(()->result(()->travel.submitDocument("alice",travelDocument(),1,"mixed-race")));
+                var second=executor.submit(()->result(()->receiving.submitDocument("alice",receivingDocument(),1,"mixed-race")));
+                assertTrue(firstGate.entered.await(5,TimeUnit.SECONDS)); assertTrue(secondGate.entered.await(5,TimeUnit.SECONDS));
+                firstGate.release.countDown(); secondGate.release.countDown();
+                assertEquals(List.of(200,409),List.of(first.get(15,TimeUnit.SECONDS),second.get(15,TimeUnit.SECONDS)).stream().sorted().toList());
+            }
+            assertMixedCounts(5,5);
+            for(int i=0;i<4;i++) assertTrue(mixed.services.get(i).list("alice").contains(seeded.get(i)));
+        } finally {
+            firstGate.release.countDown(); secondGate.release.countDown(); executor.shutdownNow(); assertTrue(executor.awaitTermination(10,TimeUnit.SECONDS));
+        }
+        try(var reopened=new MixedScenarios()) {
+            int replayed=0;
+            for(int i:List.of(1,3)) {
+                var service=reopened.services.get(i); var document=reopened.documents.get(i);
+                int status=result(()->service.submitDocument("alice",document,1,"mixed-race"));
+                if(status==200) replayed++; else assertEquals(409,status);
+            }
+            assertEquals(1,replayed); assertMixedCounts(5,5);
+        }
+    }
+    @Test void mixedScenarioDatabaseFailedWritesRollBackRequestAuditKeyAndMembersTogether() throws Exception {
+        try(var mixed=new MixedScenarios()) {
+            var seeded=mixed.submitAll("mixed-rollback-seed-");
+            for(int i=0;i<4;i++) {
+                var inserted=new java.util.concurrent.atomic.AtomicBoolean();
+                var failing=ServerTestSupport.failAfterStatement(dataSource,"INSERT INTO arc_submission_key",inserted);
+                var document=mixed.documents.get(i); String key="mixed-failed-"+i;
+                try(var service=new ApprovalService(new JdbcApprovalStore(failing,new ObjectMapper(),mixed.definitions.get(i)),USERS)) {
+                    assertThrows(IOException.class,()->service.submitDocument("alice",document,1,key)); assertTrue(inserted.get());
+                }
+                assertMixedCounts(4,4);
+                for(int j=0;j<4;j++) {
+                    var service=mixed.services.get(j); assertEquals(List.of(seeded.get(j)),service.list("alice"));
+                    assertEquals(List.of(seeded.get(j)),service.inbox("bob",Map.of("box",List.of("PENDING"))).items());
+                    assertTrue(service.inbox("bob",Map.of("box",List.of("HANDLED"))).items().isEmpty());
+                }
+            }
+            // A failed key was never reserved, so every same-key retry succeeds after reopening normally.
+        }
+        try(var reopened=new MixedScenarios()) {
+            var retried=reopened.submitAll("mixed-failed-");
+            for(int i=0;i<4;i++) assertEquals(retried.get(i),reopened.services.get(i).submitDocument("alice",reopened.documents.get(i),1,"mixed-failed-"+i));
+            assertMixedCounts(8,8);
+        }
+    }
+
     @Test void concurrentInitializationCreatesOneConsistentHead() throws Exception {
         var constructors = new ArrayList<Callable<Integer>>();
         for (int i = 0; i < 8; i++) constructors.add(() -> { try (var service = open()) { return service.process().version(); } });

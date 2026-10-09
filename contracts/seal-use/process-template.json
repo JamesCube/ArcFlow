@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 2,
+  "id": "oa-seal-use",
+  "version": 1,
+  "name": "用印申请审批 / Seal-use request review",
+  "nodes": [
+    {"id":"start","type":"start","name":"提交申请 / Submit request","assigneeId":null},
+    {"id":"documentReview","type":"approval","name":"文档审核 / Document review","assigneeId":"bob"},
+    {"id":"sealReview","type":"approval","name":"用印复核 / Seal-use review","assigneeId":"carol"},
+    {"id":"end","type":"end","name":"审批完成 / Review complete","assigneeId":null}
+  ]
+}

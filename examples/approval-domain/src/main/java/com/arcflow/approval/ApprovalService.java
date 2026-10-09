@@ -20,6 +20,7 @@ import org.springframework.web.server.ResponseStatusException;
 public class ApprovalService implements AutoCloseable {
     public record Person(String id, String displayName) {}
     public record Event(String actorId, String action, String comment, String at, String stepId) {}
+    @com.fasterxml.jackson.databind.annotation.JsonDeserialize(using = RequestDecoder.class)
     public record Request(String id, String title, String reason, int days, String applicantId, String approverId,
                           String status, String createdAt, String updatedAt, String decision, String comment,
                           String processId, int processVersion, List<Event> history,
@@ -35,7 +36,7 @@ public class ApprovalService implements AutoCloseable {
         }
         private static final ObjectMapper DECODER = strictMapper(new ObjectMapper())
             .enable(DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES);
-        /** Strict old/new shapes, including JDBC's missing-creator-property protection. */
+        /** Shape-only tree adapter. Raw transports first enter RequestDecoder to preserve token checks. */
         @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
         public static Request fromJson(JsonNode node) throws IOException {
             var expected = new HashSet<>(List.of("id", "title", "reason", "days", "applicantId", "approverId", "status",
@@ -69,6 +70,28 @@ public class ApprovalService implements AutoCloseable {
             if (!value.isIntegralNumber() || !value.canConvertToInt()) throw new IOException("Invalid request integer: " + key);
             return value.intValue();
         }
+    }
+    /** Inspect raw integer tokens before a JsonNode can normalize negative zero to zero. */
+    public static final class RequestDecoder extends com.fasterxml.jackson.databind.JsonDeserializer<Request> {
+        @Override public Request deserialize(com.fasterxml.jackson.core.JsonParser parser, com.fasterxml.jackson.databind.DeserializationContext context) throws IOException {
+            return Request.fromJson(context.readTree(receivingTokenGuard(parser)));
+        }
+    }
+    static com.fasterxml.jackson.core.JsonParser receivingTokenGuard(com.fasterxml.jackson.core.JsonParser parser) {
+        return new com.fasterxml.jackson.core.util.JsonParserDelegate(parser) {
+            @Override public com.fasterxml.jackson.core.JsonToken nextToken() throws IOException {
+                var token = super.nextToken();
+                // These fields belong only to receiving; all other registered shapes reject them as unknown.
+                if (token == com.fasterxml.jackson.core.JsonToken.VALUE_NUMBER_INT && "-0".equals(getText()) &&
+                    currentName() != null && Set.of("ordered", "received", "accepted", "rejected").contains(currentName()))
+                    throw com.fasterxml.jackson.databind.JsonMappingException.from(this, "Receiving quantities cannot use negative zero");
+                return token;
+            }
+            @Override public com.fasterxml.jackson.core.JsonToken nextValue() throws IOException {
+                var token = nextToken();
+                return token == com.fasterxml.jackson.core.JsonToken.FIELD_NAME ? nextToken() : token;
+            }
+        };
     }
     public record Snapshot(int schemaVersion, ProcessDefinition definition, List<Request> requests) {}
     public record InboxPage(List<Request> items, String nextCursor) {
@@ -134,6 +157,16 @@ public class ApprovalService implements AutoCloseable {
             return requests.stream().filter(r -> visibleTo(r, actor)).toList();
         }
         catch (IOException e) { throw new UncheckedIOException("Cannot read approval requests", e); }
+    }
+
+    /** Fail closed when an isolated scenario is opened over records of another business type. */
+    void requireDocumentType(Class<? extends BusinessDocument> expected) {
+        Objects.requireNonNull(expected);
+        try {
+            for (Request request : store.requests())
+                if (request.business() == null || !expected.equals(request.business().getClass()))
+                    throw new IllegalStateException("Unexpected business type in isolated scenario store");
+        } catch (IOException failure) { throw new UncheckedIOException("Cannot validate isolated scenario store", failure); }
     }
 
     /** Additive bounded inbox; legacy list() retains its full applicant/all-participant visibility. */
@@ -260,6 +293,14 @@ public class ApprovalService implements AutoCloseable {
     }
 
     public Request decide(String actor, String id, String stepId, String decision, String comment) throws IOException {
+        return decide(actor, id, stepId, decision, comment, null);
+    }
+    Request decideForDocument(String actor, String id, String stepId, String decision, String comment,
+                              Class<? extends BusinessDocument> expected) throws IOException {
+        return decide(actor, id, stepId, decision, comment, Objects.requireNonNull(expected));
+    }
+    private Request decide(String actor, String id, String stepId, String decision, String comment,
+                           Class<? extends BusinessDocument> expected) throws IOException {
         // Keep writes bounded. A competing copy of this actor's command can win the last CAS,
         // so the final iteration must still reauthorize and observe durable replay, without writing.
         final int maxWriteAttempts = 16;
@@ -270,6 +311,9 @@ public class ApprovalService implements AutoCloseable {
             // Conceal existence from unrelated users, then authorize this exact snapshotted step before replay lookup.
             if (old == null || !visibleTo(old, actor))
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Request not found");
+            // Recheck the exact stored request on every CAS attempt, before replay or mutation.
+            if (expected != null && (old.business() == null || !expected.equals(old.business().getClass())))
+                throw new IOException("Unexpected business type in isolated scenario decision");
             var steps = old.definition().approvals();
             var step = steps.stream().filter(n -> n.id().equals(stepId)).findFirst()
                 .orElseThrow(() -> conflict("Step does not belong to this request"));
