@@ -1,0 +1,116 @@
+{
+  "content_baseline": "71910bfc2ac1b9d58e0f7f1b85e6bbb206321ec1",
+  "note": "Original screenshot bytes. Synthetic demo data. Each capture commit is recorded individually. Screenshots are visual evidence, not proof of production readiness or current CI.",
+  "images": [
+    {
+      "repository_path": "docs/images/gallery/designer-02-insert-all-zh.png",
+      "capture_commit": "21429cd1b0adcec6ffba3f5a473b1e06f4a35aa2",
+      "workflow_url": "https://github.com/JamesCube/ArcFlow/actions/runs/37775938307",
+      "sha256": "771766840861d9f82c9af580bff2362ae103c95e63307f26f8b11be8fd35f05b",
+      "width": 1440,
+      "height": 1287,
+      "source_url": "https://github.com/JamesCube/ArcFlow/blob/71910bfc2ac1b9d58e0f7f1b85e6bbb206321ec1/docs/images/gallery/designer-02-insert-all-zh.png",
+      "package_path": "screenshots/gallery/designer-02-insert-all-zh.png",
+      "website_path": "assets/designer-02-insert-all-zh.png"
+    },
+    {
+      "repository_path": "docs/images/gallery/designer-02-insert-all-en.png",
+      "capture_commit": "21429cd1b0adcec6ffba3f5a473b1e06f4a35aa2",
+      "workflow_url": "https://github.com/JamesCube/ArcFlow/actions/runs/37775938307",
+      "sha256": "6a902d68945eefde14da5210ae8ddd96872cb1b4d062cc6331b4be4db83e08eb",
+      "width": 1440,
+      "height": 1304,
+      "source_url": "https://github.com/JamesCube/ArcFlow/blob/71910bfc2ac1b9d58e0f7f1b85e6bbb206321ec1/docs/images/gallery/designer-02-insert-all-en.png",
+      "package_path": "screenshots/gallery/designer-02-insert-all-en.png",
+      "website_path": "assets/designer-02-insert-all-en.png"
+    },
+    {
+      "repository_path": "docs/images/gallery/oa-03-inbox-zh.png",
+      "capture_commit": "21429cd1b0adcec6ffba3f5a473b1e06f4a35aa2",
+      "workflow_url": "https://github.com/JamesCube/ArcFlow/actions/runs/37775938307",
+      "sha256": "822feff56f20e0c3a840ea99dd5253e4da7365de21627db0227373c21ea931ed",
+      "width": 1440,
+      "height": 1607,
+      "source_url": "https://github.com/JamesCube/ArcFlow/blob/71910bfc2ac1b9d58e0f7f1b85e6bbb206321ec1/docs/images/gallery/oa-03-inbox-zh.png",
+      "package_path": "screenshots/gallery/oa-03-inbox-zh.png",
+      "website_path": "assets/oa-03-inbox-zh.png"
+    },
+    {
+      "repository_path": "docs/images/gallery/oa-03-inbox-en.png",
+      "capture_commit": "21429cd1b0adcec6ffba3f5a473b1e06f4a35aa2",
+      "workflow_url": "https://github.com/JamesCube/ArcFlow/actions/runs/37775938307",
+      "sha256": "e023d7f37301a15bc3e4d65a9bccf47b41e276aa16988345048c8f5474d09f7f",
+      "width": 1440,
+      "height": 1607,
+      "source_url": "https://github.com/JamesCube/ArcFlow/blob/71910bfc2ac1b9d58e0f7f1b85e6bbb206321ec1/docs/images/gallery/oa-03-inbox-en.png",
+      "package_path": "screenshots/gallery/oa-03-inbox-en.png",
+      "website_path": "assets/oa-03-inbox-en.png"
+    },
+    {
+      "repository_path": "docs/images/gallery/erp-01-form-zh.png",
+      "capture_commit": "21429cd1b0adcec6ffba3f5a473b1e06f4a35aa2",
+      "workflow_url": "https://github.com/JamesCube/ArcFlow/actions/runs/37775938307",
+      "sha256": "587984a4beba760fa050ea032128808f8c4eb0361c67d16cfc77e027868df882",
+      "width": 1440,
+      "height": 1685,
+      "source_url": "https://github.com/JamesCube/ArcFlow/blob/71910bfc2ac1b9d58e0f7f1b85e6bbb206321ec1/docs/images/gallery/erp-01-form-zh.png",
+      "package_path": "screenshots/gallery/erp-01-form-zh.png",
+      "website_path": "assets/erp-01-form-zh.png"
+    },
+    {
+      "repository_path": "docs/images/gallery/erp-01-form-en.png",
+      "capture_commit": "21429cd1b0adcec6ffba3f5a473b1e06f4a35aa2",
+      "workflow_url": "https://github.com/JamesCube/ArcFlow/actions/runs/37775938307",
+      "sha256": "258e9d5825b6f77f99dddc3226f598d12eec20b2b306a294bfa8b95ff232b071",
+      "width": 1440,
+      "height": 1685,
+      "source_url": "https://github.com/JamesCube/ArcFlow/blob/71910bfc2ac1b9d58e0f7f1b85e6bbb206321ec1/docs/images/gallery/erp-01-form-en.png",
+      "package_path": "screenshots/gallery/erp-01-form-en.png",
+      "website_path": "assets/erp-01-form-en.png"
+    },
+    {
+      "repository_path": "docs/images/gallery/crm-01-form-zh.png",
+      "capture_commit": "21429cd1b0adcec6ffba3f5a473b1e06f4a35aa2",
+      "workflow_url": "https://github.com/JamesCube/ArcFlow/actions/runs/37775938307",
+      "sha256": "f358cb2bffc589943818bcffd63351021cddbc938412a02b6a5d9ef4e2383e48",
+      "width": 1440,
+      "height": 1229,
+      "source_url": "https://github.com/JamesCube/ArcFlow/blob/71910bfc2ac1b9d58e0f7f1b85e6bbb206321ec1/docs/images/gallery/crm-01-form-zh.png",
+      "package_path": "screenshots/gallery/crm-01-form-zh.png",
+      "website_path": "assets/crm-01-form-zh.png"
+    },
+    {
+      "repository_path": "docs/images/gallery/crm-01-form-en.png",
+      "capture_commit": "21429cd1b0adcec6ffba3f5a473b1e06f4a35aa2",
+      "workflow_url": "https://github.com/JamesCube/ArcFlow/actions/runs/37775938307",
+      "sha256": "298b817f53e32f1622be41d5855d60b046678fe565d021d861e6a5b66be944ca",
+      "width": 1440,
+      "height": 1278,
+      "source_url": "https://github.com/JamesCube/ArcFlow/blob/71910bfc2ac1b9d58e0f7f1b85e6bbb206321ec1/docs/images/gallery/crm-01-form-en.png",
+      "package_path": "screenshots/gallery/crm-01-form-en.png",
+      "website_path": "assets/crm-01-form-en.png"
+    },
+    {
+      "repository_path": "docs/images/expense/02-filled-expense-zh-desktop.png",
+      "capture_commit": "90007fc8d0499b45ca38a04d010029888ab5cbef",
+      "workflow_url": "https://github.com/JamesCube/ArcFlow/actions/runs/37803754153",
+      "sha256": "bf1f6fef923ec1ec0717ac1aa83ce8edb8ad6205f500160a7fd2ca6b6344620e",
+      "width": 1440,
+      "height": 1779,
+      "source_url": "https://github.com/JamesCube/ArcFlow/blob/71910bfc2ac1b9d58e0f7f1b85e6bbb206321ec1/docs/images/expense/02-filled-expense-zh-desktop.png",
+      "package_path": "screenshots/expense/02-filled-expense-zh-desktop.png",
+      "website_path": "assets/02-filled-expense-zh-desktop.png"
+    },
+    {
+      "repository_path": "docs/images/expense/02-filled-expense-en-desktop.png",
+      "capture_commit": "90007fc8d0499b45ca38a04d010029888ab5cbef",
+      "workflow_url": "https://github.com/JamesCube/ArcFlow/actions/runs/37803754153",
+      "sha256": "1adddf6df9f9ff527932666d77e4178079976c2f6d1f6bbcc26b0da3e279842c",
+      "width": 1440,
+      "height": 1779,
+      "source_url": "https://github.com/JamesCube/ArcFlow/blob/71910bfc2ac1b9d58e0f7f1b85e6bbb206321ec1/docs/images/expense/02-filled-expense-en-desktop.png",
+      "package_path": "screenshots/expense/02-filled-expense-en-desktop.png",
+      "website_path": "assets/02-filled-expense-en-desktop.png"
+    }
+  ]
+}

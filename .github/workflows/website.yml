@@ -1,0 +1,36 @@
+name: Website checks
+on:
+  push:
+    branches: [main, 'feat/github-pages-website']
+    paths: ['website/**', '.github/workflows/website.yml']
+  pull_request:
+    paths: ['website/**', '.github/workflows/website.yml']
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: website
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: website/package-lock.json
+      - run: npm ci
+      - run: npm run build && npm run check
+      - run: npx playwright install --with-deps chromium
+      - run: npm test
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arcflow-website-review
+          path: |
+            website/dist
+            website/test-results
+            website/playwright-report
+          retention-days: 14
