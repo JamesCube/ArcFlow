@@ -2,12 +2,13 @@
   "zh": {
     "lang": "zh-CN",
     "title": "ArcFlow · 把审批，接进你的业务",
-    "description": "面向 Java 业务系统的开源审批项目。用可视化设计器配置顺序审批，运行请假、采购、报价和报销示例，查看清晰的能力边界。",
+    "description": "面向 Java 业务系统的开源审批项目。可视化顺序审批、九种业务文档、六个独立场景与受限条件路由，附开发文档和真实 HTTP 接口参考。",
     "nav": [
       "流程设计",
       "业务场景",
       "能力边界",
-      "开始使用"
+      "开始使用",
+      "开发文档"
     ],
     "switch": "EN",
     "skip": "跳到内容",
@@ -71,7 +72,7 @@
     "flowFinal": "保留逐人记录",
     "scenariosKicker": "START WITH YOUR BUSINESS",
     "scenariosTitle": "从一笔真实业务，<br>走完整个流程。",
-    "scenariosIntro": "四种可运行示例，各有明确范围。先体验，再决定怎么接进自己的系统。",
+    "scenariosIntro": "这里展示四组真实界面。当前主线共有九种业务文档：请假、采购与报价使用各自入口，另有六个独立场景工作区。",
     "tabLabel": "选择业务场景",
     "scenarioLink": "阅读场景说明",
     "screenNote": "真实产品截图，使用合成数据；点击查看完整画面。",
@@ -178,14 +179,14 @@
       [
         "partial",
         "有限支持",
-        "多宿主与存储适配",
-        "JSON 默认单写者；JDBC 需接线，客户端支持范围不同。"
+        "三类业务的条件路由",
+        "付款净额、收货异常与合同条款，可决定是否进入固定审批步骤；不执行脚本或通用表达式。"
       ],
       [
         "planned",
         "尚未实现",
-        "动态路由与高级流程",
-        "条件分支、动态主管、撤回、转办、定时催办、BPMN。"
+        "高级流程与企业接入",
+        "动态主管、撤回、转办、定时催办、BPMN 与自动业务回写。"
       ]
     ],
     "startKicker": "FROM SOURCE TO YOUR SCREEN",
@@ -202,8 +203,8 @@
     "versions": [
       [
         "本页功能基线",
-        "main · 71910bfc",
-        "包含报销工作区与能力目录。文案核对于 2026-10-09。"
+        "main · 666ff64b",
+        "已合入六场景、付款与合同、受限条件路由；截图保留各自拍摄版本。核对于 2026-10-09。"
       ],
       [
         "已发布源码预览",
@@ -211,9 +212,9 @@
         "较早版本，提交 ab428327；不含报销等后续主线更新。"
       ],
       [
-        "开发中的候选",
-        "PR #39 · 未合并",
-        "组合场景仍是候选预览，不作为本页已交付能力。"
+        "开发者入口",
+        "当前主线开发文档",
+        "启动、架构、存储迁移、实际 HTTP 接口与可执行合成示例。"
       ]
     ],
     "closing": "把下一条流程，<br>交给你来定义。",
@@ -224,21 +225,26 @@
       "源码",
       "问题反馈",
       "能力目录",
-      "路线图"
+      "路线图",
+      "开发文档",
+      "API"
     ],
     "footerDisclosure": "本页为静态项目介绍，不提供在线审批服务。无追踪脚本、无数据收集表单。",
     "mobileMenu": "打开导航",
-    "noJS": "页面内容和源码链接无需 JavaScript。开启 JavaScript 可切换场景与放大截图。"
+    "noJS": "页面内容和源码链接无需 JavaScript。开启 JavaScript 可切换场景与放大截图。",
+    "developerLink": "开发文档与 API",
+    "apiLink": "HTTP 接口参考"
   },
   "en": {
     "lang": "en",
     "title": "ArcFlow · Bring approvals into your business",
-    "description": "An open-source approval project for Java applications. Configure sequential steps, run business examples, and explore clear capability boundaries.",
+    "description": "An open-source approval project for Java applications: ordered approval design, nine business document types, six standalone scenarios, bounded conditional routing, developer docs and HTTP API reference.",
     "nav": [
       "Designer",
       "Scenarios",
       "Capabilities",
-      "Get started"
+      "Get started",
+      "Developer docs"
     ],
     "switch": "中文",
     "skip": "Skip to content",
@@ -302,7 +308,7 @@
     "flowFinal": "Individual decisions retained",
     "scenariosKicker": "START WITH YOUR BUSINESS",
     "scenariosTitle": "One business request.<br>The whole journey.",
-    "scenariosIntro": "Four runnable examples, each with an explicit scope. Try them before choosing how to integrate.",
+    "scenariosIntro": "Explore four real interface examples here. Current main has nine business document types: leave, procurement and quotes use their own entry points, alongside six standalone scenario workspaces.",
     "tabLabel": "Choose a business scenario",
     "scenarioLink": "Read the scenario guide",
     "screenNote": "Real product screenshots with synthetic data. Open an image to see it in full.",
@@ -408,15 +414,15 @@
       ],
       [
         "partial",
-        "Limited support",
-        "Multiple hosts and storage adapters",
-        "Default JSON is single-writer. JDBC requires wiring; client coverage differs."
+        "Bounded support",
+        "Conditions for three business types",
+        "Payment net totals, receiving exceptions and contract terms can select fixed approval steps. No scripts or general expression language."
       ],
       [
         "planned",
         "Not implemented",
-        "Dynamic routing and advanced workflows",
-        "Conditional branches, dynamic managers, withdrawal, delegation, timed reminders, and BPMN."
+        "Advanced workflows and enterprise integration",
+        "Dynamic managers, withdrawal, reassignment, reminders, BPMN and automatic business writeback."
       ]
     ],
     "startKicker": "FROM SOURCE TO YOUR SCREEN",
@@ -433,8 +439,8 @@
     "versions": [
       [
         "This page’s feature baseline",
-        "main · 71910bfc",
-        "Includes the expense workspace and capability catalog. Checked on 2026-10-09."
+        "main · 666ff64b",
+        "Six scenarios, payment and contract cases, and bounded routing are merged. Screenshots retain their capture versions. Checked on 2026-10-09."
       ],
       [
         "Published source preview",
@@ -442,9 +448,9 @@
         "Earlier commit ab428327. Excludes expenses and later main-branch updates."
       ],
       [
-        "Development candidate",
-        "PR #39 · Not merged",
-        "Combined scenarios remain a candidate preview, not delivered capabilities on this page."
+        "For developers",
+        "Current main developer docs",
+        "Setup, architecture, storage migration, actual HTTP endpoints and executable synthetic examples."
       ]
     ],
     "closing": "Your next process.<br>Your next contribution.",
@@ -455,10 +461,14 @@
       "Source",
       "Issues",
       "Capabilities",
-      "Roadmap"
+      "Roadmap",
+      "Developer docs",
+      "API"
     ],
     "footerDisclosure": "A static project website, not an online approval service. No tracking scripts or data collection forms.",
     "mobileMenu": "Open navigation",
-    "noJS": "Content and source links work without JavaScript. Enable it for scenario tabs and full-screen images."
+    "noJS": "Content and source links work without JavaScript. Enable it for scenario tabs and full-screen images.",
+    "developerLink": "Developer docs and API",
+    "apiLink": "HTTP API reference"
   }
 }

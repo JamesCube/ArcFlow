@@ -1,5 +1,7 @@
 # Reusable approval domain
 
+[Developer architecture / 开发架构](../../docs/development/ARCHITECTURE.md) · [Persistence and migration / 存储迁移](../../docs/development/PERSISTENCE.md) · [API reference / 接口参考](../../docs/api/API_REFERENCE.md)
+
 `com.arcflow.examples:approval-domain:0.1.0-SNAPSHOT` is a Java 17 library for approval stages, participant groups and persistence through `ApprovalStore`. ArcFlow’s core runs the submission validation/normalization DAG. This module handles the human decisions that follow. It has no Spring Boot entry point, authentication filter or demo users. The default store is still single-process JSON; [approval-jdbc](../approval-jdbc/README.md) provides an optional transactional database adapter.
 
 Install the core first, then this module:
@@ -11,7 +13,7 @@ mvn -f examples/approval-domain/pom.xml install
 
 ## Host contract
 
-Create `ApprovalService(ObjectMapper, String filename, ActorDirectory, ProcessDefinition initialDefinition)` and call `close()` when the host shuts down. In Spring, `@Bean(destroyMethod = "close")` handles this. Give each deployment its own data file. The initial definition is used only when no versioned snapshot exists; `ProcessDefinition.legacy(assigneeId)` constructs the supported one-step leave definition. Each service/store is bound to one process ID matching `[A-Za-z][A-Za-z0-9_-]{0,127}`; an existing JSON file must belong to that ID. The demos keep `leave-approval`. Publication cannot rename the configured process. Definitions have an ordered start → 1–8 approval stages → end structure. Schema 2 keeps single-assignee sequential stages; schema 3 adds `ALL`/`ANY` groups of 2–16 participants. See the [group semantics and rollout contract](../../docs/PARALLEL_APPROVAL.md).
+Create `ApprovalService(ObjectMapper, String filename, ActorDirectory, ProcessDefinition initialDefinition)` and call `close()` when the host shuts down. In Spring, `@Bean(destroyMethod = "close")` handles this. Give each deployment its own data file. The initial definition is used only when no versioned snapshot exists; `ProcessDefinition.legacy(assigneeId)` constructs the supported one-step leave definition. Each service/store is bound to one process ID matching `[A-Za-z][A-Za-z0-9_-]{0,127}`; an existing JSON file must belong to that ID. The demos keep `leave-approval`. Publication cannot rename the configured process. Definitions have an ordered start → 1–8 approval stages → end structure. Schema 2 keeps single-assignee sequential stages; schema 3 adds `ALL`/`ANY` groups of 2–16 participants. Schema 4 adds restricted frozen routing only for payment, receiving and contract document hosts; generic and quote publication do not accept it. See the [group semantics and rollout contract](../../docs/PARALLEL_APPROVAL.md).
 
 For database persistence, construct `ApprovalService(ApprovalStore, ActorDirectory)` with the optional JDBC adapter. This overload does not change the host controllers or request/response records. The service owns the store lifecycle; a host-provided `DataSource` remains host-owned. Stores provide live reads and atomic version-checked publication, creation and decision updates. A request's revision equals its number of decisions (`history.size() - 1`). Failed revision checks reload and reauthorize the exact step before returning an idempotent replay or a conflict. Use the optional `submit(..., key)` overload to retry submissions with a durable key scoped to the applicant. Stores atomically bind the key to the new request; unsupported third-party stores fail explicitly. Without a key, each submission creates a separate request. See the [submission contract and migration boundary](../../docs/SUBMISSION_IDEMPOTENCY.md).
 
@@ -38,21 +40,21 @@ The standalone Vue/HTTP and native RuoYi hosts support schema 3. Schema-3 hosts 
 
 ## Business document boundary / 业务单据边界
 
-The local unified candidate supports nine explicit immutable types: leave, procurement,
+Current `main` supports nine explicit immutable types: leave, procurement,
 quoteDiscount, expense, travel, sealUse, receiving, paymentRequest and contractApproval, through the shared approval lifecycle.
-The strict reader accepts JSON wrappers 1–12; minimum typed wrappers are 5 for leave and
+The strict reader accepts JSON wrappers 1–13; minimum typed wrappers are 5 for leave and
 procurement, 6 for quotes, 7 for Expense, 8 for Travel, 9 for Seal-use and 10 for Receiving, 11 for Payment and 12 for Contract.
 Writes use a monotonic maximum; valid higher wrappers can hold lower-minimum types. Reads
-never force all files to 10. Legacy fields and process definitions (schema 2/3) are unchanged.
+never force files to the maximum wrapper. Legacy fields and process definitions (schema 2/3) keep their existing behavior. Definition schema 4 and frozen routes require wrapper 13, including publication without requests.
 Unknown types/versions and invalid type-wrapper combinations remain rejected.
 
 Type registration does not open generic hosts to every type. Generic standalone/native
 HTTP still accepts only leave/procurement; CRM and all six compiled scenarios retain
 separate exact-type/process/authorization boundaries. Expense and Travel views contain
 `{request,total:string}`; Seal views `{request,total:null}`; Receiving alone adds its
-unit-grouped `summary`. No dynamic conditional-routing or arbitrary-field form engine is added.
+unit-grouped `summary`. Restricted typed conditions are available only for payment, receiving and contract; no arbitrary expression or arbitrary-field form engine is provided.
 See [business-document contract](../../docs/BUSINESS_DOCUMENTS.md) and
-[combined candidate status](../../docs/UNIFIED_SCENARIO_INTEGRATION.md).
+[combined integration history](../../docs/UNIFIED_SCENARIO_INTEGRATION.md).
 
 ## Bounded member inbox
 
@@ -81,10 +83,10 @@ request, including after a decision or restart. References do not impose uniquen
 
 ### Explicit snapshot compatibility
 
-This unified reader supports JSON wrappers **1–12**, including valid Travel/schema-8 and
+The current reader supports JSON wrappers **1–13**, including valid Travel/schema-8 and
 Seal/schema-9 data. Seal requires at least 9 and remains valid at 10; Receiving requires at
 least 10. Every type retains strict wire name, exact Java record, field and version validation.
-Unknown/future types, noninteger/overflow wrappers and wrapper 13+ fail closed.
+Unknown/future types, noninteger/overflow wrappers and wrappers above 13 fail closed. Wrapper 13 additionally retains published schema-4 definitions and validates frozen routes against their immutable business snapshots. See the [current storage matrix](../../docs/development/PERSISTENCE.md).
 
 Compatible files are read without rewriting or touching backups. Every actual upgrade
 retains the byte-exact immediately preceding snapshot before atomic replacement, including

@@ -1,0 +1,14 @@
+{
+  "business": {
+    "type": "sealUse",
+    "documentVersion": 1,
+    "businessId": "SEAL-DOCS-001",
+    "title": "Synthetic developer example",
+    "reason": "Synthetic data for a disposable local test only",
+    "documentName": "Synthetic delivery statement",
+    "documentRef": "DOC-DEMO-001",
+    "sealType": "OFFICIAL",
+    "copyCount": 2
+  },
+  "processVersion": 1
+}

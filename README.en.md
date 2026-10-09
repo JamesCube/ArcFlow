@@ -4,7 +4,7 @@ Add approval flows to a Java application. Set up steps and reviewers in the Vue 
 
 Start with the leave-request demo: submit a request, switch accounts to approve it, and check the result. The RuoYi example shows how to connect approvals to an existing application.
 
-[简体中文](README.md) · [Capabilities](#approval-capabilities-at-a-glance) · [Quick start](#quick-start) · [Business examples](#business-examples) · [RuoYi setup](examples/ruoyi-vue3/README.md) · [Docs](#docs-and-source)
+[简体中文](README.md) · [Capabilities](#approval-capabilities-at-a-glance) · [Quick start](#quick-start) · [Business examples](#business-examples) · [RuoYi setup](examples/ruoyi-vue3/README.md) · [Developer guide](docs/development/README.md#en) · [API reference](docs/api/API_REFERENCE.en.md) · [Docs](#docs-and-source)
 
 [![Java CI](https://github.com/JamesCube/ArcFlow/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/JamesCube/ArcFlow/actions/workflows/ci.yml)
 [![Approval demo CI](https://github.com/JamesCube/ArcFlow/actions/workflows/approval-demo.yml/badge.svg?branch=main)](https://github.com/JamesCube/ArcFlow/actions/workflows/approval-demo.yml)
@@ -44,7 +44,7 @@ Go straight to a case: [OA leave](docs/CASE_GALLERY.md#oa) · [Expense reimburse
 | [Draft undo/redo](docs/DESIGNER_GALLERY.md#undo) | 🟡 | Standalone tab-local undo/redo; no durable drafts |
 | [Publication conflicts](docs/DESIGNER_GALLERY.md#publish) | ✅ | Validate and publish a new version; stale expected versions are rejected |
 | [Pinned process version](docs/DESIGNER_GALLERY.md#versions) | ✅ | Existing requests keep the rules, people and version saved at submission |
-| [Restricted conditional routing](docs/CONDITIONAL_ROUTING.md) | 🟡 | Local candidate: payment net amount, receipt exceptions and contract terms select additional manual stages, frozen at submission; browser acceptance remains incomplete |
+| [Restricted conditional routing](docs/CONDITIONAL_ROUTING.md) | 🟡 | Payment net total, receipt exceptions, and contract terms select additional human reviews; frozen at submission, limited to three standalone scenarios |
 
 [Limits, missing features and test evidence](docs/CAPABILITIES.md#en-design)
 
@@ -64,7 +64,7 @@ Go straight to a case: [OA leave](docs/CASE_GALLERY.md#oa) · [Expense reimburse
 | Host identity directory | 🟡 | Hosts provide active users and publication eligibility through ActorDirectory |
 | [Standalone demo picker](docs/DESIGNER_GALLERY.md#all) | 🟡 | Standalone uses Alice/Bob/Carol; reviewer choices are Bob and Carol |
 | [Native RuoYi users](docs/CASE_GALLERY.md#other-clients) | ✅ | Select fixed RuoYi users; reuse native login, menus and button permissions |
-| Request visibility | ✅ | Applicants/participants can see requests; administrators cannot vote as others |
+| Request visibility | ✅ | Applicants/effective-path participants can see requests; skipped-only assignments grant no access; administrators cannot vote as others |
 | Dynamic role resolution | — | No dynamic role, department or direct-manager resolution |
 
 [Limits, missing features and test evidence](docs/CAPABILITIES.md#en-people)
@@ -97,7 +97,7 @@ Go straight to a case: [OA leave](docs/CASE_GALLERY.md#oa) · [Expense reimburse
 ### Reliability, storage and recovery
 | Capability | Status | Current scope |
 | --- | --- | --- |
-| Submission idempotency | ✅ | Generic keys are optional; Expense requires applicant-scoped keys; same intent replays, changed intent conflicts |
+| Submission idempotency | ✅ | Generic keys are optional; all six scenarios require applicant-scoped keys; same intent replays, changed intent conflicts |
 | Decision idempotency | ✅ | Same member/stage retry adds no vote; opposite decisions conflict |
 | Concurrent state updates | ✅ | Revision checks/atomic updates protect approval state, not external effects |
 | Local JSON recovery | 🟡 | Default file persistence/reopen recovery; one writer only |
@@ -117,7 +117,7 @@ Go straight to a case: [OA leave](docs/CASE_GALLERY.md#oa) · [Expense reimburse
 
 [Limits, missing features and test evidence](docs/CAPABILITIES.md#en-integration)
 
-The full catalog also lists each missing capability separately: arbitrary forks/joins, majority voting, added reviewers, claiming, delegation, CC, batch decisions, reminders, escalation, attachments, tenant isolation, asynchronous execution and BPMN. Expense now supports repeating lines; procurement and quotes remain single-item. A compiled, versioned scenario catalog exists, without template installation/cloning or arbitrary-field publication. See the [proposed implementation sequence](docs/CAPABILITIES.md#en-next) for additional scenarios and form design.
+The full catalog also lists each missing capability separately: arbitrary forks/joins, majority voting, added reviewers, claiming, delegation, CC, batch decisions, reminders, escalation, attachments, tenant isolation, asynchronous execution and BPMN. Expense, receiving, payment, and contract forms support repeating lines; procurement and quotes remain single-item. A compiled, versioned scenario catalog exists, without template installation/cloning or arbitrary-field publication. See the [proposed implementation sequence](docs/CAPABILITIES.md#en-next) for additional scenarios and form design.
 
 [Run locally](#quick-start) · [Follow the business journeys](#business-examples) · [Full capability catalog](docs/CAPABILITIES.md#en)
 
@@ -142,7 +142,7 @@ Open the URL printed in your terminal. The launcher also tells you where to find
 
 To try two steps, use Alice's designer to add Carol after Bob, publish, and submit a new request.
 
-The same launch also runs procurement, quote and expense approvals. Choose **Procurement** under **Request type** in the workspace. For quotes, open `/quote-discount.html`; for expenses, open the `/scenarios.html` scenario library. Both separate pages use the same password file for sign-in. See [the original three business cases](docs/GETTING_STARTED.md#try-other-cases-en) for their entry points, the [Expense contract](docs/EXPENSE_SCENARIO.md) for fields, review and retry rules, and the [Expense gallery](docs/EXPENSE_SCENARIO.md#gallery) for real screens.
+The same launch also runs the other cases. Choose **Procurement** under **Request type** in the main workspace; open `/quote-discount.html` for quotes, or `/scenarios.html` for the six expense, travel, seal-use, receiving, payment, and contract scenarios. Use the same UI origin and demo passwords, signing in again on separate pages. See [the original three business cases](docs/GETTING_STARTED.md#try-other-cases-en) for their entry points, the [Expense contract](docs/EXPENSE_SCENARIO.md) for fields, review and retry rules, and the [Expense gallery](docs/EXPENSE_SCENARIO.md#gallery) for real screens.
 
 Ctrl-C stops the services and deletes that run's data. Use the [manual setup](docs/GETTING_STARTED.md#english) if you want to keep the data. The current version is `0.1.0-SNAPSHOT`; run it locally with test data. APIs may change.
 
@@ -156,12 +156,17 @@ The leave demo is the starting point for applying approvals to other business ta
 | **Office automation (OA)** | Leave requests: an employee enters the duration and reason; assigned reviewers decide in order | [Runnable](docs/GETTING_STARTED.md#english), including the RuoYi example |
 | **ERP** | Purchase requests: enter the item, quantity and unit price, then review the need and cost | [Runnable API and standalone/RuoYi forms](docs/PROCUREMENT_UI.md), with procurement review on H5 |
 | **OA expenses** | 1–20 expense lines with dates, categories, amounts and synthetic receipt references; expense review followed by finance | [Merged standalone scenario](docs/EXPENSE_SCENARIO.md) on `/scenarios.html`; no payments, uploads or invoice verification |
+| **OA travel** | Destination, dates, purpose, and exact budget for 1–90 calendar days | [Dedicated travel scenario](docs/TRAVEL_SCENARIO.md); no booking, reimbursement, or payment |
+| **OA seal use** | Synthetic document references, seal category, purpose, and copy count | [Dedicated seal-use scenario](docs/SEAL_USE_SCENARIO.md); no stamping or signing |
+| **ERP receiving** | 1–20 lines of received, accepted, and rejected quantities with exception notes | [Dedicated receiving scenario](docs/RECEIVING_SCENARIO.md), with optional conditions; no live PO balances or stock posting |
+| **ERP payments** | Invoice allocations, declared settled amounts, deductions, and net request totals | [Dedicated payment scenario](docs/PAYMENT_CONTRACT_SCENARIOS.md), with optional conditions; no money transfer or balance lock |
+| **CRM contracts** | Terms, dates, payment milestones, and acceptance criteria | [Dedicated contract scenario](docs/PAYMENT_CONTRACT_SCENARIOS.md), with optional conditions; no signing or CRM writeback |
 
 The quote case uses synthetic customer data and fixed sales-manager → finance human review through a separate `/api/crm` service and `/quote-discount.html` page. The shared standalone, RuoYi and H5 workspaces do not support quotes yet. AI features, a real CRM connection, customer notifications and business writeback aren't implemented. See [CRM compatibility and release gates](docs/CRM_COMPATIBILITY_READINESS.md) for verification status.
 
 Expense uses compiled, versioned `ScenarioCatalog` metadata, dedicated `/api/scenarios/oa-expense` routes and its own data file. The form fields are fixed; the designer configures 1–8 fixed-reviewer stages. Shared workspaces, RuoYi, H5 and real finance systems are not connected to this case.
 
-[Travel](docs/TRAVEL_SCENARIO.md), [Seal-use](docs/SEAL_USE_SCENARIO.md) and [Receiving](docs/RECEIVING_SCENARIO.md) are included in this local unified integration candidate. `/scenarios.html` lists Expense, Travel, Seal-use, Receiving, Payment Requests and Contract Approval; Receiving also retains `/receiving.html`. Each has its own business type, process, fixed data file and session workspace. Payment, Receiving and Contract may use [typed restricted conditions](docs/CONDITIONAL_ROUTING.md); there is no arbitrary-field form engine. This candidate is not merged or deployed, and this document claims no complete exact-head CI or release pass. Original candidate screenshot downloads returned HTTP 403 / 1010; original PNG bytes and independent pixel acceptance remain unverified. See [unified compatibility and acceptance gates](docs/UNIFIED_SCENARIO_INTEGRATION.md).
+Current main has six `/scenarios.html` entries: Expense, Travel, Seal-use, Receiving, Payment and Contract; Receiving also has `/receiving.html`. Each binds its own type, process and file. Payment/Receiving/Contract may use [restricted conditions](docs/CONDITIONAL_ROUTING.md). These implementations are merged in source; check browser, database and release acceptance for the exact commit separately. The original unified candidate's HTTP 403/1010 image-download failures and missing independent pixel review remain [historical evidence](docs/UNIFIED_SCENARIO_INTEGRATION.md), not a pass/fail conclusion about current CI.
 
 ### Follow each business case through the workflow
 
@@ -201,7 +206,7 @@ The original three-case, designer, group, RuoYi and H5 galleries contain 33 dist
 
 The RuoYi example adds approval pages to its native menus and reuses existing accounts and permissions. For another Java application, start with the approval domain and storage interfaces.
 
-The main-branch domain supports typed leave, procurement, quote-discount and expense documents with a shared approval state machine, audit history and submission retries. Generic HTTP endpoints and standalone/RuoYi workspaces retain leave and procurement support. Quote HTTP submission uses a dedicated host checking source revision, business read access and ownership. Expense uses its dedicated scenario host and requires an `Idempotency-Key`; the local unified candidate also registers Travel, Seal-use, Receiving, Payment Requests and Contract Approval behind dedicated scenario hosts. Generic document endpoints still reject quotes and all six scenario types. Business snapshots remain immutable during review. See the [business-document contract](docs/BUSINESS_DOCUMENTS.md) for fields, endpoints and upgrade limits.
+Current `main` registers nine business types: leave, procurement, quote discounts, expenses, travel, seal use, receiving, payment requests, and contract approval. Generic standalone/RuoYi document endpoints accept only leave and procurement. Quotes have a dedicated host; the other six types use the standalone scenario catalog and dedicated hosts requiring `Idempotency-Key`. Types, process identities, and stores remain isolated; approval never changes the business snapshot. See [architecture and extension](docs/development/ARCHITECTURE.md#en) and the [API reference](docs/api/API_REFERENCE.en.md).
 
 | Module or example | What it covers |
 | --- | --- |
@@ -210,11 +215,11 @@ The main-branch domain supports typed leave, procurement, quote-discount and exp
 | [RuoYi integration](examples/ruoyi-vue3/README.md) | Setup for RuoYi-Vue + RuoYi-Vue3 |
 | [JDBC storage](examples/approval-jdbc/README.md) | Database persistence for approval data and audit history |
 
-Typed leave/procurement writes require at least JSON snapshot schema 5; the first quote write upgrades to schema 6 and the first Expense write to schema 7. Later writes never downgrade. Upgrade all readers, stop incompatible writers and back up before enabling new types; schema-6 readers cannot read Expense/schema 7. Expense uses `approval.data-file + ".scenario-oa-expense.json"`; byte-exact pre-upgrade backups preserve historical state, so rollback cannot losslessly retain later writes. See the [expense and migration guide](docs/EXPENSE_SCENARIO.md). Member worklists retain SQL revision 3; CRM and Expense add no SQL migration. Existing databases still need explicit migration and bounded backfill. The unified reader strictly accepts schemas 1–13: Travel requires at least 8, Seal-use 9, Receiving 10, Payment Requests 11 and Contract Approval 12. Writes take the maximum of existing schema and all type requirements, never downgrade, and reading never forces schema 12. Registering these types does not rebuild an already-ready member index. Stop incompatible writers, back up and upgrade all readers/writers before new typed writes. Old independent candidate readers are not interchangeable; historical backup restore is not lossless downgrade. See [combined migration and verification](docs/UNIFIED_SCENARIO_INTEGRATION.md).
+The current reader strictly accepts JSON wrappers 1–13. Definition schemas 2/3/4 and SQL revision 3 are separate version systems. New types raise the file wrapper when content requires it; publishing schema 4 immediately requires wrapper 13. Reading never upgrades a file, and writing never downgrades one. Stop incompatible readers/writers and back up every scenario file before upgrading. Restoring an older backup loses later changes. Unchanged SQL revision 3 does not imply old-binary compatibility; existing databases still require explicit migration and member backfill. See [persistence and migration](docs/development/PERSISTENCE.md#en) for the version matrix, file locations, and rollout steps.
 
 Both demos store approval data in local JSON and support one instance. RuoYi's MySQL database holds users, roles and menus; it doesn't automatically store approvals. JDBC needs explicit setup and migrations. Actor-scoped pending/handled pagination is available. Tenant isolation, transactions spanning business tables, and an outbox aren't implemented yet.
 
-Restricted conditions are limited to those three standalone scenarios. Dynamic role resolution, timers, withdrawal and delegation are still missing. Native apps, mini-programs, Feishu, WeCom and DingTalk integrations are unfinished. There's no production-readiness guarantee or BPMN compatibility. See the [roadmap](docs/ROADMAP.md) for planned work.
+Restricted conditions are limited to the standalone payment, receiving, and contract scenarios. Dynamic role resolution, timers, withdrawal and delegation are still missing. Native apps, mini-programs, Feishu, WeCom and DingTalk integrations are unfinished. There's no production-readiness guarantee or BPMN compatibility. See the [roadmap](docs/ROADMAP.md) for planned work.
 
 ## Run just the Java core
 
@@ -229,19 +234,19 @@ java -cp target/classes com.arcflow.example.QuickStart
 
 ## Docs and source
 
-[First approval and troubleshooting](docs/GETTING_STARTED.md#english) · [Expense scenario](docs/EXPENSE_SCENARIO.md) · [Expense gallery](docs/EXPENSE_SCENARIO.md#gallery) · [Group approval rules](docs/PARALLEL_APPROVAL.md) · [Submission idempotency](docs/SUBMISSION_IDEMPOTENCY.md) · [Integration design](docs/INTEGRATION_DESIGN.md) · [Contributing](CONTRIBUTING.md)
+[Developer guide](docs/development/README.md#en) · [API reference](docs/api/API_REFERENCE.en.md) · [API examples](docs/api/examples/README.md) · [First approval and troubleshooting](docs/GETTING_STARTED.md#english) · [Expense scenario](docs/EXPENSE_SCENARIO.md) · [Expense gallery](docs/EXPENSE_SCENARIO.md#gallery) · [Group approval rules](docs/PARALLEL_APPROVAL.md) · [Submission idempotency](docs/SUBMISSION_IDEMPOTENCY.md) · [Integration design](docs/INTEGRATION_DESIGN.md) · [Contributing](CONTRIBUTING.md)
 
 [Open an issue](https://github.com/JamesCube/ArcFlow/issues) with the commit, environment, command and error details if something fails. Remove credentials and real personal data first.
 
-For a pinned version, download a Source code archive from the [`v0.1.0-alpha.3` source preview](https://github.com/JamesCube/ArcFlow/releases/tag/v0.1.0-alpha.3), extract it, and run `python3 scripts/tryout.py`. Read the release's upgrade notes before using existing data.
+For a pinned version, download a Source code archive from the [`v0.1.0-alpha.3` source preview](https://github.com/JamesCube/ArcFlow/releases/tag/v0.1.0-alpha.3), extract it, and run `python3 scripts/tryout.py`. That tag is a historical snapshot, not current `main`; do not assume it contains every scenario or conditional-routing feature listed here. Read the release's upgrade notes before using existing data.
 
 The earlier [`v0.1.0-alpha.2`](https://github.com/JamesCube/ArcFlow/releases/tag/v0.1.0-alpha.2) does not include alpha.3's standalone-host dependency upgrade, post-read identity-check fixes, or root build changes. [`v0.1.0-alpha.1`](https://github.com/JamesCube/ArcFlow/releases/tag/v0.1.0-alpha.1) is an older sequential-approval version without the current designer, ALL/ANY, JDBC or typed business documents.
 
 [Apache License 2.0](LICENSE). Separately downloaded RuoYi projects keep their MIT licenses. This project isn't endorsed by RuoYi upstream.
 
 
-## Payment and contract review candidate / 付款与合同审批候选
+## Payment, contract, and conditional review
 
-This unmerged extension adds independent ERP payment allocation and CRM contract milestone reviews to the six-entry `/scenarios.html` catalog. It uses nine exact business types, monotonic JSON wrappers 1–12 and separate compiled API/store boundaries. Actual ALL/ANY and versioned human review do not execute payment, signing or external writes. See [business models, workflow semantics, compatibility and verification gates](docs/PAYMENT_CONTRACT_SCENARIOS.md). This extension requires matching frontend and backend versions; old schema-10 readers cannot read the new documents.
+Current `main` includes ERP payment requests and CRM contract approval in the six-scenario catalog. Payments reconcile invoice amounts, previously settled amounts, allocations, deductions, and net requested totals. Contracts capture term deviations, dates, payment milestones, and acceptance criteria, with exact milestone-total validation. Both reuse SINGLE/ALL/ANY and immutable process versions through isolated APIs/stores. They do not make payments, sign contracts, or write to external systems. See the [business and workflow contract](docs/PAYMENT_CONTRACT_SCENARIOS.md).
 
-Conditional definitions use DSL schema 4 and require JSON wrapper 13 immediately upon publication, with exact pre-upgrade backups, retained versions and frozen routes. Old schema2/3 definitions keep their original paths; SQL revision3 is unchanged. This local candidate has domain/HTTP/H2/MySQL checks, but current-head browser and PostgreSQL acceptance remains incomplete. It has not been pushed or deployed. See the [routing contract](docs/CONDITIONAL_ROUTING.md).
+Payment, receiving, and contract scenarios support restricted definition-schema-4 conditions. The server retains full definitions, published versions, and the route frozen at submission. JSON wrappers support 13; SQL revision 3 is unchanged. Older schema-2/3 requests retain their original paths. See [routing semantics](docs/CONDITIONAL_ROUTING.md) and [migration guidance](docs/development/PERSISTENCE.md#en). Local-candidate notes and test counts in focused guides are historical checkpoints; check CI for the source revision you use rather than treating them as current-commit or production-deployment guarantees.

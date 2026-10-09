@@ -1,0 +1,17 @@
+{
+  "business": {
+    "type": "quoteDiscount",
+    "businessId": "Q-DEMO-001",
+    "title": "Synthetic developer example",
+    "reason": "Synthetic data for a disposable local test only",
+    "customerRef": "CUSTOMER-DEMO-A",
+    "quoteRevision": 1,
+    "item": "设备套装 / Equipment set",
+    "quantity": 10,
+    "listUnitPrice": 1000.0,
+    "requestedUnitPrice": 850.0,
+    "currency": "CNY",
+    "validUntil": "2099-12-31"
+  },
+  "processVersion": 1
+}

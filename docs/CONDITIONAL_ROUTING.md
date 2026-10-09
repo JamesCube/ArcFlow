@@ -1,4 +1,14 @@
-# Restricted conditional routing (candidate contract)
+# Restricted conditional routing / 受限条件路由
+
+## Current main scope / 当前主线范围
+
+Current main includes definition-schema-4 routing only for standalone payment, receiving and contract, with JSON wrapper 13 and unchanged SQL revision 3. The implementation baseline and local verification below are historical records; their failures, skips and missing rendering evidence are preserved. Check exact-commit CI separately.
+
+当前 main 已合入独立端付款、收货、合同的定义 schema 4 条件路由，使用 JSON wrapper 13，SQL revision 3 不变。以下实现基线和本地验证属于历史记录，其失败、跳过和未取得渲染证据的事实继续保留；当前提交 CI 需另查。
+
+[Current architecture / 当前架构](development/ARCHITECTURE.md) · [Current migration guide / 当前迁移指南](development/PERSISTENCE.md)
+
+## Historical implementation checkpoint / 历史实现检查点
 
 Implementation baseline: PR41 `a30bca2934472da4fbf1609ea5c9cfd1a27a2028`, source tree `de619b40446a6d8076109332fa1a0ba1b673b12c`. Local-only implementation. Verification results will be recorded separately; this contract is not a pass or production-readiness claim.
 

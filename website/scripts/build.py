@@ -7,8 +7,10 @@ ROOT=Path(__file__).resolve().parents[1]
 OUT=ROOT/'dist'
 BASE='https://jamescube.github.io/ArcFlow/'
 REPO='https://github.com/JamesCube/ArcFlow'
-SHA='71910bfc2ac1b9d58e0f7f1b85e6bbb206321ec1'
+SHA='666ff64b280157e44a86f07a15fcb42f859ec11a'
 DOC=REPO+'/blob/'+SHA+'/'
+DEV=REPO+'/blob/main/docs/development/README.md'
+API=REPO+'/blob/main/docs/api/API_REFERENCE.md'
 ARROW='<span aria-hidden="true">↗</span>'
 def icon(path):
     return '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="'+path+'"/></svg>'
@@ -35,7 +37,8 @@ for locale,c in content.items():
     prefix='../' if locale=='en' else './'
     canonical=BASE+('en/' if locale=='en' else '')
     language_link='../' if locale=='en' else './en/'
-    links=['#designer','#scenarios','#capabilities','#start']
+    api_doc=API.replace('API_REFERENCE.md','API_REFERENCE.en.md') if locale=='en' else API
+    links=['#designer','#scenarios','#capabilities','#start',DEV]
     nav=''.join(f'<a href="{href}">{e(label)}</a>' for label,href in zip(c['nav'],links))
     proof=''.join(f'<li><span class="step-number">{a}</span><div><h3>{b}</h3><p>{d}</p></div></li>' for a,b,d in c['proof'])
     features=''.join(f'<li><span class="small-check" aria-hidden="true">↗</span><div><h3>{a}</h3><p>{b}</p></div></li>' for a,b in c['designerFeatures'])
@@ -49,9 +52,9 @@ for locale,c in content.items():
     layer_icons=['⌘','◈','▦']
     layers=''.join(f'<article class="layer"><div class="layer-top"><span>{a}</span><span class="layer-icon" aria-hidden="true">{layer_icons[i]}</span></div><h3>{b}</h3><p>{d}</p><p class="layer-note">{f}</p></article>' for i,(a,b,d,f) in enumerate(c['layers']))
     caps=''.join(f'<li><span class="badge {a}"><span aria-hidden="true">{["●","◐","○"][i]}</span> {b}</span><h3>{d}</h3><p>{f}</p></li>' for i,(a,b,d,f) in enumerate(c['caps']))
-    version_urls=[REPO+'/commit/'+SHA,REPO+'/releases/tag/v0.1.0-alpha.3',REPO+'/pull/39']
+    version_urls=[REPO+'/commit/'+SHA,REPO+'/releases/tag/v0.1.0-alpha.3',DEV]
     versions=''.join(f'<li><span>{a}</span><a href="{version_urls[i]}">{b} {ARROW}</a><p>{d}</p></li>' for i,(a,b,d) in enumerate(c['versions']))
-    foot_urls=[REPO,REPO+'/issues',DOC+'docs/CAPABILITIES.md',DOC+'docs/ROADMAP.md']
+    foot_urls=[REPO,REPO+'/issues',DOC+'docs/CAPABILITIES.md',DOC+'docs/ROADMAP.md',DEV,api_doc]
     foot=''.join(f'<a href="{url}">{txt}</a>' for url,txt in zip(foot_urls,c['footerLinks']))
     flow=c['flowLabels']; heroimg=f'designer-02-insert-all-{locale}.png'
     structured={'@context':'https://schema.org','@type':'SoftwareSourceCode','name':'ArcFlow','description':c['description'],'codeRepository':REPO,'programmingLanguage':['Java','JavaScript'],'license':'https://www.apache.org/licenses/LICENSE-2.0','url':canonical}
@@ -66,7 +69,7 @@ for locale,c in content.items():
 <section id="scenarios" class="scenario-section"><div class="container"><div class="section-heading"><div><p class="eyebrow dark">{c['scenariosKicker']}</p><h2>{c['scenariosTitle']}</h2></div><p class="section-intro">{c['scenariosIntro']}</p></div><div class="scenario-tabs" role="tablist" aria-label="{c['tabLabel']}">{tabs}</div><div class="scenario-panels">{panels}</div></div></section>
 <section class="section container architecture"><div class="section-heading"><div><p class="eyebrow dark">{c['architectureKicker']}</p><h2>{c['architectureTitle']}</h2></div><p class="section-intro">{c['architectureIntro']}</p></div><div class="layers">{layers}</div></section>
 <section id="capabilities" class="cap-section"><div class="container"><div class="section-heading"><div><p class="eyebrow">{c['capKicker']}</p><h2>{c['capTitle']}</h2></div><div><p class="section-intro">{c['capIntro']}</p><a class="text-link light" href="{DOC}docs/CAPABILITIES.md">{c['capLink']} {ARROW}</a></div></div><ul class="cap-list">{caps}</ul></div></section>
-<section id="start" class="section container start-section"><div class="section-heading"><div><p class="eyebrow dark">{c['startKicker']}</p><h2>{c['startTitle']}</h2></div><p class="section-intro">{c['startIntro']}</p></div><div class="start-grid"><div><p class="requirements">{c['requirements']}</p><div class="terminal"><div class="terminal-bar"><span>{c['terminalLabel']}</span><button type="button" id="copy-command" data-copied="{c['copied']}" data-failed="{c['copyFail']}">{c['copy']}</button></div><pre tabindex="0"><code id="command">{e(COMMAND)}</code></pre><span id="copy-status" role="status" class="sr-only"></span></div><p class="run-note">{c['runNote']}</p><a class="text-link" href="{DOC}docs/TRYOUT.md">{c['startLink']} {ARROW}</a></div><aside class="versions"><h3>{c['versionsTitle']}</h3><ul>{versions}</ul></aside></div></section>
+<section id="start" class="section container start-section"><div class="section-heading"><div><p class="eyebrow dark">{c['startKicker']}</p><h2>{c['startTitle']}</h2></div><p class="section-intro">{c['startIntro']}</p></div><div class="start-grid"><div><p class="requirements">{c['requirements']}</p><div class="terminal"><div class="terminal-bar"><span>{c['terminalLabel']}</span><button type="button" id="copy-command" data-copied="{c['copied']}" data-failed="{c['copyFail']}">{c['copy']}</button></div><pre tabindex="0"><code id="command">{e(COMMAND)}</code></pre><span id="copy-status" role="status" class="sr-only"></span></div><p class="run-note">{c['runNote']}</p><a class="text-link" href="{DOC}docs/TRYOUT.md">{c['startLink']} {ARROW}</a><div class="developer-links"><a class="text-link" href="{DEV}">{c['developerLink']} {ARROW}</a><a class="text-link" href="{api_doc}">{c['apiLink']} {ARROW}</a></div></div><aside class="versions"><h3>{c['versionsTitle']}</h3><ul>{versions}</ul></aside></div></section>
 <section class="closing-section container"><div><h2>{c['closing']}</h2><p>{c['closingBody']}</p></div><a class="button button-dark" href="{REPO}">{STAR} {c['star']} {ARROW}</a></section>
 </main><footer class="container"><div class="footer-top"><a class="brand" href="{prefix}"><img src="{prefix}assets/logo.svg" width="34" height="34" alt=""><span>ArcFlow</span></a><nav aria-label="{'页尾导航' if locale=='zh' else 'Footer navigation'}">{foot}</nav></div><div class="footer-bottom"><span>{c['footerNote']}</span><p>{c['footerDisclosure']}</p></div></footer>
 <dialog id="image-dialog" aria-label="{c['expand']}"><form method="dialog"><button class="dialog-close" aria-label="{c['close']}">✕ <span>{c['close']}</span></button></form><img id="dialog-image" alt=""><p id="dialog-caption"></p></dialog><noscript><div class="noscript">{c['noJS']}</div><style>.scenario-tabs{{display:none}}.scenario-panel[hidden]{{display:grid;margin-top:28px}}</style></noscript></body></html>'''

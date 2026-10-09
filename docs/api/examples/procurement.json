@@ -1,0 +1,13 @@
+{
+  "business": {
+    "type": "procurement",
+    "businessId": "PO-DOCS-001",
+    "title": "Synthetic developer example",
+    "reason": "Synthetic data for a disposable local test only",
+    "item": "Synthetic equipment",
+    "quantity": 3,
+    "unitPrice": 0.1,
+    "currency": "CNY"
+  },
+  "processVersion": 1
+}

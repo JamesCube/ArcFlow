@@ -1,0 +1,188 @@
+{
+  "formatVersion": 1,
+  "description": "Controller mappings in this checkout. This is an offline inventory, not a deployed OpenAPI endpoint.",
+  "endpoints": [
+    {
+      "host": "ruoyi",
+      "method": "POST",
+      "path": "/arcflow/documents",
+      "source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowController.java"
+    },
+    {
+      "host": "ruoyi",
+      "method": "GET",
+      "path": "/arcflow/me",
+      "source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowController.java"
+    },
+    {
+      "host": "ruoyi",
+      "method": "GET",
+      "path": "/arcflow/people",
+      "source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowController.java"
+    },
+    {
+      "host": "ruoyi",
+      "method": "GET",
+      "path": "/arcflow/process",
+      "source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowController.java"
+    },
+    {
+      "host": "ruoyi",
+      "method": "POST",
+      "path": "/arcflow/process",
+      "source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowController.java"
+    },
+    {
+      "host": "ruoyi",
+      "method": "GET",
+      "path": "/arcflow/requests",
+      "source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowController.java"
+    },
+    {
+      "host": "ruoyi",
+      "method": "POST",
+      "path": "/arcflow/requests",
+      "source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowController.java"
+    },
+    {
+      "host": "ruoyi",
+      "method": "GET",
+      "path": "/arcflow/requests/inbox",
+      "source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowController.java"
+    },
+    {
+      "host": "ruoyi",
+      "method": "POST",
+      "path": "/arcflow/requests/{id}/decisions",
+      "source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowController.java"
+    },
+    {
+      "host": "standalone",
+      "method": "POST",
+      "path": "/api/crm/documents",
+      "source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/QuoteDiscountController.java"
+    },
+    {
+      "host": "standalone",
+      "method": "GET",
+      "path": "/api/crm/process",
+      "source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/QuoteDiscountController.java"
+    },
+    {
+      "host": "standalone",
+      "method": "GET",
+      "path": "/api/crm/quotes",
+      "source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/QuoteDiscountController.java"
+    },
+    {
+      "host": "standalone",
+      "method": "GET",
+      "path": "/api/crm/requests",
+      "source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/QuoteDiscountController.java"
+    },
+    {
+      "host": "standalone",
+      "method": "POST",
+      "path": "/api/crm/requests/{id}/decisions",
+      "source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/QuoteDiscountController.java"
+    },
+    {
+      "host": "standalone",
+      "method": "POST",
+      "path": "/api/documents",
+      "source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/ApprovalController.java"
+    },
+    {
+      "host": "standalone",
+      "method": "GET",
+      "path": "/api/me",
+      "source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/ApprovalController.java"
+    },
+    {
+      "host": "standalone",
+      "method": "GET",
+      "path": "/api/people",
+      "source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/ApprovalController.java"
+    },
+    {
+      "host": "standalone",
+      "method": "GET",
+      "path": "/api/process",
+      "source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/ApprovalController.java"
+    },
+    {
+      "host": "standalone",
+      "method": "POST",
+      "path": "/api/process",
+      "source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/ApprovalController.java"
+    },
+    {
+      "host": "standalone",
+      "method": "GET",
+      "path": "/api/requests",
+      "source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/ApprovalController.java"
+    },
+    {
+      "host": "standalone",
+      "method": "POST",
+      "path": "/api/requests",
+      "source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/ApprovalController.java"
+    },
+    {
+      "host": "standalone",
+      "method": "GET",
+      "path": "/api/requests/inbox",
+      "source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/ApprovalController.java"
+    },
+    {
+      "host": "standalone",
+      "method": "POST",
+      "path": "/api/requests/{id}/decisions",
+      "source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/ApprovalController.java"
+    },
+    {
+      "host": "standalone",
+      "method": "GET",
+      "path": "/api/scenarios",
+      "source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/ScenarioController.java"
+    },
+    {
+      "host": "standalone",
+      "method": "POST",
+      "path": "/api/scenarios/oa-seal-use/documents",
+      "source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/ScenarioController.java",
+      "consumes": "application/json",
+      "note": "Bounded raw UTF-8 seal-use submission handler takes precedence over the scenario template."
+    },
+    {
+      "host": "standalone",
+      "method": "POST",
+      "path": "/api/scenarios/{scenarioId}/documents",
+      "source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/ScenarioController.java"
+    },
+    {
+      "host": "standalone",
+      "method": "GET",
+      "path": "/api/scenarios/{scenarioId}/process",
+      "source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/ScenarioController.java"
+    },
+    {
+      "host": "standalone",
+      "method": "POST",
+      "path": "/api/scenarios/{scenarioId}/process",
+      "source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/ScenarioController.java"
+    },
+    {
+      "host": "standalone",
+      "method": "GET",
+      "path": "/api/scenarios/{scenarioId}/requests",
+      "source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/ScenarioController.java"
+    },
+    {
+      "host": "standalone",
+      "method": "POST",
+      "path": "/api/scenarios/{scenarioId}/requests/{id}/decisions",
+      "source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/ScenarioController.java"
+    }
+  ]
+}

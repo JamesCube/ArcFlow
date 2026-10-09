@@ -1,4 +1,14 @@
-# Unified scenario integration candidate / 三场景统一集成候选
+# Unified scenario integration / 场景统一集成
+
+## Current main scope / 当前主线范围
+
+Current main includes the combined Travel, Seal-use and Receiving implementations, plus Expense, Payment and Contract, for six standalone catalog entries and nine domain types overall. Current readers support wrappers 1–13, with conditions only for payment/receiving/contract. The candidate status, input heads, unavailable original-image evidence and local checks below are historical; merge does not retroactively turn skipped or blocked checks into passes.
+
+当前 main 已合入出差、用印、收货，与报销、付款、合同形成六项独立场景目录，领域共九类型；reader 支持 wrapper 1–13，条件仅限付款／收货／合同。下方候选状态、输入 head、缺失原图证据和本地验证是历史记录，合并不会把当时跳过或阻塞的检查变成通过。
+
+[Current architecture / 当前架构](development/ARCHITECTURE.md) · [Current migration guide / 当前迁移指南](development/PERSISTENCE.md)
+
+## Historical implementation checkpoint / 历史实现检查点
 
 ## Status / 状态
 

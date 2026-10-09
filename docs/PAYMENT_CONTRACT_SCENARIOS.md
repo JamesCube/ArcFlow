@@ -1,5 +1,15 @@
 # ERP payment requests and CRM contract approvals
 
+## Current main scope / 当前主线范围
+
+Current main includes both dedicated scenarios in the six-entry standalone catalog. They remain synthetic internal reviews, without payment, signing or external writeback. Readers support wrappers 1–13; the wrapper-12 limits and local/unmerged status in the original checkpoint below describe that historical candidate, before conditional routing. Use the current migration guide for rollout and check exact-commit CI separately.
+
+当前 main 的六项独立场景目录已包含付款和合同，两者仍为不支付、不签约、不回写的合成内部审批。当前 reader 支持 wrapper 1–13；下方原始检查点的 wrapper 12 上限及本地／未合并状态属于条件路由之前的历史候选。升级按当前迁移指南执行，具体提交 CI 单独核对。
+
+[Current architecture / 当前架构](development/ARCHITECTURE.md) · [Current migration guide / 当前迁移指南](development/PERSISTENCE.md)
+
+## Historical implementation checkpoint / 历史实现检查点
+
 This extension adds two independent, synthetic business scenarios on top of the unified
 Travel / Seal-use / Receiving candidate. It is an unmerged candidate, not a deployment
 or production financial/legal integration. Both are available in `/scenarios.html` and

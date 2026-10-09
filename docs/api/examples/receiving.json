@@ -1,0 +1,37 @@
+{
+  "business": {
+    "type": "receiving",
+    "documentVersion": 1,
+    "businessId": "GR-DEMO-001",
+    "title": "Synthetic developer example",
+    "reason": "Synthetic data for a disposable local test only",
+    "purchaseOrderRef": "PO-DEMO-001",
+    "warehouse": "EAST",
+    "receivedOn": "2026-10-09",
+    "lines": [
+      {
+        "lineId": "line-1",
+        "orderLineRef": "PO-L1",
+        "description": "Demo sensor",
+        "unit": "PCS",
+        "ordered": 20,
+        "received": 10,
+        "accepted": 8,
+        "rejected": 2,
+        "exceptionReason": "Damaged casing"
+      },
+      {
+        "lineId": "line-2",
+        "orderLineRef": "PO-L2",
+        "description": "Demo cables",
+        "unit": "BOX",
+        "ordered": 10,
+        "received": 5,
+        "accepted": 5,
+        "rejected": 0,
+        "exceptionReason": ""
+      }
+    ]
+  },
+  "processVersion": 1
+}
