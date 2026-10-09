@@ -21,7 +21,7 @@ async function backendRead(request, path) {
   return response.json()
 }
 async function login(page, actor = 'alice') {
-  await page.getByLabel('Demo account', { exact: true }).selectOption(actor)
+  await page.getByLabel('Demo account').selectOption(actor)
   const password = process.env[`APPROVAL_${actor.toUpperCase()}_PASSWORD`]
   if (!password) throw new Error(`Disposable ${actor} password missing`)
   try { await page.getByLabel('Password', { exact: true }).fill(password) }
