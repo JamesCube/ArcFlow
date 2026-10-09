@@ -280,7 +280,10 @@ def main():
             assert len(oversized.encode('utf-16-le')) // 2 == 8_000_001
             call('alice', 'POST', SEAL + '/documents', expected=400, key='oversized-envelope', raw=oversized)
             for content_type in ('application/vnd.arcflow+json', 'application/problem+json', 'text/plain'):
-                call('alice', 'POST', SEAL + '/documents', body, 415, 'media-fallback', content_type=content_type)
+                rejected_media = call('alice', 'POST', SEAL + '/documents', body, 415, 'media-fallback', content_type=content_type)
+                assert isinstance(rejected_media.get('message'), str), 'Media errors must resolve to JSON without a denied /error dispatch'
+            call(None, 'POST', SEAL + '/documents', body, 401, 'media-auth', content_type='text/plain')
+            call('alice', 'POST', SEAL + '/documents', body, 403, 'media-client', client=False, content_type='text/plain')
             for field in ('title', 'reason', 'documentName'):
                 malformed = copy.deepcopy(body)
                 malformed['business'][field] = 'UTF8_MARKER'

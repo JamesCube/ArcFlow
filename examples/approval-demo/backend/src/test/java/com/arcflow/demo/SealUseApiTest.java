@@ -266,8 +266,17 @@ class SealUseApiTest {
         assertEquals(accepted, result(submit(raw, "raw-limit").andExpect(status().isCreated())));
         for (String mediaType : List.of("application/vnd.arcflow+json", "application/problem+json", "text/plain")) {
             mvc.perform(write(BASE + "/documents", "alice").contentType(mediaType)
-                .header("Idempotency-Key", "media-fallback").content(input().toString())).andExpect(status().isUnsupportedMediaType());
+                .header("Idempotency-Key", "media-fallback").content(input().toString())).andExpect(status().isUnsupportedMediaType())
+                .andExpect(content().contentTypeCompatibleWith("application/json"));
         }
+        mvc.perform(write(BASE + "/documents", "alice").contentType("text/plain")
+            .header("Idempotency-Key", "media-error-body").content(input().toString()))
+            .andExpect(status().isUnsupportedMediaType()).andExpect(jsonPath("$.message").value("Unsupported Content-Type"))
+            .andExpect(result -> assertNull(result.getResponse().getErrorMessage(), "Media errors must not call sendError and redispatch to /error"));
+        mvc.perform(post(BASE + "/documents").header("X-Arcflow-Client", "approval-demo").contentType("text/plain")
+            .content(input().toString())).andExpect(status().isUnauthorized());
+        mvc.perform(post(BASE + "/documents").with(httpBasic("alice", "test-alice-password")).contentType("text/plain")
+            .content(input().toString())).andExpect(status().isForbidden());
         for (String malformed : List.of("", " ", "null", "{}", "{\"business\":", "\"not-an-envelope\""))
             submit(malformed, "malformed-raw").andExpect(status().isBadRequest());
         var missingBusiness = input(); missingBusiness.putNull("business");

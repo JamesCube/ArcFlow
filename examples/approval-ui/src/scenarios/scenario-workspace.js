@@ -1,4 +1,4 @@
-import { reactive } from 'vue'
+import { reactive, shallowRef } from 'vue'
 import { newSubmissionKey, isRejectedSubmissionVersion } from '../submission-intent.js'
 import { cloneDefinition, validateDefinition, validatePublicationResponse, pendingParticipants, participants, approvalNodes } from '../process.js'
 import { TEMPLATE_ID, InvalidScenarioPayload, invalid, same } from './expense-document.js'
@@ -7,15 +7,19 @@ import { getScenarioHandler, scenarioHandlers } from './scenario-registry.js'
 // Each registered scenario owns its state and pending intent. Async continuations
 // close over that scope, while a single session generation invalidates every scope.
 export function createScenarioWorkspace(api, keyFactory = newSubmissionKey) {
-  let navigation = 0, generation = 0, loginBusy = false, scopes = {}
+  let navigation = 0, generation = 0, loginBusy = false
+  // Replacing actor-owned scopes must invalidate every derived reader even when
+  // activeId remains the default scenario across logout and the next login.
+  // A plain closure map leaves computed detail/summary readers on old scopes.
+  const scopes = shallowRef({})
   const state = reactive({ me: null, people: [], catalog: [], activeId: TEMPLATE_ID, catalogOpen: true, scopes: {} })
   const session = { state, generation: () => generation, navigation: () => navigation, logout }
   function initialize() {
-    scopes = Object.fromEntries(Object.keys(scenarioHandlers).map(id => [id, createScope(api, keyFactory, id, session)]))
-    state.scopes = Object.fromEntries(Object.entries(scopes).map(([id, scope]) => [id, scope.state]))
+    scopes.value = Object.fromEntries(Object.keys(scenarioHandlers).map(id => [id, createScope(api, keyFactory, id, session)]))
+    state.scopes = Object.fromEntries(Object.entries(scopes.value).map(([id, scope]) => [id, scope.state]))
   }
   initialize()
-  const active = () => scopes[state.activeId]
+  const active = () => scopes.value[state.activeId]
   for (const key of Object.keys(active().state).filter(key => !['me', 'people', 'catalog', 'tab'].includes(key))) {
     Object.defineProperty(state, key, { enumerable: true, configurable: true,
       get: () => key === 'busy' ? loginBusy || active().state.busy : active().state[key],
@@ -49,7 +53,7 @@ export function createScenarioWorkspace(api, keyFactory = newSubmissionKey) {
     navigation++; state.activeId = id; state.catalogOpen = false
     if (!active().state.process) await active().refresh()
   }
-  const workspace = { state, login, logout, activate, dispose: logout, scopeFor: id => scopes[id] }
+  const workspace = { state, login, logout, activate, dispose: logout, scopeFor: id => scopes.value[id] }
   for (const method of ['refresh', 'publish', 'submit', 'decide', 'canDecide', 'dirty', 'stale', 'setForm', 'select', 'resetDraft', 'retainedNotesFor', 'dismissRetainedNote', 'submissionDefinition']) {
     workspace[method] = (...args) => active()[method](...args)
   }
