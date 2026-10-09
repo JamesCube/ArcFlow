@@ -26,7 +26,7 @@ class ScenarioController {
         if(scenario==null) throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Scenario not found");
         return scenario;
     }
-    @GetMapping List<ScenarioCatalog.Template> catalog(Principal actor) { return scenarios.values().stream().map(item -> item.template(actor.getName())).toList(); }
+    @GetMapping List<ScenarioCatalog.Template> catalog(Principal actor) { return scenarios.values().stream().map(item -> item.template(actor.getName())).sorted(Comparator.comparing(ScenarioCatalog.Template::id).reversed()).toList(); }
     @GetMapping("/{scenarioId}/process") ProcessDefinition process(Principal actor,@PathVariable String scenarioId) { return scenario(scenarioId).process(actor.getName()); }
     @PostMapping("/{scenarioId}/process") ProcessDefinition publish(Principal actor,@PathVariable String scenarioId,@Valid @RequestBody Publication input) throws IOException {
         return scenario(scenarioId).publish(actor.getName(),input.expectedVersion(),input.definition());

@@ -12,6 +12,8 @@ jobs:
         java: ['17', '21']
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -63,6 +65,8 @@ jobs:
         working-directory: examples/approval-ui
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -84,6 +88,8 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -104,7 +110,7 @@ jobs:
       - name: Install CJK sans font for bilingual visual checks
         run: sudo apt-get update && sudo apt-get install -y fonts-noto-cjk
       - name: Verify real backend leave and procurement journeys
-        run: npm run test:e2e -- --grep-invert "visual showcase:|crm quote:"
+        run: npm run test:e2e -- --grep-invert "visual showcase:|crm quote:|receiving:"
         working-directory: examples/approval-ui
       - name: Verify real CRM quote journey and capture bilingual desktop/narrow screenshots
         run: npm run test:e2e -- e2e/crm-quote.spec.mjs --output=crm-visual-results
@@ -136,5 +142,93 @@ jobs:
             examples/approval-ui/gallery-rejection-results/**/*.png
             examples/approval-ui/scenario-visual-results/**/*.png
             examples/approval-ui/scenario-visual-results/**/*.json
+          if-no-files-found: error
+          retention-days: 7
+
+  receiving-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: examples/approval-ui/package-lock.json
+      - run: mvn --batch-mode --no-transfer-progress install
+      - run: mvn --batch-mode --no-transfer-progress -f examples/approval-domain/pom.xml install
+      - run: mvn --batch-mode --no-transfer-progress -f examples/approval-demo/backend/pom.xml verify
+      - run: npm ci
+        working-directory: examples/approval-ui
+      - run: npx playwright install --with-deps chromium
+        working-directory: examples/approval-ui
+      - name: Install bilingual fonts
+        run: sudo apt-get update && sudo apt-get install -y fonts-noto-cjk
+      - name: Verify installed receiving client against the declared backend
+        env:
+          ARCFLOW_VERIFICATION_BACKEND: declared-Boot-4.1.1
+        run: node scripts/verify-receiving-http.mjs ../approval-demo/backend/target/approval-demo-0.1.0-SNAPSHOT.jar
+        working-directory: examples/approval-ui
+      - name: Verify receiving browser journey and capture genuine bilingual screenshots
+        env:
+          ARCFLOW_CAPTURE_RECEIVING: '1'
+          ARCFLOW_SOURCE_REVISION: ${{ github.event.pull_request.head.sha || github.sha }}
+          ARCFLOW_VERIFICATION_BACKEND: declared-Boot-4.1.1
+        run: npm run test:e2e -- e2e/receiving.spec.mjs --output=receiving-visual-results
+        working-directory: examples/approval-ui
+      - name: Require all fifteen exact-head receiving screenshots and completed journey
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          python3 - <<'PYVERIFY'
+          import hashlib, json, os, subprocess
+          from pathlib import Path
+          root = Path('examples/approval-ui/receiving-visual-results')
+          expected = {
+              '01-form-en-desktop', '02-form-zh-desktop', '03-form-zh-390',
+              '04-quantity-error-en-desktop', '05-quantity-error-zh-390',
+              '06-published-any-designer-en-desktop', '07-published-any-designer-zh-390',
+              '08-immutable-all-snapshot-en-desktop', '09-all-partial-bob-vote-en-desktop',
+              '10-all-quality-review-zh-390', '11-bob-procurement-review-en-desktop',
+              '12-all-approved-en-desktop', '13-all-rejected-zh-desktop',
+              '14-any-early-advance-en-desktop', '15-any-approved-zh-390',
+          }
+          head = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
+          assert head == os.environ['EXPECTED_HEAD']
+          summaries = list(root.rglob('receiving-acceptance.json'))
+          assert len(summaries) == 1, summaries
+          summary = json.loads(summaries[0].read_text())
+          assert summary['sourceRevision'] == head and summary['sourceTreeClean'] is True
+          assert summary['verificationBackend'] == 'declared-Boot-4.1.1'
+          assert summary['result'] == 'passed' and summary['capturedStates'] == 15
+          assert summary['mainAndExpenseProcessesUnchanged'] is True
+          assert summary['anySnapshotVersion'] == summary['allSnapshotVersion'] + 1
+          images = list(root.rglob('*.png'))
+          assert len(images) == 15 and {image.stem for image in images} == expected
+          for image in images:
+              metadata = json.loads(image.with_suffix('.json').read_text())
+              assert metadata['sourceRevision'] == head and metadata['sourceTreeClean'] is True
+              assert metadata['verificationBackend'] == 'declared-Boot-4.1.1'
+              assert metadata['image'] == image.name and metadata['state'] == image.stem
+              assert metadata['imageSHA256'] == hashlib.sha256(image.read_bytes()).hexdigest()
+              assert metadata['locale'] in ('en', 'zh-CN') and metadata['fullPage'] is True
+              assert metadata['viewport']['width'] == (390 if '-390' in image.stem else 1440)
+          print('Verified 15 authenticated screenshots and genuine ALL/ANY receiving completion at', head)
+          PYVERIFY
+      - name: Preserve authenticated receiving screenshots and provenance only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: receiving-browser-evidence
+          path: |
+            examples/approval-ui/receiving-visual-results/**/*.png
+            examples/approval-ui/receiving-visual-results/**/*.json
           if-no-files-found: error
           retention-days: 7

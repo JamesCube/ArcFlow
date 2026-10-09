@@ -18,5 +18,16 @@ class ScenarioConfiguration {
         try { return new ScenarioCase(entry,service,actors); }
         catch(RuntimeException failure) { service.close(); throw failure; }
     }
-    @Bean Map<String,ScenarioCase> scenarioRegistry(ScenarioCase expenseScenario) { return Map.of("oa-expense",expenseScenario); }
+    @Bean(destroyMethod="close") ScenarioCase receivingScenario(ObjectMapper mapper,ActorDirectory actors,
+            @Value("${approval.data-file}") String file) throws IOException {
+        var entry=ScenarioCatalog.receiving("bob","carol","bob");
+        var service=new ApprovalService(mapper,file+".scenario-erp-receiving.json",actors,entry.initialProcess());
+        try { return new ScenarioCase(entry,service,actors); }
+        catch(RuntimeException failure) { service.close(); throw failure; }
+    }
+    @Bean Map<String,ScenarioCase> scenarioRegistry(
+            @org.springframework.beans.factory.annotation.Qualifier("expenseScenario") ScenarioCase expenseScenario,
+            @org.springframework.beans.factory.annotation.Qualifier("receivingScenario") ScenarioCase receivingScenario) {
+        return Map.of("oa-expense",expenseScenario,"erp-receiving",receivingScenario);
+    }
 }

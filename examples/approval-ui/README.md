@@ -103,3 +103,74 @@ Returning to an unchanged document form reuses its unresolved submission key
 and original process snapshot, even after a publication refresh. A successful
 submission clears only that form. Sign-out clears both forms and retry slots;
 editing a form's normalized payload starts a new intent for that form.
+
+## Independent ERP receiving scenario
+
+Open `/receiving.html` for the bilingual receiving desk, or choose the ERP card
+in `/scenarios.html`. The existing `/` leave/procurement workspace and the
+expense form remain available. The scenario catalog and UI must come from the
+same source revision: only the explicitly compiled `oa-expense` and
+`erp-receiving` handlers are accepted.
+
+The receiving desk records a synthetic purchase order reference, warehouse,
+delivery date, and 1–20 individually identified material lines. Each line has
+an independent purchase order line reference and a `PCS` or `BOX` unit.
+Ordered, received, accepted and rejected quantities are integers from 0 to
+100,000; ordered must be positive, received cannot exceed ordered, and accepted
+plus rejected must equal received. At least one line must receive goods.
+Rejected goods require an exception reason (up to 1,000 UTF-16 code units).
+The input preserves raw text until validation, so blanks, fractions, exponent
+notation, signed or oversized values cannot silently become valid integers.
+Line IDs and purchase order line references are unique within a document;
+there is no cross-document quantity allocation or order-balance validation.
+
+Quantities are reconciled and summarized separately per unit, in PCS then BOX
+order. No combined scalar total treats pieces and boxes as interchangeable.
+Receiving responses have `{request, total: null, summary}` where summary is
+`{kind: "receiving", lineCount, exceptionLineCount, quantities}`; each quantity
+row is `{unit, received, accepted, rejected}`. Expense responses retain their
+exact existing `{request, total}` shape and decimal-money semantics.
+
+The receiving namespace is `/api/scenarios/erp-receiving` with `/process`,
+`/documents`, `/requests`, and `/requests/{id}/decisions`. Its own process,
+submission keys, records and business snapshots are isolated from expenses.
+The shared workspace preserves original submission keys and process snapshots
+for uncertain retries, suppresses repeated mutations, clears actor-scoped state
+on sign-out, rejects malformed acknowledgements, and retains unconfirmed
+comments under their original stage.
+
+The default schema-3 route is an ALL inspection by Bob and Carol followed by a
+separate procurement review by Bob. Bob deliberately serves both stages in this
+fixed-account demo. Alice can use the real ProcessDesigner to publish a changed
+ordered single/ALL/ANY process; submitted receipts retain their saved process.
+The displayed process defines actual assignments. There is no dynamic role
+resolution or separation-of-duties guarantee.
+
+This is a localhost synthetic-data demonstration. It does not fetch real
+purchase orders, check cumulative received quantities across receipts, post
+stock, create payments, or write back to an external ERP. Approval completes
+only the review lifecycle. Browser reload/sign-out clears unsaved forms,
+comments, retry keys and credentials; saved data remains in the backend.
+
+Receiving-specific tests cover exact raw quantity boundaries, per-unit summaries,
+metadata allow-lists, malformed acknowledgements, uncertain retries, identity
+changes, immutable process/business snapshots, Bob's repeated stages, ALL
+rejection, bilingual validation, focus and retained-note recovery. The browser
+journey is `e2e/receiving.spec.mjs`; it exercises real persisted transitions and
+an injected lost acknowledgement. `ARCFLOW_CAPTURE_RECEIVING=1` opts into
+credential-free screenshots of signed-in desktop/mobile workspaces, with
+SHA-256 image metadata. No login screenshots, traces, HARs or saved browser
+sessions are recorded. A compatibility-backend run must be labeled separately
+from acceptance against the repository's declared backend version.
+
+Run the real installed-client HTTP journey against a built backend jar:
+
+```sh
+node scripts/verify-receiving-http.mjs ../approval-demo/backend/target/approval-demo-0.1.0-SNAPSHOT.jar
+```
+
+It starts a fresh loopback backend on port 18089 with generated disposable
+credentials and a temporary store, checks the client transport and workspace,
+then stops its own backend. Set `JAVA` to a Java 17+ executable or
+`ARCFLOW_RECEIVING_TEST_PORT` to another free loopback port. This verifies HTTP
+behavior; it does not verify browser rendering.

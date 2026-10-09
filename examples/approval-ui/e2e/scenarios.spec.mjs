@@ -155,13 +155,16 @@ test('expense scenario: real publication, exact document, persisted sequential r
   ] }
   const seeded = await backend(request, 'alice', `${BASE}/process`, { expectedVersion: initial.version, definition })
   const catalog = await backend(request, 'alice', '/scenarios')
-  expect(catalog).toHaveLength(1); expect(catalog[0]).toMatchObject({ id: 'oa-expense', documentType: 'expense', documentVersion: 1, formVersion: 1 })
+  expect(catalog.map(entry => entry.id)).toEqual(['oa-expense', 'erp-receiving'])
+  expect(catalog[0]).toMatchObject({ id: 'oa-expense', documentType: 'expense', documentVersion: 1, formVersion: 1 })
+  expect(catalog[1]).toMatchObject({ id: 'erp-receiving', documentType: 'receiving', documentVersion: 1, formVersion: 1 })
 
   await page.goto('/scenarios.html'); await login(page)
   await captureLocales(page, testInfo, '01-catalog', async locale => {
     await expect(page.getByTestId('open-expense')).toBeVisible()
-    await expect(page.locator('.sf-template-info h2')).toHaveText(catalog[0].title[locale])
-    await expect(page.locator('.sf-template-card')).toHaveCount(1)
+    await expect(page.locator('.sf-template-info h2')).toHaveText(catalog.map(entry => entry.title[locale]))
+    await expect(page.locator('.sf-template-card')).toHaveCount(2)
+    await expect(page.getByTestId('open-receiving')).toHaveAttribute('href', '/receiving.html')
   })
 
   await page.getByTestId('designer-tab').click()

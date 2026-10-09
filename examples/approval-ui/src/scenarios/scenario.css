@@ -1876,3 +1876,5 @@
 @media(max-width:640px) {
   .sf-retained-index { align-items:flex-start; flex-direction:column; gap:7px; }
 }
+
+.sf-scenario-link { display:inline-flex; align-items:center; justify-content:center; padding:11px 17px; border-radius:7px; text-decoration:none; font-size:12px; font-weight:600; white-space:nowrap; }
