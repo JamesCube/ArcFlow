@@ -60,4 +60,28 @@ public final class ScenarioCatalog {
             return expense.total().setScale("JPY".equals(expense.currency()) ? 0 : 2).toPlainString();
         });
     }
+    public static Entry receiving(String warehouseId, String qualityId, String procurementId) {
+        var template = new Template("erp-receiving", "ERP", "receiving", 1, 1,
+            t("收货验收审批", "Goods receipt review"),
+            t("手工录入的合成订单与验收记录；不会查询订单余额、入库或付款。", "Manually entered synthetic PO and inspection records; no order-balance lookup, stock posting or payment."),
+            List.of(new Section("identity", t("到货信息", "Delivery details"), List.of(
+                f("businessId", "text", "验收单号", "Receipt reference", 128), f("title", "text", "验收标题", "Title", 120),
+                f("purchaseOrderRef", "text", "合成采购订单引用", "Synthetic purchase order reference", 128),
+                f("warehouse", "select", "收货仓库", "Receiving warehouse", 0, o("EAST", "东区演示仓", "East demo warehouse"), o("WEST", "西区演示仓", "West demo warehouse")),
+                f("receivedOn", "date", "收货日期", "Delivery date", 10))),
+                new Section("reason", t("验收说明", "Inspection context"), List.of(f("reason", "textarea", "验收背景与说明", "Inspection context and notes", 2000)))),
+            new LineItems("lines", t("物料与数量核对", "Materials and quantity reconciliation"), 1, 20, List.of(
+                f("orderLineRef", "text", "订单行引用", "PO line reference", 128), f("description", "text", "物料说明", "Material description", 240),
+                f("unit", "select", "计数单位", "Count unit", 0, o("PCS", "件", "Pieces"), o("BOX", "箱", "Boxes")),
+                f("ordered", "quantity", "订单数量", "Ordered", 0), f("received", "quantity", "本次到货", "Received now", 0),
+                f("accepted", "quantity", "合格数量", "Accepted", 0), f("rejected", "quantity", "不合格数量", "Rejected", 0),
+                new Field("exceptionReason", "textarea", t("异常原因（有不合格数量时必填）", "Exception reason (required for rejected quantity)"), false, 1000, List.of()))));
+        var process = new ProcessDefinition(3, "erp-receiving", 1, "收货验收审批 / Goods receipt review", List.of(
+            new ProcessDefinition.ProcessNode("start", "start", "提交验收 / Submit receipt", null),
+            new ProcessDefinition.ProcessNode("receiving-inspection", "parallelApproval", "仓库与质量会签 / Warehouse and quality", null, List.of(warehouseId, qualityId), "ALL"),
+            new ProcessDefinition.ProcessNode("procurement-review", "approval", "采购复核 / Procurement review", procurementId),
+            new ProcessDefinition.ProcessNode("end", "end", "验收审批完成 / Review complete", null)));
+        return new Entry(template, BusinessDocument.Receiving.class, process, document -> null);
+    }
+
 }

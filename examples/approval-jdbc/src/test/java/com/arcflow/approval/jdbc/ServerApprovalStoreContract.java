@@ -97,6 +97,63 @@ abstract class ServerApprovalStoreContract {
         }
     }
 
+    protected static BusinessDocument.Receiving receivingDocument() {
+        return new BusinessDocument.Receiving(1,"GR-SQL-1","Goods receipt","Synthetic manually entered PO","PO-SQL-1","EAST","2026-10-09",List.of(
+            new BusinessDocument.ReceivingLine("line-1","PO-L1","Demo sensors","PCS",20,10,8,2,"Damaged casing"),
+            new BusinessDocument.ReceivingLine("line-2","PO-L2","Demo cables","BOX",10,5,5,0,"")));
+    }
+    protected ApprovalService receivingService() throws IOException {
+        return new ApprovalService(new JdbcApprovalStore(dataSource,new ObjectMapper(),com.arcflow.approval.ScenarioCatalog.receiving("bob","carol","bob").initialProcess()),USERS);
+    }
+    @Test void receivingTypedSnapshotAllVotesAndProcessIsolation() throws Exception {
+        ApprovalService.Request approved;
+        try(var receipts=receivingService();var leave=open()) {
+            var created=receipts.submitDocument("alice",receivingDocument(),1,"receiving-global");
+            assertEquals(409,result(()->leave.submit("alice","Leave","Rest",1,1,"receiving-global")));assertTrue(leave.list("alice").isEmpty());
+            assertEquals(404,result(()->leave.decide("bob",created.id(),"receiving-inspection","APPROVE","")));
+            var first=receipts.decide("bob",created.id(),"receiving-inspection","APPROVE","Warehouse");assertEquals("receiving-inspection",first.currentStepId());
+            assertEquals(1,receipts.inbox("carol",Map.of("box",List.of("PENDING"))).items().size());
+            assertEquals(0,receipts.inbox("bob",Map.of("box",List.of("PENDING"))).items().size());
+            var original=receipts.process();receipts.publish("alice",1,new ProcessDefinition(original.schemaVersion(),original.id(),1,"Updated receipt policy",original.nodes()));
+            var second=receipts.decide("carol",created.id(),"receiving-inspection","APPROVE","Quality");assertEquals("procurement-review",second.currentStepId());
+            assertEquals(1,receipts.inbox("bob",Map.of("box",List.of("PENDING"))).items().size());
+            approved=receipts.decide("bob",created.id(),"procurement-review","APPROVE","Procurement");
+            assertEquals("APPROVED",approved.status());assertEquals(4,approved.history().size());assertEquals(created.business(),approved.business());assertEquals(created.definition(),approved.definition());
+        }
+        try(var reopened=receivingService()){assertEquals(List.of(approved),reopened.list("alice"));assertEquals(approved,reopened.submitDocument("alice",receivingDocument(),1,"receiving-global"));}
+    }
+    @Test void receivingConcurrentRetryAndRepeatedReviewerRemainExact() throws Exception {
+        try(var first=receivingService();var second=receivingService()) {
+            var commands=new ArrayList<Callable<ApprovalService.Request>>();
+            for(int i=0;i<8;i++){var service=i%2==0?first:second;commands.add(()->service.submitDocument("alice",receivingDocument(),1,"receiving-race"));}
+            var saved=race(commands);assertTrue(saved.stream().allMatch(saved.get(0)::equals));String id=saved.get(0).id();
+            assertEquals(1,count("arc_request"));assertEquals(1,count("arc_submission_key"));assertEquals(1,count("arc_request_event"));assertEquals(2,count("arc_request_member"));
+            commands.clear();for(int i=0;i<8;i++){var service=i%2==0?first:second;commands.add(()->service.decide("bob",id,"receiving-inspection","APPROVE","Warehouse"));}
+            var votes=race(commands);assertTrue(votes.stream().allMatch(votes.get(0)::equals));assertEquals(2,count("arc_request_event"));
+            first.decide("carol",id,"receiving-inspection","APPROVE","Quality");var done=second.decide("bob",id,"procurement-review","APPROVE","Procurement");
+            assertEquals("APPROVED",done.status());assertEquals(4,count("arc_request_event"));
+        }
+    }
+    @Test void receivingRawNegativeZeroPayloadCannotBeRead() throws Exception {
+        String id;
+        try(var service=receivingService()){id=service.submitDocument("alice",receivingDocument(),1,"receiving-negative-zero").id();}
+        try(var connection=dataSource.getConnection();var query=connection.prepareStatement("SELECT request_json FROM arc_request WHERE request_id = ?")) {
+            query.setString(1,id);try(var rows=query.executeQuery()){assertTrue(rows.next());String original=rows.getString(1),bad=original.replace("\"rejected\":0","\"rejected\":-0");assertNotEquals(original,bad);
+                try(var update=connection.prepareStatement("UPDATE arc_request SET request_json = ? WHERE request_id = ?")){update.setString(1,bad);update.setString(2,id);assertEquals(1,update.executeUpdate());}}
+        }
+        try(var reopened=receivingService()){assertThrows(java.io.UncheckedIOException.class,()->reopened.list("alice"));}
+        assertEquals(1,count("arc_request_event"));
+    }
+    @Test void receivingHostRejectsWrongBusinessTypeBeforeMutation() throws Exception {
+        var entry=com.arcflow.approval.ScenarioCatalog.receiving("bob","carol","bob");
+        try(var service=receivingService();var host=new com.arcflow.approval.ScenarioCase(entry,service,USERS)) {
+            var wrong=service.submitDocument("alice",expenseDocument(),1,"receiving-wrong-type");
+            assertThrows(IllegalStateException.class,()->new com.arcflow.approval.ScenarioCase(entry,service,USERS));
+            assertThrows(IllegalStateException.class,()->host.decide("bob",wrong.id(),"receiving-inspection","APPROVE","Do not write"));
+            assertEquals(1,count("arc_request_event"));assertEquals(wrong,service.list("alice").get(0));
+        }
+    }
+
     @Test void concurrentInitializationCreatesOneConsistentHead() throws Exception {
         var constructors = new ArrayList<Callable<Integer>>();
         for (int i = 0; i < 8; i++) constructors.add(() -> { try (var service = open()) { return service.process().version(); } });

@@ -142,8 +142,9 @@ public final class JsonApprovalStore implements ApprovalStore {
 
     private void restore(byte[] bytes) throws IOException {
         try {
-            JsonNode root = mapper.readTree(bytes);
-            if (root == null || !root.isObject() || !root.path("schemaVersion").isIntegralNumber())
+            JsonNode root;
+            try (var parser = mapper.createParser(bytes)) { root = mapper.readTree(ApprovalService.receivingTokenGuard(parser)); }
+            if (root == null || !root.isObject() || (!root.path("schemaVersion").isIntegralNumber() || !root.path("schemaVersion").canConvertToInt()))
                 throw new IOException("Invalid snapshot schema");
             int schema = root.get("schemaVersion").intValue();
             List<Request> restored;
@@ -163,7 +164,7 @@ public final class JsonApprovalStore implements ApprovalStore {
                 }
                 restored = migrated;
                 // No rewrite until a successful mutation is requested.
-            } else if (schema >= 2 && schema <= 7) {
+            } else if ((schema >= 2 && schema <= 7) || schema == 10) {
                 if (schema >= 4) exactFields(root, "schemaVersion", "definition", "requests", "submissions");
                 else exactFields(root, "schemaVersion", "definition", "requests");
                 validateStoredShapes(root, true);
@@ -181,7 +182,7 @@ public final class JsonApprovalStore implements ApprovalStore {
                     throw new IOException("Definition exceeds snapshot schema");
             } else throw new IOException("Unsupported snapshot schema");
             snapshotSchema = schema;
-            if (schema < 7) previousSchemaOriginal = bytes.clone();
+            if (schema < 10) previousSchemaOriginal = bytes.clone();
             for (Request r : restored) {
                 ApprovalService.validateRequest(r);
                 if (!r.processId().equals(definition.id()) || r.processVersion() > definition.version() || requests.putIfAbsent(r.id(), r) != null)
@@ -214,6 +215,8 @@ public final class JsonApprovalStore implements ApprovalStore {
                     throw new IOException("Quote discounts require snapshot schema 6");
                 if (root.path("schemaVersion").intValue() < 7 && "expense".equals(r.get("business").path("type").asText()))
                     throw new IOException("Expense documents require snapshot schema 7");
+                if (root.path("schemaVersion").intValue() != 10 && "receiving".equals(r.get("business").path("type").asText()))
+                    throw new IOException("Receiving documents require reserved local snapshot schema 10");
                 fields.add("business");
             }
             exactFields(r, fields.toArray(String[]::new));
@@ -258,6 +261,8 @@ public final class JsonApprovalStore implements ApprovalStore {
         if (updated.values().stream().anyMatch(r -> r.business() != null)) nextSchema = Math.max(5, nextSchema);
         if (updated.values().stream().anyMatch(r -> r.business() instanceof BusinessDocument.QuoteDiscount)) nextSchema = Math.max(6, nextSchema);
         if (updated.values().stream().anyMatch(r -> r.business() instanceof BusinessDocument.Expense)) nextSchema = Math.max(7, nextSchema);
+        // Local receiving candidate only. Schemas 8/9 belong to unmerged candidates and are deliberately unsupported.
+        if (updated.values().stream().anyMatch(r -> r.business() instanceof BusinessDocument.Receiving)) nextSchema = 10;
         Object snapshot = nextSchema >= 4
             ? new KeyedSnapshot(nextSchema, nextDefinition, List.copyOf(updated.values()), nextSubmissions.entrySet().stream()
                 .map(e -> new SubmissionBinding(e.getKey().applicantId(), e.getKey().key(), e.getValue())).toList())
@@ -289,7 +294,7 @@ public final class JsonApprovalStore implements ApprovalStore {
             requests = new LinkedHashMap<>(updated); // Publish only after persistence succeeds.
             submissions = new LinkedHashMap<>(nextSubmissions);
             snapshotSchema = nextSchema;
-            previousSchemaOriginal = nextSchema < 7 ? json.clone() : null;
+            previousSchemaOriginal = nextSchema < 10 ? json.clone() : null;
             migrationBackup = null;
         } finally { Files.deleteIfExists(temp); }
     }

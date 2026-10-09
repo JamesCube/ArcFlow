@@ -1,15 +1,16 @@
 import { reactive } from 'vue'
 import { newSubmissionKey, isRejectedSubmissionVersion } from '../submission-intent.js'
 import { cloneDefinition, validateDefinition, validatePublicationResponse, pendingParticipants, participants, approvalNodes } from '../process.js'
-import { TEMPLATE_ID, emptyExpense, expenseErrors, normalizeExpense, serializeExpensePayload, InvalidScenarioPayload, invalid, same } from './expense-document.js'
+import { TEMPLATE_ID, InvalidScenarioPayload, invalid, same } from './expense-document.js'
 import { validateScenarioCatalog } from './scenario-template.js'
-import { validateScenarioList, validateScenarioView, validateScenarioDecision } from './scenario-response.js'
-const base = `/scenarios/${TEMPLATE_ID}`
-const fingerprint = business => { try { return JSON.stringify(normalizeExpense(business)) } catch { return JSON.stringify(business) } }
-const definition = value => { if (validateDefinition(value, TEMPLATE_ID).length || value.version > 2147483647) invalid(); return value }
-export function createScenarioWorkspace(api, keyFactory = newSubmissionKey) {
+import { getScenarioHandler } from './scenario-registry.js'
+export function createScenarioWorkspace(api, keyFactory = newSubmissionKey, templateId = TEMPLATE_ID) {
+  const handler = getScenarioHandler(templateId), base = `/scenarios/${handler.id}`
+  const { validateView: validateScenarioView, validateDecision: validateScenarioDecision, validateList: validateScenarioList } = handler
+  const fingerprint = business => { try { return JSON.stringify(handler.normalize(business)) } catch { return JSON.stringify(business) } }
+  const definition = value => { if (validateDefinition(value, handler.id).length || value.version > 2147483647) invalid(); return value }
   let generation = 0, intent = null
-  const state = reactive({ me: null, people: [], catalog: [], process: null, draft: null, baseline: '', items: [], form: emptyExpense(keyFactory), attempted: false, busy: false, publishing: false, error: null, notice: '', tab: 'catalog', selectedId: null, comment: '', retainedNotes: {}, conflict: false, blockedDecisions: [], uncertainSubmission: false, rejectedVersion: false })
+  const state = reactive({ me: null, people: [], catalog: [], process: null, draft: null, baseline: '', items: [], form: handler.createDraft(keyFactory), attempted: false, busy: false, publishing: false, error: null, notice: '', tab: 'catalog', selectedId: null, comment: '', retainedNotes: {}, conflict: false, blockedDecisions: [], uncertainSubmission: false, rejectedVersion: false })
   const dirty = () => !!state.draft && JSON.stringify(state.draft) !== state.baseline
   const stale = () => state.conflict || state.draft?.version !== state.process?.version
   const resetDraft = () => { state.draft = cloneDefinition(state.process); state.baseline = JSON.stringify(state.draft); state.conflict = false }
@@ -20,7 +21,7 @@ export function createScenarioWorkspace(api, keyFactory = newSubmissionKey) {
   }
   function logout() {
     generation++; api.logout(); intent = null
-    Object.assign(state, { me: null, people: [], catalog: [], process: null, draft: null, baseline: '', items: [], form: emptyExpense(keyFactory), attempted: false, busy: false, publishing: false, error: null, notice: '', tab: 'catalog', selectedId: null, comment: '', retainedNotes: {}, conflict: false, blockedDecisions: [], uncertainSubmission: false, rejectedVersion: false })
+    Object.assign(state, { me: null, people: [], catalog: [], process: null, draft: null, baseline: '', items: [], form: handler.createDraft(keyFactory), attempted: false, busy: false, publishing: false, error: null, notice: '', tab: 'catalog', selectedId: null, comment: '', retainedNotes: {}, conflict: false, blockedDecisions: [], uncertainSubmission: false, rejectedVersion: false })
   }
   function failure(cause, operation) { if (cause?.status === 401) logout(); state.error = { cause, operation } }
   function remember(view) {
@@ -73,31 +74,31 @@ export function createScenarioWorkspace(api, keyFactory = newSubmissionKey) {
     finally { if (current === generation) state.busy = false }
   }
   async function publish() {
-    if (state.busy || state.me?.id !== 'alice' || !dirty() || stale() || validateDefinition(state.draft, TEMPLATE_ID).length) return
+    if (state.busy || state.me?.id !== 'alice' || !dirty() || stale() || validateDefinition(state.draft, handler.id).length) return
     const current = generation, submitted = cloneDefinition(state.draft)
     submitted.name = submitted.name.trim(); submitted.nodes = submitted.nodes.map(node => ({ ...node, name: node.name.trim() }))
     state.busy = true; state.publishing = true; state.error = null; state.notice = ''
     try {
       const published = await api.request(`${base}/process`, { method: 'POST', body: JSON.stringify({ expectedVersion: submitted.version, definition: submitted }) })
       if (current !== generation) return
-      validatePublicationResponse(published, submitted, TEMPLATE_ID); definition(published); state.process = published; resetDraft(); state.notice = 'published'
+      validatePublicationResponse(published, submitted, handler.id); definition(published); state.process = published; resetDraft(); state.notice = 'published'
     } catch (cause) { if (current === generation) { state.conflict = true; failure(cause, 'publish') } }
     finally { if (current === generation) { state.busy = false; state.publishing = false } }
   }
   async function submit() {
     if (state.busy || !state.me || state.rejectedVersion) return
     state.attempted = true; state.error = null; state.notice = ''
-    if (expenseErrors(state.form).length) { state.error = { operation: 'validation' }; return }
+    if (handler.errors(state.form).length) { state.error = { operation: 'validation' }; return }
     const pinned = intent?.definition || state.process
-    if (validateDefinition(pinned, TEMPLATE_ID).length || approvalNodes(pinned).some(node => participants(node).includes(state.me.id))) { state.error = { operation: 'selfAssigned' }; return }
+    if (validateDefinition(pinned, handler.id).length || approvalNodes(pinned).some(node => participants(node).includes(state.me.id))) { state.error = { operation: 'selfAssigned' }; return }
     const current = generation; state.busy = true
     try {
-      if (!intent) intent = { key: keyFactory(), actor: state.me.id, fingerprint: fingerprint(state.form), payload: { business: normalizeExpense(state.form), processVersion: state.process.version }, definition: cloneDefinition(state.process) }
+      if (!intent) intent = { key: keyFactory(), actor: state.me.id, fingerprint: fingerprint(state.form), payload: { business: handler.normalize(state.form), processVersion: state.process.version }, definition: cloneDefinition(state.process) }
       const attempt = intent
-      const view = await api.request(`${base}/documents`, { method: 'POST', headers: { 'Idempotency-Key': attempt.key }, body: serializeExpensePayload(attempt.payload) })
+      const view = await api.request(`${base}/documents`, { method: 'POST', headers: { 'Idempotency-Key': attempt.key }, body: handler.serialize(attempt.payload) })
       if (current !== generation) return
       validateScenarioView(view, attempt); remember(view)
-      intent = null; state.uncertainSubmission = false; state.rejectedVersion = false; state.form = emptyExpense(keyFactory); state.attempted = false
+      intent = null; state.uncertainSubmission = false; state.rejectedVersion = false; state.form = handler.createDraft(keyFactory); state.attempted = false
       state.tab = 'mine'; select(view.request.id); state.notice = 'submitted'
     } catch (cause) { if (current === generation) { state.rejectedVersion = isRejectedSubmissionVersion(cause); state.uncertainSubmission = !state.rejectedVersion; failure(cause, 'submit') } }
     finally { if (current === generation) state.busy = false }

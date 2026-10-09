@@ -16,7 +16,7 @@ export function catalogFixture() {
       field('spentOn', 'date'), field('category', 'select', 0, ['TRAVEL', 'MEALS', 'OFFICE', 'OTHER']),
       field('description', 'text', 240), field('amount', 'money'), field('receiptRef', 'text', 128),
     ] },
-  }]
+  }, receivingCatalogFixture()]
 }
 export function expenseFixture(overrides = {}) {
   return { type: 'expense', documentVersion: 1, businessId: 'EXP-2026-001', title: 'Client visit expenses', reason: 'Synthetic expense fixture; no personal information.', costCenter: 'ENGINEERING', currency: 'CNY', lines: [
@@ -61,4 +61,37 @@ export function decidedFixture(original, actor = 'bob', decision = 'APPROVE', co
     item.currentStepId = steps[index + 1].id; item.approverId = members(steps[index + 1])[0]
   } else item.approverId = members(current).find(member => !votes.some(event => event.actorId === member))
   return view
+}
+
+export function receivingCatalogFixture() {
+  return { id: 'erp-receiving', domain: 'ERP', documentType: 'receiving', documentVersion: 1, formVersion: 1,
+    title: translated('Purchase order receiving', '采购收货验收'), description: translated('Reconcile received, accepted and rejected quantities before approval.', '核对实收、合格与不合格数量，再提交审批。'),
+    sections: [{ id: 'receiving-details', title: translated('Receiving details', '收货信息'), fields: [
+      field('businessId', 'text', 128), field('title', 'text', 120), field('reason', 'textarea', 2000), field('purchaseOrderRef', 'text', 128), field('warehouse', 'select', 0, ['EAST', 'WEST']), field('receivedOn', 'date'),
+    ] }],
+    lineItems: { path: 'lines', label: translated('Receiving lines', '收货明细'), minItems: 1, maxItems: 20, fields: [
+      field('orderLineRef', 'text', 128), field('description', 'text', 240), field('unit', 'select', 0, ['PCS', 'BOX']),
+      ...['ordered', 'received', 'accepted', 'rejected'].map(path => field(path, 'quantity')),
+      { ...field('exceptionReason', 'textarea', 1000), required: false },
+    ] },
+  }
+}
+export function receivingFixture(overrides = {}) {
+  return { type: 'receiving', documentVersion: 1, businessId: 'GRN-DEMO-001', title: 'Workshop supply delivery', reason: 'Synthetic goods receipt for a sample purchase order.', purchaseOrderRef: 'PO-DEMO-001', warehouse: 'EAST', receivedOn: '2026-10-08', lines: [
+    { lineId: 'receiving-line-1', orderLineRef: 'PO-DEMO-001-10', description: 'Mounting brackets', unit: 'PCS', ordered: 100, received: 80, accepted: 78, rejected: 2, exceptionReason: 'Two bent brackets' },
+    { lineId: 'receiving-line-2', orderLineRef: 'PO-DEMO-001-20', description: 'Protective packaging', unit: 'BOX', ordered: 10, received: 10, accepted: 10, rejected: 0, exceptionReason: '' },
+  ], ...overrides }
+}
+export function receivingProcessFixture(overrides = {}) {
+  return { schemaVersion: 3, id: 'erp-receiving', version: 1, name: 'Receiving approval', nodes: [
+    { id: 'start', type: 'start', name: 'Submit receiving', assigneeId: null },
+    { id: 'receiving-inspection', type: 'parallelApproval', name: 'Warehouse and quality inspection', assigneeId: null, assigneeIds: ['bob', 'carol'], completionMode: 'ALL' },
+    { id: 'procurement-review', type: 'approval', name: 'Procurement review (Bob)', assigneeId: 'bob' },
+    { id: 'end', type: 'end', name: 'Complete', assigneeId: null },
+  ], ...overrides }
+}
+export function receivingViewFixture(overrides = {}) {
+  const business = receivingFixture(), definition = receivingProcessFixture()
+  const view = viewFixture({ id: 'receiving-1', title: business.title, reason: business.reason, business, definition, processId: 'erp-receiving', currentStepId: 'receiving-inspection', ...overrides })
+  return { ...view, total: null, summary: { kind: 'receiving', lineCount: 2, exceptionLineCount: 1, quantities: [ { unit: 'PCS', received: 80, accepted: 78, rejected: 2 }, { unit: 'BOX', received: 10, accepted: 10, rejected: 0 } ] } }
 }
