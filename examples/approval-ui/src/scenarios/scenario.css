@@ -1876,3 +1876,15 @@
 @media(max-width:640px) {
   .sf-retained-index { align-items:flex-start; flex-direction:column; gap:7px; }
 }
+
+/* Seal has a document-led illustration and copy-count summary, with no amount. */
+.sf-seal-art { background: linear-gradient(140deg, #e6f3ef, #d6e7e2); }
+.sf-document-art { width: 245px; padding: 28px 24px; background: #fff; border: 1px solid #c4d9d0; border-radius: 8px; box-shadow: 0 16px 35px #274e3f20; transform: rotate(-5deg); }
+.sf-document-art > span { font-size: 10px; letter-spacing: .13em; color: #47745f; }
+.sf-document-art > strong { display: block; margin: 13px 0 22px; font-size: 19px; color: #193c2d; }
+.sf-document-art > i { display: block; height: 5px; margin: 11px 0; background: #e1eae5; border-radius: 3px; }
+.sf-document-art > i:nth-of-type(2) { width: 70%; }
+.sf-document-art > div { border-top: 1px solid #dfe8e3; margin-top: 22px; padding-top: 15px; font-size: 12px; color: #47745f; }
+.sf-seal-summary strong { font-size: 1.05rem; line-height: 1.5; }
+.sf-seal-summary small { max-width: 36rem; }
+.sf-detail-header > strong, .sf-request-item footer b { overflow-wrap: anywhere; }

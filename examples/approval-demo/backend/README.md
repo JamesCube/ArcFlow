@@ -132,3 +132,18 @@ The backend uses `com.arcflow.examples:approval-domain` for approval persistence
 ## Bounded member inbox API
 
 `GET /api/requests/inbox` adds authenticated `PENDING` / `HANDLED` queries with optional status/process-version filters and keyset pagination (default 25, maximum 100). The response is `{items, nextCursor}`. It uses every actual current group member and only actual historical decisions, rather than the representative `approverId`. The existing `/api/requests` endpoint remains compatible. Pending/handled frontend tabs use the bounded member API, while applicant/history and detail refresh retain the compatible visible-request list. See [全成员收件箱 / inbox contract](../../../docs/MEMBER_INBOX.md) for parameter validation, actor binding, ordering and concurrent-page semantics. `verify-parallel-http.py` covers the endpoint against a disposable live backend, including restart.
+
+
+## Local Seal-use integration checkpoint
+
+The compiled scenario registry includes Expense and Seal-use. Seal-use uses
+`/api/scenarios/oa-seal-use` and the fixed `.scenario-oa-seal-use.json` storage suffix.
+Submission requires one applicant-scoped key, well-formed UTF-8 `application/json`, and a
+raw envelope no larger than 8,000,000 UTF-16 units. Invalid bytes are rejected rather than
+replaced during decoding. Business/process snapshots and participant authorization use the
+shared lifecycle; the exact view envelope has `total: null`. Approval does not stamp or sign.
+
+Schema 9 supports Seal-use, but intentionally does not imply Travel/schema-8 support.
+Read [the migration and acceptance gates](../../../docs/SEAL_USE_SCENARIO.md) before enabling
+writes. This local checkpoint still needs the actual Boot 4.1.1 HTTP suites and original
+browser/pixel acceptance; a cached-library compile or direct method probe is not HTTP evidence.

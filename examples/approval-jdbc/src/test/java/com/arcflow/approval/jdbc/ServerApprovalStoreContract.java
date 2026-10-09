@@ -97,6 +97,90 @@ abstract class ServerApprovalStoreContract {
         }
     }
 
+    protected static BusinessDocument.SealUse sealUseDocument() {
+        return new BusinessDocument.SealUse(1,"SEAL-SQL-1","Synthetic seal-use review","Review only, no stamping",
+            "Synthetic delivery document","DOC-SQL-1","OFFICIAL",2);
+    }
+    protected ApprovalService sealUseService() throws IOException {
+        return new ApprovalService(new JdbcApprovalStore(dataSource,new ObjectMapper(),
+            com.arcflow.approval.ScenarioCatalog.sealUse("bob","carol").initialProcess()),USERS);
+    }
+    @Test void sealUseTypedSnapshotGlobalKeysAndMemberProjectionRemainProcessIsolated() throws Exception {
+        ApprovalService.Request approved;
+        try(var seals=sealUseService(); var expenses=expenseService(); var leave=open()) {
+            var created=seals.submitDocument("alice",sealUseDocument(),1,"seal-shared");
+            assertEquals(sealUseDocument(),created.business());
+            assertEquals("oa-seal-use",created.processId());
+            assertEquals(409,result(()->expenses.submitDocument("alice",expenseDocument(),1,"seal-shared")));
+            assertEquals(409,result(()->leave.submit("alice","Leave","Rest",1,1,"seal-shared")));
+            assertTrue(expenses.list("alice").isEmpty()); assertTrue(leave.list("alice").isEmpty());
+            assertEquals(404,result(()->expenses.decide("bob",created.id(),"documentReview","APPROVE","")));
+            assertEquals(403,result(()->seals.decide("alice",created.id(),"documentReview","APPROVE","")));
+            var query=Map.of("box",List.of("PENDING"));
+            assertEquals(1,seals.inbox("bob",query).items().size());
+            assertEquals(0,expenses.inbox("bob",query).items().size());
+            seals.decide("bob",created.id(),"documentReview","APPROVE","Document reviewed");
+            assertEquals(0,seals.inbox("bob",query).items().size());
+            assertEquals(1,seals.inbox("carol",query).items().size());
+            approved=seals.decide("carol",created.id(),"sealReview","APPROVE","Review only, no seal applied");
+            assertEquals(created.business(),approved.business()); assertEquals("APPROVED",approved.status());
+            assertEquals(3,approved.history().size());
+        }
+        try(var reopened=sealUseService()) {
+            assertEquals(List.of(approved),reopened.list("alice"));
+            assertEquals(approved,reopened.submitDocument("alice",sealUseDocument(),1,"seal-shared"));
+            assertEquals(approved,reopened.decide("carol",approved.id(),"sealReview","APPROVE","Retry cannot rewrite notes"));
+        }
+    }
+    @Test void sealUseConcurrentRetryCreatesOneRequestBindingAndExactAudit() throws Exception {
+        try(var first=sealUseService(); var second=sealUseService()) {
+            var commands=new ArrayList<Callable<ApprovalService.Request>>();
+            for(int i=0;i<8;i++) { var service=i%2==0?first:second; commands.add(()->service.submitDocument("alice",sealUseDocument(),1,"seal-race")); }
+            var saved=race(commands); assertTrue(saved.stream().allMatch(saved.get(0)::equals));
+            assertEquals(1,count("arc_request")); assertEquals(1,count("arc_submission_key"));
+            assertEquals(1,count("arc_request_event")); assertEquals(2,count("arc_request_member"));
+        }
+    }
+    @Test void sealUseEveryFieldAndVersionBindsRetryAfterRejectionAndReopen() throws Exception {
+        ApprovalService.Request rejected;
+        var original=sealUseDocument();
+        var changes=List.of(
+            new BusinessDocument.SealUse(1,"SEAL-SQL-2",original.title(),original.reason(),original.documentName(),original.documentRef(),original.sealType(),original.copyCount()),
+            original.withText("Changed title",original.reason()), original.withText(original.title(),"Changed purpose"),
+            new BusinessDocument.SealUse(1,original.businessId(),original.title(),original.reason(),"Changed document",original.documentRef(),original.sealType(),original.copyCount()),
+            new BusinessDocument.SealUse(1,original.businessId(),original.title(),original.reason(),original.documentName(),"DOC-SQL-2",original.sealType(),original.copyCount()),
+            new BusinessDocument.SealUse(1,original.businessId(),original.title(),original.reason(),original.documentName(),original.documentRef(),"CONTRACT",original.copyCount()),
+            new BusinessDocument.SealUse(1,original.businessId(),original.title(),original.reason(),original.documentName(),original.documentRef(),original.sealType(),3));
+        try(var seals=sealUseService()) {
+            var saved=seals.submitDocument("alice",original,1,"seal-rejected");
+            var definition=seals.process();
+            seals.publish("alice",1,new ProcessDefinition(definition.schemaVersion(),definition.id(),1,"Changed policy",definition.nodes()));
+            rejected=seals.decide("bob",saved.id(),"documentReview","REJECT","Synthetic reason");
+            assertEquals("REJECTED",rejected.status()); assertEquals(definition,rejected.definition());
+        }
+        try(var seals=sealUseService()) {
+            assertEquals(rejected,seals.submitDocument("alice",original,1,"seal-rejected"));
+            for(var changed:changes) assertEquals(409,result(()->seals.submitDocument("alice",changed,1,"seal-rejected")));
+            assertEquals(409,result(()->seals.submitDocument("alice",original,2,"seal-rejected")));
+            assertEquals(409,result(()->seals.decide("bob",rejected.id(),"documentReview","APPROVE","")));
+            assertEquals(1,count("arc_request")); assertEquals(1,count("arc_submission_key")); assertEquals(2,count("arc_request_event"));
+            // References are not uniqueness constraints; a distinct valid key creates a new request.
+            var another=seals.submitDocument("alice",original,2,"seal-another");
+            assertNotEquals(rejected.id(),another.id()); assertEquals(2,count("arc_submission_key"));
+        }
+    }
+    @Test void sealUseFailedAuditRollsBackTypedRequestMembersAndKey() throws Exception {
+        try(var seals=sealUseService()) {
+            sql("ALTER TABLE arc_request_event ADD CONSTRAINT fail_seal_submission CHECK (event_index > 0)");
+            assertThrows(IOException.class,()->seals.submitDocument("alice",sealUseDocument(),1,"seal-failed"));
+            assertEquals(0,count("arc_request")); assertEquals(0,count("arc_submission_key"));
+            assertEquals(0,count("arc_request_event")); assertEquals(0,count("arc_request_member"));
+            sql("ALTER TABLE arc_request_event DROP CONSTRAINT fail_seal_submission");
+            var saved=seals.submitDocument("alice",sealUseDocument(),1,"seal-failed");
+            assertEquals(saved,seals.submitDocument("alice",sealUseDocument(),1,"seal-failed"));
+        }
+    }
+
     @Test void concurrentInitializationCreatesOneConsistentHead() throws Exception {
         var constructors = new ArrayList<Callable<Integer>>();
         for (int i = 0; i < 8; i++) constructors.add(() -> { try (var service = open()) { return service.process().version(); } });

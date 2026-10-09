@@ -1,0 +1,298 @@
+{
+  "valid": [
+    {
+      "name": "synthetic baseline",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1}",
+      "canonical": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1}",
+      "fingerprint": "76a52e9b367a80c35c04173647661701abe209171e557bd9419ad3308c665d95"
+    },
+    {
+      "name": "input key order and whitespace",
+      "raw": " \r\n{\"copyCount\":1,\"sealType\":\"OFFICIAL\",\"documentRef\":\"SYNTHETIC:doc/001\",\"documentName\":\"Synthetic agreement copy\",\"reason\":\"Synthetic business purpose\",\"title\":\"Synthetic seal request\",\"businessId\":\"SEAL-DEMO-001\",\"documentVersion\":1,\"type\":\"sealUse\"} \t",
+      "canonical": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1}",
+      "fingerprint": "76a52e9b367a80c35c04173647661701abe209171e557bd9419ad3308c665d95"
+    },
+    {
+      "name": "equivalent C0 edge trim",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"\\u0000 \\tSynthetic seal request \\r\\n\",\"reason\":\"\\u0001Synthetic business purpose\\u001f\",\"documentName\":\" Synthetic agreement copy \",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1}",
+      "canonical": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1}",
+      "fingerprint": "76a52e9b367a80c35c04173647661701abe209171e557bd9419ad3308c665d95"
+    },
+    {
+      "name": "escaped key and value aliases",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"t\\u0069tle\":\"\\u0053ynthetic seal request\",\"reason\":\"\\u0053ynthetic business purpose\",\"documentName\":\"\\u0053ynthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1}",
+      "canonical": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1}",
+      "fingerprint": "76a52e9b367a80c35c04173647661701abe209171e557bd9419ad3308c665d95"
+    },
+    {
+      "name": "synthetic finance upper count",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"FINANCE\",\"copyCount\":100}",
+      "canonical": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"FINANCE\",\"copyCount\":100}",
+      "fingerprint": "6bcf7fc4870e50fd04861d3615990880e8cab20af3c13a9c5eb0df5e812254ee"
+    },
+    {
+      "name": "synthetic contract Chinese content",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"合成用章申请\",\"reason\":\"合成业务用途\",\"documentName\":\"合成协议副本\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"CONTRACT\",\"copyCount\":1}",
+      "canonical": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"合成用章申请\",\"reason\":\"合成业务用途\",\"documentName\":\"合成协议副本\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"CONTRACT\",\"copyCount\":1}",
+      "fingerprint": "7af82b0c89bd4d69044fd808236ca973c7c42b40b026e2720d8fe8c3f558859c"
+    },
+    {
+      "name": "Unicode edge whitespace preserved around content",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\" text \",\"reason\":\"﻿purpose﻿\",\"documentName\":\" document \",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1}",
+      "canonical": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\" text \",\"reason\":\"﻿purpose﻿\",\"documentName\":\" document \",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1}",
+      "fingerprint": "63dbdefe8c26847d854fc114a7035f388b37818638b57ddccfe58a29cbe55952"
+    },
+    {
+      "name": "C0 interior preserved",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"a\\u0000b\",\"reason\":\"a\\tb\",\"documentName\":\"a\\nb\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1}",
+      "canonical": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"a\\u0000b\",\"reason\":\"a\\tb\",\"documentName\":\"a\\nb\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1}",
+      "fingerprint": "b6e164ea9e1c557d344667677064d24b8da22c24ad7e4a145718af7b6f2d2c00"
+    },
+    {
+      "name": "literal URL-shaped reference remains inert",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"https://example.invalid/demo\",\"sealType\":\"OFFICIAL\",\"copyCount\":1}",
+      "canonical": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"https://example.invalid/demo\",\"sealType\":\"OFFICIAL\",\"copyCount\":1}",
+      "fingerprint": "f1964d4cbd8e1e61fe366edec1b32b66ecc9a03166621836d7aeec753666ceb5"
+    },
+    {
+      "name": "zero-width-space is content under fixed blank policy",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"​\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1}",
+      "canonical": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"​\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1}",
+      "fingerprint": "8956e3f97758d3b56d317ba8c9a4b8059f2d8073a7e7d60f790c03c6b5f924f3"
+    },
+    {
+      "name": "supplementary character UTF-16 length boundary",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1}",
+      "canonical": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋🖋\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1}",
+      "fingerprint": "e7eafe80a64598729a7bbd9ab29654303f3346b639e16f989569288f5f7d9e1b"
+    },
+    {
+      "name": "lowercase C0 hex escapes",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"a\\u000bb\\u000ec\\u001bd\\u001fe\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1}",
+      "canonical": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"a\\u000bb\\u000ec\\u001bd\\u001fe\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1}",
+      "fingerprint": "2d7bf32ce1f0aa958de6dcda2a438facd48c7dfbc9cab9136d75efc0686cf749"
+    },
+    {
+      "name": "lone high surrogate preserved",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"\\ud800\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1}",
+      "canonical": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"\\ud800\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1}",
+      "fingerprint": "7f23eb810ff3a7ec0c5714384005a8325be5f59b53a7cf9650d72b6f9fe94381"
+    },
+    {
+      "name": "lone low surrogate preserved",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"\\udc00\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1}",
+      "canonical": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"\\udc00\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1}",
+      "fingerprint": "64ec7a97d1340fdcacdf425259993359bf6cd82f8e1c048f0dbe0fdcc3c05f74"
+    },
+    {
+      "name": "surrogate order and pairs preserved",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"\\ud800𐀀\\udc00\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1}",
+      "canonical": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"\\ud800𐀀\\udc00\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1}",
+      "fingerprint": "f37965295a253f48133d3c98d54c248bd5b50eaa0737f19d4338d4ee71bb2ac1"
+    },
+    {
+      "name": "string escaping and line separators",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"quote\\\" slash/ backslash\\\\   \",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1}",
+      "canonical": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"quote\\\" slash/ backslash\\\\   \",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1}",
+      "fingerprint": "e5df79a517d72facc7317ab96d98bc81752f44b9330d9cf2af6854c0868f775a"
+    }
+  ],
+  "invalid": [
+    {
+      "name": "missing type",
+      "raw": "{\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1}"
+    },
+    {
+      "name": "null type",
+      "raw": "{\"type\":null,\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1}"
+    },
+    {
+      "name": "missing documentVersion",
+      "raw": "{\"type\":\"sealUse\",\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1}"
+    },
+    {
+      "name": "null documentVersion",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":null,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1}"
+    },
+    {
+      "name": "missing businessId",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1}"
+    },
+    {
+      "name": "null businessId",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":null,\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1}"
+    },
+    {
+      "name": "missing title",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1}"
+    },
+    {
+      "name": "null title",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":null,\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1}"
+    },
+    {
+      "name": "missing reason",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1}"
+    },
+    {
+      "name": "null reason",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":null,\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1}"
+    },
+    {
+      "name": "missing documentName",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1}"
+    },
+    {
+      "name": "null documentName",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":null,\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1}"
+    },
+    {
+      "name": "missing documentRef",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"sealType\":\"OFFICIAL\",\"copyCount\":1}"
+    },
+    {
+      "name": "null documentRef",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":null,\"sealType\":\"OFFICIAL\",\"copyCount\":1}"
+    },
+    {
+      "name": "missing sealType",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"copyCount\":1}"
+    },
+    {
+      "name": "null sealType",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":null,\"copyCount\":1}"
+    },
+    {
+      "name": "missing copyCount",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\"}"
+    },
+    {
+      "name": "null copyCount",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":null}"
+    },
+    {
+      "name": "unknown total",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1,\"total\":null}"
+    },
+    {
+      "name": "unknown summary",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1,\"summary\":null}"
+    },
+    {
+      "name": "unknown currency",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1,\"currency\":null}"
+    },
+    {
+      "name": "unknown purpose",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1,\"purpose\":null}"
+    },
+    {
+      "name": "unknown signatureUrl",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1,\"signatureUrl\":null}"
+    },
+    {
+      "name": "unknown documentUrl",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1,\"documentUrl\":null}"
+    },
+    {
+      "name": "unknown applicantId",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1,\"applicantId\":null}"
+    },
+    {
+      "name": "unknown processVersion",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1,\"processVersion\":null}"
+    },
+    {
+      "name": "unknown intentFingerprint",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1,\"intentFingerprint\":null}"
+    },
+    {
+      "name": "invalid count lexeme 0",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":0}"
+    },
+    {
+      "name": "invalid count lexeme 101",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":101}"
+    },
+    {
+      "name": "invalid count lexeme 1.0",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1.0}"
+    },
+    {
+      "name": "invalid count lexeme 1e0",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1e0}"
+    },
+    {
+      "name": "invalid count lexeme 1E+2",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1E+2}"
+    },
+    {
+      "name": "invalid count lexeme \"1\"",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":\"1\"}"
+    },
+    {
+      "name": "invalid count lexeme true",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":true}"
+    },
+    {
+      "name": "invalid count lexeme 2147483648",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":2147483648}"
+    },
+    {
+      "name": "invalid count lexeme 999999999999999999999999999999",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":999999999999999999999999999999}"
+    },
+    {
+      "name": "raw title length before trim",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\" xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1}"
+    },
+    {
+      "name": "blank Unicode plus BOM title",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"\\u0000   ﻿　 \",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1}"
+    },
+    {
+      "name": "raw reason length before trim",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\" xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1}"
+    },
+    {
+      "name": "blank Unicode plus BOM reason",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"\\u0000   ﻿　 \",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1}"
+    },
+    {
+      "name": "raw documentName length before trim",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\" xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1}"
+    },
+    {
+      "name": "blank Unicode plus BOM documentName",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"\\u0000   ﻿　 \",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1}"
+    },
+    {
+      "name": "duplicate title",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1,\"title\":\"Synthetic seal request\"}"
+    },
+    {
+      "name": "escaped duplicate title",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1,\"t\\u0069tle\":\"Synthetic seal request\"}"
+    },
+    {
+      "name": "trailing object",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1} {}"
+    },
+    {
+      "name": "trailing null",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1} null"
+    },
+    {
+      "name": "wrong document version float",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1.0,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"OFFICIAL\",\"copyCount\":1}"
+    },
+    {
+      "name": "document reference is not trimmed",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\" demo \",\"sealType\":\"OFFICIAL\",\"copyCount\":1}"
+    },
+    {
+      "name": "unknown synthetic seal option",
+      "raw": "{\"type\":\"sealUse\",\"documentVersion\":1,\"businessId\":\"SEAL-DEMO-001\",\"title\":\"Synthetic seal request\",\"reason\":\"Synthetic business purpose\",\"documentName\":\"Synthetic agreement copy\",\"documentRef\":\"SYNTHETIC:doc/001\",\"sealType\":\"REAL_STAMP\",\"copyCount\":1}"
+    }
+  ]
+}

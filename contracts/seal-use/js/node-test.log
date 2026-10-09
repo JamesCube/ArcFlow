@@ -1,0 +1,2032 @@
+TAP version 13
+# Subtest: shared valid vector: synthetic baseline
+ok 1 - shared valid vector: synthetic baseline
+  ---
+  duration_ms: 4.706066
+  type: 'test'
+  ...
+# Subtest: shared valid vector: input key order and whitespace
+ok 2 - shared valid vector: input key order and whitespace
+  ---
+  duration_ms: 0.602668
+  type: 'test'
+  ...
+# Subtest: shared valid vector: equivalent C0 edge trim
+ok 3 - shared valid vector: equivalent C0 edge trim
+  ---
+  duration_ms: 0.321965
+  type: 'test'
+  ...
+# Subtest: shared valid vector: escaped key and value aliases
+ok 4 - shared valid vector: escaped key and value aliases
+  ---
+  duration_ms: 0.344868
+  type: 'test'
+  ...
+# Subtest: shared valid vector: synthetic finance upper count
+ok 5 - shared valid vector: synthetic finance upper count
+  ---
+  duration_ms: 0.428311
+  type: 'test'
+  ...
+# Subtest: shared valid vector: synthetic contract Chinese content
+ok 6 - shared valid vector: synthetic contract Chinese content
+  ---
+  duration_ms: 0.389985
+  type: 'test'
+  ...
+# Subtest: shared valid vector: Unicode edge whitespace preserved around content
+ok 7 - shared valid vector: Unicode edge whitespace preserved around content
+  ---
+  duration_ms: 0.285891
+  type: 'test'
+  ...
+# Subtest: shared valid vector: C0 interior preserved
+ok 8 - shared valid vector: C0 interior preserved
+  ---
+  duration_ms: 0.216459
+  type: 'test'
+  ...
+# Subtest: shared valid vector: literal URL-shaped reference remains inert
+ok 9 - shared valid vector: literal URL-shaped reference remains inert
+  ---
+  duration_ms: 0.337408
+  type: 'test'
+  ...
+# Subtest: shared valid vector: zero-width-space is content under fixed blank policy
+ok 10 - shared valid vector: zero-width-space is content under fixed blank policy
+  ---
+  duration_ms: 0.469052
+  type: 'test'
+  ...
+# Subtest: shared valid vector: supplementary character UTF-16 length boundary
+ok 11 - shared valid vector: supplementary character UTF-16 length boundary
+  ---
+  duration_ms: 0.333531
+  type: 'test'
+  ...
+# Subtest: shared valid vector: lowercase C0 hex escapes
+ok 12 - shared valid vector: lowercase C0 hex escapes
+  ---
+  duration_ms: 0.385678
+  type: 'test'
+  ...
+# Subtest: shared valid vector: lone high surrogate preserved
+ok 13 - shared valid vector: lone high surrogate preserved
+  ---
+  duration_ms: 0.295405
+  type: 'test'
+  ...
+# Subtest: shared valid vector: lone low surrogate preserved
+ok 14 - shared valid vector: lone low surrogate preserved
+  ---
+  duration_ms: 1.317833
+  type: 'test'
+  ...
+# Subtest: shared valid vector: surrogate order and pairs preserved
+ok 15 - shared valid vector: surrogate order and pairs preserved
+  ---
+  duration_ms: 0.265552
+  type: 'test'
+  ...
+# Subtest: shared valid vector: string escaping and line separators
+ok 16 - shared valid vector: string escaping and line separators
+  ---
+  duration_ms: 0.432588
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: missing type
+ok 17 - shared invalid vector: missing type
+  ---
+  duration_ms: 0.443263
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: null type
+ok 18 - shared invalid vector: null type
+  ---
+  duration_ms: 0.097804
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: missing documentVersion
+ok 19 - shared invalid vector: missing documentVersion
+  ---
+  duration_ms: 0.067419
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: null documentVersion
+ok 20 - shared invalid vector: null documentVersion
+  ---
+  duration_ms: 0.163441
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: missing businessId
+ok 21 - shared invalid vector: missing businessId
+  ---
+  duration_ms: 0.130522
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: null businessId
+ok 22 - shared invalid vector: null businessId
+  ---
+  duration_ms: 0.101239
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: missing title
+ok 23 - shared invalid vector: missing title
+  ---
+  duration_ms: 0.123793
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: null title
+ok 24 - shared invalid vector: null title
+  ---
+  duration_ms: 0.145084
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: missing reason
+ok 25 - shared invalid vector: missing reason
+  ---
+  duration_ms: 0.116722
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: null reason
+ok 26 - shared invalid vector: null reason
+  ---
+  duration_ms: 0.179244
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: missing documentName
+ok 27 - shared invalid vector: missing documentName
+  ---
+  duration_ms: 0.115931
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: null documentName
+ok 28 - shared invalid vector: null documentName
+  ---
+  duration_ms: 0.375103
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: missing documentRef
+ok 29 - shared invalid vector: missing documentRef
+  ---
+  duration_ms: 0.121729
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: null documentRef
+ok 30 - shared invalid vector: null documentRef
+  ---
+  duration_ms: 0.164643
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: missing sealType
+ok 31 - shared invalid vector: missing sealType
+  ---
+  duration_ms: 0.170642
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: null sealType
+ok 32 - shared invalid vector: null sealType
+  ---
+  duration_ms: 0.134649
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: missing copyCount
+ok 33 - shared invalid vector: missing copyCount
+  ---
+  duration_ms: 0.086869
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: null copyCount
+ok 34 - shared invalid vector: null copyCount
+  ---
+  duration_ms: 0.103652
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: unknown total
+ok 35 - shared invalid vector: unknown total
+  ---
+  duration_ms: 0.109521
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: unknown summary
+ok 36 - shared invalid vector: unknown summary
+  ---
+  duration_ms: 0.096512
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: unknown currency
+ok 37 - shared invalid vector: unknown currency
+  ---
+  duration_ms: 0.119616
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: unknown purpose
+ok 38 - shared invalid vector: unknown purpose
+  ---
+  duration_ms: 0.116793
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: unknown signatureUrl
+ok 39 - shared invalid vector: unknown signatureUrl
+  ---
+  duration_ms: 0.10151
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: unknown documentUrl
+ok 40 - shared invalid vector: unknown documentUrl
+  ---
+  duration_ms: 0.085125
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: unknown applicantId
+ok 41 - shared invalid vector: unknown applicantId
+  ---
+  duration_ms: 0.534138
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: unknown processVersion
+ok 42 - shared invalid vector: unknown processVersion
+  ---
+  duration_ms: 0.129982
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: unknown intentFingerprint
+ok 43 - shared invalid vector: unknown intentFingerprint
+  ---
+  duration_ms: 0.24446
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: invalid count lexeme 0
+ok 44 - shared invalid vector: invalid count lexeme 0
+  ---
+  duration_ms: 0.193015
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: invalid count lexeme 101
+ok 45 - shared invalid vector: invalid count lexeme 101
+  ---
+  duration_ms: 0.180696
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: invalid count lexeme 1.0
+ok 46 - shared invalid vector: invalid count lexeme 1.0
+  ---
+  duration_ms: 0.349485
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: invalid count lexeme 1e0
+ok 47 - shared invalid vector: invalid count lexeme 1e0
+  ---
+  duration_ms: 0.171393
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: invalid count lexeme 1E+2
+ok 48 - shared invalid vector: invalid count lexeme 1E+2
+  ---
+  duration_ms: 0.118424
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: invalid count lexeme "1"
+ok 49 - shared invalid vector: invalid count lexeme "1"
+  ---
+  duration_ms: 0.198622
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: invalid count lexeme true
+ok 50 - shared invalid vector: invalid count lexeme true
+  ---
+  duration_ms: 0.126356
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: invalid count lexeme 2147483648
+ok 51 - shared invalid vector: invalid count lexeme 2147483648
+  ---
+  duration_ms: 0.121489
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: invalid count lexeme 999999999999999999999999999999
+ok 52 - shared invalid vector: invalid count lexeme 999999999999999999999999999999
+  ---
+  duration_ms: 0.134458
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: raw title length before trim
+ok 53 - shared invalid vector: raw title length before trim
+  ---
+  duration_ms: 0.126506
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: blank Unicode plus BOM title
+ok 54 - shared invalid vector: blank Unicode plus BOM title
+  ---
+  duration_ms: 0.151072
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: raw reason length before trim
+ok 55 - shared invalid vector: raw reason length before trim
+  ---
+  duration_ms: 0.089282
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: blank Unicode plus BOM reason
+ok 56 - shared invalid vector: blank Unicode plus BOM reason
+  ---
+  duration_ms: 0.058486
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: raw documentName length before trim
+ok 57 - shared invalid vector: raw documentName length before trim
+  ---
+  duration_ms: 0.062392
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: blank Unicode plus BOM documentName
+ok 58 - shared invalid vector: blank Unicode plus BOM documentName
+  ---
+  duration_ms: 0.148409
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: duplicate title
+ok 59 - shared invalid vector: duplicate title
+  ---
+  duration_ms: 0.110002
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: escaped duplicate title
+ok 60 - shared invalid vector: escaped duplicate title
+  ---
+  duration_ms: 0.088291
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: trailing object
+ok 61 - shared invalid vector: trailing object
+  ---
+  duration_ms: 0.093929
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: trailing null
+ok 62 - shared invalid vector: trailing null
+  ---
+  duration_ms: 0.099747
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: wrong document version float
+ok 63 - shared invalid vector: wrong document version float
+  ---
+  duration_ms: 0.125505
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: document reference is not trimmed
+ok 64 - shared invalid vector: document reference is not trimmed
+  ---
+  duration_ms: 0.145034
+  type: 'test'
+  ...
+# Subtest: shared invalid vector: unknown synthetic seal option
+ok 65 - shared invalid vector: unknown synthetic seal option
+  ---
+  duration_ms: 0.116972
+  type: 'test'
+  ...
+# Subtest: shared raw JSON source limit accepts 7999999 UTF-16 units
+ok 66 - shared raw JSON source limit accepts 7999999 UTF-16 units
+  ---
+  duration_ms: 254.575173
+  type: 'test'
+  ...
+# Subtest: shared raw JSON source limit accepts 8000000 UTF-16 units
+ok 67 - shared raw JSON source limit accepts 8000000 UTF-16 units
+  ---
+  duration_ms: 188.818829
+  type: 'test'
+  ...
+# Subtest: shared raw JSON source limit rejects 8000001 UTF-16 units
+ok 68 - shared raw JSON source limit rejects 8000001 UTF-16 units
+  ---
+  duration_ms: 0.247344
+  type: 'test'
+  ...
+# Subtest: regression: Proxy cannot change copyCount from 1 during validation to 101 during normalization
+ok 69 - regression: Proxy cannot change copyCount from 1 during validation to 101 during normalization
+  ---
+  duration_ms: 2.375121
+  type: 'test'
+  ...
+# Subtest: descriptor values are captured once and cannot change on a later descriptor read
+ok 70 - descriptor values are captured once and cannot change on a later descriptor read
+  ---
+  duration_ms: 0.743025
+  type: 'test'
+  ...
+# Subtest: captured invalid descriptor values reject even when get traps would return valid values
+ok 71 - captured invalid descriptor values reject even when get traps would return valid values
+  ---
+  duration_ms: 0.869843
+  type: 'test'
+  ...
+# Subtest: accessor fields reject without invoking the accessor in business, form or envelope APIs
+ok 72 - accessor fields reject without invoking the accessor in business, form or envelope APIs
+  ---
+  duration_ms: 0.519025
+  type: 'test'
+  ...
+# Subtest: revoked proxies and failed reflection fail closed as validation issues
+ok 73 - revoked proxies and failed reflection fail closed as validation issues
+  ---
+  duration_ms: 0.802573
+  type: 'test'
+  ...
+# Subtest: reported own keys must match the schema even if a proxy offers descriptors for absent keys
+ok 74 - reported own keys must match the schema even if a proxy offers descriptors for absent keys
+  ---
+  duration_ms: 0.471385
+  type: 'test'
+  ...
+# Subtest: form normalization snapshots raw text once without calling property get traps
+ok 75 - form normalization snapshots raw text once without calling property get traps
+  ---
+  duration_ms: 0.470344
+  type: 'test'
+  ...
+# Subtest: submit envelope snapshots outer values and nested business before using them
+ok 76 - submit envelope snapshots outer values and nested business before using them
+  ---
+  duration_ms: 0.538153
+  type: 'test'
+  ...
+# Subtest: normalization retains no mutable object field reference and supports null-prototype data
+ok 77 - normalization retains no mutable object field reference and supports null-prototype data
+  ---
+  duration_ms: 0.559274
+  type: 'test'
+  ...
+# Subtest: valid exact business model serializes and reads as an immutable canonical record
+ok 78 - valid exact business model serializes and reads as an immutable canonical record
+  ---
+  duration_ms: 7.623576
+  type: 'test'
+  ...
+# Subtest: empty business and form drafts are independent and explicitly typed
+ok 79 - empty business and form drafts are independent and explicitly typed
+  ---
+  duration_ms: 0.397486
+  type: 'test'
+  ...
+# Subtest: required field: type
+ok 80 - required field: type
+  ---
+  duration_ms: 0.720632
+  type: 'test'
+  ...
+# Subtest: required field: documentVersion
+ok 81 - required field: documentVersion
+  ---
+  duration_ms: 0.235797
+  type: 'test'
+  ...
+# Subtest: required field: businessId
+ok 82 - required field: businessId
+  ---
+  duration_ms: 0.172254
+  type: 'test'
+  ...
+# Subtest: required field: title
+ok 83 - required field: title
+  ---
+  duration_ms: 0.154058
+  type: 'test'
+  ...
+# Subtest: required field: reason
+ok 84 - required field: reason
+  ---
+  duration_ms: 0.208817
+  type: 'test'
+  ...
+# Subtest: required field: documentName
+ok 85 - required field: documentName
+  ---
+  duration_ms: 0.160357
+  type: 'test'
+  ...
+# Subtest: required field: documentRef
+ok 86 - required field: documentRef
+  ---
+  duration_ms: 0.194487
+  type: 'test'
+  ...
+# Subtest: required field: sealType
+ok 87 - required field: sealType
+  ---
+  duration_ms: 0.267924
+  type: 'test'
+  ...
+# Subtest: required field: copyCount
+ok 88 - required field: copyCount
+  ---
+  duration_ms: 0.254084
+  type: 'test'
+  ...
+# Subtest: rejects unknown, derived or foreign field: purpose
+ok 89 - rejects unknown, derived or foreign field: purpose
+  ---
+  duration_ms: 0.211512
+  type: 'test'
+  ...
+# Subtest: rejects unknown, derived or foreign field: currency
+ok 90 - rejects unknown, derived or foreign field: currency
+  ---
+  duration_ms: 0.170361
+  type: 'test'
+  ...
+# Subtest: rejects unknown, derived or foreign field: amount
+ok 91 - rejects unknown, derived or foreign field: amount
+  ---
+  duration_ms: 0.273778
+  type: 'test'
+  ...
+# Subtest: rejects unknown, derived or foreign field: total
+ok 92 - rejects unknown, derived or foreign field: total
+  ---
+  duration_ms: 0.487098
+  type: 'test'
+  ...
+# Subtest: rejects unknown, derived or foreign field: lines
+ok 93 - rejects unknown, derived or foreign field: lines
+  ---
+  duration_ms: 0.240965
+  type: 'test'
+  ...
+# Subtest: rejects unknown, derived or foreign field: costCenter
+ok 94 - rejects unknown, derived or foreign field: costCenter
+  ---
+  duration_ms: 0.290929
+  type: 'test'
+  ...
+# Subtest: rejects unknown, derived or foreign field: days
+ok 95 - rejects unknown, derived or foreign field: days
+  ---
+  duration_ms: 0.109131
+  type: 'test'
+  ...
+# Subtest: rejects unknown, derived or foreign field: quantity
+ok 96 - rejects unknown, derived or foreign field: quantity
+  ---
+  duration_ms: 0.201717
+  type: 'test'
+  ...
+# Subtest: rejects unknown, derived or foreign field: unitPrice
+ok 97 - rejects unknown, derived or foreign field: unitPrice
+  ---
+  duration_ms: 0.185703
+  type: 'test'
+  ...
+# Subtest: rejects unknown, derived or foreign field: destination
+ok 98 - rejects unknown, derived or foreign field: destination
+  ---
+  duration_ms: 0.186815
+  type: 'test'
+  ...
+# Subtest: rejects unknown, derived or foreign field: departureDate
+ok 99 - rejects unknown, derived or foreign field: departureDate
+  ---
+  duration_ms: 0.193305
+  type: 'test'
+  ...
+# Subtest: rejects unknown, derived or foreign field: customerName
+ok 100 - rejects unknown, derived or foreign field: customerName
+  ---
+  duration_ms: 0.137202
+  type: 'test'
+  ...
+# Subtest: rejects unknown, derived or foreign field: discount
+ok 101 - rejects unknown, derived or foreign field: discount
+  ---
+  duration_ms: 0.129481
+  type: 'test'
+  ...
+# Subtest: rejects unknown, derived or foreign field: applicantId
+ok 102 - rejects unknown, derived or foreign field: applicantId
+  ---
+  duration_ms: 0.172855
+  type: 'test'
+  ...
+# Subtest: rejects unknown, derived or foreign field: status
+ok 103 - rejects unknown, derived or foreign field: status
+  ---
+  duration_ms: 0.202108
+  type: 'test'
+  ...
+# Subtest: rejects unknown, derived or foreign field: history
+ok 104 - rejects unknown, derived or foreign field: history
+  ---
+  duration_ms: 0.138924
+  type: 'test'
+  ...
+# Subtest: rejects unknown, derived or foreign field: processVersion
+ok 105 - rejects unknown, derived or foreign field: processVersion
+  ---
+  duration_ms: 0.093889
+  type: 'test'
+  ...
+# Subtest: rejects unknown, derived or foreign field: fingerprint
+ok 106 - rejects unknown, derived or foreign field: fingerprint
+  ---
+  duration_ms: 0.075722
+  type: 'test'
+  ...
+# Subtest: rejects unknown, derived or foreign field: submissionKey
+ok 107 - rejects unknown, derived or foreign field: submissionKey
+  ---
+  duration_ms: 0.073538
+  type: 'test'
+  ...
+# Subtest: rejects unknown, derived or foreign field: tenantId
+ok 108 - rejects unknown, derived or foreign field: tenantId
+  ---
+  duration_ms: 0.110072
+  type: 'test'
+  ...
+# Subtest: rejects unknown, derived or foreign field: sealImage
+ok 109 - rejects unknown, derived or foreign field: sealImage
+  ---
+  duration_ms: 0.14261
+  type: 'test'
+  ...
+# Subtest: rejects unknown, derived or foreign field: attachment
+ok 110 - rejects unknown, derived or foreign field: attachment
+  ---
+  duration_ms: 0.117524
+  type: 'test'
+  ...
+# Subtest: rejects unknown, derived or foreign field: constructor
+ok 111 - rejects unknown, derived or foreign field: constructor
+  ---
+  duration_ms: 0.083042
+  type: 'test'
+  ...
+# Subtest: rejects unknown, derived or foreign field: toJSON
+ok 112 - rejects unknown, derived or foreign field: toJSON
+  ---
+  duration_ms: 0.079607
+  type: 'test'
+  ...
+# Subtest: rejects unknown, derived or foreign field: __proto__
+ok 113 - rejects unknown, derived or foreign field: __proto__
+  ---
+  duration_ms: 0.144763
+  type: 'test'
+  ...
+# Subtest: rejects non-data business shape: [object Null]
+ok 114 - rejects non-data business shape: [object Null]
+  ---
+  duration_ms: 0.078055
+  type: 'test'
+  ...
+# Subtest: rejects non-data business shape: [object Undefined]
+ok 115 - rejects non-data business shape: [object Undefined]
+  ---
+  duration_ms: 0.041672
+  type: 'test'
+  ...
+# Subtest: rejects non-data business shape: [object Array]
+ok 116 - rejects non-data business shape: [object Array]
+  ---
+  duration_ms: 0.039168
+  type: 'test'
+  ...
+# Subtest: rejects non-data business shape: [object String]
+ok 117 - rejects non-data business shape: [object String]
+  ---
+  duration_ms: 0.126246
+  type: 'test'
+  ...
+# Subtest: rejects non-data business shape: [object Number]
+ok 118 - rejects non-data business shape: [object Number]
+  ---
+  duration_ms: 0.059428
+  type: 'test'
+  ...
+# Subtest: rejects non-data business shape: [object Boolean]
+ok 119 - rejects non-data business shape: [object Boolean]
+  ---
+  duration_ms: 0.066989
+  type: 'test'
+  ...
+# Subtest: rejects non-data business shape: [object Date]
+ok 120 - rejects non-data business shape: [object Date]
+  ---
+  duration_ms: 0.047911
+  type: 'test'
+  ...
+# Subtest: rejects non-data business shape: [object Map]
+ok 121 - rejects non-data business shape: [object Map]
+  ---
+  duration_ms: 0.046869
+  type: 'test'
+  ...
+# Subtest: rejects non-data business shape: [object Object]
+ok 122 - rejects non-data business shape: [object Object]
+  ---
+  duration_ms: 0.091846
+  type: 'test'
+  ...
+# Subtest: rejects hidden, symbolic, accessor and class-instance fields
+ok 123 - rejects hidden, symbolic, accessor and class-instance fields
+  ---
+  duration_ms: 0.292801
+  type: 'test'
+  ...
+# Subtest: rejects other type "seal-use"
+ok 124 - rejects other type "seal-use"
+  ---
+  duration_ms: 0.107729
+  type: 'test'
+  ...
+# Subtest: rejects other type "sealuse"
+ok 125 - rejects other type "sealuse"
+  ---
+  duration_ms: 0.090894
+  type: 'test'
+  ...
+# Subtest: rejects other type "SEALUSE"
+ok 126 - rejects other type "SEALUSE"
+  ---
+  duration_ms: 0.064404
+  type: 'test'
+  ...
+# Subtest: rejects other type "expense"
+ok 127 - rejects other type "expense"
+  ---
+  duration_ms: 0.059457
+  type: 'test'
+  ...
+# Subtest: rejects other type "travel"
+ok 128 - rejects other type "travel"
+  ---
+  duration_ms: 0.450063
+  type: 'test'
+  ...
+# Subtest: rejects other type ""
+ok 129 - rejects other type ""
+  ---
+  duration_ms: 0.076283
+  type: 'test'
+  ...
+# Subtest: rejects other type 1
+ok 130 - rejects other type 1
+  ---
+  duration_ms: 0.068792
+  type: 'test'
+  ...
+# Subtest: rejects other type true
+ok 131 - rejects other type true
+  ---
+  duration_ms: 0.148649
+  type: 'test'
+  ...
+# Subtest: rejects other type {}
+ok 132 - rejects other type {}
+  ---
+  duration_ms: 0.067539
+  type: 'test'
+  ...
+# Subtest: rejects other type ["sealUse"]
+ok 133 - rejects other type ["sealUse"]
+  ---
+  duration_ms: 0.057084
+  type: 'test'
+  ...
+# Subtest: rejects document version 0
+ok 134 - rejects document version 0
+  ---
+  duration_ms: 0.099106
+  type: 'test'
+  ...
+# Subtest: rejects document version -1
+ok 135 - rejects document version -1
+  ---
+  duration_ms: 0.084705
+  type: 'test'
+  ...
+# Subtest: rejects document version 2
+ok 136 - rejects document version 2
+  ---
+  duration_ms: 0.058857
+  type: 'test'
+  ...
+# Subtest: rejects document version 1.1
+ok 137 - rejects document version 1.1
+  ---
+  duration_ms: 0.058566
+  type: 'test'
+  ...
+# Subtest: rejects document version 1
+ok 138 - rejects document version 1
+  ---
+  duration_ms: 0.057544
+  type: 'test'
+  ...
+# Subtest: rejects document version true
+ok 139 - rejects document version true
+  ---
+  duration_ms: 0.053889
+  type: 'test'
+  ...
+# Subtest: rejects document version false
+ok 140 - rejects document version false
+  ---
+  duration_ms: 0.053539
+  type: 'test'
+  ...
+# Subtest: rejects document version NaN
+ok 141 - rejects document version NaN
+  ---
+  duration_ms: 0.098235
+  type: 'test'
+  ...
+# Subtest: rejects document version Infinity
+ok 142 - rejects document version Infinity
+  ---
+  duration_ms: 0.21705
+  type: 'test'
+  ...
+# Subtest: rejects document version 1
+ok 143 - rejects document version 1
+  ---
+  duration_ms: 0.085435
+  type: 'test'
+  ...
+# Subtest: rejects document version 1
+ok 144 - rejects document version 1
+  ---
+  duration_ms: 0.059698
+  type: 'test'
+  ...
+# Subtest: businessId accepts exact ASCII grammar and 1/128 boundaries
+ok 145 - businessId accepts exact ASCII grammar and 1/128 boundaries
+  ---
+  duration_ms: 0.471746
+  type: 'test'
+  ...
+# Subtest: businessId rejects ""
+ok 146 - businessId rejects ""
+  ---
+  duration_ms: 0.163942
+  type: 'test'
+  ...
+# Subtest: businessId rejects "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+ok 147 - businessId rejects "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  ---
+  duration_ms: 0.151713
+  type: 'test'
+  ...
+# Subtest: businessId rejects "_a"
+ok 148 - businessId rejects "_a"
+  ---
+  duration_ms: 0.063564
+  type: 'test'
+  ...
+# Subtest: businessId rejects ".a"
+ok 149 - businessId rejects ".a"
+  ---
+  duration_ms: 0.054581
+  type: 'test'
+  ...
+# Subtest: businessId rejects ":a"
+ok 150 - businessId rejects ":a"
+  ---
+  duration_ms: 0.052658
+  type: 'test'
+  ...
+# Subtest: businessId rejects "/a"
+ok 151 - businessId rejects "/a"
+  ---
+  duration_ms: 0.053539
+  type: 'test'
+  ...
+# Subtest: businessId rejects "-a"
+ok 152 - businessId rejects "-a"
+  ---
+  duration_ms: 0.051256
+  type: 'test'
+  ...
+# Subtest: businessId rejects " a"
+ok 153 - businessId rejects " a"
+  ---
+  duration_ms: 0.051906
+  type: 'test'
+  ...
+# Subtest: businessId rejects "a "
+ok 154 - businessId rejects "a "
+  ---
+  duration_ms: 0.053319
+  type: 'test'
+  ...
+# Subtest: businessId rejects "a\\t"
+ok 155 - businessId rejects "a\\t"
+  ---
+  duration_ms: 0.148039
+  type: 'test'
+  ...
+# Subtest: businessId rejects "a\\n"
+ok 156 - businessId rejects "a\\n"
+  ---
+  duration_ms: 0.068281
+  type: 'test'
+  ...
+# Subtest: businessId rejects "é"
+ok 157 - businessId rejects "é"
+  ---
+  duration_ms: 0.124904
+  type: 'test'
+  ...
+# Subtest: businessId rejects "中文"
+ok 158 - businessId rejects "中文"
+  ---
+  duration_ms: 0.221075
+  type: 'test'
+  ...
+# Subtest: businessId rejects "a@b"
+ok 159 - businessId rejects "a@b"
+  ---
+  duration_ms: 1.441214
+  type: 'test'
+  ...
+# Subtest: businessId rejects "a\\\\b"
+ok 160 - businessId rejects "a\\\\b"
+  ---
+  duration_ms: 0.133557
+  type: 'test'
+  ...
+# Subtest: businessId rejects "a?b"
+ok 161 - businessId rejects "a?b"
+  ---
+  duration_ms: 0.112535
+  type: 'test'
+  ...
+# Subtest: businessId rejects "a\#b"
+ok 162 - businessId rejects "a\#b"
+  ---
+  duration_ms: 0.078285
+  type: 'test'
+  ...
+# Subtest: businessId rejects "a%b"
+ok 163 - businessId rejects "a%b"
+  ---
+  duration_ms: 0.073228
+  type: 'test'
+  ...
+# Subtest: businessId rejects "a+b"
+ok 164 - businessId rejects "a+b"
+  ---
+  duration_ms: 0.065416
+  type: 'test'
+  ...
+# Subtest: businessId rejects "a\\u0000b"
+ok 165 - businessId rejects "a\\u0000b"
+  ---
+  duration_ms: 0.119807
+  type: 'test'
+  ...
+# Subtest: businessId rejects " a"
+ok 166 - businessId rejects " a"
+  ---
+  duration_ms: 0.069683
+  type: 'test'
+  ...
+# Subtest: businessId rejects "a﻿"
+ok 167 - businessId rejects "a﻿"
+  ---
+  duration_ms: 0.11528
+  type: 'test'
+  ...
+# Subtest: businessId rejects 1
+ok 168 - businessId rejects 1
+  ---
+  duration_ms: 0.079197
+  type: 'test'
+  ...
+# Subtest: businessId rejects true
+ok 169 - businessId rejects true
+  ---
+  duration_ms: 0.065847
+  type: 'test'
+  ...
+# Subtest: businessId rejects {}
+ok 170 - businessId rejects {}
+  ---
+  duration_ms: 0.099426
+  type: 'test'
+  ...
+# Subtest: businessId rejects []
+ok 171 - businessId rejects []
+  ---
+  duration_ms: 0.077304
+  type: 'test'
+  ...
+# Subtest: documentRef accepts exact ASCII grammar and 1/128 boundaries
+ok 172 - documentRef accepts exact ASCII grammar and 1/128 boundaries
+  ---
+  duration_ms: 0.222588
+  type: 'test'
+  ...
+# Subtest: documentRef rejects ""
+ok 173 - documentRef rejects ""
+  ---
+  duration_ms: 0.071486
+  type: 'test'
+  ...
+# Subtest: documentRef rejects "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+ok 174 - documentRef rejects "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  ---
+  duration_ms: 0.066888
+  type: 'test'
+  ...
+# Subtest: documentRef rejects "_a"
+ok 175 - documentRef rejects "_a"
+  ---
+  duration_ms: 0.062052
+  type: 'test'
+  ...
+# Subtest: documentRef rejects ".a"
+ok 176 - documentRef rejects ".a"
+  ---
+  duration_ms: 0.057785
+  type: 'test'
+  ...
+# Subtest: documentRef rejects ":a"
+ok 177 - documentRef rejects ":a"
+  ---
+  duration_ms: 0.058396
+  type: 'test'
+  ...
+# Subtest: documentRef rejects "/a"
+ok 178 - documentRef rejects "/a"
+  ---
+  duration_ms: 0.098335
+  type: 'test'
+  ...
+# Subtest: documentRef rejects "-a"
+ok 179 - documentRef rejects "-a"
+  ---
+  duration_ms: 0.064385
+  type: 'test'
+  ...
+# Subtest: documentRef rejects " a"
+ok 180 - documentRef rejects " a"
+  ---
+  duration_ms: 0.121449
+  type: 'test'
+  ...
+# Subtest: documentRef rejects "a "
+ok 181 - documentRef rejects "a "
+  ---
+  duration_ms: 0.068832
+  type: 'test'
+  ...
+# Subtest: documentRef rejects "a\\t"
+ok 182 - documentRef rejects "a\\t"
+  ---
+  duration_ms: 0.086337
+  type: 'test'
+  ...
+# Subtest: documentRef rejects "a\\n"
+ok 183 - documentRef rejects "a\\n"
+  ---
+  duration_ms: 0.063824
+  type: 'test'
+  ...
+# Subtest: documentRef rejects "é"
+ok 184 - documentRef rejects "é"
+  ---
+  duration_ms: 0.097484
+  type: 'test'
+  ...
+# Subtest: documentRef rejects "中文"
+ok 185 - documentRef rejects "中文"
+  ---
+  duration_ms: 0.558413
+  type: 'test'
+  ...
+# Subtest: documentRef rejects "a@b"
+ok 186 - documentRef rejects "a@b"
+  ---
+  duration_ms: 0.076353
+  type: 'test'
+  ...
+# Subtest: documentRef rejects "a\\\\b"
+ok 187 - documentRef rejects "a\\\\b"
+  ---
+  duration_ms: 0.067309
+  type: 'test'
+  ...
+# Subtest: documentRef rejects "a?b"
+ok 188 - documentRef rejects "a?b"
+  ---
+  duration_ms: 0.132996
+  type: 'test'
+  ...
+# Subtest: documentRef rejects "a\#b"
+ok 189 - documentRef rejects "a\#b"
+  ---
+  duration_ms: 0.071215
+  type: 'test'
+  ...
+# Subtest: documentRef rejects "a%b"
+ok 190 - documentRef rejects "a%b"
+  ---
+  duration_ms: 0.057184
+  type: 'test'
+  ...
+# Subtest: documentRef rejects "a+b"
+ok 191 - documentRef rejects "a+b"
+  ---
+  duration_ms: 0.055582
+  type: 'test'
+  ...
+# Subtest: documentRef rejects "a\\u0000b"
+ok 192 - documentRef rejects "a\\u0000b"
+  ---
+  duration_ms: 0.061361
+  type: 'test'
+  ...
+# Subtest: documentRef rejects " a"
+ok 193 - documentRef rejects " a"
+  ---
+  duration_ms: 0.06131
+  type: 'test'
+  ...
+# Subtest: documentRef rejects "a﻿"
+ok 194 - documentRef rejects "a﻿"
+  ---
+  duration_ms: 0.067199
+  type: 'test'
+  ...
+# Subtest: documentRef rejects 1
+ok 195 - documentRef rejects 1
+  ---
+  duration_ms: 0.193986
+  type: 'test'
+  ...
+# Subtest: documentRef rejects true
+ok 196 - documentRef rejects true
+  ---
+  duration_ms: 0.102501
+  type: 'test'
+  ...
+# Subtest: documentRef rejects {}
+ok 197 - documentRef rejects {}
+  ---
+  duration_ms: 0.062142
+  type: 'test'
+  ...
+# Subtest: documentRef rejects []
+ok 198 - documentRef rejects []
+  ---
+  duration_ms: 0.058836
+  type: 'test'
+  ...
+# Subtest: title validates raw UTF-16 length before canonical edge trimming
+ok 199 - title validates raw UTF-16 length before canonical edge trimming
+  ---
+  duration_ms: 0.511243
+  type: 'test'
+  ...
+# Subtest: title rejects all-blank C0, Unicode White_Space and BOM strings
+ok 200 - title rejects all-blank C0, Unicode White_Space and BOM strings
+  ---
+  duration_ms: 2.71461
+  type: 'test'
+  ...
+# Subtest: title preserves other edge whitespace and all interior content
+ok 201 - title preserves other edge whitespace and all interior content
+  ---
+  duration_ms: 1.179398
+  type: 'test'
+  ...
+# Subtest: reason validates raw UTF-16 length before canonical edge trimming
+ok 202 - reason validates raw UTF-16 length before canonical edge trimming
+  ---
+  duration_ms: 0.446758
+  type: 'test'
+  ...
+# Subtest: reason rejects all-blank C0, Unicode White_Space and BOM strings
+ok 203 - reason rejects all-blank C0, Unicode White_Space and BOM strings
+  ---
+  duration_ms: 2.284507
+  type: 'test'
+  ...
+# Subtest: reason preserves other edge whitespace and all interior content
+ok 204 - reason preserves other edge whitespace and all interior content
+  ---
+  duration_ms: 1.697783
+  type: 'test'
+  ...
+# Subtest: documentName validates raw UTF-16 length before canonical edge trimming
+ok 205 - documentName validates raw UTF-16 length before canonical edge trimming
+  ---
+  duration_ms: 0.300062
+  type: 'test'
+  ...
+# Subtest: documentName rejects all-blank C0, Unicode White_Space and BOM strings
+ok 206 - documentName rejects all-blank C0, Unicode White_Space and BOM strings
+  ---
+  duration_ms: 1.877958
+  type: 'test'
+  ...
+# Subtest: documentName preserves other edge whitespace and all interior content
+ok 207 - documentName preserves other edge whitespace and all interior content
+  ---
+  duration_ms: 0.599864
+  type: 'test'
+  ...
+# Subtest: normalization is deterministic, idempotent, immutable, and does not alter source
+ok 208 - normalization is deterministic, idempotent, immutable, and does not alter source
+  ---
+  duration_ms: 0.417616
+  type: 'test'
+  ...
+# Subtest: accepts and labels synthetic seal OFFICIAL
+ok 209 - accepts and labels synthetic seal OFFICIAL
+  ---
+  duration_ms: 0.330938
+  type: 'test'
+  ...
+# Subtest: accepts and labels synthetic seal CONTRACT
+ok 210 - accepts and labels synthetic seal CONTRACT
+  ---
+  duration_ms: 0.106607
+  type: 'test'
+  ...
+# Subtest: accepts and labels synthetic seal FINANCE
+ok 211 - accepts and labels synthetic seal FINANCE
+  ---
+  duration_ms: 0.085576
+  type: 'test'
+  ...
+# Subtest: rejects unsupported seal type "official"
+ok 212 - rejects unsupported seal type "official"
+  ---
+  duration_ms: 0.104845
+  type: 'test'
+  ...
+# Subtest: rejects unsupported seal type "OFFICIAL "
+ok 213 - rejects unsupported seal type "OFFICIAL "
+  ---
+  duration_ms: 0.069022
+  type: 'test'
+  ...
+# Subtest: rejects unsupported seal type "公章"
+ok 214 - rejects unsupported seal type "公章"
+  ---
+  duration_ms: 0.066719
+  type: 'test'
+  ...
+# Subtest: rejects unsupported seal type "OTHER"
+ok 215 - rejects unsupported seal type "OTHER"
+  ---
+  duration_ms: 0.064395
+  type: 'test'
+  ...
+# Subtest: rejects unsupported seal type ""
+ok 216 - rejects unsupported seal type ""
+  ---
+  duration_ms: 0.063294
+  type: 'test'
+  ...
+# Subtest: rejects unsupported seal type 1
+ok 217 - rejects unsupported seal type 1
+  ---
+  duration_ms: 0.121128
+  type: 'test'
+  ...
+# Subtest: rejects unsupported seal type true
+ok 218 - rejects unsupported seal type true
+  ---
+  duration_ms: 0.072166
+  type: 'test'
+  ...
+# Subtest: rejects unsupported seal type {}
+ok 219 - rejects unsupported seal type {}
+  ---
+  duration_ms: 0.132976
+  type: 'test'
+  ...
+# Subtest: rejects unsupported seal type []
+ok 220 - rejects unsupported seal type []
+  ---
+  duration_ms: 0.079747
+  type: 'test'
+  ...
+# Subtest: copyCount accepts every numeric integer from 1 through 100
+ok 221 - copyCount accepts every numeric integer from 1 through 100
+  ---
+  duration_ms: 5.827569
+  type: 'test'
+  ...
+# Subtest: rejects noninteger/coercive model copy count 0
+ok 222 - rejects noninteger/coercive model copy count 0
+  ---
+  duration_ms: 0.189199
+  type: 'test'
+  ...
+# Subtest: rejects noninteger/coercive model copy count 0
+ok 223 - rejects noninteger/coercive model copy count 0
+  ---
+  duration_ms: 0.139245
+  type: 'test'
+  ...
+# Subtest: rejects noninteger/coercive model copy count -1
+ok 224 - rejects noninteger/coercive model copy count -1
+  ---
+  duration_ms: 0.111745
+  type: 'test'
+  ...
+# Subtest: rejects noninteger/coercive model copy count 101
+ok 225 - rejects noninteger/coercive model copy count 101
+  ---
+  duration_ms: 0.090463
+  type: 'test'
+  ...
+# Subtest: rejects noninteger/coercive model copy count 1.5
+ok 226 - rejects noninteger/coercive model copy count 1.5
+  ---
+  duration_ms: 0.065837
+  type: 'test'
+  ...
+# Subtest: rejects noninteger/coercive model copy count 1.0000000000000002
+ok 227 - rejects noninteger/coercive model copy count 1.0000000000000002
+  ---
+  duration_ms: 0.062782
+  type: 'test'
+  ...
+# Subtest: rejects noninteger/coercive model copy count NaN
+ok 228 - rejects noninteger/coercive model copy count NaN
+  ---
+  duration_ms: 0.062803
+  type: 'test'
+  ...
+# Subtest: rejects noninteger/coercive model copy count Infinity
+ok 229 - rejects noninteger/coercive model copy count Infinity
+  ---
+  duration_ms: 0.077845
+  type: 'test'
+  ...
+# Subtest: rejects noninteger/coercive model copy count -Infinity
+ok 230 - rejects noninteger/coercive model copy count -Infinity
+  ---
+  duration_ms: 0.079537
+  type: 'test'
+  ...
+# Subtest: rejects noninteger/coercive model copy count 9007199254740991
+ok 231 - rejects noninteger/coercive model copy count 9007199254740991
+  ---
+  duration_ms: 0.069302
+  type: 'test'
+  ...
+# Subtest: rejects noninteger/coercive model copy count 1
+ok 232 - rejects noninteger/coercive model copy count 1
+  ---
+  duration_ms: 0.066728
+  type: 'test'
+  ...
+# Subtest: rejects noninteger/coercive model copy count 100
+ok 233 - rejects noninteger/coercive model copy count 100
+  ---
+  duration_ms: 0.06094
+  type: 'test'
+  ...
+# Subtest: rejects noninteger/coercive model copy count 
+ok 234 - rejects noninteger/coercive model copy count 
+  ---
+  duration_ms: 0.060178
+  type: 'test'
+  ...
+# Subtest: rejects noninteger/coercive model copy count true
+ok 235 - rejects noninteger/coercive model copy count true
+  ---
+  duration_ms: 0.060409
+  type: 'test'
+  ...
+# Subtest: rejects noninteger/coercive model copy count false
+ok 236 - rejects noninteger/coercive model copy count false
+  ---
+  duration_ms: 0.060629
+  type: 'test'
+  ...
+# Subtest: rejects noninteger/coercive model copy count [object Object]
+ok 237 - rejects noninteger/coercive model copy count [object Object]
+  ---
+  duration_ms: 0.059999
+  type: 'test'
+  ...
+# Subtest: rejects noninteger/coercive model copy count 
+ok 238 - rejects noninteger/coercive model copy count 
+  ---
+  duration_ms: 0.061481
+  type: 'test'
+  ...
+# Subtest: rejects noninteger/coercive model copy count 2
+ok 239 - rejects noninteger/coercive model copy count 2
+  ---
+  duration_ms: 0.094709
+  type: 'test'
+  ...
+# Subtest: rejects noninteger/coercive model copy count 1
+ok 240 - rejects noninteger/coercive model copy count 1
+  ---
+  duration_ms: 0.106827
+  type: 'test'
+  ...
+# Subtest: raw JSON rejects copyCount lexeme 1.0
+ok 241 - raw JSON rejects copyCount lexeme 1.0
+  ---
+  duration_ms: 0.201287
+  type: 'test'
+  ...
+# Subtest: raw JSON rejects copyCount lexeme 2.00
+ok 242 - raw JSON rejects copyCount lexeme 2.00
+  ---
+  duration_ms: 0.133226
+  type: 'test'
+  ...
+# Subtest: raw JSON rejects copyCount lexeme 1e0
+ok 243 - raw JSON rejects copyCount lexeme 1e0
+  ---
+  duration_ms: 0.132005
+  type: 'test'
+  ...
+# Subtest: raw JSON rejects copyCount lexeme 1E+0
+ok 244 - raw JSON rejects copyCount lexeme 1E+0
+  ---
+  duration_ms: 0.083984
+  type: 'test'
+  ...
+# Subtest: raw JSON rejects copyCount lexeme 1e2
+ok 245 - raw JSON rejects copyCount lexeme 1e2
+  ---
+  duration_ms: 0.077074
+  type: 'test'
+  ...
+# Subtest: raw JSON rejects copyCount lexeme 1e-0
+ok 246 - raw JSON rejects copyCount lexeme 1e-0
+  ---
+  duration_ms: 0.076232
+  type: 'test'
+  ...
+# Subtest: raw JSON rejects copyCount lexeme 1.00000000000000001
+ok 247 - raw JSON rejects copyCount lexeme 1.00000000000000001
+  ---
+  duration_ms: 0.161998
+  type: 'test'
+  ...
+# Subtest: raw JSON rejects copyCount lexeme 2.1
+ok 248 - raw JSON rejects copyCount lexeme 2.1
+  ---
+  duration_ms: 0.113237
+  type: 'test'
+  ...
+# Subtest: raw JSON rejects copyCount lexeme "1"
+ok 249 - raw JSON rejects copyCount lexeme "1"
+  ---
+  duration_ms: 0.145013
+  type: 'test'
+  ...
+# Subtest: raw JSON rejects copyCount lexeme true
+ok 250 - raw JSON rejects copyCount lexeme true
+  ---
+  duration_ms: 0.134318
+  type: 'test'
+  ...
+# Subtest: raw JSON rejects copyCount lexeme false
+ok 251 - raw JSON rejects copyCount lexeme false
+  ---
+  duration_ms: 0.091705
+  type: 'test'
+  ...
+# Subtest: raw JSON rejects copyCount lexeme null
+ok 252 - raw JSON rejects copyCount lexeme null
+  ---
+  duration_ms: 0.10878
+  type: 'test'
+  ...
+# Subtest: raw JSON rejects copyCount lexeme []
+ok 253 - raw JSON rejects copyCount lexeme []
+  ---
+  duration_ms: 0.267394
+  type: 'test'
+  ...
+# Subtest: raw JSON rejects copyCount lexeme {}
+ok 254 - raw JSON rejects copyCount lexeme {}
+  ---
+  duration_ms: 0.10192
+  type: 'test'
+  ...
+# Subtest: raw JSON rejects copyCount lexeme 0
+ok 255 - raw JSON rejects copyCount lexeme 0
+  ---
+  duration_ms: 0.0817
+  type: 'test'
+  ...
+# Subtest: raw JSON rejects copyCount lexeme -0
+ok 256 - raw JSON rejects copyCount lexeme -0
+  ---
+  duration_ms: 0.078896
+  type: 'test'
+  ...
+# Subtest: raw JSON rejects copyCount lexeme -1
+ok 257 - raw JSON rejects copyCount lexeme -1
+  ---
+  duration_ms: 0.07462
+  type: 'test'
+  ...
+# Subtest: raw JSON rejects copyCount lexeme 101
+ok 258 - raw JSON rejects copyCount lexeme 101
+  ---
+  duration_ms: 0.152405
+  type: 'test'
+  ...
+# Subtest: raw JSON rejects copyCount lexeme 9007199254740992
+ok 259 - raw JSON rejects copyCount lexeme 9007199254740992
+  ---
+  duration_ms: 0.104945
+  type: 'test'
+  ...
+# Subtest: raw JSON rejects copyCount lexeme 1e100000
+ok 260 - raw JSON rejects copyCount lexeme 1e100000
+  ---
+  duration_ms: 0.078095
+  type: 'test'
+  ...
+# Subtest: raw JSON rejects copyCount lexeme 01
+ok 261 - raw JSON rejects copyCount lexeme 01
+  ---
+  duration_ms: 0.104214
+  type: 'test'
+  ...
+# Subtest: raw JSON rejects copyCount lexeme +1
+ok 262 - raw JSON rejects copyCount lexeme +1
+  ---
+  duration_ms: 0.087429
+  type: 'test'
+  ...
+# Subtest: raw JSON rejects copyCount lexeme NaN
+ok 263 - raw JSON rejects copyCount lexeme NaN
+  ---
+  duration_ms: 0.104635
+  type: 'test'
+  ...
+# Subtest: raw JSON rejects copyCount lexeme Infinity
+ok 264 - raw JSON rejects copyCount lexeme Infinity
+  ---
+  duration_ms: 0.087599
+  type: 'test'
+  ...
+# Subtest: raw JSON rejects documentVersion lexeme 1.0
+ok 265 - raw JSON rejects documentVersion lexeme 1.0
+  ---
+  duration_ms: 0.120187
+  type: 'test'
+  ...
+# Subtest: raw JSON rejects documentVersion lexeme 1e0
+ok 266 - raw JSON rejects documentVersion lexeme 1e0
+  ---
+  duration_ms: 0.077124
+  type: 'test'
+  ...
+# Subtest: raw JSON rejects documentVersion lexeme 1E+0
+ok 267 - raw JSON rejects documentVersion lexeme 1E+0
+  ---
+  duration_ms: 0.084565
+  type: 'test'
+  ...
+# Subtest: raw JSON rejects documentVersion lexeme "1"
+ok 268 - raw JSON rejects documentVersion lexeme "1"
+  ---
+  duration_ms: 0.119637
+  type: 'test'
+  ...
+# Subtest: raw JSON rejects documentVersion lexeme true
+ok 269 - raw JSON rejects documentVersion lexeme true
+  ---
+  duration_ms: 0.147768
+  type: 'test'
+  ...
+# Subtest: raw JSON rejects documentVersion lexeme null
+ok 270 - raw JSON rejects documentVersion lexeme null
+  ---
+  duration_ms: 0.093989
+  type: 'test'
+  ...
+# Subtest: raw JSON rejects documentVersion lexeme 0
+ok 271 - raw JSON rejects documentVersion lexeme 0
+  ---
+  duration_ms: 0.075942
+  type: 'test'
+  ...
+# Subtest: raw JSON rejects documentVersion lexeme 2
+ok 272 - raw JSON rejects documentVersion lexeme 2
+  ---
+  duration_ms: 0.071936
+  type: 'test'
+  ...
+# Subtest: raw JSON fails closed: 
+ok 273 - raw JSON fails closed: 
+  ---
+  duration_ms: 0.090954
+  type: 'test'
+  ...
+# Subtest: raw JSON fails closed: undefined
+ok 274 - raw JSON fails closed: undefined
+  ---
+  duration_ms: 0.057314
+  type: 'test'
+  ...
+# Subtest: raw JSON fails closed: null
+ok 275 - raw JSON fails closed: null
+  ---
+  duration_ms: 0.087339
+  type: 'test'
+  ...
+# Subtest: raw JSON fails closed: true
+ok 276 - raw JSON fails closed: true
+  ---
+  duration_ms: 0.043985
+  type: 'test'
+  ...
+# Subtest: raw JSON fails closed: []
+ok 277 - raw JSON fails closed: []
+  ---
+  duration_ms: 0.076753
+  type: 'test'
+  ...
+# Subtest: raw JSON fails closed: {}
+ok 278 - raw JSON fails closed: {}
+  ---
+  duration_ms: 0.049433
+  type: 'test'
+  ...
+# Subtest: raw JSON fails closed: {
+ok 279 - raw JSON fails closed: {
+  ---
+  duration_ms: 0.052177
+  type: 'test'
+  ...
+# Subtest: raw JSON fails closed: [1,]
+ok 280 - raw JSON fails closed: [1,]
+  ---
+  duration_ms: 0.119125
+  type: 'test'
+  ...
+# Subtest: raw JSON fails closed: {"a":1,}
+ok 281 - raw JSON fails closed: {"a":1,}
+  ---
+  duration_ms: 0.099306
+  type: 'test'
+  ...
+# Subtest: raw JSON fails closed: {"type":"sealUse","documentVersion":1,"businessId":"SEAL-202
+ok 282 - raw JSON fails closed: {"type":"sealUse","documentVersion":1,"businessId":"SEAL-202
+  ---
+  duration_ms: 0.079076
+  type: 'test'
+  ...
+# Subtest: raw JSON fails closed: {"type":"sealUse","documentVersion":1,"businessId":"SEAL-202
+ok 283 - raw JSON fails closed: {"type":"sealUse","documentVersion":1,"businessId":"SEAL-202
+  ---
+  duration_ms: 0.136361
+  type: 'test'
+  ...
+# Subtest: raw JSON fails closed: ﻿{"type":"sealUse","documentVersion":1,"businessId":"SEAL-20
+ok 284 - raw JSON fails closed: ﻿{"type":"sealUse","documentVersion":1,"businessId":"SEAL-20
+  ---
+  duration_ms: 0.118735
+  type: 'test'
+  ...
+# Subtest: raw JSON fails closed: {"type":"sealUse","documentVersion":1,"businessId":"SEAL-202
+ok 285 - raw JSON fails closed: {"type":"sealUse","documentVersion":1,"businessId":"SEAL-202
+  ---
+  duration_ms: 0.078256
+  type: 'test'
+  ...
+# Subtest: raw JSON fails closed: {"type":"sealUse","documentVersion":1,"businessId":"SEAL-202
+ok 286 - raw JSON fails closed: {"type":"sealUse","documentVersion":1,"businessId":"SEAL-202
+  ---
+  duration_ms: 0.078396
+  type: 'test'
+  ...
+# Subtest: raw JSON fails closed: {"type":"sealUse","documentVersion":1,"businessId":"SEAL-202
+ok 287 - raw JSON fails closed: {"type":"sealUse","documentVersion":1,"businessId":"SEAL-202
+  ---
+  duration_ms: 0.117894
+  type: 'test'
+  ...
+# Subtest: raw JSON fails closed: {"type":"sealUse","documentVersion":1,"businessId":"SEAL-202
+ok 288 - raw JSON fails closed: {"type":"sealUse","documentVersion":1,"businessId":"SEAL-202
+  ---
+  duration_ms: 0.112797
+  type: 'test'
+  ...
+# Subtest: raw JSON fails closed: {"type":"sealUse","documentVersion":1,"businessId":"SEAL-202
+ok 289 - raw JSON fails closed: {"type":"sealUse","documentVersion":1,"businessId":"SEAL-202
+  ---
+  duration_ms: 0.087369
+  type: 'test'
+  ...
+# Subtest: raw JSON fails closed: {"type":"sealUse","documentVersion":1,"businessId":"SEAL-202
+ok 290 - raw JSON fails closed: {"type":"sealUse","documentVersion":1,"businessId":"SEAL-202
+  ---
+  duration_ms: 0.100789
+  type: 'test'
+  ...
+# Subtest: parser rejects excessive nesting/size and non-string input
+ok 291 - parser rejects excessive nesting/size and non-string input
+  ---
+  duration_ms: 0.319321
+  type: 'test'
+  ...
+# Subtest: safe integer input converts all canonical 1–100 strings
+ok 292 - safe integer input converts all canonical 1–100 strings
+  ---
+  duration_ms: 0.57698
+  type: 'test'
+  ...
+# Subtest: integer input preserves and rejects ""
+ok 293 - integer input preserves and rejects ""
+  ---
+  duration_ms: 0.364978
+  type: 'test'
+  ...
+# Subtest: integer input preserves and rejects " "
+ok 294 - integer input preserves and rejects " "
+  ---
+  duration_ms: 0.104895
+  type: 'test'
+  ...
+# Subtest: integer input preserves and rejects "\\t"
+ok 295 - integer input preserves and rejects "\\t"
+  ---
+  duration_ms: 0.116031
+  type: 'test'
+  ...
+# Subtest: integer input preserves and rejects "0"
+ok 296 - integer input preserves and rejects "0"
+  ---
+  duration_ms: 0.130412
+  type: 'test'
+  ...
+# Subtest: integer input preserves and rejects "-0"
+ok 297 - integer input preserves and rejects "-0"
+  ---
+  duration_ms: 0.127598
+  type: 'test'
+  ...
+# Subtest: integer input preserves and rejects "-1"
+ok 298 - integer input preserves and rejects "-1"
+  ---
+  duration_ms: 0.090013
+  type: 'test'
+  ...
+# Subtest: integer input preserves and rejects "101"
+ok 299 - integer input preserves and rejects "101"
+  ---
+  duration_ms: 0.078126
+  type: 'test'
+  ...
+# Subtest: integer input preserves and rejects "+1"
+ok 300 - integer input preserves and rejects "+1"
+  ---
+  duration_ms: 0.076172
+  type: 'test'
+  ...
+# Subtest: integer input preserves and rejects "2copies"
+ok 301 - integer input preserves and rejects "2copies"
+  ---
+  duration_ms: 0.086577
+  type: 'test'
+  ...
+# Subtest: integer input preserves and rejects "2.0"
+ok 302 - integer input preserves and rejects "2.0"
+  ---
+  duration_ms: 0.086517
+  type: 'test'
+  ...
+# Subtest: integer input preserves and rejects "2."
+ok 303 - integer input preserves and rejects "2."
+  ---
+  duration_ms: 0.163181
+  type: 'test'
+  ...
+# Subtest: integer input preserves and rejects ".2"
+ok 304 - integer input preserves and rejects ".2"
+  ---
+  duration_ms: 0.088721
+  type: 'test'
+  ...
+# Subtest: integer input preserves and rejects "2e0"
+ok 305 - integer input preserves and rejects "2e0"
+  ---
+  duration_ms: 0.089202
+  type: 'test'
+  ...
+# Subtest: integer input preserves and rejects "2E1"
+ok 306 - integer input preserves and rejects "2E1"
+  ---
+  duration_ms: 0.087098
+  type: 'test'
+  ...
+# Subtest: integer input preserves and rejects "2e"
+ok 307 - integer input preserves and rejects "2e"
+  ---
+  duration_ms: 0.072526
+  type: 'test'
+  ...
+# Subtest: integer input preserves and rejects "1_0"
+ok 308 - integer input preserves and rejects "1_0"
+  ---
+  duration_ms: 0.069443
+  type: 'test'
+  ...
+# Subtest: integer input preserves and rejects "２"
+ok 309 - integer input preserves and rejects "２"
+  ---
+  duration_ms: 0.107559
+  type: 'test'
+  ...
+# Subtest: integer input preserves and rejects "١"
+ok 310 - integer input preserves and rejects "١"
+  ---
+  duration_ms: 0.07429
+  type: 'test'
+  ...
+# Subtest: integer input preserves and rejects "2\\u0000"
+ok 311 - integer input preserves and rejects "2\\u0000"
+  ---
+  duration_ms: 0.073148
+  type: 'test'
+  ...
+# Subtest: integer input preserves and rejects "2 0"
+ok 312 - integer input preserves and rejects "2 0"
+  ---
+  duration_ms: 0.111664
+  type: 'test'
+  ...
+# Subtest: integer input preserves and rejects "00"
+ok 313 - integer input preserves and rejects "00"
+  ---
+  duration_ms: 0.073188
+  type: 'test'
+  ...
+# Subtest: integer input preserves and rejects "000"
+ok 314 - integer input preserves and rejects "000"
+  ---
+  duration_ms: 0.105035
+  type: 'test'
+  ...
+# Subtest: integer input preserves and rejects "000101"
+ok 315 - integer input preserves and rejects "000101"
+  ---
+  duration_ms: 0.113216
+  type: 'test'
+  ...
+# Subtest: integer input preserves and rejects "00000000000000001"
+ok 316 - integer input preserves and rejects "00000000000000001"
+  ---
+  duration_ms: 0.084024
+  type: 'test'
+  ...
+# Subtest: integer input preserves and rejects "                1"
+ok 317 - integer input preserves and rejects "                1"
+  ---
+  duration_ms: 0.105706
+  type: 'test'
+  ...
+# Subtest: integer input preserves and rejects "1                "
+ok 318 - integer input preserves and rejects "1                "
+  ---
+  duration_ms: 0.134017
+  type: 'test'
+  ...
+# Subtest: integer input preserves and rejects "Infinity"
+ok 319 - integer input preserves and rejects "Infinity"
+  ---
+  duration_ms: 1.226307
+  type: 'test'
+  ...
+# Subtest: integer input preserves and rejects "NaN"
+ok 320 - integer input preserves and rejects "NaN"
+  ---
+  duration_ms: 0.146155
+  type: 'test'
+  ...
+# Subtest: integer input preserves and rejects "1000"
+ok 321 - integer input preserves and rejects "1000"
+  ---
+  duration_ms: 0.083483
+  type: 'test'
+  ...
+# Subtest: integer input preserves and rejects true
+ok 322 - integer input preserves and rejects true
+  ---
+  duration_ms: 0.071515
+  type: 'test'
+  ...
+# Subtest: integer input preserves and rejects false
+ok 323 - integer input preserves and rejects false
+  ---
+  duration_ms: 0.070594
+  type: 'test'
+  ...
+# Subtest: integer input preserves and rejects null
+ok 324 - integer input preserves and rejects null
+  ---
+  duration_ms: 0.065386
+  type: 'test'
+  ...
+# Subtest: integer input preserves and rejects undefined
+ok 325 - integer input preserves and rejects undefined
+  ---
+  duration_ms: 0.064184
+  type: 'test'
+  ...
+# Subtest: integer input preserves and rejects 2
+ok 326 - integer input preserves and rejects 2
+  ---
+  duration_ms: 0.063834
+  type: 'test'
+  ...
+# Subtest: integer input preserves and rejects {}
+ok 327 - integer input preserves and rejects {}
+  ---
+  duration_ms: 0.073919
+  type: 'test'
+  ...
+# Subtest: integer input preserves and rejects []
+ok 328 - integer input preserves and rejects []
+  ---
+  duration_ms: 0.174517
+  type: 'test'
+  ...
+# Subtest: benign pasted whitespace and leading zeros survive editing and normalize only on submit
+ok 329 - benign pasted whitespace and leading zeros survive editing and normalize only on submit
+  ---
+  duration_ms: 0.497132
+  type: 'test'
+  ...
+# Subtest: valid text form becomes a numeric immutable model only at normalization
+ok 330 - valid text form becomes a numeric immutable model only at normalization
+  ---
+  duration_ms: 0.218092
+  type: 'test'
+  ...
+# Subtest: form validation collects purpose and integer errors without dropping raw text
+ok 331 - form validation collects purpose and integer errors without dropping raw text
+  ---
+  duration_ms: 0.159224
+  type: 'test'
+  ...
+# Subtest: prototype submit envelope validates exact keys and processVersion
+ok 332 - prototype submit envelope validates exact keys and processVersion
+  ---
+  duration_ms: 1.259907
+  type: 'test'
+  ...
+# Subtest: summary reports the actual copy count and synthetic seal without a monetary placeholder
+ok 333 - summary reports the actual copy count and synthetic seal without a monetary placeholder
+  ---
+  duration_ms: 0.600214
+  type: 'test'
+  ...
+# Subtest: every validation message is useful in Chinese and English, including business purpose
+ok 334 - every validation message is useful in Chinese and English, including business purpose
+  ---
+  duration_ms: 0.63116
+  type: 'test'
+  ...
+# Subtest: compiled metadata exactly matches reviewable JSON, is deeply immutable and explicitly a proposal
+ok 335 - compiled metadata exactly matches reviewable JSON, is deeply immutable and explicitly a proposal
+  ---
+  duration_ms: 0.750666
+  type: 'test'
+  ...
+# Subtest: metadata has exact typed fields, synthetic enum labels and the existing reason-purpose mapping
+ok 336 - metadata has exact typed fields, synthetic enum labels and the existing reason-purpose mapping
+  ---
+  duration_ms: 0.40061
+  type: 'test'
+  ...
+# Subtest: prototype intent frame compares canonical values and remains separate from the wire model
+ok 337 - prototype intent frame compares canonical values and remains separate from the wire model
+  ---
+  duration_ms: 1.552418
+  type: 'test'
+  ...
+1..337
+# tests 337
+# suites 0
+# pass 337
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 582.143837
