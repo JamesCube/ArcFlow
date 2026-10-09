@@ -1,0 +1,5 @@
+{
+  "maxUtf16CodeUnits": 8000000,
+  "acceptedLengthOffsets": [-1, 0],
+  "rejectedLengthOffsets": [1]
+}

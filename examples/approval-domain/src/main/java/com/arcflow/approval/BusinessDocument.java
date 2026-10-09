@@ -13,8 +13,9 @@ import java.time.format.DateTimeParseException;
 @JsonSubTypes({@JsonSubTypes.Type(value = BusinessDocument.Leave.class, name = "leave"),
     @JsonSubTypes.Type(value = BusinessDocument.Procurement.class, name = "procurement"),
     @JsonSubTypes.Type(value = BusinessDocument.QuoteDiscount.class, name = "quoteDiscount"),
-    @JsonSubTypes.Type(value = BusinessDocument.Expense.class, name = "expense")})
-public sealed interface BusinessDocument permits BusinessDocument.Leave, BusinessDocument.Procurement, BusinessDocument.QuoteDiscount, BusinessDocument.Expense {
+    @JsonSubTypes.Type(value = BusinessDocument.Expense.class, name = "expense"),
+    @JsonSubTypes.Type(value = BusinessDocument.SealUse.class, name = "sealUse")})
+public sealed interface BusinessDocument permits BusinessDocument.Leave, BusinessDocument.Procurement, BusinessDocument.QuoteDiscount, BusinessDocument.Expense, BusinessDocument.SealUse {
     String businessId();
     String title();
     String reason();
@@ -118,6 +119,35 @@ public sealed interface BusinessDocument permits BusinessDocument.Leave, Busines
                     line.description().trim(), line.amount().stripTrailingZeros(), line.receiptRef())).toList());
         }
         public BigDecimal total() { return lines.stream().map(ExpenseLine::amount).reduce(BigDecimal.ZERO, BigDecimal::add); }
+    }
+
+    /** Synthetic review intent only: no seal application, signature or document retrieval. */
+    record SealUse(@JsonProperty(required = true) int documentVersion,
+                   @JsonProperty(required = true) String businessId, @JsonProperty(required = true) String title,
+                   @JsonProperty(required = true) String reason, @JsonProperty(required = true) String documentName,
+                   @JsonProperty(required = true) String documentRef, @JsonProperty(required = true) String sealType,
+                   @JsonProperty(required = true) int copyCount) implements BusinessDocument {
+        @Override public void validate() {
+            // Keep these versioned text rules independent of the older document contracts.
+            // Bounds apply to raw UTF-16 input before trim, exactly like the registered form.
+            if (documentVersion != 1 || !validReference(businessId) || !validReference(documentRef) ||
+                !validSealText(title, 120) || !validSealText(reason, 2000) || !validSealText(documentName, 160) ||
+                !java.util.Set.of("OFFICIAL", "CONTRACT", "FINANCE").contains(sealType == null ? "" : sealType) ||
+                copyCount < 1 || copyCount > 100)
+                throw new IllegalArgumentException("Seal use requires document version 1, valid references and text, a supported synthetic seal type and 1–100 copies");
+        }
+        @Override public SealUse withText(String title, String reason) {
+            return new SealUse(documentVersion, businessId, title, reason, documentName.trim(), documentRef, sealType, copyCount);
+        }
+        private static boolean validSealText(String value, int max) {
+            return value != null && value.length() <= max && value.codePoints().anyMatch(cp -> !blankCodePoint(cp));
+        }
+        private static boolean blankCodePoint(int cp) {
+            // Fixed Unicode White_Space plus C0 and BOM. Java isBlank() has different semantics.
+            return cp <= 0x20 || cp == 0x85 || cp == 0xA0 || cp == 0x1680 ||
+                (cp >= 0x2000 && cp <= 0x200A) || cp == 0x2028 || cp == 0x2029 ||
+                cp == 0x202F || cp == 0x205F || cp == 0x3000 || cp == 0xFEFF;
+        }
     }
 
     record ExpenseLine(@JsonProperty(required = true) String lineId, @JsonProperty(required = true) String spentOn,

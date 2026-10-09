@@ -16,7 +16,7 @@ export function catalogFixture() {
       field('spentOn', 'date'), field('category', 'select', 0, ['TRAVEL', 'MEALS', 'OFFICE', 'OTHER']),
       field('description', 'text', 240), field('amount', 'money'), field('receiptRef', 'text', 128),
     ] },
-  }]
+  }, sealTemplateFixture()]
 }
 export function expenseFixture(overrides = {}) {
   return { type: 'expense', documentVersion: 1, businessId: 'EXP-2026-001', title: 'Client visit expenses', reason: 'Synthetic expense fixture; no personal information.', costCenter: 'ENGINEERING', currency: 'CNY', lines: [
@@ -61,4 +61,33 @@ export function decidedFixture(original, actor = 'bob', decision = 'APPROVE', co
     item.currentStepId = steps[index + 1].id; item.approverId = members(steps[index + 1])[0]
   } else item.approverId = members(current).find(member => !votes.some(event => event.actorId === member))
   return view
+}
+
+export function sealTemplateFixture() {
+  return {
+    id: 'oa-seal-use', domain: 'OA', documentType: 'sealUse', documentVersion: 1, formVersion: 1,
+    title: translated('Seal-use request (synthetic example)', '用印申请（合成示例）'),
+    description: translated('Review a synthetic document and proposed seal use.', '审核合成文件与拟定用印用途。'),
+    sections: [
+      { id: 'identity', title: translated('Request identity', '申请信息'), fields: [field('businessId', 'text', 128), field('title', 'text', 120)] },
+      { id: 'document', title: translated('Document and seal', '文件与印章'), fields: [field('documentName', 'text', 160), field('documentRef', 'text', 128), { ...field('sealType', 'select', 0, ['OFFICIAL', 'CONTRACT', 'FINANCE']), options: ['OFFICIAL', 'CONTRACT', 'FINANCE'].map(value => ({ value, label: translated(`Synthetic ${value.toLowerCase()} seal`, `合成示例${value}`) })) }, field('copyCount', 'integer', 16)] },
+      { id: 'purpose', title: translated('Purpose', '用途'), fields: [{ ...field('reason', 'textarea', 2000), label: translated('Business purpose', '用途说明') }] },
+    ], lineItems: null,
+  }
+}
+export function sealFixture(overrides = {}) {
+  return { type: 'sealUse', documentVersion: 1, businessId: 'SEAL-DEMO-001', title: 'Synthetic delivery document review', reason: 'Synthetic review only; no physical seal use.', documentName: 'Synthetic project handover', documentRef: 'DEMO-DOC-001', sealType: 'OFFICIAL', copyCount: 2, ...overrides }
+}
+export function sealProcessFixture(overrides = {}) {
+  return { schemaVersion: 2, id: 'oa-seal-use', version: 1, name: 'Seal-use review', nodes: [
+    { id: 'start', type: 'start', name: 'Submit seal-use request', assigneeId: null },
+    { id: 'documentReview', type: 'approval', name: 'Document review', assigneeId: 'bob' },
+    { id: 'sealReview', type: 'approval', name: 'Seal-use review', assigneeId: 'carol' },
+    { id: 'end', type: 'end', name: 'Review complete', assigneeId: null },
+  ], ...overrides }
+}
+export function sealViewFixture(overrides = {}) {
+  const business = sealFixture(), definition = sealProcessFixture()
+  const view = viewFixture({ id: 'seal-1', title: business.title, reason: business.reason, business, definition, processId: definition.id, currentStepId: 'documentReview', ...overrides })
+  return { ...view, total: null }
 }

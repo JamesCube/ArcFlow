@@ -1,0 +1,13 @@
+55ee3afa67304ec98444a68eab621f2887fcaafb6371f3ab13d2c9d7fb42c73a  contracts/seal-use/java/evidence/VERIFICATION.md
+8512dd199c23296625b672a2891b693038b00a0af81200f3920d0b924073370f  contracts/seal-use/java/evidence/jdeps-summary.log
+4dc1713d22d64f3fcbc06417078aa06a95a19e40ab90ea99956b4afc865c3995  contracts/seal-use/java/evidence/junit-summary.json
+177fa38b6ee1abb979c80962b6ead4b64ab42d96c010e9f23534b2b9fe454f8c  contracts/seal-use/java/evidence/maven-verify.log
+921bbabf4ebc152e5c0adc9966ddd51d956289dc9de2abd9981359cfb877f365  contracts/seal-use/java/evidence/scope-audit.log
+7c86d70a73592e6a7f02b95cfc8a92a1e226f8fe138c0c96444c4d472decf2f0  contracts/seal-use/java/pom.xml
+fcabdbb86adc3b31b44a2a5a442a0c20fd345e9bf958674179b893efc1b7a492  contracts/seal-use/java/src/main/java/com/arcflow/contracts/sealuse/SealUseCodec.java
+35f95f63bf4d149755e754fd6da39f5cea6c8ca85aa00f691df38546d195260d  contracts/seal-use/java/src/main/java/com/arcflow/contracts/sealuse/SealUseContract.java
+ba1dfbf09f04df9a6b7a0fb4a1f36b6540969a79926c3276f4d02e72d5aa1c2b  contracts/seal-use/java/src/test/java/com/arcflow/contracts/sealuse/SealUseCodecTest.java
+1ab74b13399304b1c01bfe528f0c0a277560a929c6447fcbf86e3143a3c6e2d0  contracts/seal-use/java/src/test/java/com/arcflow/contracts/sealuse/SealUseRawInputLimitTest.java
+43eb6bab94b11f588b0cbf6ab24a34f0ae4b2858236a466a11c08b452510feeb  contracts/seal-use/java/src/test/java/com/arcflow/contracts/sealuse/SealUseVectorsTest.java
+93efb220d1b633968c5340687fbba4452e145f35df031452a9d1bce1172dc227  contracts/seal-use/java/src/test/resources/seal-use-raw-input-policy.json
+e6bf437b6cd984f7d1db0083f7bfa87d0cb9624652f9402cde8bb2a71901bd45  contracts/seal-use/java/src/test/resources/seal-use-vectors.json

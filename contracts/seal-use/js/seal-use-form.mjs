@@ -1,0 +1,65 @@
+// Compiled, deeply immutable proposal only. Never execute server-supplied metadata.
+// Current ScenarioField cannot render integer models, and current ScenarioForm
+// assumes lineItems exists. This metadata is not registered or runnable.
+const deepFreeze = value => {
+  if (value && typeof value === 'object') {
+    for (const child of Object.values(value)) deepFreeze(child)
+    Object.freeze(value)
+  }
+  return value
+}
+
+export const sealUseFormProposal = deepFreeze({
+  id: 'oa-seal-use', domain: 'OA', documentType: 'sealUse', documentVersion: 1, formVersion: 1,
+  status: 'proposal', registered: false, runnable: false,
+  synthetic: true,
+  title: { zh: '用印申请（合成示例）', en: 'Seal-use request (synthetic example)' },
+  description: {
+    zh: '仅用于本地合成数据契约验证，不连接实际印章或文件服务。',
+    en: 'Local synthetic-data contract validation only; no real seal or document service is connected.',
+  },
+  integrationRequirements: [
+    'Register a typed sealUse handler only in a separately approved implementation phase.',
+    'Add integer input support with distinct editable text and validated numeric models.',
+    'Handle null lineItems in the shared renderer and detail view.',
+    'Validate the future request envelope and use a typed nonmonetary summary.',
+  ],
+  proposedResponse: { request: 'Future validated approval request containing a sealUse business snapshot', total: null },
+  sections: [
+    {
+      id: 'identity', title: { zh: '申请信息', en: 'Request identity' },
+      fields: [
+        { path: 'businessId', kind: 'text', label: { zh: '申请编号', en: 'Application reference' }, required: true, maxLength: 128, options: [] },
+        { path: 'title', kind: 'text', label: { zh: '申请标题', en: 'Request title' }, required: true, maxLength: 120, options: [] },
+      ],
+    },
+    {
+      id: 'document', title: { zh: '文件与印章', en: 'Document and seal' },
+      fields: [
+        { path: 'documentName', kind: 'text', label: { zh: '文件名称', en: 'Document name' }, required: true, maxLength: 160, options: [] },
+        { path: 'documentRef', kind: 'text', label: { zh: '文件编号', en: 'Document reference' }, required: true, maxLength: 128, options: [] },
+        {
+          path: 'sealType', kind: 'select', label: { zh: '印章类型（合成示例）', en: 'Seal type (synthetic example)' }, required: true, maxLength: 0,
+          options: [
+            { value: 'OFFICIAL', label: { zh: '合成示例公章', en: 'Synthetic official seal' } },
+            { value: 'CONTRACT', label: { zh: '合成示例合同章', en: 'Synthetic contract seal' } },
+            { value: 'FINANCE', label: { zh: '合成示例财务章', en: 'Synthetic finance seal' } },
+          ],
+        },
+        {
+          path: 'copyCount', kind: 'integer', label: { zh: '用印份数', en: 'Copy count' }, required: true,
+          maxLength: 16, options: [], minimum: 1, maximum: 100, step: 1, inputMode: 'numeric',
+          draftValueType: 'string', businessValueType: 'number',
+          inputPolicy: 'Preserve raw text while editing. On successful submission, trim ECMAScript edge whitespace and convert ASCII digits to 1–100; leading zeros are allowed. Raw input is limited to 16 UTF-16 code units. Reject signs, fractions, exponents and suffixes.',
+        },
+      ],
+    },
+    {
+      id: 'purpose', title: { zh: '用途', en: 'Purpose' },
+      fields: [
+        { path: 'reason', kind: 'textarea', label: { zh: '用途说明', en: 'Business purpose' }, required: true, maxLength: 2000, options: [] },
+      ],
+    },
+  ],
+  lineItems: null,
+})

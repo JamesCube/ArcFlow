@@ -103,3 +103,42 @@ Returning to an unchanged document form reuses its unresolved submission key
 and original process snapshot, even after a publication refresh. A successful
 submission clears only that form. Sign-out clears both forms and retry slots;
 editing a form's normalized payload starts a new intent for that form.
+
+## Registered Expense and Seal workspaces (local integration)
+
+`/scenarios.html` now requires exactly the two compiled catalog entries
+`oa-expense` and `oa-seal-use`. Unknown entries, including unaccepted Travel,
+are rejected. Seal uses seven real input fields and the immutable nine-property
+`sealUse` document. Its copy count stays raw text while editing and becomes an
+integer from 1 through 100 only after validation. Decimal/exponent/malformed
+count input is preserved for correction, never truncated or treated as money.
+Metadata retains the existing DTO shape: `copyCount` has kind `integer`,
+`maxLength: 16`; `lineItems` is explicitly null. Seal responses require the exact
+`{request, total: null}` envelope. Expense still requires its exact monetary total.
+
+Seal shows document, synthetic seal category and copy count in the form, list
+and saved detail. The initial process is Bob's `documentReview`, then Carol's
+`sealReview`. Approval records review only: it does not apply a physical or
+electronic seal, sign anything, upload or verify a file, or fetch the inert
+synthetic document reference.
+
+Each scenario retains its own form, unresolved submission key and original
+process version, unpublished process draft, designer undo/selection, request
+selection and review note while switching through Catalog. Refresh preserves
+a dirty draft; successful submission clears only its original form. Late replies
+remain bound to their initiating scenario and cannot take over newer navigation.
+Sign-out, identity change, or an unauthorized response invalidates every scope.
+All local drafts and credentials remain memory-only.
+
+The unit/DOM suite includes shared raw Seal vectors, strict transport and metadata
+negatives, mounted bilingual form/detail cases, mounted Catalog switching and
+retry identity/version, independent designer undo, note retention and interruption
+cases. `npm run build` checks the self-contained production bundle.
+
+`e2e/seal-use.spec.mjs` is a real-backend Playwright acceptance journey covering
+publication, form validation, pending and next-stage review, approved/rejected
+results, reload and 390px reviewer controls. It creates images only when
+`ARCFLOW_CAPTURE_SCENARIOS=1`, alongside per-image SHA-256 and run/source provenance.
+Discovery or unit/build success is not evidence that the browser journey passed
+or that pixels were reviewed. Original bilingual Seal browser captures and
+independent pixel review remain required before visual acceptance.
