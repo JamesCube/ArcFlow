@@ -26,7 +26,7 @@ const err = (message, status) => Object.assign(new Error(message), { status })
 describe('scenario session and read isolation', () => {
   it('loads validated catalog, people, process and list in the dedicated namespace', async () => {
     const c = setup(); await c.login()
-    expect(c.state.me.id).toBe('alice'); expect(c.state.catalog).toHaveLength(4); expect(c.state.process.id).toBe('oa-expense')
+    expect(c.state.me.id).toBe('alice'); expect(c.state.catalog).toHaveLength(6); expect(c.state.process.id).toBe('oa-expense')
     expect(c.api.request.mock.calls.map(([path]) => path).sort()).toEqual(['/me', '/people', '/scenarios', `${BASE}/process`, `${BASE}/requests`].sort())
     expect(c.workspace.dirty()).toBe(false); expect(c.workspace.stale()).toBe(false)
   })

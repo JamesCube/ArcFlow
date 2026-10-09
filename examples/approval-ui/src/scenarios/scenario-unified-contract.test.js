@@ -2,20 +2,22 @@ import { describe, expect, it, vi } from 'vitest'
 import { getScenarioHandler } from './scenario-registry.js'
 import { validateScenarioCatalog } from './scenario-template.js'
 import { createScenarioWorkspace } from './scenario-workspace.js'
-import { catalogFixture, clone, people, viewFixture, travelViewFixture, sealViewFixture, receivingViewFixture, expenseFixture, travelFixture, sealFixture, receivingFixture, processFixture, travelProcessFixture, sealProcessFixture, receivingProcessFixture, deferred } from './scenario-fixtures.js'
+import { catalogFixture, clone, people, viewFixture, travelViewFixture, sealViewFixture, receivingViewFixture, expenseFixture, travelFixture, sealFixture, receivingFixture, processFixture, travelProcessFixture, sealProcessFixture, receivingProcessFixture, deferred, paymentFixture, contractFixture, complexProcessFixture, paymentViewFixture, contractViewFixture } from './scenario-fixtures.js'
 
 const specs = [
+  { id: 'erp-payment', form: paymentFixture, process: () => complexProcessFixture('erp-payment'), view: paymentViewFixture },
+  { id: 'crm-contract', form: contractFixture, process: () => complexProcessFixture('crm-contract'), view: contractViewFixture },
   { id: 'oa-expense', form: expenseFixture, process: processFixture, view: viewFixture },
   { id: 'oa-travel', form: travelFixture, process: travelProcessFixture, view: travelViewFixture },
   { id: 'oa-seal-use', form: () => sealFixture({ copyCount: '2' }), process: sealProcessFixture, view: sealViewFixture },
   { id: 'erp-receiving', form: receivingFixture, process: receivingProcessFixture, view: receivingViewFixture },
 ]
 
-describe('four compiled scenario response contracts', () => {
+describe('six compiled scenario response contracts', () => {
   it('accepts all catalog entries in either API order while rejecting any omitted entry', () => {
     const catalog = catalogFixture().sort((a, b) => a.id.localeCompare(b.id))
     expect(validateScenarioCatalog(catalog)).toBe(catalog)
-    expect(validateScenarioCatalog([...catalog].reverse())).toHaveLength(4)
+    expect(validateScenarioCatalog([...catalog].reverse())).toHaveLength(6)
     for (let index = 0; index < catalog.length; index++) expect(() => validateScenarioCatalog(catalog.filter((_, position) => position !== index))).toThrow()
   })
   it.each(specs.flatMap(owner => specs.map(source => [owner.id, source.id, source.view])))('%s accepts only its own %s snapshot', (ownerId, sourceId, view) => {
@@ -45,8 +47,8 @@ describe('four compiled scenario response contracts', () => {
   })
 })
 
-describe('four-way workspace isolation', () => {
-  it('retains four concurrent intents, raw forms, immutable process pins and same-ID records across switches', async () => {
+describe('six-way workspace isolation', () => {
+  it('retains six concurrent intents, raw forms, immutable process pins and same-ID records across switches', async () => {
     const server = Object.fromEntries(specs.map(spec => [spec.id, { process: spec.process(), items: [], pending: deferred() }]))
     const posts = [], api = { login: vi.fn(), logout: vi.fn(), request: vi.fn(async (path, options) => {
       if (path === '/me') return people[0]
@@ -57,7 +59,7 @@ describe('four-way workspace isolation', () => {
       return clone(resource === 'process' ? scope.process : scope.items)
     }) }
     let key = 0
-    const workspace = createScenarioWorkspace(api, () => `four-way-${++key}`)
+    const workspace = createScenarioWorkspace(api, () => `six-way-${++key}`)
     await workspace.login('alice', 'synthetic')
     const running = []
     for (const spec of specs) {
@@ -68,7 +70,7 @@ describe('four-way workspace isolation', () => {
       expect(workspace.state.busy).toBe(true)
     }
     expect(posts.map(([path]) => path)).toEqual(specs.map(spec => `/scenarios/${spec.id}/documents`))
-    expect(new Set(posts.map(([, options]) => options.headers['Idempotency-Key'])).size).toBe(4)
+    expect(new Set(posts.map(([, options]) => options.headers['Idempotency-Key'])).size).toBe(6)
     workspace.state.tab = 'catalog'
     for (const [index, spec] of specs.entries()) {
       server[spec.id].pending.resolve(spec.view({ id: 'shared-id' }))

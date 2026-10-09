@@ -45,10 +45,25 @@ jobs:
           python3 - <<'PY'
           import xml.etree.ElementTree as ET
           report = ET.parse('examples/approval-jdbc/target/surefire-reports/TEST-com.arcflow.approval.jdbc.PostgresqlApprovalStoreTest.xml').getroot()
-          assert int(report.attrib['tests']) >= 94, report.attrib
+          assert int(report.attrib['tests']) >= 108, report.attrib
           for key in ('skipped', 'errors', 'failures'):
               assert int(report.attrib[key]) == 0, report.attrib
           required_business_tests = {
+              'paymentAndContractLostCommitAcknowledgementReplaysOneDurableWinner',
+              'paymentAndContractBackfillPreservesTypedSnapshotsKeysAndRepeatedActorMembership',
+              'paymentAllThenAnyVotesRemainIndependentAndDurable',
+              'paymentAllRejectsImmediatelyAndAnyRequiresEveryRejection',
+              'contractRepeatedActorAllRejectionAndOptionalAnySnapshotSurviveReopen',
+              'paymentAndContractKeysAreApplicantGlobalAcrossEveryRegisteredType',
+              'paymentAndContractConcurrentRetriesCreateOneBindingAndExactAudit',
+              'paymentAndContractCrossProcessRaceHasOneGlobalKeyWinner',
+              'paymentEveryFieldAndOriginalVersionBindRetryAfterTerminalReopen',
+              'contractEveryFieldAndOriginalVersionBindRetryAfterTerminalReopen',
+              'paymentAndContractFailedWritesRollBackRequestAuditKeyAndMembersTogether',
+              'paymentAndContractFailedDecisionKeepsProjectionAndOriginalVoteUnchanged',
+              'paymentAndContractWrongTypeHostsFailBeforeAnyDecisionMutation',
+              'paymentAndContractInvalidPersistedAmountsFailClosedWithoutAuditMutation',
+
               'mixedScenarioDatabaseReadsDecisionsAndInboxesRemainProcessIsolated',
               'mixedScenarioDatabaseSubmissionKeysStayApplicantGlobalAcrossEveryType',
               'mixedScenarioDatabaseRestartPreservesTypedSnapshotsKeysAndIndependentVersions',
@@ -127,10 +142,25 @@ jobs:
           python3 - <<'PY'
           import xml.etree.ElementTree as ET
           report = ET.parse('examples/approval-jdbc/target/surefire-reports/TEST-com.arcflow.approval.jdbc.MysqlApprovalStoreTest.xml').getroot()
-          assert int(report.attrib['tests']) >= 100, report.attrib
+          assert int(report.attrib['tests']) >= 114, report.attrib
           for key in ('skipped', 'errors', 'failures'):
               assert int(report.attrib[key]) == 0, report.attrib
           required_business_tests = {
+              'paymentAndContractLostCommitAcknowledgementReplaysOneDurableWinner',
+              'paymentAndContractBackfillPreservesTypedSnapshotsKeysAndRepeatedActorMembership',
+              'paymentAllThenAnyVotesRemainIndependentAndDurable',
+              'paymentAllRejectsImmediatelyAndAnyRequiresEveryRejection',
+              'contractRepeatedActorAllRejectionAndOptionalAnySnapshotSurviveReopen',
+              'paymentAndContractKeysAreApplicantGlobalAcrossEveryRegisteredType',
+              'paymentAndContractConcurrentRetriesCreateOneBindingAndExactAudit',
+              'paymentAndContractCrossProcessRaceHasOneGlobalKeyWinner',
+              'paymentEveryFieldAndOriginalVersionBindRetryAfterTerminalReopen',
+              'contractEveryFieldAndOriginalVersionBindRetryAfterTerminalReopen',
+              'paymentAndContractFailedWritesRollBackRequestAuditKeyAndMembersTogether',
+              'paymentAndContractFailedDecisionKeepsProjectionAndOriginalVoteUnchanged',
+              'paymentAndContractWrongTypeHostsFailBeforeAnyDecisionMutation',
+              'paymentAndContractInvalidPersistedAmountsFailClosedWithoutAuditMutation',
+
               'mixedScenarioDatabaseReadsDecisionsAndInboxesRemainProcessIsolated',
               'mixedScenarioDatabaseSubmissionKeysStayApplicantGlobalAcrossEveryType',
               'mixedScenarioDatabaseRestartPreservesTypedSnapshotsKeysAndIndependentVersions',

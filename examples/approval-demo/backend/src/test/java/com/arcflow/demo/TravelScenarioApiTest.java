@@ -39,8 +39,8 @@ class TravelScenarioApiTest {
     ResultActions decide(String actor,String id,String step,String decision) throws Exception { return mvc.perform(write(BASE+"/requests/"+id+"/decisions",actor).content("{\"stepId\":\""+step+"\",\"decision\":\""+decision+"\",\"comment\":\"Synthetic review\"}")); }
     @Test void twoScenarioCatalogAndTravelApprovalAreTypedIsolatedAndExactlyKeyed() throws Exception {
         var catalog=result(mvc.perform(get("/api/scenarios").with(httpBasic("alice","test-alice-password"))).andExpect(status().isOk()));
-        assertEquals(4,catalog.size()); var entries=new HashMap<String,JsonNode>(); catalog.forEach(item->entries.put(item.path("id").asText(),item));
-        assertEquals(Set.of("erp-receiving","oa-expense","oa-seal-use","oa-travel"),entries.keySet()); assertEquals(20,entries.get("oa-expense").path("lineItems").path("maxItems").asInt());
+        assertEquals(6,catalog.size()); var entries=new HashMap<String,JsonNode>(); catalog.forEach(item->entries.put(item.path("id").asText(),item));
+        assertEquals(Set.of("crm-contract","erp-payment","erp-receiving","oa-expense","oa-seal-use","oa-travel"),entries.keySet()); assertEquals(20,entries.get("oa-expense").path("lineItems").path("maxItems").asInt());
         var template=entries.get("oa-travel"); assertEquals("travel",template.path("documentType").asText()); assertEquals(1,template.path("documentVersion").asInt()); assertTrue(template.path("lineItems").isNull());
         var process=result(mvc.perform(get(BASE+"/process").with(httpBasic("alice","test-alice-password"))).andExpect(status().isOk()));
         assertEquals("oa-travel",process.path("id").asText()); assertEquals("tripReview",process.path("nodes").get(1).path("id").asText()); assertEquals("budget",process.path("nodes").get(2).path("id").asText());

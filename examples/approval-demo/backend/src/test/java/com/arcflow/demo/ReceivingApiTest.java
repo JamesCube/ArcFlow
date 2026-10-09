@@ -38,7 +38,7 @@ class ReceivingApiTest {
     ResultActions decide(String actor,String id,String step,String decision)throws Exception{return mvc.perform(write(BASE+"/requests/"+id+"/decisions",actor).content("{\"stepId\":\""+step+"\",\"decision\":\""+decision+"\",\"comment\":\"Synthetic review\"}"));}
     @Test void twoTypedCatalogEntriesAndQuantitySummaryKeepExpenseContractUnchanged()throws Exception{
         var catalog=result(mvc.perform(get("/api/scenarios").with(httpBasic("alice","test-alice-password"))).andExpect(status().isOk()));
-        assertEquals(4,catalog.size());var types=new HashSet<String>();catalog.forEach(t->types.add(t.path("id").asText()));assertEquals(Set.of("erp-receiving","oa-expense","oa-seal-use","oa-travel"),types);
+        assertEquals(6,catalog.size());var types=new HashSet<String>();catalog.forEach(t->types.add(t.path("id").asText()));assertEquals(Set.of("crm-contract","erp-payment","erp-receiving","oa-expense","oa-seal-use","oa-travel"),types);
         var created=result(submit(input().toString(),"one").andExpect(status().isCreated()));assertTrue(created.has("total"));assertTrue(created.get("total").isNull());
         assertEquals("receiving",created.path("summary").path("kind").asText());assertEquals(1,created.path("summary").path("exceptionLineCount").asInt());
         var quantities=created.path("summary").path("quantities");assertEquals(2,quantities.size());assertEquals("PCS",quantities.get(0).path("unit").asText());assertEquals(10,quantities.get(0).path("received").asInt());assertEquals("BOX",quantities.get(1).path("unit").asText());

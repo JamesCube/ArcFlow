@@ -13,8 +13,8 @@ describe('Seal runtime uses the reviewed raw contract', () => {
   it.each(vectors.invalid)('rejects shared raw vector $name', vector => {
     expect(() => readSealUse(vector.raw)).toThrow()
   })
-  it('registers exactly four compiled types; arbitrary and inherited names stay closed', () => {
-    expect(Object.keys(scenarioHandlers).sort()).toEqual(['erp-receiving', 'oa-expense', 'oa-seal-use', 'oa-travel'])
+  it('registers exactly six compiled types; arbitrary and inherited names stay closed', () => {
+    expect(Object.keys(scenarioHandlers).sort()).toEqual(['crm-contract', 'erp-payment', 'erp-receiving', 'oa-expense', 'oa-seal-use', 'oa-travel'])
     for (const id of ['crm-quote', 'leave-approval', ['oa-seal-use'], 'toString']) expect(() => getScenarioHandler(id)).toThrow()
   })
   it.each(['', '0', '101', '-1', '+1', '1.0', '1e0', '2copies', '12345678901234567'])('retains and rejects invalid count input %j', copyCount => {

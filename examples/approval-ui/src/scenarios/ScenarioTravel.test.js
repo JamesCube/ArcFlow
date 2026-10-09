@@ -30,7 +30,7 @@ async function fill(c) {
 describe('two distinct typed scenarios through one renderer', () => {
   it('opens a distinct Travel catalog card and form in the current session without line items', async () => {
     const c = setup(); await login(c)
-    expect(c.wrapper.findAll('.sf-template-card')).toHaveLength(4)
+    expect(c.wrapper.findAll('.sf-template-card')).toHaveLength(6)
     expect(c.wrapper.find('.sf-travel-art').text()).toContain('A clear itinerary')
     await openTravel(c)
     expect(c.api.login).toHaveBeenCalledTimes(1)

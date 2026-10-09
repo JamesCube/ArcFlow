@@ -1,4 +1,6 @@
 import { CURRENCIES, InvalidScenarioPayload, invalid, isRecord } from './expense-document.js'
+const MONEY_FIELDS = new Set(['amount', 'estimatedCost', 'contractAmount', 'invoiceAmount', 'previouslySettledAmount', 'allocationAmount', 'deductionAmount'])
+const ZERO_MONEY_FIELDS = new Set(['previouslySettledAmount', 'deductionAmount'])
 class NumberToken { constructor(source) { this.source = source } }
 // Preserve numeric lexemes before native parsing can hide sub-cent fractions.
 export function parseScenarioJson(source) {
@@ -49,25 +51,26 @@ export function parseScenarioJson(source) {
   const raw = value(0); whitespace(); if (position !== source.length) return invalid()
   function materialize(current, key, currency) {
     if (current instanceof NumberToken) {
-      if ((key === 'amount' || key === 'estimatedCost')) return exactAmount(current.source, currency)
+      if (MONEY_FIELDS.has(key)) return exactAmount(current.source, currency, ZERO_MONEY_FIELDS.has(key))
       if (!/^-?(?:0|[1-9]\d*)$/.test(current.source) || !Number.isSafeInteger(Number(current.source))) return invalid()
       return Number(current.source)
     }
     if (Array.isArray(current)) return current.map(entry => materialize(entry, undefined, currency))
     if (isRecord(current)) return Object.fromEntries(Object.entries(current).map(([field, entry]) => [field, materialize(entry, field, current.currency ?? currency)]))
-    if ((key === 'amount' || key === 'estimatedCost')) return invalid()
+    if (MONEY_FIELDS.has(key)) return invalid()
     return current
   }
   return materialize(raw)
 }
-function exactAmount(source, currency) {
+function exactAmount(source, currency, allowZero = false) {
   if (!CURRENCIES.includes(currency)) return invalid()
   const parts = /^(\d+)(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/.exec(source)
   if (!parts || source.length > 256) return invalid()
   const fraction = parts[2] || '', scale = BigInt(fraction.length) - BigInt(parts[3] || '0')
   if (scale > 2n) return invalid()
   const coefficient = `${parts[1]}${fraction}`.replace(/^0+/, ''), shift = 2n - scale
-  if (!coefficient || BigInt(coefficient.length) + shift > 12n) return invalid()
+  if (!coefficient) return allowZero ? (currency === 'JPY' ? '0' : '0.00') : invalid()
+  if (BigInt(coefficient.length) + shift > 12n) return invalid()
   const cents = BigInt(coefficient) * 10n ** shift
   if (cents > 100000000000n || (currency === 'JPY' && cents % 100n)) return invalid()
   return currency === 'JPY' ? String(cents / 100n) : `${cents / 100n}.${String(cents % 100n).padStart(2, '0')}`

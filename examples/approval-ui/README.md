@@ -106,14 +106,14 @@ editing a form's normalized payload starts a new intent for that form.
 
 ## Unified typed scenario library
 
-`/scenarios.html` includes all four explicitly compiled templates: OA Expense,
-OA Travel, OA Seal Use and ERP Receiving. The backend catalog is stably sorted
-by full ID: `erp-receiving`, `oa-expense`, `oa-seal-use`, `oa-travel`.
+`/scenarios.html` includes six explicitly compiled templates: OA Expense,
+OA Travel, OA Seal Use, ERP Receiving, ERP Payment Request and CRM Contract Approval. The backend catalog is stably sorted
+by full ID: `crm-contract`, `erp-payment`, `erp-receiving`, `oa-expense`, `oa-seal-use`, `oa-travel`.
 The matching catalog and UI must be deployed together. Unknown templates,
 unknown metadata and malformed response envelopes fail closed; the registry
 does not execute arbitrary user-defined schemas.
 
-All four cards open their own active scope within the shared in-memory library
+All six cards open their own active scope within the shared in-memory library
 sign-in. `/receiving.html` also remains an independent bilingual receiving desk.
 The existing `/` leave/procurement workspace remains available.
 
@@ -292,3 +292,56 @@ unavailable (HTTP 403); no pixel comparison or reference-image visual acceptance
 is claimed. Original bilingual browser captures and independent pixel review
 remain required. Unified reader support does not establish deployment or
 scenario acceptance, and older binaries cannot read every new scenario schema.
+
+## Payment and contract review candidate / 付款与合同审批候选
+
+This unmerged extension adds independent ERP payment allocation and CRM contract milestone reviews to the six-entry `/scenarios.html` catalog. It uses nine exact business types, monotonic JSON wrappers 1–12 and separate compiled API/store boundaries. Actual ALL/ANY and versioned human review do not execute payment, signing or external writes. See [business models, workflow semantics, compatibility and verification gates](../../docs/PAYMENT_CONTRACT_SCENARIOS.md). Earlier candidate descriptions refer to the PR39 baseline. This extension requires matching frontend and backend versions; old schema-10 readers cannot read the new documents.
+
+
+### ERP payment request and CRM contract approval
+
+Payment uses its own teal invoice-allocation desk. Every invoice retains its
+original amount, declared prior settlement, current allocation and deduction.
+The form shows per-line outstanding/net amounts and four exact document totals.
+Positive deductions require a reason. Zero net requests cannot be submitted.
+
+Contract uses a distinct plum dossier with terms, a declared revision and an
+ordered milestone editor. The amount must exactly equal the milestone sum;
+dates stay within the contract term and in nondecreasing order. Nonstandard
+terms require an explanation. Switching to standard terms preserves the text
+and reports a validation error until the explanation is explicitly cleared.
+Neither flags nor amounts dynamically change the fixed route.
+
+Both preserve raw editable numeric text, validate before numeric JSON emission,
+and calculate with decimal strings and BigInt. Lines can be added, removed or
+reordered, with stable IDs and a 1–20 limit. Submitted documents are read-only.
+Payment responses require exactly `{request,total,paymentSummary}`; its total
+means net requested. Contract responses require exactly `{request,total}`;
+its total means contract amount. The four earlier envelopes remain unchanged.
+
+The two journeys in `e2e/complex-scenarios.spec.mjs` verify the fresh default v1,
+real designer publication to v2, lost-response retry pinned to the original v1,
+repeated reviewer decisions, ALL/ANY outcomes, bilingual forms/errors/details
+and 390px controls. To execute with the declared project backend:
+
+```sh
+npm run test:e2e -- e2e/complex-scenarios.spec.mjs
+ARCFLOW_CAPTURE_COMPLEX_SCENARIOS=1 npm run test:e2e -- e2e/complex-scenarios.spec.mjs
+node scripts/verify-complex-captures.mjs test-results
+node scripts/verify-complex-http.mjs ../approval-demo/backend/target/approval-demo-0.1.0-SNAPSHOT.jar
+```
+
+The capture verifier requires the complete 40-image matrix, original PNG hashes,
+source/UI/backend identity and one session per scenario. CI additionally binds
+evidence to the exact clean head, run, attempt, repository and declared runtime.
+A custom `ARCFLOW_BACKEND_JAR`/`ARCFLOW_BACKEND_RUNTIME` can label supplementary
+local checks; it must never be passed off as the declared runtime. The HTTP
+launcher tests the installed client and a fresh disposable real backend but
+does not verify rendering. No screenshots are produced when browser launch is
+blocked. Original inaccessible gallery images remain unverified and are not
+replaced by synthetic captures or edited images.
+
+All references, invoice balances and contract revisions are synthetic inputs.
+There is no verified ERP/CRM source, cross-request invoice reservation, currency
+conversion, bank data, payment execution, signing, customer delivery, receivable
+creation or external writeback. Approval is an internal review result only.

@@ -40,3 +40,6 @@ examples/approval-ui/scenario-visual-results/
 
 # Receiving real-backend screenshot artifacts
 examples/approval-ui/receiving-visual-results/
+
+# Payment/contract real-backend screenshots and provenance
+examples/approval-ui/complex-visual-results/

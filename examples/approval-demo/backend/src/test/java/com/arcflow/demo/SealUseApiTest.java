@@ -102,13 +102,15 @@ class SealUseApiTest {
 
     @Test void catalogAndAuthenticatedTwoStageApprovalKeepExactNonMonetaryViews() throws Exception {
         var catalog = read("/api/scenarios", "alice");
-        assertEquals(4, catalog.size());
-        assertEquals("erp-receiving", catalog.get(0).path("id").asText());
-        assertEquals("oa-travel", catalog.get(3).path("id").asText());
-        assertEquals("oa-expense", catalog.get(1).path("id").asText());
-        assertEquals("oa-seal-use", catalog.get(2).path("id").asText());
-        assertEquals(20, catalog.get(1).path("lineItems").path("maxItems").asInt());
-        var template = catalog.get(2);
+        assertEquals(6, catalog.size());
+        assertEquals("crm-contract", catalog.get(0).path("id").asText());
+        assertEquals("erp-payment", catalog.get(1).path("id").asText());
+        assertEquals("erp-receiving", catalog.get(2).path("id").asText());
+        assertEquals("oa-expense", catalog.get(3).path("id").asText());
+        assertEquals("oa-seal-use", catalog.get(4).path("id").asText());
+        assertEquals("oa-travel", catalog.get(5).path("id").asText());
+        assertEquals(20, catalog.get(3).path("lineItems").path("maxItems").asInt());
+        var template = catalog.get(4);
         assertEquals("sealUse", template.path("documentType").asText());
         assertEquals(1, template.path("documentVersion").asInt());
         assertEquals(1, template.path("formVersion").asInt());

@@ -194,9 +194,9 @@ def main():
         try:
             start()
             catalog = call('alice', 'GET', '/api/scenarios')
-            assert [item['id'] for item in catalog] == ['erp-receiving', 'oa-expense', 'oa-seal-use', 'oa-travel']
-            assert catalog[1]['lineItems']['maxItems'] == 20
-            template = catalog[2]
+            assert [item['id'] for item in catalog] == ['crm-contract', 'erp-payment', 'erp-receiving', 'oa-expense', 'oa-seal-use', 'oa-travel']
+            assert next(item for item in catalog if item['id'] == 'oa-expense')['lineItems']['maxItems'] == 20
+            template = next(item for item in catalog if item['id'] == 'oa-seal-use')
             assert template['documentType'] == 'sealUse' and template['documentVersion'] == 1
             assert template['formVersion'] == 1 and template['lineItems'] is None
             fields = [field for section in template['sections'] for field in section['fields']]

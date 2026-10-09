@@ -26,14 +26,23 @@ jobs:
         run: |
           python3 - <<'PYCODE'
           import xml.etree.ElementTree as ET
-          for suite, minimum in (('TravelScenarioApiTest', 5), ('SealUseApiTest', 10), ('ReceivingApiTest', 4), ('UnifiedScenarioApiTest', 1)):
+          for suite, minimum in (('TravelScenarioApiTest', 5), ('SealUseApiTest', 10), ('ReceivingApiTest', 4), ('UnifiedScenarioApiTest', 1), ('PaymentContractApiTest', 7)):
               report = ET.parse(f'examples/approval-demo/backend/target/surefire-reports/TEST-com.arcflow.demo.{suite}.xml').getroot()
               assert int(report.attrib['tests']) >= minimum, (suite, report.attrib)
               for key in ('skipped', 'errors', 'failures'):
                   assert int(report.attrib[key]) == 0, (suite, report.attrib)
               if suite == 'UnifiedScenarioApiTest':
                   names = [case.attrib['name'] for case in report.findall('testcase')]
-                  assert names.count('fourOrderedCatalogEntriesUseSeparateTypedStoresAndRejectEveryCrossHostPayload') == 1, names
+                  assert names.count('sixOrderedCatalogEntriesUseSeparateTypedStoresAndRejectEveryCrossHostPayload') == 1, names
+              if suite == 'PaymentContractApiTest':
+                  names = {case.attrib['name'] for case in report.findall('testcase')}
+                  assert {'paymentFourDerivedAmountsAreExactAndNeverAcceptedAsInput',
+                          'paymentAmountsDatesCurrenciesAndDeductionsRejectInvalidBoundaries',
+                          'contractExactMilestonesDatesAndStandardTermsHaveDistinctValidation',
+                          'bothTypesRejectMissingUnknownDuplicateForgedAndLexicallyInvalidInput',
+                          'paymentAllAnyRetryAndAllRejectUseRealIndependentActors',
+                          'contractSnapshotPublicationUsesNewAnyOnlyForNewRequests',
+                          'authenticationCrossTypeAndWrongProcessDoNotLeakOrMutateRequests'} <= names, names
               print(suite, 'MVC boundary tests executed:', report.attrib)
           PYCODE
       - name: Verify packaged standalone dependency boundary
@@ -74,6 +83,8 @@ jobs:
         run: python3 examples/scenarios/travel_http_smoke.py --jar examples/approval-demo/backend/target/approval-demo-0.1.0-SNAPSHOT.jar
       - name: Verify isolated non-monetary seal-use approval and schema9 restart on a live backend
         run: python3 examples/scenarios/seal_use_http_smoke.py --jar examples/approval-demo/backend/target/approval-demo-0.1.0-SNAPSHOT.jar
+      - name: Verify exact payment allocations and contract milestones with two real JVM restarts
+        run: python3 examples/approval-demo/backend/scripts/verify-payment-contract-http.py --jar examples/approval-demo/backend/target/approval-demo-0.1.0-SNAPSHOT.jar
       - name: Verify authenticated member inbox on a live disposable backend
         run: python3 examples/approval-demo/verify-parallel-http.py
   frontend:
@@ -128,7 +139,7 @@ jobs:
       - name: Install CJK sans font for bilingual visual checks
         run: sudo apt-get update && sudo apt-get install -y fonts-noto-cjk
       - name: Verify real backend leave and procurement journeys
-        run: npm run test:e2e -- --grep-invert "visual showcase:|crm quote:|gallery:|unified scenario library:|expense scenario:|travel scenario:|travel and expense:|Seal:|receiving:"
+        run: npm run test:e2e -- --grep-invert "visual showcase:|crm quote:|gallery:|unified scenario library:|expense scenario:|travel scenario:|travel and expense:|Seal:|receiving:|complex scenarios:"
         working-directory: examples/approval-ui
       - name: Verify real CRM quote journey and capture bilingual desktop/narrow screenshots
         run: npm run test:e2e -- e2e/crm-quote.spec.mjs --output=crm-visual-results
@@ -348,5 +359,71 @@ jobs:
           path: |
             examples/approval-ui/receiving-visual-results/**/*.png
             examples/approval-ui/receiving-visual-results/**/*.json
+          if-no-files-found: error
+          retention-days: 7
+
+  payment-contract-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: examples/approval-ui/package-lock.json
+      - run: mvn --batch-mode --no-transfer-progress install
+      - run: mvn --batch-mode --no-transfer-progress -f examples/approval-domain/pom.xml install
+      - run: mvn --batch-mode --no-transfer-progress -f examples/approval-demo/backend/pom.xml verify
+      - name: Require the declared runtime before browser capture
+        run: |
+          python3 - <<'PYRUNTIME'
+          import zipfile
+          with zipfile.ZipFile('examples/approval-demo/backend/target/approval-demo-0.1.0-SNAPSHOT.jar') as jar:
+              files = jar.namelist()
+              assert 'BOOT-INF/lib/spring-boot-4.1.1.jar' in files
+              assert 'BOOT-INF/lib/spring-boot-jackson2-4.1.1.jar' in files
+              assert not any('/spring-boot-3.' in name for name in files)
+          PYRUNTIME
+      - run: npm ci
+        working-directory: examples/approval-ui
+      - run: npx playwright install --with-deps chromium
+        working-directory: examples/approval-ui
+      - name: Install bilingual fonts
+        run: sudo apt-get update && sudo apt-get install -y fonts-noto-cjk
+      - name: Verify installed exact-money client and workspace against the declared backend
+        run: node scripts/verify-complex-http.mjs ../approval-demo/backend/target/approval-demo-0.1.0-SNAPSHOT.jar
+        working-directory: examples/approval-ui
+      - name: Verify both complex workflows and capture forty genuine bilingual states
+        env:
+          ARCFLOW_CAPTURE_COMPLEX_SCENARIOS: '1'
+          ARCFLOW_BACKEND_RUNTIME: declared-Boot-4.1.1
+        run: npm run test:e2e -- e2e/complex-scenarios.spec.mjs --output=complex-visual-results
+        working-directory: examples/approval-ui
+      - name: Require complete exact-head and exact-run payment/contract evidence
+        env:
+          ARCFLOW_EXPECT_SOURCE_REVISION: ${{ github.event.pull_request.head.sha || github.sha }}
+          ARCFLOW_REQUIRE_CLEAN_COMPLEX: '1'
+          ARCFLOW_EXPECT_BACKEND_RUNTIME: declared-Boot-4.1.1
+          ARCFLOW_EXPECT_CAPTURE_RUN_ID: ${{ github.run_id }}
+          ARCFLOW_EXPECT_CAPTURE_RUN_ATTEMPT: ${{ github.run_attempt }}
+          ARCFLOW_EXPECT_CAPTURE_REPOSITORY: ${{ github.repository }}
+        run: node scripts/verify-complex-captures.mjs complex-visual-results
+        working-directory: examples/approval-ui
+      - name: Preserve authenticated payment and contract screenshots with provenance
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: payment-contract-browser-evidence
+          path: |
+            examples/approval-ui/complex-visual-results/**/*.png
+            examples/approval-ui/complex-visual-results/**/*.json
           if-no-files-found: error
           retention-days: 7

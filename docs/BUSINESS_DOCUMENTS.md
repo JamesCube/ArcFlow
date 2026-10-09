@@ -3,14 +3,14 @@
 ## 本轮边界 / Scope
 
 审批的路由、参与人、ALL/ANY 表决、状态、审计和并发控制继续共用原状态机。
-不可变 `BusinessDocument` 边界明确支持 `leave`、`procurement`、`quoteDiscount`、`expense`、`travel`、`sealUse` 和 `receiving` 七类业务；
+不可变 `BusinessDocument` 边界明确支持 `leave`、`procurement`、`quoteDiscount`、`expense`、`travel`、`sealUse` 、`receiving`、`paymentRequest` 和 `contractApproval` 九类业务；
 不把任意 JSON 当作已经通过业务验证的单据。核心 DAG 仍执行公共标题/理由的 validate → normalize。
 业务规则在类型化单据中验证，存储恢复时再次验证，审批期间禁止重写。
 报价只通过专用 `/api/crm` 宿主和独立合成页面暴露；共享独立端、若依及 H5 工作区尚不支持报价。
 
 The approval lifecycle remains independent of business fields: routing, participants, votes,
 status, audit and optimistic concurrency use the same reducer. A sealed `BusinessDocument`
-boundary supports seven explicit, validated document schemas in this unified integration candidate. This is a bounded extraction,
+boundary supports nine explicit, validated document schemas in this unified integration candidate. This is a bounded extraction,
 not an arbitrary-schema plugin framework or a rewrite of the workflow engine.
 
 Expense is exposed only by the dedicated `/api/scenarios/oa-expense` host and `/scenarios.html`.
@@ -35,7 +35,7 @@ validated lines. Its `/api/scenarios/erp-receiving` host returns
 See [Receiving contract](RECEIVING_SCENARIO.md). Expense and Travel keep exactly
 `{request,total:string}`, without a receiving summary.
 
-The shared catalog exposes all four compiled scenario entries. Their business types,
+The shared catalog exposes all six compiled scenario entries. Their business types,
 processes, fixed JSON file suffixes and browser drafts/retry intents remain isolated;
 Receiving also keeps `/receiving.html`. Registration does not allow any new type through
 legacy/generic/native hosts. These are fixed versioned forms and 1–8-stage reviewer flows,
@@ -75,7 +75,7 @@ participants. Routing does not infer business policy from the process name.
 Generic endpoints accept typed leave and procurement: standalone `POST /api/documents`
 and RuoYi `POST /arcflow/documents`, with the existing `arcflow:request:submit` permission.
 Both use the authenticated principal and optional `Idempotency-Key` header exactly as the
-leave endpoint does. Both reject `quoteDiscount`, `expense`, `travel`, `sealUse` and `receiving`; domain type support does not bypass
+leave endpoint does. Both reject `quoteDiscount`, `expense`, `travel`, `sealUse`, `receiving`, `paymentRequest` and `contractApproval`; domain type support does not bypass
 the dedicated hosts and their authorization boundaries. Procurement example body:
 
 ```json
@@ -147,7 +147,7 @@ submission event is committed.
 
 ## 持久化兼容 / Storage compatibility
 
-The unified reader accepts known JSON snapshot wrapper schemas **1–10**, while retaining
+The unified reader accepts known JSON snapshot wrapper schemas **1–12**, while retaining
 the strict field shape of each older version. Empty or old-type-only snapshots at schemas
 8, 9 and 10 are valid. Reading a valid snapshot does not rewrite it or create/replace a backup.
 This is compatibility of the new reader with existing candidates, not future-format support.
@@ -160,12 +160,14 @@ This is compatibility of the new reader with existing candidates, not future-for
 | `travel` | 8 |
 | `sealUse` | 9 |
 | `receiving` | 10 |
+| `paymentRequest` | 11 |
+| `contractApproval` | 12 |
 
 - Every non-null business payload must match an explicit wire type and Java record, satisfy
   its minimum schema and pass strict field/version/business validation. A higher supported
   wrapper may contain a lower-minimum type. Travel at 9/10 and Seal at 10 are legal;
   Receiving at 8/9 is not. Unknown types, case aliases, future document versions, wrapper
-  11+, non-integer/overflow wrapper numbers and inconsistent projections fail closed.
+  13+, non-integer/overflow wrapper numbers and inconsistent projections fail closed.
 - Legacy schemas 1–4 retain their original shapes; no typed payload may bypass those gates.
   Older leave/procurement/quote documents gain no artificial `documentVersion` field.
   Definition schemas remain 2 (sequential) and 3 (parallel).
@@ -238,3 +240,7 @@ not a merged or fully verified part of that accepted baseline. See [CRM release 
 
 采购／成员待办基线已合入上述 main 提交；CRM 候选增量不在该合并范围内。启用报价前先升级读取端，
 保留 SQL revision 3 的停写迁移与回填要求，并另行核对最终 CRM 提交的浏览器、真实数据库和远端 CI 结果。
+
+## ERP payment and CRM contract extension
+
+The independent payment request and contract review hosts, exact monetary rules, six-host envelopes, nine-type migration and synthetic-only boundaries are documented in [Payment and contract scenarios](PAYMENT_CONTRACT_SCENARIOS.md). Payment alone adds a typed `paymentSummary`; contract keeps `{request,total:string}`. The extension is an unmerged candidate.

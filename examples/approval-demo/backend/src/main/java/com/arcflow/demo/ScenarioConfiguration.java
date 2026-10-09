@@ -40,12 +40,29 @@ class ScenarioConfiguration {
         try { return new ScenarioCase(entry,service,actors); }
         catch(RuntimeException failure) { service.close(); throw failure; }
     }
+    @Bean(destroyMethod="close") ScenarioCase paymentScenario(ObjectMapper mapper,ActorDirectory actors,
+            @Value("${approval.data-file}") String file) throws IOException {
+        var entry=ScenarioCatalog.paymentRequest("bob","carol");
+        var service=new ApprovalService(mapper,file+".scenario-erp-payment.json",actors,entry.initialProcess());
+        try { return new ScenarioCase(entry,service,actors); }
+        catch(RuntimeException failure) { service.close(); throw failure; }
+    }
+    @Bean(destroyMethod="close") ScenarioCase contractScenario(ObjectMapper mapper,ActorDirectory actors,
+            @Value("${approval.data-file}") String file) throws IOException {
+        var entry=ScenarioCatalog.contractApproval("bob","carol");
+        var service=new ApprovalService(mapper,file+".scenario-crm-contract.json",actors,entry.initialProcess());
+        try { return new ScenarioCase(entry,service,actors); }
+        catch(RuntimeException failure) { service.close(); throw failure; }
+    }
     @Bean Map<String,ScenarioCase> scenarioRegistry(
             @Qualifier("expenseScenario") ScenarioCase expenseScenario,
             @Qualifier("travelScenario") ScenarioCase travelScenario,
             @Qualifier("sealUseScenario") ScenarioCase sealUseScenario,
-            @Qualifier("receivingScenario") ScenarioCase receivingScenario) {
+            @Qualifier("receivingScenario") ScenarioCase receivingScenario,
+            @Qualifier("paymentScenario") ScenarioCase paymentScenario,
+            @Qualifier("contractScenario") ScenarioCase contractScenario) {
         return Map.of("oa-expense",expenseScenario,"oa-travel",travelScenario,
-            "oa-seal-use",sealUseScenario,"erp-receiving",receivingScenario);
+            "oa-seal-use",sealUseScenario,"erp-receiving",receivingScenario,
+            "erp-payment",paymentScenario,"crm-contract",contractScenario);
     }
 }
