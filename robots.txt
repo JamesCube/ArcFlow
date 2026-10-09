@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://jamescube.github.io/ArcFlow/sitemap.xml

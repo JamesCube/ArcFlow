@@ -1,1 +1,0 @@
-{"name":"arcflow-project-website","version":"1.0.0","private":true,"type":"module","scripts":{"build":"python3 scripts/build.py","check":"python3 scripts/check.py","test":"playwright test"},"devDependencies":{"@playwright/test":"1.63.0"}}
