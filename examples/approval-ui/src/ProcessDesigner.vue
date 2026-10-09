@@ -3,7 +3,9 @@ import { computed, nextTick, reactive, ref, watch } from 'vue'
 import { MAX_APPROVALS, MAX_NAME_LENGTH, approvalNodes, isApproval, approvalMode, participants, setApprovalMode, cloneDefinition, validateDefinition } from './process'
 import { validationText } from './locale'
 import UiIcon from './UiIcon.vue'
-import { createDraftHistory, insertApproval, moveApproval, removeApproval, updateApproval } from './designer-model'
+import ConditionEditor from './ConditionEditor.vue'
+import './routing.css'
+import { createDraftHistory, insertApproval, moveApproval, removeApproval, updateApproval, setRunIf } from './designer-model'
 
 const props = defineProps({ modelValue: Object, published: Object, idPrefix: { type: String, default: '' }, expectedProcessId: { type: String, default: 'leave-approval' }, people: { type: Array, default: () => [] }, editable: Boolean, busy: Boolean, publishing: Boolean, dirty: Boolean, stale: Boolean, initialLocale: { type: String, default: 'zh' }, showLanguage: { type: Boolean, default: true } })
 const emit = defineEmits(['update:modelValue', 'update:locale', 'publish', 'reset'])
@@ -22,6 +24,9 @@ const text = {
   zh: { title:'审批流程设计器', subtitle:'添加审批节点，并选择每一步由谁审批。', language:'中文', published:'已发布', draft:'草稿基于', clean:'与已发布版本一致', dirty:'有未发布修改', readOnly:'只读流程', editorOnly:'仅 Alice 可以编辑与发布流程。', local:'草稿仅保存在当前标签页内存中；刷新网页或退出登录会丢失未发布修改。', snapshots:'已发起的申请保留原流程快照。', stale:'检测到可能有更新版本。请点击页面右上角“更新数据”（不要刷新浏览器），然后重置为已发布流程并重新应用修改。点击“更新数据”会保留当前草稿。', processName:'流程名称', undo:'撤销', redo:'重做', add:'添加审批节点', reset:'重置为已发布', publish:'发布流程', publishing:'正在发布…', sequence:'审批顺序', count:'个审批节点', start:'发起', end:'结束', submit:'提交申请', complete:'流程完成', select:'选择节点，配置审批规则。', inspector:'节点设置', name:'节点名称', mode:'审批方式', single:'单人审批', all:'全员同意（ALL）', any:'任一同意（ANY）', assignee:'审批人', people:'参与人', selected:'已选', minimum:'请选择至少两位不同的参与人。', demo:'演示中可以选择 Bob 和 Carol 审批。同一个人如果出现在多个节点，需要分别审批。', singleRule:'由指定审批人决定；拒绝后流程驳回。', allRule:'全员同意（ALL）：全部同意才通过，任一拒绝即驳回。', anyRule:'任一同意（ANY）：任一同意即通过，全部拒绝才驳回。', up:'上移', down:'下移', remove:'删除节点', required:'流程至少保留一个审批节点。', limit:'已达到 8 个节点上限，请先删除一个节点。', inserted:'已插入新节点，请配置名称和审批人。', removed:'节点已删除，可使用撤销恢复。', reordered:'节点顺序已更新。', undone:'已撤销上一次草稿修改。', redone:'已恢复草稿修改。', resetDone:'已重置草稿，可撤销以恢复之前的修改。', keyboard:'Tab 选择节点，Enter 打开配置。Ctrl/Cmd+Z 撤销画布修改；输入框保留原生撤销。', issues:'发布前请检查', ready:'可以发布', missing:'待配置', fixed:'固定节点', preview:'查看草稿 JSON', version:'版本', stage:'节点', group:'位参与人', rule:'通过规则', modeHint:'切换为多人审批会预选两位示例用户，请在发布前确认参与人。' },
 }
 const t = computed(() => text[locale.value] || text.en)
+const routingSupported = computed(() => ['erp-payment', 'erp-receiving', 'crm-contract'].includes(props.expectedProcessId))
+const conditionCount = computed(() => stages.value.reduce((count, node) => count + (node.runIf?.predicates?.length || 0), 0))
+const canCondition = computed(() => !!selected.value?.runIf || stages.value.filter(node => !node.runIf).length > 1)
 const stages = computed(() => approvalNodes(props.modelValue))
 const selected = computed(() => stages.value.find(node => node.id === selectedId.value))
 const selectedIndex = computed(() => stages.value.findIndex(node => node.id === selectedId.value) + 1)
@@ -36,6 +41,13 @@ const ariaLabel = (kind, index, value = '') => {
 const personName = id => { const p = props.people.find(person => person.id === id); return p?.displayName || p?.name || id }
 const issueText = message => {
   if (locale.value !== 'zh') return message
+  if (message === 'Keep at least one unconditional approval step.') return '至少保留一个始终纳入的无条件审批节点。'
+  if (message === 'Use the same currency for every payment condition in the process.') return '同一流程的所有金额条件必须使用相同币种。'
+  if (/at most 8 condition/.test(message)) return '整个流程最多使用 8 条条件。'
+  if (/flat predicates/.test(message)) return '每个条件节点请选择 ALL 或 ANY，并配置 1–8 条平铺条件，不支持嵌套。'
+  if (/supported condition fields/.test(message)) return '请检查条件值：金额为 0–20,000,000,000，最多两位小数（日元为整数）；条款类型至少选一项。'
+  if (/Start and end nodes cannot/.test(message)) return '发起和结束节点不能配置条件。'
+  if (/Conditions require/.test(message)) return '条件节点必须使用流程版本格式 4。'
   const stage = /approval step (\d+)/i.exec(message)?.[1]
   if (message === 'Give the process a name.') return '请填写流程名称。'
   if (stage && message.startsWith('Give')) return `请填写节点 ${stage} 的名称。`
@@ -49,7 +61,7 @@ const modeName = node => ({ SINGLE:t.value.single, ALL:t.value.all, ANY:t.value.
 const rule = node => ({ SINGLE:t.value.singleRule, ALL:t.value.allRule, ANY:t.value.anyRule })[approvalMode(node)]
 const nodeErrors = node => {
   const index = props.modelValue.nodes.findIndex(n => n.id === node.id)
-  return errors.value.filter(message => message.toLowerCase().includes(`approval step ${index}`))
+  return errors.value.filter(message => message.toLowerCase().includes(`approval step ${index}`) || message.includes(`on step ${node.id}.`))
 }
 const nameError = computed(() => selected.value && nodeErrors(selected.value).find(message => /name/i.test(message)))
 const memberError = computed(() => selected.value && nodeErrors(selected.value).find(message => /participants|Choose Bob|assignee/i.test(message)))
@@ -90,6 +102,7 @@ function mode(value) {
   commit(setApprovalMode(props.modelValue, selectedId.value, value, approvers.value.map(person => person.id)))
   announcement.value = value === 'SINGLE' ? t.value.singleRule : t.value.modeHint
 }
+function condition(value) { commit(setRunIf(props.modelValue, selectedId.value, value)) }
 function assign(value) { commit(updateApproval(props.modelValue, selectedId.value, { assigneeId: value })) }
 function toggleParticipant(id, checked) {
   if (!selected.value) return
@@ -131,6 +144,8 @@ async function keydown(event) {
 }
 async function focusIssue(message) {
   mobileEditing.value = true
+  const conditional = /on step ([A-Za-z][A-Za-z0-9_-]*)\./.exec(message)
+  if (conditional) { selectedId.value = conditional[1]; await nextTick(); inspector.value?.querySelector('.routing-editor input, .routing-editor select')?.focus(); return }
   const match = /approval step (\d+)/i.exec(message)
   if (match) {
     selectedId.value = props.modelValue.nodes[Number(match[1])]?.id
@@ -167,6 +182,7 @@ async function focusIssue(message) {
               <span class="review-card-header"><span class="review-symbol" aria-hidden="true">{{ String(index).padStart(2, '0') }}</span><span class="review-stage-label">{{ t.stage }} {{ index }}</span><span class="mode-pill" :class="approvalMode(node).toLowerCase()">{{ modeName(node) }}</span></span>
               <strong class="review-card-title">{{ node.name.trim() || t.missing }}</strong>
               <span class="review-people"><span class="participant-avatars" aria-hidden="true"><span v-for="id in participants(node)" :key="id" :class="id">{{ personName(id).charAt(0) }}</span></span><span>{{ participants(node).map(personName).join(' + ') || t.missing }}</span><span class="card-open" aria-hidden="true"></span></span>
+              <span v-if="node.runIf" class="condition-badge">{{ locale === 'zh' ? '条件纳入' : 'Conditional' }} · {{ node.runIf.mode }} · {{ node.runIf.predicates.length }}</span>
               <span v-if="nodeErrors(node).length" class="node-error">! {{ t.missing }}</span>
             </button>
             <div v-else class="flow-node boundary-card" :class="node.type" :data-step-id="node.id"><span class="boundary-symbol" aria-hidden="true">{{ node.type === 'start' ? '↗' : '●' }}</span><div><strong>{{ node.type === 'start' ? t.submit : t.complete }}</strong><span>{{ node.type === 'start' ? t.start : t.end }} · {{ t.fixed }}</span></div></div>
@@ -183,6 +199,7 @@ async function focusIssue(message) {
           <fieldset v-else class="participant-picker" :disabled="busy" :aria-label="ariaLabel('members', selectedIndex)" :aria-invalid="!!memberError" :aria-describedby="memberError ? fieldId('step-members-error') : fieldId('participant-help')"><legend>{{ t.people }} <span>{{ participants(selected).length }} {{ t.selected }}</span></legend><label v-for="person in approvers" :key="person.id" class="participant-option"><span class="participant-avatar" :class="person.id" aria-hidden="true">{{ personName(person.id).charAt(0) }}</span><span>{{ personName(person.id) }}</span><input type="checkbox" :checked="participants(selected).includes(person.id)" :aria-label="ariaLabel('member', selectedIndex, personName(person.id))" @change="toggleParticipant(person.id, $event.target.checked)"></label><p :id="fieldId('participant-help')">{{ t.minimum }}</p></fieldset><p v-if="memberError" :id="fieldId('step-members-error')" class="field-error">{{ issueText(memberError) }}</p>
         </template>
         <template v-else><h4 class="readonly-step-name">{{ selected.name }}</h4><p>{{ modeName(selected) }}</p><p>{{ locale === 'en' ? 'Assigned to' : '参与人' }} {{ participants(selected).map(personName).join(' + ') }}</p></template>
+        <ConditionEditor v-if="routingSupported" :model-value="selected.runIf" :process-id="expectedProcessId" :locale="locale" :editable="editable" :busy="busy" :total-predicates="conditionCount" :can-condition="canCondition" @update:model-value="condition" @end-merge="history.endMerge()" />
         <section class="rule-callout"><strong>{{ t.rule }}</strong><p class="group-rule">{{ rule(selected) }}</p></section>
         <p class="directory-note">{{ t.demo }}</p>
         <div v-if="editable" class="step-controls"><button type="button" class="secondary" :aria-label="ariaLabel('up', selectedIndex)" :disabled="busy || selectedIndex === 1" @click="move(-1)">↑ {{ t.up }}</button><button type="button" class="secondary" :aria-label="ariaLabel('down', selectedIndex)" :disabled="busy || selectedIndex === stages.length" @click="move(1)">↓ {{ t.down }}</button><button type="button" class="remove-step" :aria-label="ariaLabel('remove', selectedIndex)" :disabled="busy || stages.length <= 1" :title="stages.length <= 1 ? t.required : t.remove" @click="remove">{{ t.remove }}</button></div>

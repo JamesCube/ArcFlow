@@ -21,11 +21,12 @@ public final class ScenarioCase implements AutoCloseable {
         this.entry=Objects.requireNonNull(entry); this.approvals=Objects.requireNonNull(approvals); this.actors=Objects.requireNonNull(actors);
         if (!entry.initialProcess().id().equals(approvals.process().id())) throw new IllegalArgumentException("Scenario store belongs to another process");
         approvals.requireDocumentType(entry.documentClass());
+        ConditionalRouting.validateForDocument(approvals.process(), entry.documentClass());
     }
     public ScenarioCatalog.Template template(String actor) { active(actor); return entry.template(); }
     public ProcessDefinition process(String actor) { active(actor); return approvals.process(); }
     public ProcessDefinition publish(String actor,int version,ProcessDefinition definition) throws IOException {
-        active(actor); approvals.requireDocumentType(entry.documentClass()); return approvals.publish(actor,version,definition);
+        active(actor); approvals.requireDocumentType(entry.documentClass()); return approvals.publishForDocument(actor,version,definition,entry.documentClass());
     }
     public View submit(String actor,BusinessDocument document,int version,String key) throws IOException {
         active(actor);

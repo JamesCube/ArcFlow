@@ -20,6 +20,8 @@ public final class JsonApprovalStore implements ApprovalStore {
     private record SubmissionBinding(String applicantId, String key, String requestId) {}
     private record KeyedSnapshot(int schemaVersion, ProcessDefinition definition, List<Request> requests,
                                  List<SubmissionBinding> submissions) {}
+    private record RoutingSnapshot(int schemaVersion, ProcessDefinition definition, List<Request> requests,
+                                   List<SubmissionBinding> submissions, List<ProcessDefinition> routingDefinitions) {}
     private record LegacyEvent(String actorId, String action, String comment, String at) {}
     private record LegacyRequest(String id, String title, String reason, int days, String applicantId, String approverId,
                                  String status, String createdAt, String updatedAt, String decision, String comment,
@@ -34,6 +36,7 @@ public final class JsonApprovalStore implements ApprovalStore {
     private final Map<String, NavigableMap<InboxQuery.Position, Request>> handledInbox = new HashMap<>();
     private Map<SubmissionScope, String> submissions = new LinkedHashMap<>();
     private ProcessDefinition definition;
+    private Map<Integer, ProcessDefinition> routingDefinitions = new TreeMap<>();
     private byte[] previousSchemaOriginal;
     private int snapshotSchema = 2;
     private Path migrationBackup;
@@ -42,7 +45,8 @@ public final class JsonApprovalStore implements ApprovalStore {
     public JsonApprovalStore(ObjectMapper mapper, String filename, ProcessDefinition initialDefinition) throws IOException {
         ProcessDefinition.validate(initialDefinition);
         this.definition = initialDefinition;
-        this.snapshotSchema = initialDefinition.schemaVersion();
+        if (initialDefinition.schemaVersion() == 4) routingDefinitions.put(initialDefinition.version(), initialDefinition);
+        this.snapshotSchema = ConditionalRouting.minimumSnapshotSchema(initialDefinition);
         this.mapper = ApprovalService.strictMapper(mapper.copy());
         this.file = Path.of(filename).toAbsolutePath();
         Files.createDirectories(file.getParent());
@@ -148,6 +152,7 @@ public final class JsonApprovalStore implements ApprovalStore {
                 throw new IOException("Invalid snapshot schema");
             int schema = root.get("schemaVersion").intValue();
             List<Request> restored;
+            List<ProcessDefinition> restoredRoutingDefinitions = List.of();
             List<SubmissionBinding> bindings = List.of();
             if (schema == 1) {
                 exactFields(root, "schemaVersion", "requests");
@@ -165,26 +170,44 @@ public final class JsonApprovalStore implements ApprovalStore {
                 restored = migrated;
                 // No rewrite until a successful mutation is requested.
             } else if (schema >= 2 && schema <= BusinessDocumentSchema.MAX_SNAPSHOT_SCHEMA) {
-                if (schema >= 4) exactFields(root, "schemaVersion", "definition", "requests", "submissions");
+                if (schema == 13) exactFields(root, "schemaVersion", "definition", "requests", "submissions", "routingDefinitions");
+                else if (schema >= 4) exactFields(root, "schemaVersion", "definition", "requests", "submissions");
                 else exactFields(root, "schemaVersion", "definition", "requests");
                 validateStoredShapes(root, true);
                 if (schema >= 4) {
                     if (!root.path("submissions").isArray()) throw new IOException("Invalid submission binding collection");
                     for (JsonNode binding : root.get("submissions")) exactFields(binding, "applicantId", "key", "requestId");
-                    KeyedSnapshot snapshot = mapper.treeToValue(root, KeyedSnapshot.class);
-                    definition = snapshot.definition(); restored = snapshot.requests(); bindings = snapshot.submissions();
+                    if (schema == 13) {
+                        if (!root.path("routingDefinitions").isArray()) throw new IOException("Invalid retained routing definitions");
+                        for (JsonNode retained : root.get("routingDefinitions")) validateDefinitionShape(retained);
+                        RoutingSnapshot snapshot = mapper.treeToValue(root, RoutingSnapshot.class);
+                        definition = snapshot.definition(); restored = snapshot.requests(); bindings = snapshot.submissions();
+                        restoredRoutingDefinitions = snapshot.routingDefinitions();
+                    } else {
+                        KeyedSnapshot snapshot = mapper.treeToValue(root, KeyedSnapshot.class);
+                        definition = snapshot.definition(); restored = snapshot.requests(); bindings = snapshot.submissions();
+                    }
                 } else {
                     Snapshot snapshot = mapper.treeToValue(root, Snapshot.class);
                     definition = snapshot.definition(); restored = snapshot.requests();
                 }
                 ProcessDefinition.validate(definition);
-                if (definition.schemaVersion() > schema || restored.stream().anyMatch(r -> r.definition().schemaVersion() > schema))
+                if (ConditionalRouting.minimumSnapshotSchema(definition) > schema || restored.stream().anyMatch(r -> ConditionalRouting.minimumSnapshotSchema(r.definition()) > schema))
                     throw new IOException("Definition exceeds snapshot schema");
             } else throw new IOException("Unsupported snapshot schema");
+            routingDefinitions = new TreeMap<>();
+            for (ProcessDefinition retained : restoredRoutingDefinitions) {
+                ProcessDefinition.validate(retained);
+                if (retained.schemaVersion() != 4 || !retained.id().equals(definition.id()) || retained.version() > definition.version() ||
+                    routingDefinitions.putIfAbsent(retained.version(), retained) != null)
+                    throw new IOException("Invalid, duplicate or future retained routing definition");
+            }
+            requireRetainedRoutingDefinition(definition, routingDefinitions);
             snapshotSchema = schema;
             if (schema < BusinessDocumentSchema.MAX_SNAPSHOT_SCHEMA) previousSchemaOriginal = bytes.clone();
             for (Request r : restored) {
                 ApprovalService.validateRequest(r);
+                requireRetainedRoutingDefinition(r.definition(), routingDefinitions);
                 if (!r.processId().equals(definition.id()) || r.processVersion() > definition.version() || requests.putIfAbsent(r.id(), r) != null)
                     throw new IllegalArgumentException("Duplicate request or future process version");
                 indexRequest(r, true);
@@ -199,6 +222,12 @@ public final class JsonApprovalStore implements ApprovalStore {
                     throw new IllegalArgumentException("Invalid or duplicate submission binding");
             }
         } catch (RuntimeException e) { throw new IOException("Invalid snapshot entry", e); }
+    }
+
+    private static void requireRetainedRoutingDefinition(ProcessDefinition candidate, Map<Integer, ProcessDefinition> retained) throws IOException {
+        ProcessDefinition published = retained.get(candidate.version());
+        if ((candidate.schemaVersion() == 4 || published != null) && !candidate.equals(published))
+            throw new IOException("Routing definition differs from its retained published version");
     }
 
     private static void validateStoredShapes(JsonNode root, boolean current) throws IOException {
@@ -219,6 +248,7 @@ public final class JsonApprovalStore implements ApprovalStore {
                     throw new IOException("Business document requires snapshot schema " + registered.minimumSnapshotSchema());
                 fields.add("business");
             }
+            if (root.path("schemaVersion").intValue() >= 13 && r.has("routing")) fields.add("routing");
             exactFields(r, fields.toArray(String[]::new));
             if (!r.path("history").isArray()) throw new IOException("Invalid history collection");
             for (JsonNode e : r.get("history")) {
@@ -232,9 +262,10 @@ public final class JsonApprovalStore implements ApprovalStore {
         exactFields(d, "schemaVersion", "id", "version", "name", "nodes");
         if (!d.path("nodes").isArray()) throw new IOException("Invalid process nodes");
         for (JsonNode n : d.get("nodes")) {
-            if ("parallelApproval".equals(n.path("type").asText()))
-                exactFields(n, "id", "type", "name", "assigneeId", "assigneeIds", "completionMode");
-            else exactFields(n, "id", "type", "name", "assigneeId");
+            var fields = new ArrayList<>(List.of("id", "type", "name", "assigneeId"));
+            if ("parallelApproval".equals(n.path("type").asText())) fields.addAll(List.of("assigneeIds", "completionMode"));
+            if (d.path("schemaVersion").intValue() == 4 && n.has("runIf")) fields.add("runIf");
+            exactFields(n, fields.toArray(String[]::new));
         }
     }
 
@@ -255,16 +286,25 @@ public final class JsonApprovalStore implements ApprovalStore {
 
     private void commit(ProcessDefinition nextDefinition, Map<String, Request> updated, Map<SubmissionScope, String> nextSubmissions) throws IOException {
         if (closed) throw new IOException("Approval store is closed");
-        int nextSchema = Math.max(2, Math.max(snapshotSchema, nextDefinition.schemaVersion()));
+        int nextSchema = Math.max(2, Math.max(snapshotSchema, ConditionalRouting.minimumSnapshotSchema(nextDefinition)));
         for (Request request : updated.values()) {
-            nextSchema = Math.max(nextSchema, request.definition().schemaVersion());
+            nextSchema = Math.max(nextSchema, ConditionalRouting.minimumSnapshotSchema(request.definition()));
             if (request.business() != null)
                 nextSchema = Math.max(nextSchema, BusinessDocumentSchema.forDocument(request.business()).minimumSnapshotSchema());
         }
         if (!nextSubmissions.isEmpty()) nextSchema = Math.max(4, nextSchema);
-        Object snapshot = nextSchema >= 4
-            ? new KeyedSnapshot(nextSchema, nextDefinition, List.copyOf(updated.values()), nextSubmissions.entrySet().stream()
-                .map(e -> new SubmissionBinding(e.getKey().applicantId(), e.getKey().key(), e.getValue())).toList())
+        var retained = new TreeMap<>(routingDefinitions);
+        if (nextDefinition.schemaVersion() == 4) {
+            ProcessDefinition previous = retained.putIfAbsent(nextDefinition.version(), nextDefinition);
+            if (previous != null && !previous.equals(nextDefinition)) throw new IOException("Conflicting retained routing definition");
+        }
+        requireRetainedRoutingDefinition(nextDefinition, retained);
+        for (Request request : updated.values()) requireRetainedRoutingDefinition(request.definition(), retained);
+        var bindings = nextSubmissions.entrySet().stream()
+            .map(e -> new SubmissionBinding(e.getKey().applicantId(), e.getKey().key(), e.getValue())).toList();
+        Object snapshot = nextSchema == 13
+            ? new RoutingSnapshot(nextSchema, nextDefinition, List.copyOf(updated.values()), bindings, List.copyOf(retained.values()))
+            : nextSchema >= 4 ? new KeyedSnapshot(nextSchema, nextDefinition, List.copyOf(updated.values()), bindings)
             : new Snapshot(nextSchema, nextDefinition, List.copyOf(updated.values()));
         byte[] json = mapper.writerWithDefaultPrettyPrinter().writeValueAsBytes(snapshot);
         if (previousSchemaOriginal != null && snapshotSchema < nextSchema && migrationBackup == null) {
@@ -283,6 +323,7 @@ public final class JsonApprovalStore implements ApprovalStore {
             // No non-atomic fallback: fail closed on unsupported file systems.
             Files.move(temp, file, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
             definition = nextDefinition;
+            routingDefinitions = retained;
             // Publish derived indexes only after the same durable state publication succeeds.
             for (Request next : updated.values()) {
                 Request previous = requests.get(next.id());

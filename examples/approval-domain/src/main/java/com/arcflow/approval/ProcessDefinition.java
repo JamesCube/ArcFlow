@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.util.*;
 
-/** Ordered approval stages. Schema 2 is sequential; schema 3 also permits parallel groups. */
+/** Ordered approval stages. Schema 2 is sequential, schema 3 adds groups, schema 4 adds typed frozen routing. */
 public record ProcessDefinition(
     @JsonProperty(required = true) int schemaVersion,
     @JsonProperty(required = true) String id,
@@ -17,11 +17,15 @@ public record ProcessDefinition(
 
     public record ProcessNode(String id, String type, String name, String assigneeId,
         @JsonInclude(JsonInclude.Include.NON_NULL) List<String> assigneeIds,
-        @JsonInclude(JsonInclude.Include.NON_NULL) String completionMode) {
+        @JsonInclude(JsonInclude.Include.NON_NULL) String completionMode,
+        @JsonInclude(JsonInclude.Include.NON_NULL) ConditionalRouting.Rule runIf) {
         public ProcessNode { if (assigneeIds != null) assigneeIds = List.copyOf(assigneeIds); }
         /** Retains the source and wire contract of existing sequential definitions. */
         public ProcessNode(String id, String type, String name, String assigneeId) {
-            this(id, type, name, assigneeId, null, null);
+            this(id, type, name, assigneeId, null, null, null);
+        }
+        public ProcessNode(String id, String type, String name, String assigneeId, List<String> assigneeIds, String completionMode) {
+            this(id, type, name, assigneeId, assigneeIds, completionMode, null);
         }
         public List<String> participants() { return "parallelApproval".equals(type) ? assigneeIds : assigneeId == null ? List.of() : List.of(assigneeId); }
         public String mode() { return "parallelApproval".equals(type) ? completionMode : "ALL"; }
@@ -31,9 +35,10 @@ public record ProcessDefinition(
         public static ProcessNode fromJson(JsonNode node) {
             if (node == null || !node.isObject()) throw new IllegalArgumentException("Invalid process node");
             String type = string(node, "type");
-            var expected = "parallelApproval".equals(type)
+            var expected = new HashSet<>("parallelApproval".equals(type)
                 ? Set.of("id", "type", "name", "assigneeId", "assigneeIds", "completionMode")
-                : Set.of("id", "type", "name", "assigneeId");
+                : Set.of("id", "type", "name", "assigneeId"));
+            if (node.has("runIf")) expected.add("runIf");
             var actual = new HashSet<String>(); node.fieldNames().forEachRemaining(actual::add);
             if (!actual.equals(expected)) throw new IllegalArgumentException("Missing or unknown process node fields");
             List<String> participants = null;
@@ -46,7 +51,8 @@ public record ProcessDefinition(
                 }
             }
             return new ProcessNode(string(node, "id"), type, string(node, "name"), string(node, "assigneeId"),
-                participants, participants == null ? null : string(node, "completionMode"));
+                participants, participants == null ? null : string(node, "completionMode"),
+                node.has("runIf") ? ConditionalRouting.Rule.fromJson(node.get("runIf")) : null);
         }
         private static String string(JsonNode node, String field) {
             JsonNode value = node.get(field);
@@ -67,9 +73,9 @@ public record ProcessDefinition(
     public List<ProcessNode> approvals() { return nodes.subList(1, nodes.size() - 1); }
 
     public static void validate(ProcessDefinition d) {
-        if (d == null || (d.schemaVersion != 2 && d.schemaVersion != 3) || !validProcessId(d.id) || d.version < 1 ||
+        if (d == null || (d.schemaVersion != 2 && d.schemaVersion != 3 && d.schemaVersion != 4) || !validProcessId(d.id) || d.version < 1 ||
             !validName(d.name) || d.nodes == null || d.nodes.size() < 3 || d.nodes.size() > 10)
-            throw new IllegalArgumentException("Use schema 2 or 3, a stable process ID, a positive version, a name and 1–8 approval stages");
+            throw new IllegalArgumentException("Use schema 2, 3 or 4, a stable process ID, a positive version, a name and 1–8 approval stages");
         var ids = new HashSet<String>();
         for (int i = 0; i < d.nodes.size(); i++) {
             var n = d.nodes.get(i);
@@ -78,14 +84,14 @@ public record ProcessDefinition(
                 throw new IllegalArgumentException("Nodes need unique stable IDs and nonblank names of at most 120 characters");
             if (i == 0 || i == d.nodes.size() - 1) {
                 String boundary = i == 0 ? "start" : "end";
-                if (!boundary.equals(n.id) || !boundary.equals(n.type) || n.assigneeId != null || n.assigneeIds != null || n.completionMode != null)
+                if (!boundary.equals(n.id) || !boundary.equals(n.type) || n.assigneeId != null || n.assigneeIds != null || n.completionMode != null || n.runIf != null)
                     throw new IllegalArgumentException("The first and last nodes must be unassigned start and end nodes");
             } else {
                 if ("start".equals(n.id) || "end".equals(n.id)) throw new IllegalArgumentException("Reserved boundary node ID");
                 if ("approval".equals(n.type)) {
                     if (!validActorId(n.assigneeId) || n.assigneeIds != null || n.completionMode != null)
                         throw new IllegalArgumentException("A sequential approval needs one stable user ID and no group fields");
-                } else if ("parallelApproval".equals(n.type) && d.schemaVersion == 3) {
+                } else if ("parallelApproval".equals(n.type) && d.schemaVersion >= 3) {
                     if (n.assigneeId != null || n.assigneeIds == null || n.assigneeIds.size() < 2 || n.assigneeIds.size() > 16 ||
                         !n.assigneeIds.stream().allMatch(ProcessDefinition::validActorId) ||
                         new HashSet<>(n.assigneeIds).size() != n.assigneeIds.size() ||
@@ -94,6 +100,7 @@ public record ProcessDefinition(
                 } else throw new IllegalArgumentException("Unsupported approval type for this schema");
             }
         }
+        ConditionalRouting.validateDefinition(d);
     }
 
     public static boolean validProcessId(String value) {

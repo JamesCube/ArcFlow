@@ -123,7 +123,7 @@ class SealUseJsonSchemaTest {
 
     @Test void schemaNumbersRejectOverflowCoercionsFutureAndUnsupportedVersionsWithoutWrites() throws Exception {
         Path path = dir.resolve("version-boundaries.json"); byte[] valid = seed(path, 7);
-        for (String schema : List.of("0", "-1", "13", "2147483647", "2147483648", "4294967297", "4294967303", "4294967304",
+        for (String schema : List.of("0", "-1", "14", "2147483647", "2147483648", "4294967297", "4294967303", "4294967304",
             "4294967305", "-4294967287", "999999999999999999999999999999", "9.0", "9e0", "\"9\"", "true", "null", "{}", "[]")) {
             String raw = new String(valid, StandardCharsets.UTF_8).replace("\"schemaVersion\" : 7", "\"schemaVersion\" : " + schema);
             assertNotEquals(new String(valid, StandardCharsets.UTF_8), raw);

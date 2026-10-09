@@ -26,7 +26,7 @@ jobs:
         run: |
           python3 - <<'PYCODE'
           import xml.etree.ElementTree as ET
-          for suite, minimum in (('TravelScenarioApiTest', 5), ('SealUseApiTest', 10), ('ReceivingApiTest', 4), ('UnifiedScenarioApiTest', 1), ('PaymentContractApiTest', 7)):
+          for suite, minimum in (('TravelScenarioApiTest', 5), ('SealUseApiTest', 10), ('ReceivingApiTest', 4), ('UnifiedScenarioApiTest', 1), ('PaymentContractApiTest', 7), ('ConditionalRoutingApiTest', 4)):
               report = ET.parse(f'examples/approval-demo/backend/target/surefire-reports/TEST-com.arcflow.demo.{suite}.xml').getroot()
               assert int(report.attrib['tests']) >= minimum, (suite, report.attrib)
               for key in ('skipped', 'errors', 'failures'):
@@ -43,6 +43,12 @@ jobs:
                           'paymentAllAnyRetryAndAllRejectUseRealIndependentActors',
                           'contractSnapshotPublicationUsesNewAnyOnlyForNewRequests',
                           'authenticationCrossTypeAndWrongProcessDoNotLeakOrMutateRequests'} <= names, names
+              if suite == 'ConditionalRoutingApiTest':
+                  names = {case.attrib['name'] for case in report.findall('testcase')}
+                  assert {'twoBusinessInputsProduceDifferentFrozenPathsAndSkippedOnlyReviewerCannotReadOrVote',
+                          'routesAndEvaluationsAreNeverAcceptedFromClientAndCurrencyMismatchIsExplicit',
+                          'invalidRulesCrossScenarioAndGenericDefinitionsCannotPublish',
+                          'republishAffectsOnlyNewSubmissionWhileOldKeysAndDecisionsKeepRoute'} <= names, names
               print(suite, 'MVC boundary tests executed:', report.attrib)
           PYCODE
       - name: Verify packaged standalone dependency boundary
@@ -139,7 +145,7 @@ jobs:
       - name: Install CJK sans font for bilingual visual checks
         run: sudo apt-get update && sudo apt-get install -y fonts-noto-cjk
       - name: Verify real backend leave and procurement journeys
-        run: npm run test:e2e -- --grep-invert "visual showcase:|crm quote:|gallery:|unified scenario library:|expense scenario:|travel scenario:|travel and expense:|Seal:|receiving:|complex scenarios:"
+        run: npm run test:e2e -- --grep-invert "visual showcase:|crm quote:|gallery:|unified scenario library:|expense scenario:|travel scenario:|travel and expense:|Seal:|receiving:|complex scenarios:|conditional routing:"
         working-directory: examples/approval-ui
       - name: Verify real CRM quote journey and capture bilingual desktop/narrow screenshots
         run: npm run test:e2e -- e2e/crm-quote.spec.mjs --output=crm-visual-results
@@ -425,5 +431,58 @@ jobs:
           path: |
             examples/approval-ui/complex-visual-results/**/*.png
             examples/approval-ui/complex-visual-results/**/*.json
+          if-no-files-found: error
+          retention-days: 7
+
+  conditional-routing-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: examples/approval-ui/package-lock.json
+      - run: mvn --batch-mode --no-transfer-progress install
+      - run: mvn --batch-mode --no-transfer-progress -f examples/approval-domain/pom.xml install
+      - run: mvn --batch-mode --no-transfer-progress -f examples/approval-demo/backend/pom.xml verify
+      - run: npm ci
+        working-directory: examples/approval-ui
+      - run: npx playwright install --with-deps chromium
+        working-directory: examples/approval-ui
+      - name: Install bilingual fonts
+        run: sudo apt-get update && sudo apt-get install -y fonts-noto-cjk
+      - name: Verify conditional client, frozen-route retries and real selected-stage votes
+        run: node scripts/verify-routing-http.mjs ../approval-demo/backend/target/approval-demo-0.1.0-SNAPSHOT.jar
+        working-directory: examples/approval-ui
+      - name: Verify conditional designer and all three real routing journeys on a fresh backend
+        env:
+          ARCFLOW_BACKEND_RUNTIME: declared-Boot-4.1.1
+        run: npm run test:e2e -- e2e/conditional-routing.spec.mjs --output=routing-visual-results
+        working-directory: examples/approval-ui
+      - name: Require actual exact-head images, successful journeys and matching backend provenance
+        env:
+          ARCFLOW_EXPECT_SOURCE_REVISION: ${{ github.event.pull_request.head.sha || github.sha }}
+          ARCFLOW_EXPECT_CAPTURE_RUN_ID: ${{ github.run_id }}
+          ARCFLOW_EXPECT_CAPTURE_RUN_ATTEMPT: ${{ github.run_attempt }}
+          ARCFLOW_EXPECT_CAPTURE_REPOSITORY: ${{ github.repository }}
+        run: node scripts/verify-routing-captures.mjs routing-visual-results
+        working-directory: examples/approval-ui
+      - name: Preserve authenticated routing screenshots and provenance only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: conditional-routing-browser-evidence
+          path: |
+            examples/approval-ui/routing-visual-results/**/*.png
+            examples/approval-ui/routing-visual-results/**/*.json
           if-no-files-found: error
           retention-days: 7

@@ -100,6 +100,7 @@ export function validationText(message, locale = 'en') {
   const exact = {
     'The process template is unavailable. Refresh to load it.': '流程模板不可用，请更新数据后重试。',
     'The process contains unsupported fields.': '流程包含不受支持的字段。',
+    'Use schema 2, 3, or 4, the leave-approval process, and a positive whole-number version.': '请使用支持的流程架构版本、leave-approval 流程及正整数版本号。',
     'Use schema 2 or 3, the leave-approval process, and a positive whole-number version.': '请使用架构版本 2 或 3、leave-approval 流程及正整数版本号。',
     'Give the process a name.': '请填写流程名称。',
     'The process name cannot contain control characters.': '流程名称不能包含控制字符。',
@@ -119,7 +120,7 @@ export function validationText(message, locale = 'en') {
   if (/name cannot contain control characters\.$/.test(message)) return `${label}名称不能包含控制字符。`
   if (/^Keep .+'s name to 120 characters\.$/.test(message)) return `${label}名称不能超过 120 个字符。`
   if (/^Use the supported fields for /.test(message)) return `请为${label}使用受支持的字段。`
-  if (/^Use schema 3 and ALL or ANY/.test(message)) return `${label}须使用架构版本 3 及 ALL 或 ANY 规则，且不能设置单人审批人。`
+  if (/^Use schema 3(?: or 4)? and ALL or ANY/.test(message)) return `${label}须使用架构版本 3 或 4 及 ALL 或 ANY 规则，且不能设置单人审批人。`
   if (/^Choose at least two distinct participants/.test(message)) return `${label}请选择至少两位不同的参与人（Bob 和 Carol）。`
   if (/^Choose Bob or Carol/.test(message)) return `${label}请选择 Bob 或 Carol。`
   // Unknown server/validation text remains explicitly identified as original text.

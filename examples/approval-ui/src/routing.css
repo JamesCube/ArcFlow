@@ -1,0 +1,26 @@
+/* Shared conditional-route inspector and snapshot evidence. */
+.routing-editor { border-top: 1px solid #dfe7f1; margin-top: 20px; padding-top: 18px; min-width: 0; }
+.routing-editor h4 { margin: 0 0 14px; font-size: 15px; }
+.routing-editor label { min-width: 0; }
+.routing-help { color: #61718b; font-size: 12px; line-height: 1.6; margin: 9px 0 14px; }
+.routing-atom { border: 1px solid #dae3ed; border-radius: 12px; background: #f7f9fc; padding: 12px; margin: 14px 0; min-width: 0; }
+.routing-atom legend { font-size: 12px; font-weight: 700; color: #416089; padding: 0 5px; }
+.routing-field { font-size: 13px; margin: 0 0 12px; font-weight: 700; }
+.routing-money { display: grid; grid-template-columns: minmax(80px, .8fr) minmax(0, 1.4fr); gap: 9px; }
+.routing-money input, .routing-money select { width: 100%; min-width: 0; }
+.routing-values label { display: flex; flex-direction: row; align-items: center; gap: 9px; padding: 7px 0; }
+.routing-values input { width: 16px; height: 16px; }
+.routing-values p { font-size: 12px; }
+.condition-badge { align-self: flex-start; padding: 4px 8px; border-radius: 6px; color: #744bbb; background: #eee7f9; font-size: 11px; font-weight: 700; }
+.routing-explanation { padding: 14px; margin-top: 12px; border: 1px solid #dce4ef; background: #f6f8fc; border-radius: 10px; }
+.routing-explanation h4, .routing-explanation p { margin: 0 0 8px; }
+.routing-explanation ul { padding-left: 20px; margin: 8px 0 0; }
+.routing-explanation li { margin: 6px 0; font-size: 12px; overflow-wrap: anywhere; }
+.routing-explanation .routing-fact { display: block; color: #5d6d83; margin-top: 3px; }
+.sf-snapshot-flow > li.condition-skipped, .sf-snapshot-flow > li.conditional-skipped { background: #f5f4fa; border-color: #dbd4e8; }
+.sf-snapshot-flow > li.condition-skipped > header > span, .sf-snapshot-flow > li.conditional-skipped > header > span { color: #72598f; }
+.sf-mini-flow .conditional-skipped { opacity: .72; }
+.sf-mini-flow .conditional-skipped > span { background: #ece8f2; color: #72598f; }
+.sf-route-note { color: #61718b; font-size: 12px; line-height: 1.7; }
+.routing-progress { margin: 8px 0 16px; color: #50657e; font-size: 13px; }
+@media (max-width: 480px) { .routing-money { grid-template-columns: 1fr; } .routing-explanation { padding: 10px; } }
