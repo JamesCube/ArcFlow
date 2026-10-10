@@ -1,5 +1,9 @@
 # 流程设计器图集 / Flow designer gallery
 
+新增五类独立图集：[出差／用印／收货／付款／合同](galleries/README.md)，含各自设计器、真实业务状态与条件路由补充。
+
+Five additional case galleries: [travel, seal use, receiving, payment and contracts](galleries/README.en.md), including their designers, real states and conditional-routing supplements.
+
 [README 中文](../README.md) · [English README](../README.en.md) · [业务全流程](CASE_GALLERY.md) · [能力与边界](CAPABILITIES.md)
 
 从安排步骤到真实发布，按一次编辑过程看设计器。每张图都是运行中的应用、真实控件和合成数据。中文图点击可放大，每节另附英文原图。

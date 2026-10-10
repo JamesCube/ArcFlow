@@ -10,6 +10,8 @@ Start with the leave-request demo: submit a request, switch accounts to approve 
 [![Approval demo CI](https://github.com/JamesCube/ArcFlow/actions/workflows/approval-demo.yml/badge.svg?branch=main)](https://github.com/JamesCube/ArcFlow/actions/workflows/approval-demo.yml)
 [![RuoYi integration](https://github.com/JamesCube/ArcFlow/actions/workflows/ruoyi-integration.yml/badge.svg?branch=main)](https://github.com/JamesCube/ArcFlow/actions/workflows/ruoyi-integration.yml)
 
+Five more galleries: [Travel](docs/galleries/travel.en.md) · [Seal use](docs/galleries/seal-use.en.md) · [Receiving](docs/galleries/receiving.en.md) · [Payment](docs/galleries/payment.en.md) · [Contracts](docs/galleries/contract.en.md). Start with each designer, then inspect forms, validation, saved approvals and conditional routes; [104 historical originals and sources](docs/galleries/README.en.md).
+
 <a id="designer-preview"></a>
 
 ## Start with the flow designer

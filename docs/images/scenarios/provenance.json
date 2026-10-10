@@ -1,0 +1,4174 @@
+{
+  "schemaVersion": 1,
+  "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+  "captureTree": "45de9943bc651bef4e377d5b9c1ef38f52670619",
+  "captureRun": {
+    "id": 37918452685,
+    "attempt": 1,
+    "url": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+    "event": "push",
+    "status": "completed",
+    "conclusion": "success"
+  },
+  "applicationBaseline": {
+    "commit": "199db7548f6faba5dfef105eaaf7311972adb388",
+    "comparison": "Capture application source is unchanged at this documentation baseline; this is not a new capture or an exact-head test pass.",
+    "trees": {
+      "src": "b1e63401f96f18819b214cbac40e89e990e9ba68",
+      "examples/approval-ui": "955a62f838ad3b39a6467549fda9b25ce221bfb2",
+      "examples/approval-domain/src": "5cf2022eb74b71cda6133015bf98bbeb0a302184",
+      "examples/approval-demo/backend/src": "e8b1522fcb12319227aee14ce7f7f5ab1f130b05"
+    }
+  },
+  "scope": "Five synthetic standalone business families; original PNG files, not a count of distinct business scenarios.",
+  "images": [
+    {
+      "file": "docs/images/scenarios/contract/contract-in-any-editor-desktop.png",
+      "scenario": "crm-contract",
+      "suite": "conditional-routing",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11610883325,
+        "name": "conditional-routing-browser-evidence",
+        "sha256": "ef114652847a46c0d6152c967d547d7b0c20b482eedc2e24f50c7cf29e567d0c",
+        "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-28dee-serve-Chinese-mobile-editor/contract-in-any-editor-desktop.png"
+      },
+      "sha256": "8a9dab163492e0232113b14844d2e0975f8621ca0f1ea1ac64313e570726075f",
+      "bytes": 247342,
+      "width": 1440,
+      "height": 2187,
+      "evidence": {
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "0e0307e7-7382-4192-9dc5-6196feaa3999",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "state": "contract-in-any-editor-desktop",
+        "image": "contract-in-any-editor-desktop.png",
+        "imageSHA256": "8a9dab163492e0232113b14844d2e0975f8621ca0f1ea1ac64313e570726075f",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "locale": "en",
+        "fullPage": true,
+        "capturedAt": "2026-10-09T10:39:04.192Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/contract/contract-in-any-editor-zh-390px.png",
+      "scenario": "crm-contract",
+      "suite": "conditional-routing",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11610883325,
+        "name": "conditional-routing-browser-evidence",
+        "sha256": "ef114652847a46c0d6152c967d547d7b0c20b482eedc2e24f50c7cf29e567d0c",
+        "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-28dee-serve-Chinese-mobile-editor/contract-in-any-editor-zh-390px.png"
+      },
+      "sha256": "122b46e0df88a0272fa77769724730cf94630536756898cd1aa91a5b6276bdc6",
+      "bytes": 159680,
+      "width": 390,
+      "height": 2431,
+      "evidence": {
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "0e0307e7-7382-4192-9dc5-6196feaa3999",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "state": "contract-in-any-editor-zh-390px",
+        "image": "contract-in-any-editor-zh-390px.png",
+        "imageSHA256": "122b46e0df88a0272fa77769724730cf94630536756898cd1aa91a5b6276bdc6",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "locale": "zh-CN",
+        "fullPage": true,
+        "capturedAt": "2026-10-09T10:39:04.348Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/contract/contract-standard-complete-desktop.png",
+      "scenario": "crm-contract",
+      "suite": "conditional-routing",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11610883325,
+        "name": "conditional-routing-browser-evidence",
+        "sha256": "ef114652847a46c0d6152c967d547d7b0c20b482eedc2e24f50c7cf29e567d0c",
+        "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-28dee-serve-Chinese-mobile-editor/contract-standard-complete-desktop.png"
+      },
+      "sha256": "f9c67b6adfc3d0030a341242b870b613d58cfc42e99c771fa18e6cfacd7c3d86",
+      "bytes": 285458,
+      "width": 1440,
+      "height": 2859,
+      "evidence": {
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "0e0307e7-7382-4192-9dc5-6196feaa3999",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "state": "contract-standard-complete-desktop",
+        "image": "contract-standard-complete-desktop.png",
+        "imageSHA256": "f9c67b6adfc3d0030a341242b870b613d58cfc42e99c771fa18e6cfacd7c3d86",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "locale": "en",
+        "fullPage": true,
+        "capturedAt": "2026-10-09T10:39:06.464Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/contract/contract-standard-complete-zh-390px.png",
+      "scenario": "crm-contract",
+      "suite": "conditional-routing",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11610883325,
+        "name": "conditional-routing-browser-evidence",
+        "sha256": "ef114652847a46c0d6152c967d547d7b0c20b482eedc2e24f50c7cf29e567d0c",
+        "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-28dee-serve-Chinese-mobile-editor/contract-standard-complete-zh-390px.png"
+      },
+      "sha256": "c07ef104beb4f77305f7e5c8e4c8f5ab673684c8a0a7902be396ce93ddee8129",
+      "bytes": 242539,
+      "width": 390,
+      "height": 3548,
+      "evidence": {
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "0e0307e7-7382-4192-9dc5-6196feaa3999",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "state": "contract-standard-complete-zh-390px",
+        "image": "contract-standard-complete-zh-390px.png",
+        "imageSHA256": "c07ef104beb4f77305f7e5c8e4c8f5ab673684c8a0a7902be396ce93ddee8129",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "locale": "zh-CN",
+        "fullPage": true,
+        "capturedAt": "2026-10-09T10:39:06.609Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/contract/crm-contract-all-partial-en-desktop.png",
+      "scenario": "crm-contract",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611098043,
+        "name": "payment-contract-browser-evidence",
+        "sha256": "358349afcf98ef643e4f6369a317bf1f1b7f04473c8e14971a59554b2fc5b1fa",
+        "originalPath": "complex-scenarios-complex--081a8-viewers-and-bilingual-390px/capture-complex-f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc/crm-contract-all-partial-en-desktop.png"
+      },
+      "sha256": "652660c76aec991ada9855fc3ecc2b4f5bef4f5f68c772116308f82e56ada7eb",
+      "bytes": 312454,
+      "width": 1440,
+      "height": 3004,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "scenario": "crm-contract",
+        "state": "all-partial",
+        "locale": "en",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "crm-contract-all-partial-en-desktop.png",
+        "imageSHA256": "652660c76aec991ada9855fc3ecc2b4f5bef4f5f68c772116308f82e56ada7eb",
+        "capturedAt": "2026-10-09T10:38:26.149Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/contract/crm-contract-all-partial-zh-desktop.png",
+      "scenario": "crm-contract",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611098043,
+        "name": "payment-contract-browser-evidence",
+        "sha256": "358349afcf98ef643e4f6369a317bf1f1b7f04473c8e14971a59554b2fc5b1fa",
+        "originalPath": "complex-scenarios-complex--081a8-viewers-and-bilingual-390px/capture-complex-f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc/crm-contract-all-partial-zh-desktop.png"
+      },
+      "sha256": "8748b9e0101ea3881713a4f6bb06280a9b019820f0527e992b79cbba3c740548",
+      "bytes": 299051,
+      "width": 1440,
+      "height": 2748,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "scenario": "crm-contract",
+        "state": "all-partial",
+        "locale": "zh",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "crm-contract-all-partial-zh-desktop.png",
+        "imageSHA256": "8748b9e0101ea3881713a4f6bb06280a9b019820f0527e992b79cbba3c740548",
+        "capturedAt": "2026-10-09T10:38:26.308Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/contract/crm-contract-any-partial-rejection-en-desktop.png",
+      "scenario": "crm-contract",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611098043,
+        "name": "payment-contract-browser-evidence",
+        "sha256": "358349afcf98ef643e4f6369a317bf1f1b7f04473c8e14971a59554b2fc5b1fa",
+        "originalPath": "complex-scenarios-complex--081a8-viewers-and-bilingual-390px/capture-complex-f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc/crm-contract-any-partial-rejection-en-desktop.png"
+      },
+      "sha256": "15c6f0d2529d7f9352fdea77e689bd507cef4c03c353f0ddebfd0b38945eca8f",
+      "bytes": 367537,
+      "width": 1440,
+      "height": 3453,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "scenario": "crm-contract",
+        "state": "any-partial-rejection",
+        "locale": "en",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "crm-contract-any-partial-rejection-en-desktop.png",
+        "imageSHA256": "15c6f0d2529d7f9352fdea77e689bd507cef4c03c353f0ddebfd0b38945eca8f",
+        "capturedAt": "2026-10-09T10:38:29.625Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/contract/crm-contract-any-partial-rejection-zh-desktop.png",
+      "scenario": "crm-contract",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611098043,
+        "name": "payment-contract-browser-evidence",
+        "sha256": "358349afcf98ef643e4f6369a317bf1f1b7f04473c8e14971a59554b2fc5b1fa",
+        "originalPath": "complex-scenarios-complex--081a8-viewers-and-bilingual-390px/capture-complex-f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc/crm-contract-any-partial-rejection-zh-desktop.png"
+      },
+      "sha256": "764a2d583d2e0a3e02fcd68e1034831c4139163c13a04d52359c0e04188315b7",
+      "bytes": 354289,
+      "width": 1440,
+      "height": 3197,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "scenario": "crm-contract",
+        "state": "any-partial-rejection",
+        "locale": "zh",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "crm-contract-any-partial-rejection-zh-desktop.png",
+        "imageSHA256": "764a2d583d2e0a3e02fcd68e1034831c4139163c13a04d52359c0e04188315b7",
+        "capturedAt": "2026-10-09T10:38:29.803Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/contract/crm-contract-approved-en-desktop.png",
+      "scenario": "crm-contract",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611098043,
+        "name": "payment-contract-browser-evidence",
+        "sha256": "358349afcf98ef643e4f6369a317bf1f1b7f04473c8e14971a59554b2fc5b1fa",
+        "originalPath": "complex-scenarios-complex--081a8-viewers-and-bilingual-390px/capture-complex-f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc/crm-contract-approved-en-desktop.png"
+      },
+      "sha256": "027302bf87718502c47ef85219e051cf94eb6ef4eded0bd72d4c7428b482fde4",
+      "bytes": 344781,
+      "width": 1440,
+      "height": 3159,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "scenario": "crm-contract",
+        "state": "approved",
+        "locale": "en",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "crm-contract-approved-en-desktop.png",
+        "imageSHA256": "027302bf87718502c47ef85219e051cf94eb6ef4eded0bd72d4c7428b482fde4",
+        "capturedAt": "2026-10-09T10:38:27.437Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/contract/crm-contract-approved-zh-desktop.png",
+      "scenario": "crm-contract",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611098043,
+        "name": "payment-contract-browser-evidence",
+        "sha256": "358349afcf98ef643e4f6369a317bf1f1b7f04473c8e14971a59554b2fc5b1fa",
+        "originalPath": "complex-scenarios-complex--081a8-viewers-and-bilingual-390px/capture-complex-f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc/crm-contract-approved-zh-desktop.png"
+      },
+      "sha256": "e5eb27c0dc2a1a45d07308b84c4648b7110fbe53d0960d2191ffff00af3392b6",
+      "bytes": 331936,
+      "width": 1440,
+      "height": 2904,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "scenario": "crm-contract",
+        "state": "approved",
+        "locale": "zh",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "crm-contract-approved-zh-desktop.png",
+        "imageSHA256": "e5eb27c0dc2a1a45d07308b84c4648b7110fbe53d0960d2191ffff00af3392b6",
+        "capturedAt": "2026-10-09T10:38:27.595Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/contract/crm-contract-designer-published-en-desktop.png",
+      "scenario": "crm-contract",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611098043,
+        "name": "payment-contract-browser-evidence",
+        "sha256": "358349afcf98ef643e4f6369a317bf1f1b7f04473c8e14971a59554b2fc5b1fa",
+        "originalPath": "complex-scenarios-complex--081a8-viewers-and-bilingual-390px/capture-complex-f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc/crm-contract-designer-published-en-desktop.png"
+      },
+      "sha256": "836da9f5d77930c641c0a6d5afa2462ccfb98a0c4a6c47899ac2ca8919c78eb9",
+      "bytes": 231451,
+      "width": 1440,
+      "height": 1627,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "scenario": "crm-contract",
+        "state": "designer-published",
+        "locale": "en",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "crm-contract-designer-published-en-desktop.png",
+        "imageSHA256": "836da9f5d77930c641c0a6d5afa2462ccfb98a0c4a6c47899ac2ca8919c78eb9",
+        "capturedAt": "2026-10-09T10:38:24.264Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/contract/crm-contract-designer-published-zh-desktop.png",
+      "scenario": "crm-contract",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611098043,
+        "name": "payment-contract-browser-evidence",
+        "sha256": "358349afcf98ef643e4f6369a317bf1f1b7f04473c8e14971a59554b2fc5b1fa",
+        "originalPath": "complex-scenarios-complex--081a8-viewers-and-bilingual-390px/capture-complex-f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc/crm-contract-designer-published-zh-desktop.png"
+      },
+      "sha256": "579f0aced521775935907480fbdf24404446c83d29786218e5d9c1250b3b298a",
+      "bytes": 223156,
+      "width": 1440,
+      "height": 1565,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "scenario": "crm-contract",
+        "state": "designer-published",
+        "locale": "zh",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "crm-contract-designer-published-zh-desktop.png",
+        "imageSHA256": "579f0aced521775935907480fbdf24404446c83d29786218e5d9c1250b3b298a",
+        "capturedAt": "2026-10-09T10:38:24.396Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/contract/crm-contract-form-filled-en-desktop.png",
+      "scenario": "crm-contract",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611098043,
+        "name": "payment-contract-browser-evidence",
+        "sha256": "358349afcf98ef643e4f6369a317bf1f1b7f04473c8e14971a59554b2fc5b1fa",
+        "originalPath": "complex-scenarios-complex--081a8-viewers-and-bilingual-390px/capture-complex-f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc/crm-contract-form-filled-en-desktop.png"
+      },
+      "sha256": "916a86474014b36519c832d338072657ed582966cf07ca2f5132344ac8ff0a33",
+      "bytes": 322639,
+      "width": 1440,
+      "height": 3631,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "scenario": "crm-contract",
+        "state": "form-filled",
+        "locale": "en",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "crm-contract-form-filled-en-desktop.png",
+        "imageSHA256": "916a86474014b36519c832d338072657ed582966cf07ca2f5132344ac8ff0a33",
+        "capturedAt": "2026-10-09T10:38:22.356Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/contract/crm-contract-form-filled-zh-desktop.png",
+      "scenario": "crm-contract",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611098043,
+        "name": "payment-contract-browser-evidence",
+        "sha256": "358349afcf98ef643e4f6369a317bf1f1b7f04473c8e14971a59554b2fc5b1fa",
+        "originalPath": "complex-scenarios-complex--081a8-viewers-and-bilingual-390px/capture-complex-f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc/crm-contract-form-filled-zh-desktop.png"
+      },
+      "sha256": "35e6de60db68175d0af0d7b6414af29b8e23c48fd190d249735f8c263d108df5",
+      "bytes": 325094,
+      "width": 1440,
+      "height": 3609,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "scenario": "crm-contract",
+        "state": "form-filled",
+        "locale": "zh",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "crm-contract-form-filled-zh-desktop.png",
+        "imageSHA256": "35e6de60db68175d0af0d7b6414af29b8e23c48fd190d249735f8c263d108df5",
+        "capturedAt": "2026-10-09T10:38:22.551Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/contract/crm-contract-form-summary-en-390.png",
+      "scenario": "crm-contract",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611098043,
+        "name": "payment-contract-browser-evidence",
+        "sha256": "358349afcf98ef643e4f6369a317bf1f1b7f04473c8e14971a59554b2fc5b1fa",
+        "originalPath": "complex-scenarios-complex--081a8-viewers-and-bilingual-390px/capture-complex-f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc/crm-contract-form-summary-en-390.png"
+      },
+      "sha256": "720600f44d84b1ea9fef673f0b816b191eb7e0bf44c93049a55d04d21098d9a7",
+      "bytes": 43860,
+      "width": 390,
+      "height": 844,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "scenario": "crm-contract",
+        "state": "form-summary",
+        "locale": "en",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "fullPage": false,
+        "image": "crm-contract-form-summary-en-390.png",
+        "imageSHA256": "720600f44d84b1ea9fef673f0b816b191eb7e0bf44c93049a55d04d21098d9a7",
+        "capturedAt": "2026-10-09T10:38:22.655Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/contract/crm-contract-form-summary-zh-390.png",
+      "scenario": "crm-contract",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611098043,
+        "name": "payment-contract-browser-evidence",
+        "sha256": "358349afcf98ef643e4f6369a317bf1f1b7f04473c8e14971a59554b2fc5b1fa",
+        "originalPath": "complex-scenarios-complex--081a8-viewers-and-bilingual-390px/capture-complex-f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc/crm-contract-form-summary-zh-390.png"
+      },
+      "sha256": "9bc0c6f34a548318428076c2f0931d4855bc156bae1564aa242bad118a5f3fca",
+      "bytes": 45546,
+      "width": 390,
+      "height": 844,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "scenario": "crm-contract",
+        "state": "form-summary",
+        "locale": "zh",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "fullPage": false,
+        "image": "crm-contract-form-summary-zh-390.png",
+        "imageSHA256": "9bc0c6f34a548318428076c2f0931d4855bc156bae1564aa242bad118a5f3fca",
+        "capturedAt": "2026-10-09T10:38:22.721Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/contract/crm-contract-rejected-en-desktop.png",
+      "scenario": "crm-contract",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611098043,
+        "name": "payment-contract-browser-evidence",
+        "sha256": "358349afcf98ef643e4f6369a317bf1f1b7f04473c8e14971a59554b2fc5b1fa",
+        "originalPath": "complex-scenarios-complex--081a8-viewers-and-bilingual-390px/capture-complex-f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc/crm-contract-rejected-en-desktop.png"
+      },
+      "sha256": "88fee5512aa34e00f27153bae244251e93fd08da79fa4f0a82f0d3f9771d8377",
+      "bytes": 359508,
+      "width": 1440,
+      "height": 3297,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "scenario": "crm-contract",
+        "state": "rejected",
+        "locale": "en",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "crm-contract-rejected-en-desktop.png",
+        "imageSHA256": "88fee5512aa34e00f27153bae244251e93fd08da79fa4f0a82f0d3f9771d8377",
+        "capturedAt": "2026-10-09T10:38:31.825Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/contract/crm-contract-rejected-zh-desktop.png",
+      "scenario": "crm-contract",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611098043,
+        "name": "payment-contract-browser-evidence",
+        "sha256": "358349afcf98ef643e4f6369a317bf1f1b7f04473c8e14971a59554b2fc5b1fa",
+        "originalPath": "complex-scenarios-complex--081a8-viewers-and-bilingual-390px/capture-complex-f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc/crm-contract-rejected-zh-desktop.png"
+      },
+      "sha256": "540ff82ba60279e889ad1857adaa04649a219ee19ddc50d633019d3bb4a213a4",
+      "bytes": 348365,
+      "width": 1440,
+      "height": 3042,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "scenario": "crm-contract",
+        "state": "rejected",
+        "locale": "zh",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "crm-contract-rejected-zh-desktop.png",
+        "imageSHA256": "540ff82ba60279e889ad1857adaa04649a219ee19ddc50d633019d3bb4a213a4",
+        "capturedAt": "2026-10-09T10:38:31.984Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/contract/crm-contract-review-controls-en-390.png",
+      "scenario": "crm-contract",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611098043,
+        "name": "payment-contract-browser-evidence",
+        "sha256": "358349afcf98ef643e4f6369a317bf1f1b7f04473c8e14971a59554b2fc5b1fa",
+        "originalPath": "complex-scenarios-complex--081a8-viewers-and-bilingual-390px/capture-complex-f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc/crm-contract-review-controls-en-390.png"
+      },
+      "sha256": "0c04da3813dcb9d6136f74ef7383fe5e055165ab466e33fc6966de66cf7e0745",
+      "bytes": 41806,
+      "width": 390,
+      "height": 844,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "scenario": "crm-contract",
+        "state": "review-controls",
+        "locale": "en",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "fullPage": false,
+        "image": "crm-contract-review-controls-en-390.png",
+        "imageSHA256": "0c04da3813dcb9d6136f74ef7383fe5e055165ab466e33fc6966de66cf7e0745",
+        "capturedAt": "2026-10-09T10:38:25.469Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/contract/crm-contract-review-controls-zh-390.png",
+      "scenario": "crm-contract",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611098043,
+        "name": "payment-contract-browser-evidence",
+        "sha256": "358349afcf98ef643e4f6369a317bf1f1b7f04473c8e14971a59554b2fc5b1fa",
+        "originalPath": "complex-scenarios-complex--081a8-viewers-and-bilingual-390px/capture-complex-f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc/crm-contract-review-controls-zh-390.png"
+      },
+      "sha256": "7ceaa3b8c9564a2ceef031ef07fed789042b5ece93b433022ea4f3783c595e58",
+      "bytes": 42007,
+      "width": 390,
+      "height": 844,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "scenario": "crm-contract",
+        "state": "review-controls",
+        "locale": "zh",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "fullPage": false,
+        "image": "crm-contract-review-controls-zh-390.png",
+        "imageSHA256": "7ceaa3b8c9564a2ceef031ef07fed789042b5ece93b433022ea4f3783c595e58",
+        "capturedAt": "2026-10-09T10:38:25.568Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/contract/crm-contract-saved-original-snapshot-en-desktop.png",
+      "scenario": "crm-contract",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611098043,
+        "name": "payment-contract-browser-evidence",
+        "sha256": "358349afcf98ef643e4f6369a317bf1f1b7f04473c8e14971a59554b2fc5b1fa",
+        "originalPath": "complex-scenarios-complex--081a8-viewers-and-bilingual-390px/capture-complex-f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc/crm-contract-saved-original-snapshot-en-desktop.png"
+      },
+      "sha256": "788a3584baa315889e17a5b681dc13582078d5022da7648c53f07d0cacc144cc",
+      "bytes": 274805,
+      "width": 1440,
+      "height": 2692,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "scenario": "crm-contract",
+        "state": "saved-original-snapshot",
+        "locale": "en",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "crm-contract-saved-original-snapshot-en-desktop.png",
+        "imageSHA256": "788a3584baa315889e17a5b681dc13582078d5022da7648c53f07d0cacc144cc",
+        "capturedAt": "2026-10-09T10:38:24.687Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/contract/crm-contract-saved-original-snapshot-zh-desktop.png",
+      "scenario": "crm-contract",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611098043,
+        "name": "payment-contract-browser-evidence",
+        "sha256": "358349afcf98ef643e4f6369a317bf1f1b7f04473c8e14971a59554b2fc5b1fa",
+        "originalPath": "complex-scenarios-complex--081a8-viewers-and-bilingual-390px/capture-complex-f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc/crm-contract-saved-original-snapshot-zh-desktop.png"
+      },
+      "sha256": "89e7b35ba83f1314f78d9d042a39f8a9e0244d2b4b962c35eb4422ef20ea9b50",
+      "bytes": 263988,
+      "width": 1440,
+      "height": 2436,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "scenario": "crm-contract",
+        "state": "saved-original-snapshot",
+        "locale": "zh",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "crm-contract-saved-original-snapshot-zh-desktop.png",
+        "imageSHA256": "89e7b35ba83f1314f78d9d042a39f8a9e0244d2b4b962c35eb4422ef20ea9b50",
+        "capturedAt": "2026-10-09T10:38:24.830Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/contract/crm-contract-validation-errors-en-desktop.png",
+      "scenario": "crm-contract",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611098043,
+        "name": "payment-contract-browser-evidence",
+        "sha256": "358349afcf98ef643e4f6369a317bf1f1b7f04473c8e14971a59554b2fc5b1fa",
+        "originalPath": "complex-scenarios-complex--081a8-viewers-and-bilingual-390px/capture-complex-f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc/crm-contract-validation-errors-en-desktop.png"
+      },
+      "sha256": "1b88924ded313a7c6afbc2ba393cf60ff2e330c499ff3f02a449b2617793d376",
+      "bytes": 341736,
+      "width": 1440,
+      "height": 3724,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "scenario": "crm-contract",
+        "state": "validation-errors",
+        "locale": "en",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "crm-contract-validation-errors-en-desktop.png",
+        "imageSHA256": "1b88924ded313a7c6afbc2ba393cf60ff2e330c499ff3f02a449b2617793d376",
+        "capturedAt": "2026-10-09T10:38:22.957Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/contract/crm-contract-validation-errors-zh-desktop.png",
+      "scenario": "crm-contract",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611098043,
+        "name": "payment-contract-browser-evidence",
+        "sha256": "358349afcf98ef643e4f6369a317bf1f1b7f04473c8e14971a59554b2fc5b1fa",
+        "originalPath": "complex-scenarios-complex--081a8-viewers-and-bilingual-390px/capture-complex-f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc/crm-contract-validation-errors-zh-desktop.png"
+      },
+      "sha256": "be7397a91e9a40e191a90b16a1d2a16ae56cdc1182cd7c039667e5ac5c3f31af",
+      "bytes": 345700,
+      "width": 1440,
+      "height": 3702,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "scenario": "crm-contract",
+        "state": "validation-errors",
+        "locale": "zh",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "crm-contract-validation-errors-zh-desktop.png",
+        "imageSHA256": "be7397a91e9a40e191a90b16a1d2a16ae56cdc1182cd7c039667e5ac5c3f31af",
+        "capturedAt": "2026-10-09T10:38:23.141Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/payment/erp-payment-all-partial-en-desktop.png",
+      "scenario": "erp-payment",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611098043,
+        "name": "payment-contract-browser-evidence",
+        "sha256": "358349afcf98ef643e4f6369a317bf1f1b7f04473c8e14971a59554b2fc5b1fa",
+        "originalPath": "complex-scenarios-complex--72b52-viewers-and-bilingual-390px/capture-complex-f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc/erp-payment-all-partial-en-desktop.png"
+      },
+      "sha256": "a4e248a63634531a1467953ae978f53037dd164d31af9acae346bc3a0a3d5719",
+      "bytes": 271717,
+      "width": 1440,
+      "height": 2497,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "scenario": "erp-payment",
+        "state": "all-partial",
+        "locale": "en",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "erp-payment-all-partial-en-desktop.png",
+        "imageSHA256": "a4e248a63634531a1467953ae978f53037dd164d31af9acae346bc3a0a3d5719",
+        "capturedAt": "2026-10-09T10:38:12.700Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/payment/erp-payment-all-partial-zh-desktop.png",
+      "scenario": "erp-payment",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611098043,
+        "name": "payment-contract-browser-evidence",
+        "sha256": "358349afcf98ef643e4f6369a317bf1f1b7f04473c8e14971a59554b2fc5b1fa",
+        "originalPath": "complex-scenarios-complex--72b52-viewers-and-bilingual-390px/capture-complex-f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc/erp-payment-all-partial-zh-desktop.png"
+      },
+      "sha256": "96fa3755464003021a40787d95e4c0bc9b286615450690862171c2a9b62b6d11",
+      "bytes": 264501,
+      "width": 1440,
+      "height": 2365,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "scenario": "erp-payment",
+        "state": "all-partial",
+        "locale": "zh",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "erp-payment-all-partial-zh-desktop.png",
+        "imageSHA256": "96fa3755464003021a40787d95e4c0bc9b286615450690862171c2a9b62b6d11",
+        "capturedAt": "2026-10-09T10:38:12.847Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/payment/erp-payment-any-partial-rejection-en-desktop.png",
+      "scenario": "erp-payment",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611098043,
+        "name": "payment-contract-browser-evidence",
+        "sha256": "358349afcf98ef643e4f6369a317bf1f1b7f04473c8e14971a59554b2fc5b1fa",
+        "originalPath": "complex-scenarios-complex--72b52-viewers-and-bilingual-390px/capture-complex-f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc/erp-payment-any-partial-rejection-en-desktop.png"
+      },
+      "sha256": "21688df7b530a40987977c989d4749829b969ab4ab0061084eb0e0b526b465b9",
+      "bytes": 310276,
+      "width": 1440,
+      "height": 2809,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "scenario": "erp-payment",
+        "state": "any-partial-rejection",
+        "locale": "en",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "erp-payment-any-partial-rejection-en-desktop.png",
+        "imageSHA256": "21688df7b530a40987977c989d4749829b969ab4ab0061084eb0e0b526b465b9",
+        "capturedAt": "2026-10-09T10:38:14.210Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/payment/erp-payment-any-partial-rejection-zh-desktop.png",
+      "scenario": "erp-payment",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611098043,
+        "name": "payment-contract-browser-evidence",
+        "sha256": "358349afcf98ef643e4f6369a317bf1f1b7f04473c8e14971a59554b2fc5b1fa",
+        "originalPath": "complex-scenarios-complex--72b52-viewers-and-bilingual-390px/capture-complex-f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc/erp-payment-any-partial-rejection-zh-desktop.png"
+      },
+      "sha256": "9ca06967b3acc04b7ef18f8948aa7a6d9168f0c2a4f05087fa29622ef9a5d36c",
+      "bytes": 301560,
+      "width": 1440,
+      "height": 2677,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "scenario": "erp-payment",
+        "state": "any-partial-rejection",
+        "locale": "zh",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "erp-payment-any-partial-rejection-zh-desktop.png",
+        "imageSHA256": "9ca06967b3acc04b7ef18f8948aa7a6d9168f0c2a4f05087fa29622ef9a5d36c",
+        "capturedAt": "2026-10-09T10:38:14.401Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/payment/erp-payment-approved-en-desktop.png",
+      "scenario": "erp-payment",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611098043,
+        "name": "payment-contract-browser-evidence",
+        "sha256": "358349afcf98ef643e4f6369a317bf1f1b7f04473c8e14971a59554b2fc5b1fa",
+        "originalPath": "complex-scenarios-complex--72b52-viewers-and-bilingual-390px/capture-complex-f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc/erp-payment-approved-en-desktop.png"
+      },
+      "sha256": "8f198b6cddd1a50ff6a259edcd08539dfc2957d703c32520b994a04cdb2db1dd",
+      "bytes": 347036,
+      "width": 1440,
+      "height": 2965,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "scenario": "erp-payment",
+        "state": "approved",
+        "locale": "en",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "erp-payment-approved-en-desktop.png",
+        "imageSHA256": "8f198b6cddd1a50ff6a259edcd08539dfc2957d703c32520b994a04cdb2db1dd",
+        "capturedAt": "2026-10-09T10:38:15.682Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/payment/erp-payment-approved-zh-desktop.png",
+      "scenario": "erp-payment",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611098043,
+        "name": "payment-contract-browser-evidence",
+        "sha256": "358349afcf98ef643e4f6369a317bf1f1b7f04473c8e14971a59554b2fc5b1fa",
+        "originalPath": "complex-scenarios-complex--72b52-viewers-and-bilingual-390px/capture-complex-f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc/erp-payment-approved-zh-desktop.png"
+      },
+      "sha256": "5979dbdbe3167817a29548231a28bd1e37f4478371cedb573b71f0b9a08427ad",
+      "bytes": 336333,
+      "width": 1440,
+      "height": 2833,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "scenario": "erp-payment",
+        "state": "approved",
+        "locale": "zh",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "erp-payment-approved-zh-desktop.png",
+        "imageSHA256": "5979dbdbe3167817a29548231a28bd1e37f4478371cedb573b71f0b9a08427ad",
+        "capturedAt": "2026-10-09T10:38:15.873Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/payment/erp-payment-designer-published-en-desktop.png",
+      "scenario": "erp-payment",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611098043,
+        "name": "payment-contract-browser-evidence",
+        "sha256": "358349afcf98ef643e4f6369a317bf1f1b7f04473c8e14971a59554b2fc5b1fa",
+        "originalPath": "complex-scenarios-complex--72b52-viewers-and-bilingual-390px/capture-complex-f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc/erp-payment-designer-published-en-desktop.png"
+      },
+      "sha256": "afbf07ac76117ad4a32c34e0f6119b1d5b58e32d03adfb8930100ea61732121f",
+      "bytes": 211994,
+      "width": 1440,
+      "height": 1517,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "scenario": "erp-payment",
+        "state": "designer-published",
+        "locale": "en",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "erp-payment-designer-published-en-desktop.png",
+        "imageSHA256": "afbf07ac76117ad4a32c34e0f6119b1d5b58e32d03adfb8930100ea61732121f",
+        "capturedAt": "2026-10-09T10:38:10.993Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/payment/erp-payment-designer-published-zh-desktop.png",
+      "scenario": "erp-payment",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611098043,
+        "name": "payment-contract-browser-evidence",
+        "sha256": "358349afcf98ef643e4f6369a317bf1f1b7f04473c8e14971a59554b2fc5b1fa",
+        "originalPath": "complex-scenarios-complex--72b52-viewers-and-bilingual-390px/capture-complex-f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc/erp-payment-designer-published-zh-desktop.png"
+      },
+      "sha256": "7f9a5f0db4067296dc65d24a9e87d8d442b8ea68c4cdf6ac55d644fa7a73129d",
+      "bytes": 204905,
+      "width": 1440,
+      "height": 1455,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "scenario": "erp-payment",
+        "state": "designer-published",
+        "locale": "zh",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "erp-payment-designer-published-zh-desktop.png",
+        "imageSHA256": "7f9a5f0db4067296dc65d24a9e87d8d442b8ea68c4cdf6ac55d644fa7a73129d",
+        "capturedAt": "2026-10-09T10:38:11.124Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/payment/erp-payment-form-filled-en-desktop.png",
+      "scenario": "erp-payment",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611098043,
+        "name": "payment-contract-browser-evidence",
+        "sha256": "358349afcf98ef643e4f6369a317bf1f1b7f04473c8e14971a59554b2fc5b1fa",
+        "originalPath": "complex-scenarios-complex--72b52-viewers-and-bilingual-390px/capture-complex-f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc/erp-payment-form-filled-en-desktop.png"
+      },
+      "sha256": "006d0f8f33d79816753f7c2b85baa41a9bab7502089c99014e499afa80ff1f46",
+      "bytes": 291175,
+      "width": 1440,
+      "height": 2921,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "scenario": "erp-payment",
+        "state": "form-filled",
+        "locale": "en",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "erp-payment-form-filled-en-desktop.png",
+        "imageSHA256": "006d0f8f33d79816753f7c2b85baa41a9bab7502089c99014e499afa80ff1f46",
+        "capturedAt": "2026-10-09T10:38:09.234Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/payment/erp-payment-form-filled-zh-desktop.png",
+      "scenario": "erp-payment",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611098043,
+        "name": "payment-contract-browser-evidence",
+        "sha256": "358349afcf98ef643e4f6369a317bf1f1b7f04473c8e14971a59554b2fc5b1fa",
+        "originalPath": "complex-scenarios-complex--72b52-viewers-and-bilingual-390px/capture-complex-f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc/erp-payment-form-filled-zh-desktop.png"
+      },
+      "sha256": "c4c694e667b0e06f07aff707cf71a55cfe07276de07c7eeceb93b0cea21fdbd1",
+      "bytes": 284382,
+      "width": 1440,
+      "height": 2921,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "scenario": "erp-payment",
+        "state": "form-filled",
+        "locale": "zh",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "erp-payment-form-filled-zh-desktop.png",
+        "imageSHA256": "c4c694e667b0e06f07aff707cf71a55cfe07276de07c7eeceb93b0cea21fdbd1",
+        "capturedAt": "2026-10-09T10:38:09.395Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/payment/erp-payment-form-summary-en-390.png",
+      "scenario": "erp-payment",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611098043,
+        "name": "payment-contract-browser-evidence",
+        "sha256": "358349afcf98ef643e4f6369a317bf1f1b7f04473c8e14971a59554b2fc5b1fa",
+        "originalPath": "complex-scenarios-complex--72b52-viewers-and-bilingual-390px/capture-complex-f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc/erp-payment-form-summary-en-390.png"
+      },
+      "sha256": "7ad778b269128503c5c52168c4e3f0ab239bcc867b4f9901fbac87d8d187cac7",
+      "bytes": 44950,
+      "width": 390,
+      "height": 844,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "scenario": "erp-payment",
+        "state": "form-summary",
+        "locale": "en",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "fullPage": false,
+        "image": "erp-payment-form-summary-en-390.png",
+        "imageSHA256": "7ad778b269128503c5c52168c4e3f0ab239bcc867b4f9901fbac87d8d187cac7",
+        "capturedAt": "2026-10-09T10:38:09.505Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/payment/erp-payment-form-summary-zh-390.png",
+      "scenario": "erp-payment",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611098043,
+        "name": "payment-contract-browser-evidence",
+        "sha256": "358349afcf98ef643e4f6369a317bf1f1b7f04473c8e14971a59554b2fc5b1fa",
+        "originalPath": "complex-scenarios-complex--72b52-viewers-and-bilingual-390px/capture-complex-f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc/erp-payment-form-summary-zh-390.png"
+      },
+      "sha256": "b31d8ba81f99e3de68a46d21defa8db8e29da111864c7644b22469eae7aa8220",
+      "bytes": 44231,
+      "width": 390,
+      "height": 844,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "scenario": "erp-payment",
+        "state": "form-summary",
+        "locale": "zh",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "fullPage": false,
+        "image": "erp-payment-form-summary-zh-390.png",
+        "imageSHA256": "b31d8ba81f99e3de68a46d21defa8db8e29da111864c7644b22469eae7aa8220",
+        "capturedAt": "2026-10-09T10:38:09.571Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/payment/erp-payment-rejected-en-desktop.png",
+      "scenario": "erp-payment",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611098043,
+        "name": "payment-contract-browser-evidence",
+        "sha256": "358349afcf98ef643e4f6369a317bf1f1b7f04473c8e14971a59554b2fc5b1fa",
+        "originalPath": "complex-scenarios-complex--72b52-viewers-and-bilingual-390px/capture-complex-f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc/erp-payment-rejected-en-desktop.png"
+      },
+      "sha256": "d78aff7bd53c2d0aeba7152c9427924108be4a4981aa32055e2107d8bcfd31eb",
+      "bytes": 281408,
+      "width": 1440,
+      "height": 2449,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "scenario": "erp-payment",
+        "state": "rejected",
+        "locale": "en",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "erp-payment-rejected-en-desktop.png",
+        "imageSHA256": "d78aff7bd53c2d0aeba7152c9427924108be4a4981aa32055e2107d8bcfd31eb",
+        "capturedAt": "2026-10-09T10:38:18.482Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/payment/erp-payment-rejected-zh-desktop.png",
+      "scenario": "erp-payment",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611098043,
+        "name": "payment-contract-browser-evidence",
+        "sha256": "358349afcf98ef643e4f6369a317bf1f1b7f04473c8e14971a59554b2fc5b1fa",
+        "originalPath": "complex-scenarios-complex--72b52-viewers-and-bilingual-390px/capture-complex-f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc/erp-payment-rejected-zh-desktop.png"
+      },
+      "sha256": "8e5ccfa35f421e3fea80f5c88f398e35a6d800541ed12cdce215b7cc6323e5f7",
+      "bytes": 275553,
+      "width": 1440,
+      "height": 2317,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "scenario": "erp-payment",
+        "state": "rejected",
+        "locale": "zh",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "erp-payment-rejected-zh-desktop.png",
+        "imageSHA256": "8e5ccfa35f421e3fea80f5c88f398e35a6d800541ed12cdce215b7cc6323e5f7",
+        "capturedAt": "2026-10-09T10:38:18.630Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/payment/erp-payment-review-controls-en-390.png",
+      "scenario": "erp-payment",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611098043,
+        "name": "payment-contract-browser-evidence",
+        "sha256": "358349afcf98ef643e4f6369a317bf1f1b7f04473c8e14971a59554b2fc5b1fa",
+        "originalPath": "complex-scenarios-complex--72b52-viewers-and-bilingual-390px/capture-complex-f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc/erp-payment-review-controls-en-390.png"
+      },
+      "sha256": "db6c16804ba1535425d56a3acc878ac7d1308d5d4ff1eb37b997b04760cd8ce0",
+      "bytes": 46518,
+      "width": 390,
+      "height": 844,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "scenario": "erp-payment",
+        "state": "review-controls",
+        "locale": "en",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "fullPage": false,
+        "image": "erp-payment-review-controls-en-390.png",
+        "imageSHA256": "db6c16804ba1535425d56a3acc878ac7d1308d5d4ff1eb37b997b04760cd8ce0",
+        "capturedAt": "2026-10-09T10:38:12.119Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/payment/erp-payment-review-controls-zh-390.png",
+      "scenario": "erp-payment",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611098043,
+        "name": "payment-contract-browser-evidence",
+        "sha256": "358349afcf98ef643e4f6369a317bf1f1b7f04473c8e14971a59554b2fc5b1fa",
+        "originalPath": "complex-scenarios-complex--72b52-viewers-and-bilingual-390px/capture-complex-f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc/erp-payment-review-controls-zh-390.png"
+      },
+      "sha256": "0d4ad430fafbe17fca1176e2aa7aea1fbc105679a76a0bde8e69147f92e02a00",
+      "bytes": 44923,
+      "width": 390,
+      "height": 844,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "scenario": "erp-payment",
+        "state": "review-controls",
+        "locale": "zh",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "fullPage": false,
+        "image": "erp-payment-review-controls-zh-390.png",
+        "imageSHA256": "0d4ad430fafbe17fca1176e2aa7aea1fbc105679a76a0bde8e69147f92e02a00",
+        "capturedAt": "2026-10-09T10:38:12.219Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/payment/erp-payment-saved-original-snapshot-en-desktop.png",
+      "scenario": "erp-payment",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611098043,
+        "name": "payment-contract-browser-evidence",
+        "sha256": "358349afcf98ef643e4f6369a317bf1f1b7f04473c8e14971a59554b2fc5b1fa",
+        "originalPath": "complex-scenarios-complex--72b52-viewers-and-bilingual-390px/capture-complex-f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc/erp-payment-saved-original-snapshot-en-desktop.png"
+      },
+      "sha256": "312879b7a33cb2f25c8a1d5ac778e0e61ca50dd579b518b681c07026ab4df801",
+      "bytes": 254267,
+      "width": 1440,
+      "height": 2341,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "scenario": "erp-payment",
+        "state": "saved-original-snapshot",
+        "locale": "en",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "erp-payment-saved-original-snapshot-en-desktop.png",
+        "imageSHA256": "312879b7a33cb2f25c8a1d5ac778e0e61ca50dd579b518b681c07026ab4df801",
+        "capturedAt": "2026-10-09T10:38:11.432Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/payment/erp-payment-saved-original-snapshot-zh-desktop.png",
+      "scenario": "erp-payment",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611098043,
+        "name": "payment-contract-browser-evidence",
+        "sha256": "358349afcf98ef643e4f6369a317bf1f1b7f04473c8e14971a59554b2fc5b1fa",
+        "originalPath": "complex-scenarios-complex--72b52-viewers-and-bilingual-390px/capture-complex-f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc/erp-payment-saved-original-snapshot-zh-desktop.png"
+      },
+      "sha256": "47f42c2e2f6f7df1c6d06899a397ea392bc5e32885c0091b8ff4e6558beac8ee",
+      "bytes": 246257,
+      "width": 1440,
+      "height": 2209,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "scenario": "erp-payment",
+        "state": "saved-original-snapshot",
+        "locale": "zh",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "erp-payment-saved-original-snapshot-zh-desktop.png",
+        "imageSHA256": "47f42c2e2f6f7df1c6d06899a397ea392bc5e32885c0091b8ff4e6558beac8ee",
+        "capturedAt": "2026-10-09T10:38:11.577Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/payment/erp-payment-validation-errors-en-desktop.png",
+      "scenario": "erp-payment",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611098043,
+        "name": "payment-contract-browser-evidence",
+        "sha256": "358349afcf98ef643e4f6369a317bf1f1b7f04473c8e14971a59554b2fc5b1fa",
+        "originalPath": "complex-scenarios-complex--72b52-viewers-and-bilingual-390px/capture-complex-f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc/erp-payment-validation-errors-en-desktop.png"
+      },
+      "sha256": "28b238c2ef45ccee367164e3f6f5acf5532648c7f5a56c04d56a020f8b14a57e",
+      "bytes": 290122,
+      "width": 1440,
+      "height": 2968,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "scenario": "erp-payment",
+        "state": "validation-errors",
+        "locale": "en",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "erp-payment-validation-errors-en-desktop.png",
+        "imageSHA256": "28b238c2ef45ccee367164e3f6f5acf5532648c7f5a56c04d56a020f8b14a57e",
+        "capturedAt": "2026-10-09T10:38:09.790Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/payment/erp-payment-validation-errors-zh-desktop.png",
+      "scenario": "erp-payment",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611098043,
+        "name": "payment-contract-browser-evidence",
+        "sha256": "358349afcf98ef643e4f6369a317bf1f1b7f04473c8e14971a59554b2fc5b1fa",
+        "originalPath": "complex-scenarios-complex--72b52-viewers-and-bilingual-390px/capture-complex-f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc/erp-payment-validation-errors-zh-desktop.png"
+      },
+      "sha256": "aa237b48511e70a73ed9c1d253393dced5c91267635e0cc85c59a4a74a367bda",
+      "bytes": 283822,
+      "width": 1440,
+      "height": 2968,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "f4154b6f-2ce9-40ba-9bb7-53e121a6ccfc",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "scenario": "erp-payment",
+        "state": "validation-errors",
+        "locale": "zh",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "erp-payment-validation-errors-zh-desktop.png",
+        "imageSHA256": "aa237b48511e70a73ed9c1d253393dced5c91267635e0cc85c59a4a74a367bda",
+        "capturedAt": "2026-10-09T10:38:09.955Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/payment/payment-conditions-en-desktop.png",
+      "scenario": "erp-payment",
+      "suite": "conditional-routing",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11610883325,
+        "name": "conditional-routing-browser-evidence",
+        "sha256": "ef114652847a46c0d6152c967d547d7b0c20b482eedc2e24f50c7cf29e567d0c",
+        "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-6837b--mismatch-and-render-mobile/payment-conditions-en-desktop.png"
+      },
+      "sha256": "fbeb614b6314df0e50077f338a32c6a77324541605caac725690d4fa2816c43a",
+      "bytes": 264537,
+      "width": 1440,
+      "height": 2172,
+      "evidence": {
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "0e0307e7-7382-4192-9dc5-6196feaa3999",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "state": "payment-conditions-en-desktop",
+        "image": "payment-conditions-en-desktop.png",
+        "imageSHA256": "fbeb614b6314df0e50077f338a32c6a77324541605caac725690d4fa2816c43a",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "locale": "en",
+        "fullPage": true,
+        "capturedAt": "2026-10-09T10:38:56.681Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/payment/payment-conditions-zh-390px.png",
+      "scenario": "erp-payment",
+      "suite": "conditional-routing",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11610883325,
+        "name": "conditional-routing-browser-evidence",
+        "sha256": "ef114652847a46c0d6152c967d547d7b0c20b482eedc2e24f50c7cf29e567d0c",
+        "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-6837b--mismatch-and-render-mobile/payment-conditions-zh-390px.png"
+      },
+      "sha256": "971f82ece66978be5f03450f327f7aa9b5d5ff6f9d3366bb9ab8e75c275bf5f2",
+      "bytes": 171194,
+      "width": 390,
+      "height": 2501,
+      "evidence": {
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "0e0307e7-7382-4192-9dc5-6196feaa3999",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "state": "payment-conditions-zh-390px",
+        "image": "payment-conditions-zh-390px.png",
+        "imageSHA256": "971f82ece66978be5f03450f327f7aa9b5d5ff6f9d3366bb9ab8e75c275bf5f2",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "locale": "zh-CN",
+        "fullPage": true,
+        "capturedAt": "2026-10-09T10:38:56.849Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/payment/payment-high-complete-desktop.png",
+      "scenario": "erp-payment",
+      "suite": "conditional-routing",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11610883325,
+        "name": "conditional-routing-browser-evidence",
+        "sha256": "ef114652847a46c0d6152c967d547d7b0c20b482eedc2e24f50c7cf29e567d0c",
+        "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-6837b--mismatch-and-render-mobile/payment-high-complete-desktop.png"
+      },
+      "sha256": "4e444bf5289b5bd779b351abba9a7fd563d0279f77bac933f35823582243c0ad",
+      "bytes": 290969,
+      "width": 1440,
+      "height": 2771,
+      "evidence": {
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "0e0307e7-7382-4192-9dc5-6196feaa3999",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "state": "payment-high-complete-desktop",
+        "image": "payment-high-complete-desktop.png",
+        "imageSHA256": "4e444bf5289b5bd779b351abba9a7fd563d0279f77bac933f35823582243c0ad",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "locale": "en",
+        "fullPage": true,
+        "capturedAt": "2026-10-09T10:39:00.462Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/payment/payment-low-complete-zh-390px.png",
+      "scenario": "erp-payment",
+      "suite": "conditional-routing",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11610883325,
+        "name": "conditional-routing-browser-evidence",
+        "sha256": "ef114652847a46c0d6152c967d547d7b0c20b482eedc2e24f50c7cf29e567d0c",
+        "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-6837b--mismatch-and-render-mobile/payment-low-complete-zh-390px.png"
+      },
+      "sha256": "fcd2cf6728b4780f593f6f6e33e4a7b2d38feb5e56c4202760a5f84b3f5c2b92",
+      "bytes": 246593,
+      "width": 390,
+      "height": 3602,
+      "evidence": {
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "0e0307e7-7382-4192-9dc5-6196feaa3999",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "state": "payment-low-complete-zh-390px",
+        "image": "payment-low-complete-zh-390px.png",
+        "imageSHA256": "fcd2cf6728b4780f593f6f6e33e4a7b2d38feb5e56c4202760a5f84b3f5c2b92",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "locale": "zh-CN",
+        "fullPage": true,
+        "capturedAt": "2026-10-09T10:39:01.131Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/payment/payment-low-frozen-desktop.png",
+      "scenario": "erp-payment",
+      "suite": "conditional-routing",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11610883325,
+        "name": "conditional-routing-browser-evidence",
+        "sha256": "ef114652847a46c0d6152c967d547d7b0c20b482eedc2e24f50c7cf29e567d0c",
+        "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-6837b--mismatch-and-render-mobile/payment-low-frozen-desktop.png"
+      },
+      "sha256": "0824d3b56a1002d7fc8bfb76c6e59acde43cb09a92fb2f8675d244c01764ea27",
+      "bytes": 291201,
+      "width": 1440,
+      "height": 2515,
+      "evidence": {
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "0e0307e7-7382-4192-9dc5-6196feaa3999",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "state": "payment-low-frozen-desktop",
+        "image": "payment-low-frozen-desktop.png",
+        "imageSHA256": "0824d3b56a1002d7fc8bfb76c6e59acde43cb09a92fb2f8675d244c01764ea27",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "locale": "en",
+        "fullPage": true,
+        "capturedAt": "2026-10-09T10:38:57.587Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/receiving/01-form-en-desktop.png",
+      "scenario": "erp-receiving",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11610223049,
+        "name": "receiving-browser-evidence",
+        "sha256": "b144edc9288322de75620d274d89370621ccc1862299bdcb2b892f4823990908",
+        "originalPath": "receiving-receiving-real-A-d9495-nd-bilingual-390px-evidence/01-form-en-desktop.png"
+      },
+      "sha256": "dd598377e583b4b8ab140f7547dc66690decd1a2fddb668d38a7b27dd780ab7c",
+      "bytes": 229051,
+      "width": 1440,
+      "height": 2159,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceTreeClean": true,
+        "verificationBackend": "declared-Boot-4.1.1",
+        "githubRun": {
+          "id": "37918452685",
+          "repository": "JamesCube/ArcFlow",
+          "attempt": "1"
+        },
+        "scenario": "erp-receiving",
+        "state": "01-form-en-desktop",
+        "capturedAt": "2026-10-09T10:38:33.578Z",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "locale": "en",
+        "fullPage": true,
+        "image": "01-form-en-desktop.png",
+        "imageSHA256": "dd598377e583b4b8ab140f7547dc66690decd1a2fddb668d38a7b27dd780ab7c",
+        "retry": 0
+      }
+    },
+    {
+      "file": "docs/images/scenarios/receiving/02-form-zh-desktop.png",
+      "scenario": "erp-receiving",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11610223049,
+        "name": "receiving-browser-evidence",
+        "sha256": "b144edc9288322de75620d274d89370621ccc1862299bdcb2b892f4823990908",
+        "originalPath": "receiving-receiving-real-A-d9495-nd-bilingual-390px-evidence/02-form-zh-desktop.png"
+      },
+      "sha256": "d601237f15f066ee3f0794b6aca4fd595a112b3dc8bcdd2baf970617223144d3",
+      "bytes": 229755,
+      "width": 1440,
+      "height": 2159,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceTreeClean": true,
+        "verificationBackend": "declared-Boot-4.1.1",
+        "githubRun": {
+          "id": "37918452685",
+          "repository": "JamesCube/ArcFlow",
+          "attempt": "1"
+        },
+        "scenario": "erp-receiving",
+        "state": "02-form-zh-desktop",
+        "capturedAt": "2026-10-09T10:38:33.743Z",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "locale": "zh-CN",
+        "fullPage": true,
+        "image": "02-form-zh-desktop.png",
+        "imageSHA256": "d601237f15f066ee3f0794b6aca4fd595a112b3dc8bcdd2baf970617223144d3",
+        "retry": 0
+      }
+    },
+    {
+      "file": "docs/images/scenarios/receiving/03-form-zh-390.png",
+      "scenario": "erp-receiving",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11610223049,
+        "name": "receiving-browser-evidence",
+        "sha256": "b144edc9288322de75620d274d89370621ccc1862299bdcb2b892f4823990908",
+        "originalPath": "receiving-receiving-real-A-d9495-nd-bilingual-390px-evidence/03-form-zh-390.png"
+      },
+      "sha256": "10785692981f53091e34255269a08079668ba3fe34821cccf53cf694edaa15ab",
+      "bytes": 210006,
+      "width": 390,
+      "height": 3331,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceTreeClean": true,
+        "verificationBackend": "declared-Boot-4.1.1",
+        "githubRun": {
+          "id": "37918452685",
+          "repository": "JamesCube/ArcFlow",
+          "attempt": "1"
+        },
+        "scenario": "erp-receiving",
+        "state": "03-form-zh-390",
+        "capturedAt": "2026-10-09T10:38:33.867Z",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "locale": "zh-CN",
+        "fullPage": true,
+        "image": "03-form-zh-390.png",
+        "imageSHA256": "10785692981f53091e34255269a08079668ba3fe34821cccf53cf694edaa15ab",
+        "retry": 0
+      }
+    },
+    {
+      "file": "docs/images/scenarios/receiving/04-quantity-error-en-desktop.png",
+      "scenario": "erp-receiving",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11610223049,
+        "name": "receiving-browser-evidence",
+        "sha256": "b144edc9288322de75620d274d89370621ccc1862299bdcb2b892f4823990908",
+        "originalPath": "receiving-receiving-real-A-d9495-nd-bilingual-390px-evidence/04-quantity-error-en-desktop.png"
+      },
+      "sha256": "d8355077fb22a1cf36e07c46f29464a3d0f15dd7b8919d50767ffd4dc7bd8813",
+      "bytes": 239497,
+      "width": 1440,
+      "height": 2270,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceTreeClean": true,
+        "verificationBackend": "declared-Boot-4.1.1",
+        "githubRun": {
+          "id": "37918452685",
+          "repository": "JamesCube/ArcFlow",
+          "attempt": "1"
+        },
+        "scenario": "erp-receiving",
+        "state": "04-quantity-error-en-desktop",
+        "capturedAt": "2026-10-09T10:38:34.095Z",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "locale": "en",
+        "fullPage": true,
+        "image": "04-quantity-error-en-desktop.png",
+        "imageSHA256": "d8355077fb22a1cf36e07c46f29464a3d0f15dd7b8919d50767ffd4dc7bd8813",
+        "retry": 0
+      }
+    },
+    {
+      "file": "docs/images/scenarios/receiving/05-quantity-error-zh-390.png",
+      "scenario": "erp-receiving",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11610223049,
+        "name": "receiving-browser-evidence",
+        "sha256": "b144edc9288322de75620d274d89370621ccc1862299bdcb2b892f4823990908",
+        "originalPath": "receiving-receiving-real-A-d9495-nd-bilingual-390px-evidence/05-quantity-error-zh-390.png"
+      },
+      "sha256": "3aaa2cd317d9f18d43000ca22fe9ae8e87f3cb7f3cf2dd7b1489f6642ef98d42",
+      "bytes": 220052,
+      "width": 390,
+      "height": 3438,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceTreeClean": true,
+        "verificationBackend": "declared-Boot-4.1.1",
+        "githubRun": {
+          "id": "37918452685",
+          "repository": "JamesCube/ArcFlow",
+          "attempt": "1"
+        },
+        "scenario": "erp-receiving",
+        "state": "05-quantity-error-zh-390",
+        "capturedAt": "2026-10-09T10:38:34.237Z",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "locale": "zh-CN",
+        "fullPage": true,
+        "image": "05-quantity-error-zh-390.png",
+        "imageSHA256": "3aaa2cd317d9f18d43000ca22fe9ae8e87f3cb7f3cf2dd7b1489f6642ef98d42",
+        "retry": 0
+      }
+    },
+    {
+      "file": "docs/images/scenarios/receiving/06-published-any-designer-en-desktop.png",
+      "scenario": "erp-receiving",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11610223049,
+        "name": "receiving-browser-evidence",
+        "sha256": "b144edc9288322de75620d274d89370621ccc1862299bdcb2b892f4823990908",
+        "originalPath": "receiving-receiving-real-A-d9495-nd-bilingual-390px-evidence/06-published-any-designer-en-desktop.png"
+      },
+      "sha256": "d15ee1075d8deec2ba215c36e12b2c146b9ed4592e47b5458725350b67d54864",
+      "bytes": 228986,
+      "width": 1440,
+      "height": 1667,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceTreeClean": true,
+        "verificationBackend": "declared-Boot-4.1.1",
+        "githubRun": {
+          "id": "37918452685",
+          "repository": "JamesCube/ArcFlow",
+          "attempt": "1"
+        },
+        "scenario": "erp-receiving",
+        "state": "06-published-any-designer-en-desktop",
+        "capturedAt": "2026-10-09T10:38:35.273Z",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "locale": "en",
+        "fullPage": true,
+        "image": "06-published-any-designer-en-desktop.png",
+        "imageSHA256": "d15ee1075d8deec2ba215c36e12b2c146b9ed4592e47b5458725350b67d54864",
+        "retry": 0
+      }
+    },
+    {
+      "file": "docs/images/scenarios/receiving/07-published-any-designer-zh-390.png",
+      "scenario": "erp-receiving",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11610223049,
+        "name": "receiving-browser-evidence",
+        "sha256": "b144edc9288322de75620d274d89370621ccc1862299bdcb2b892f4823990908",
+        "originalPath": "receiving-receiving-real-A-d9495-nd-bilingual-390px-evidence/07-published-any-designer-zh-390.png"
+      },
+      "sha256": "39c9a3bae4de6f2870a72021c21b571a5fc4a5ff7850300ea93a342abd237796",
+      "bytes": 149720,
+      "width": 390,
+      "height": 1900,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceTreeClean": true,
+        "verificationBackend": "declared-Boot-4.1.1",
+        "githubRun": {
+          "id": "37918452685",
+          "repository": "JamesCube/ArcFlow",
+          "attempt": "1"
+        },
+        "scenario": "erp-receiving",
+        "state": "07-published-any-designer-zh-390",
+        "capturedAt": "2026-10-09T10:38:35.478Z",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "locale": "zh-CN",
+        "fullPage": true,
+        "image": "07-published-any-designer-zh-390.png",
+        "imageSHA256": "39c9a3bae4de6f2870a72021c21b571a5fc4a5ff7850300ea93a342abd237796",
+        "retry": 0
+      }
+    },
+    {
+      "file": "docs/images/scenarios/receiving/08-immutable-all-snapshot-en-desktop.png",
+      "scenario": "erp-receiving",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11610223049,
+        "name": "receiving-browser-evidence",
+        "sha256": "b144edc9288322de75620d274d89370621ccc1862299bdcb2b892f4823990908",
+        "originalPath": "receiving-receiving-real-A-d9495-nd-bilingual-390px-evidence/08-immutable-all-snapshot-en-desktop.png"
+      },
+      "sha256": "247b022066b48fcd019039f526325dfac6e00a592cbce283dea9a006a7265d16",
+      "bytes": 226533,
+      "width": 1440,
+      "height": 2232,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceTreeClean": true,
+        "verificationBackend": "declared-Boot-4.1.1",
+        "githubRun": {
+          "id": "37918452685",
+          "repository": "JamesCube/ArcFlow",
+          "attempt": "1"
+        },
+        "scenario": "erp-receiving",
+        "state": "08-immutable-all-snapshot-en-desktop",
+        "capturedAt": "2026-10-09T10:38:35.716Z",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "locale": "en",
+        "fullPage": true,
+        "image": "08-immutable-all-snapshot-en-desktop.png",
+        "imageSHA256": "247b022066b48fcd019039f526325dfac6e00a592cbce283dea9a006a7265d16",
+        "retry": 0
+      }
+    },
+    {
+      "file": "docs/images/scenarios/receiving/09-all-partial-bob-vote-en-desktop.png",
+      "scenario": "erp-receiving",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11610223049,
+        "name": "receiving-browser-evidence",
+        "sha256": "b144edc9288322de75620d274d89370621ccc1862299bdcb2b892f4823990908",
+        "originalPath": "receiving-receiving-real-A-d9495-nd-bilingual-390px-evidence/09-all-partial-bob-vote-en-desktop.png"
+      },
+      "sha256": "2e454de858348806e98385c579b8497f98b4e69665efe876879d620b6f4dc4c5",
+      "bytes": 239195,
+      "width": 1440,
+      "height": 2388,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceTreeClean": true,
+        "verificationBackend": "declared-Boot-4.1.1",
+        "githubRun": {
+          "id": "37918452685",
+          "repository": "JamesCube/ArcFlow",
+          "attempt": "1"
+        },
+        "scenario": "erp-receiving",
+        "state": "09-all-partial-bob-vote-en-desktop",
+        "capturedAt": "2026-10-09T10:38:36.569Z",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "locale": "en",
+        "fullPage": true,
+        "image": "09-all-partial-bob-vote-en-desktop.png",
+        "imageSHA256": "2e454de858348806e98385c579b8497f98b4e69665efe876879d620b6f4dc4c5",
+        "retry": 0
+      }
+    },
+    {
+      "file": "docs/images/scenarios/receiving/10-all-quality-review-zh-390.png",
+      "scenario": "erp-receiving",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11610223049,
+        "name": "receiving-browser-evidence",
+        "sha256": "b144edc9288322de75620d274d89370621ccc1862299bdcb2b892f4823990908",
+        "originalPath": "receiving-receiving-real-A-d9495-nd-bilingual-390px-evidence/10-all-quality-review-zh-390.png"
+      },
+      "sha256": "cb85a8a82a588180a42f7292aba3e9611cd8605fff77843e8b3139c3db85e69b",
+      "bytes": 214379,
+      "width": 390,
+      "height": 3614,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceTreeClean": true,
+        "verificationBackend": "declared-Boot-4.1.1",
+        "githubRun": {
+          "id": "37918452685",
+          "repository": "JamesCube/ArcFlow",
+          "attempt": "1"
+        },
+        "scenario": "erp-receiving",
+        "state": "10-all-quality-review-zh-390",
+        "capturedAt": "2026-10-09T10:38:37.024Z",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "locale": "zh-CN",
+        "fullPage": true,
+        "image": "10-all-quality-review-zh-390.png",
+        "imageSHA256": "cb85a8a82a588180a42f7292aba3e9611cd8605fff77843e8b3139c3db85e69b",
+        "retry": 0
+      }
+    },
+    {
+      "file": "docs/images/scenarios/receiving/11-bob-procurement-review-en-desktop.png",
+      "scenario": "erp-receiving",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11610223049,
+        "name": "receiving-browser-evidence",
+        "sha256": "b144edc9288322de75620d274d89370621ccc1862299bdcb2b892f4823990908",
+        "originalPath": "receiving-receiving-real-A-d9495-nd-bilingual-390px-evidence/11-bob-procurement-review-en-desktop.png"
+      },
+      "sha256": "50a5b38060c358d0f85dd0cc665c02fc542d0c4d54f239b70156a36394493a72",
+      "bytes": 274062,
+      "width": 1440,
+      "height": 2702,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceTreeClean": true,
+        "verificationBackend": "declared-Boot-4.1.1",
+        "githubRun": {
+          "id": "37918452685",
+          "repository": "JamesCube/ArcFlow",
+          "attempt": "1"
+        },
+        "scenario": "erp-receiving",
+        "state": "11-bob-procurement-review-en-desktop",
+        "capturedAt": "2026-10-09T10:38:37.693Z",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "locale": "en",
+        "fullPage": true,
+        "image": "11-bob-procurement-review-en-desktop.png",
+        "imageSHA256": "50a5b38060c358d0f85dd0cc665c02fc542d0c4d54f239b70156a36394493a72",
+        "retry": 0
+      }
+    },
+    {
+      "file": "docs/images/scenarios/receiving/12-all-approved-en-desktop.png",
+      "scenario": "erp-receiving",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11610223049,
+        "name": "receiving-browser-evidence",
+        "sha256": "b144edc9288322de75620d274d89370621ccc1862299bdcb2b892f4823990908",
+        "originalPath": "receiving-receiving-real-A-d9495-nd-bilingual-390px-evidence/12-all-approved-en-desktop.png"
+      },
+      "sha256": "bba6e227cf9f64a9cabfa49dd9089245decf5786983782ada1a30201ead9259b",
+      "bytes": 271013,
+      "width": 1440,
+      "height": 2700,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceTreeClean": true,
+        "verificationBackend": "declared-Boot-4.1.1",
+        "githubRun": {
+          "id": "37918452685",
+          "repository": "JamesCube/ArcFlow",
+          "attempt": "1"
+        },
+        "scenario": "erp-receiving",
+        "state": "12-all-approved-en-desktop",
+        "capturedAt": "2026-10-09T10:38:38.110Z",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "locale": "en",
+        "fullPage": true,
+        "image": "12-all-approved-en-desktop.png",
+        "imageSHA256": "bba6e227cf9f64a9cabfa49dd9089245decf5786983782ada1a30201ead9259b",
+        "retry": 0
+      }
+    },
+    {
+      "file": "docs/images/scenarios/receiving/13-all-rejected-zh-desktop.png",
+      "scenario": "erp-receiving",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11610223049,
+        "name": "receiving-browser-evidence",
+        "sha256": "b144edc9288322de75620d274d89370621ccc1862299bdcb2b892f4823990908",
+        "originalPath": "receiving-receiving-real-A-d9495-nd-bilingual-390px-evidence/13-all-rejected-zh-desktop.png"
+      },
+      "sha256": "bd0a2a28bf6879089bcf4afff3fcb7dd8209190189f8b906557ad12d47d0a2f1",
+      "bytes": 223169,
+      "width": 1440,
+      "height": 2288,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceTreeClean": true,
+        "verificationBackend": "declared-Boot-4.1.1",
+        "githubRun": {
+          "id": "37918452685",
+          "repository": "JamesCube/ArcFlow",
+          "attempt": "1"
+        },
+        "scenario": "erp-receiving",
+        "state": "13-all-rejected-zh-desktop",
+        "capturedAt": "2026-10-09T10:38:38.832Z",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "locale": "zh-CN",
+        "fullPage": true,
+        "image": "13-all-rejected-zh-desktop.png",
+        "imageSHA256": "bd0a2a28bf6879089bcf4afff3fcb7dd8209190189f8b906557ad12d47d0a2f1",
+        "retry": 0
+      }
+    },
+    {
+      "file": "docs/images/scenarios/receiving/14-any-early-advance-en-desktop.png",
+      "scenario": "erp-receiving",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11610223049,
+        "name": "receiving-browser-evidence",
+        "sha256": "b144edc9288322de75620d274d89370621ccc1862299bdcb2b892f4823990908",
+        "originalPath": "receiving-receiving-real-A-d9495-nd-bilingual-390px-evidence/14-any-early-advance-en-desktop.png"
+      },
+      "sha256": "e00799655d35ca477261a3d93165b8493197ca7e067cadd3faaa345454d83f44",
+      "bytes": 238754,
+      "width": 1440,
+      "height": 2609,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceTreeClean": true,
+        "verificationBackend": "declared-Boot-4.1.1",
+        "githubRun": {
+          "id": "37918452685",
+          "repository": "JamesCube/ArcFlow",
+          "attempt": "1"
+        },
+        "scenario": "erp-receiving",
+        "state": "14-any-early-advance-en-desktop",
+        "capturedAt": "2026-10-09T10:38:39.511Z",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "locale": "en",
+        "fullPage": true,
+        "image": "14-any-early-advance-en-desktop.png",
+        "imageSHA256": "e00799655d35ca477261a3d93165b8493197ca7e067cadd3faaa345454d83f44",
+        "retry": 0
+      }
+    },
+    {
+      "file": "docs/images/scenarios/receiving/15-any-approved-zh-390.png",
+      "scenario": "erp-receiving",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11610223049,
+        "name": "receiving-browser-evidence",
+        "sha256": "b144edc9288322de75620d274d89370621ccc1862299bdcb2b892f4823990908",
+        "originalPath": "receiving-receiving-real-A-d9495-nd-bilingual-390px-evidence/15-any-approved-zh-390.png"
+      },
+      "sha256": "00c439f81bc1d85bacef43ea40261994d101ba44bc2ed1e2cc991a2500484cc3",
+      "bytes": 198425,
+      "width": 390,
+      "height": 3270,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceTreeClean": true,
+        "verificationBackend": "declared-Boot-4.1.1",
+        "githubRun": {
+          "id": "37918452685",
+          "repository": "JamesCube/ArcFlow",
+          "attempt": "1"
+        },
+        "scenario": "erp-receiving",
+        "state": "15-any-approved-zh-390",
+        "capturedAt": "2026-10-09T10:38:39.802Z",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "locale": "zh-CN",
+        "fullPage": true,
+        "image": "15-any-approved-zh-390.png",
+        "imageSHA256": "00c439f81bc1d85bacef43ea40261994d101ba44bc2ed1e2cc991a2500484cc3",
+        "retry": 0
+      }
+    },
+    {
+      "file": "docs/images/scenarios/receiving/receiving-clean-frozen-desktop.png",
+      "scenario": "erp-receiving",
+      "suite": "conditional-routing",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11610883325,
+        "name": "conditional-routing-browser-evidence",
+        "sha256": "ef114652847a46c0d6152c967d547d7b0c20b482eedc2e24f50c7cf29e567d0c",
+        "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-396ac-ipts-with-saved-explanation/receiving-clean-frozen-desktop.png"
+      },
+      "sha256": "af24a39e7d6c665e4d14eb7ed3423413fbd7bb46ce9d6ec996bf2f4395c48062",
+      "bytes": 252394,
+      "width": 1440,
+      "height": 2406,
+      "evidence": {
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "0e0307e7-7382-4192-9dc5-6196feaa3999",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "state": "receiving-clean-frozen-desktop",
+        "image": "receiving-clean-frozen-desktop.png",
+        "imageSHA256": "af24a39e7d6c665e4d14eb7ed3423413fbd7bb46ce9d6ec996bf2f4395c48062",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "locale": "en",
+        "fullPage": true,
+        "capturedAt": "2026-10-09T10:39:02.912Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/receiving/receiving-clean-zh-390px.png",
+      "scenario": "erp-receiving",
+      "suite": "conditional-routing",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11610883325,
+        "name": "conditional-routing-browser-evidence",
+        "sha256": "ef114652847a46c0d6152c967d547d7b0c20b482eedc2e24f50c7cf29e567d0c",
+        "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-396ac-ipts-with-saved-explanation/receiving-clean-zh-390px.png"
+      },
+      "sha256": "1e55edb0b7642a2f65bd400f6d8f33a5b6890c2f63e6bfd68cb1418b0d31d581",
+      "bytes": 208523,
+      "width": 390,
+      "height": 3279,
+      "evidence": {
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "sourceWorkingTree": "clean-commit",
+        "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "uiSourceTreeSHA256": "df3fa2908d6ba7664afad7c8cdc757831a6674a317699d4baf689aeeb09ef5b4",
+        "backendRuntime": "declared-Boot-4.1.1",
+        "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+        "captureSessionId": "0e0307e7-7382-4192-9dc5-6196feaa3999",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRepository": "JamesCube/ArcFlow",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+        "state": "receiving-clean-zh-390px",
+        "image": "receiving-clean-zh-390px.png",
+        "imageSHA256": "1e55edb0b7642a2f65bd400f6d8f33a5b6890c2f63e6bfd68cb1418b0d31d581",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "locale": "zh-CN",
+        "fullPage": true,
+        "capturedAt": "2026-10-09T10:39:03.047Z"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/seal-use/01-seal-catalog-en-desktop.png",
+      "scenario": "oa-seal-use",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611137862,
+        "name": "scenario-browser-evidence-oa-seal-use",
+        "sha256": "f55c1d8f53ab93406f41a44ba9f878f3958be5ad0b4ec2b6d10d5711c7b21071",
+        "originalPath": "seal-use-Seal-real-two-sta-e6b1c--results-and-390px-reviewer/capture-8e8c07cd-33c3-45d8-8e08-0159cab9e1ba/01-seal-catalog-en-desktop.png"
+      },
+      "sha256": "8d83c13cd7d69df7d89bf1b59eebc6d4d9a5cc47117224034a8fb0e04c26fa0e",
+      "bytes": 447246,
+      "width": 1440,
+      "height": 2653,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "scenario": "oa-seal-use",
+        "state": "seal-catalog",
+        "name": "01-seal-catalog-en-desktop",
+        "locale": "en",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "01-seal-catalog-en-desktop.png",
+        "imageSHA256": "8d83c13cd7d69df7d89bf1b59eebc6d4d9a5cc47117224034a8fb0e04c26fa0e",
+        "capturedAt": "2026-10-09T10:37:30.645Z",
+        "captureSessionId": "8e8c07cd-33c3-45d8-8e08-0159cab9e1ba",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/seal-use/01-seal-catalog-zh-desktop.png",
+      "scenario": "oa-seal-use",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611137862,
+        "name": "scenario-browser-evidence-oa-seal-use",
+        "sha256": "f55c1d8f53ab93406f41a44ba9f878f3958be5ad0b4ec2b6d10d5711c7b21071",
+        "originalPath": "seal-use-Seal-real-two-sta-e6b1c--results-and-390px-reviewer/capture-8e8c07cd-33c3-45d8-8e08-0159cab9e1ba/01-seal-catalog-zh-desktop.png"
+      },
+      "sha256": "e086828e8861694133b7803d96a918522f3998465ddb7fdd637b3f213821e9c3",
+      "bytes": 428626,
+      "width": 1440,
+      "height": 2622,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "scenario": "oa-seal-use",
+        "state": "seal-catalog",
+        "name": "01-seal-catalog-zh-desktop",
+        "locale": "zh",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "01-seal-catalog-zh-desktop.png",
+        "imageSHA256": "e086828e8861694133b7803d96a918522f3998465ddb7fdd637b3f213821e9c3",
+        "capturedAt": "2026-10-09T10:37:30.430Z",
+        "captureSessionId": "8e8c07cd-33c3-45d8-8e08-0159cab9e1ba",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/seal-use/02-seal-designer-en-desktop.png",
+      "scenario": "oa-seal-use",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611137862,
+        "name": "scenario-browser-evidence-oa-seal-use",
+        "sha256": "f55c1d8f53ab93406f41a44ba9f878f3958be5ad0b4ec2b6d10d5711c7b21071",
+        "originalPath": "seal-use-Seal-real-two-sta-e6b1c--results-and-390px-reviewer/capture-8e8c07cd-33c3-45d8-8e08-0159cab9e1ba/02-seal-designer-en-desktop.png"
+      },
+      "sha256": "d721e33a3b9d8cd608363ca4fa430228ea0c53f4b9837870b096d6fd0e4223b3",
+      "bytes": 186479,
+      "width": 1440,
+      "height": 1312,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "scenario": "oa-seal-use",
+        "state": "seal-designer",
+        "name": "02-seal-designer-en-desktop",
+        "locale": "en",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "02-seal-designer-en-desktop.png",
+        "imageSHA256": "d721e33a3b9d8cd608363ca4fa430228ea0c53f4b9837870b096d6fd0e4223b3",
+        "capturedAt": "2026-10-09T10:37:31.188Z",
+        "captureSessionId": "8e8c07cd-33c3-45d8-8e08-0159cab9e1ba",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/seal-use/02-seal-designer-zh-desktop.png",
+      "scenario": "oa-seal-use",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611137862,
+        "name": "scenario-browser-evidence-oa-seal-use",
+        "sha256": "f55c1d8f53ab93406f41a44ba9f878f3958be5ad0b4ec2b6d10d5711c7b21071",
+        "originalPath": "seal-use-Seal-real-two-sta-e6b1c--results-and-390px-reviewer/capture-8e8c07cd-33c3-45d8-8e08-0159cab9e1ba/02-seal-designer-zh-desktop.png"
+      },
+      "sha256": "6933f4de28f45f004afd5fa24fd5660143f855d47196f3d62bfe3e05dc064ac5",
+      "bytes": 180965,
+      "width": 1440,
+      "height": 1295,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "scenario": "oa-seal-use",
+        "state": "seal-designer",
+        "name": "02-seal-designer-zh-desktop",
+        "locale": "zh",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "02-seal-designer-zh-desktop.png",
+        "imageSHA256": "6933f4de28f45f004afd5fa24fd5660143f855d47196f3d62bfe3e05dc064ac5",
+        "capturedAt": "2026-10-09T10:37:31.069Z",
+        "captureSessionId": "8e8c07cd-33c3-45d8-8e08-0159cab9e1ba",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/seal-use/03-seal-form-en-desktop.png",
+      "scenario": "oa-seal-use",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611137862,
+        "name": "scenario-browser-evidence-oa-seal-use",
+        "sha256": "f55c1d8f53ab93406f41a44ba9f878f3958be5ad0b4ec2b6d10d5711c7b21071",
+        "originalPath": "seal-use-Seal-real-two-sta-e6b1c--results-and-390px-reviewer/capture-8e8c07cd-33c3-45d8-8e08-0159cab9e1ba/03-seal-form-en-desktop.png"
+      },
+      "sha256": "a918489e8b444327097abfaff390a9cea3c7df86dd5813d0b56c961f5b7e3492",
+      "bytes": 151143,
+      "width": 1440,
+      "height": 1131,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "scenario": "oa-seal-use",
+        "state": "seal-form",
+        "name": "03-seal-form-en-desktop",
+        "locale": "en",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "03-seal-form-en-desktop.png",
+        "imageSHA256": "a918489e8b444327097abfaff390a9cea3c7df86dd5813d0b56c961f5b7e3492",
+        "capturedAt": "2026-10-09T10:37:31.484Z",
+        "captureSessionId": "8e8c07cd-33c3-45d8-8e08-0159cab9e1ba",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/seal-use/03-seal-form-zh-desktop.png",
+      "scenario": "oa-seal-use",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611137862,
+        "name": "scenario-browser-evidence-oa-seal-use",
+        "sha256": "f55c1d8f53ab93406f41a44ba9f878f3958be5ad0b4ec2b6d10d5711c7b21071",
+        "originalPath": "seal-use-Seal-real-two-sta-e6b1c--results-and-390px-reviewer/capture-8e8c07cd-33c3-45d8-8e08-0159cab9e1ba/03-seal-form-zh-desktop.png"
+      },
+      "sha256": "ce5df0de0d45642298b3e16d59a1ee020f7586e1000b3722c84560355c9cb7e6",
+      "bytes": 145021,
+      "width": 1440,
+      "height": 1131,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "scenario": "oa-seal-use",
+        "state": "seal-form",
+        "name": "03-seal-form-zh-desktop",
+        "locale": "zh",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "03-seal-form-zh-desktop.png",
+        "imageSHA256": "ce5df0de0d45642298b3e16d59a1ee020f7586e1000b3722c84560355c9cb7e6",
+        "capturedAt": "2026-10-09T10:37:31.361Z",
+        "captureSessionId": "8e8c07cd-33c3-45d8-8e08-0159cab9e1ba",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/seal-use/04-seal-validation-en-desktop.png",
+      "scenario": "oa-seal-use",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611137862,
+        "name": "scenario-browser-evidence-oa-seal-use",
+        "sha256": "f55c1d8f53ab93406f41a44ba9f878f3958be5ad0b4ec2b6d10d5711c7b21071",
+        "originalPath": "seal-use-Seal-real-two-sta-e6b1c--results-and-390px-reviewer/capture-8e8c07cd-33c3-45d8-8e08-0159cab9e1ba/04-seal-validation-en-desktop.png"
+      },
+      "sha256": "7105326256701a9f3f546e6a2eaf5a16cb612d380b549981ca49c0314d7849ff",
+      "bytes": 154652,
+      "width": 1440,
+      "height": 1161,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "scenario": "oa-seal-use",
+        "state": "seal-validation",
+        "name": "04-seal-validation-en-desktop",
+        "locale": "en",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "04-seal-validation-en-desktop.png",
+        "imageSHA256": "7105326256701a9f3f546e6a2eaf5a16cb612d380b549981ca49c0314d7849ff",
+        "capturedAt": "2026-10-09T10:37:31.779Z",
+        "captureSessionId": "8e8c07cd-33c3-45d8-8e08-0159cab9e1ba",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/seal-use/04-seal-validation-zh-desktop.png",
+      "scenario": "oa-seal-use",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611137862,
+        "name": "scenario-browser-evidence-oa-seal-use",
+        "sha256": "f55c1d8f53ab93406f41a44ba9f878f3958be5ad0b4ec2b6d10d5711c7b21071",
+        "originalPath": "seal-use-Seal-real-two-sta-e6b1c--results-and-390px-reviewer/capture-8e8c07cd-33c3-45d8-8e08-0159cab9e1ba/04-seal-validation-zh-desktop.png"
+      },
+      "sha256": "8514a19cb87a1859a0515c90c0975b7dba169f88c7a28661676b0c684deb7782",
+      "bytes": 147629,
+      "width": 1440,
+      "height": 1161,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "scenario": "oa-seal-use",
+        "state": "seal-validation",
+        "name": "04-seal-validation-zh-desktop",
+        "locale": "zh",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "04-seal-validation-zh-desktop.png",
+        "imageSHA256": "8514a19cb87a1859a0515c90c0975b7dba169f88c7a28661676b0c684deb7782",
+        "capturedAt": "2026-10-09T10:37:31.663Z",
+        "captureSessionId": "8e8c07cd-33c3-45d8-8e08-0159cab9e1ba",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/seal-use/05-seal-pending-en-desktop.png",
+      "scenario": "oa-seal-use",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611137862,
+        "name": "scenario-browser-evidence-oa-seal-use",
+        "sha256": "f55c1d8f53ab93406f41a44ba9f878f3958be5ad0b4ec2b6d10d5711c7b21071",
+        "originalPath": "seal-use-Seal-real-two-sta-e6b1c--results-and-390px-reviewer/capture-8e8c07cd-33c3-45d8-8e08-0159cab9e1ba/05-seal-pending-en-desktop.png"
+      },
+      "sha256": "9dfc7c9239201dc3b9514dfa9db33c059940bc72c6fd634ae3a8687c080c6515",
+      "bytes": 183014,
+      "width": 1440,
+      "height": 1373,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "scenario": "oa-seal-use",
+        "state": "seal-pending",
+        "name": "05-seal-pending-en-desktop",
+        "locale": "en",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "05-seal-pending-en-desktop.png",
+        "imageSHA256": "9dfc7c9239201dc3b9514dfa9db33c059940bc72c6fd634ae3a8687c080c6515",
+        "capturedAt": "2026-10-09T10:37:32.322Z",
+        "captureSessionId": "8e8c07cd-33c3-45d8-8e08-0159cab9e1ba",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/seal-use/05-seal-pending-zh-desktop.png",
+      "scenario": "oa-seal-use",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611137862,
+        "name": "scenario-browser-evidence-oa-seal-use",
+        "sha256": "f55c1d8f53ab93406f41a44ba9f878f3958be5ad0b4ec2b6d10d5711c7b21071",
+        "originalPath": "seal-use-Seal-real-two-sta-e6b1c--results-and-390px-reviewer/capture-8e8c07cd-33c3-45d8-8e08-0159cab9e1ba/05-seal-pending-zh-desktop.png"
+      },
+      "sha256": "5fe41b169a5362bbdc7e3f7940f0cab488d014a79555fd10a3b425b1a85047a0",
+      "bytes": 176942,
+      "width": 1440,
+      "height": 1322,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "scenario": "oa-seal-use",
+        "state": "seal-pending",
+        "name": "05-seal-pending-zh-desktop",
+        "locale": "zh",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "05-seal-pending-zh-desktop.png",
+        "imageSHA256": "5fe41b169a5362bbdc7e3f7940f0cab488d014a79555fd10a3b425b1a85047a0",
+        "capturedAt": "2026-10-09T10:37:32.190Z",
+        "captureSessionId": "8e8c07cd-33c3-45d8-8e08-0159cab9e1ba",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/seal-use/06-seal-review-en-390.png",
+      "scenario": "oa-seal-use",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611137862,
+        "name": "scenario-browser-evidence-oa-seal-use",
+        "sha256": "f55c1d8f53ab93406f41a44ba9f878f3958be5ad0b4ec2b6d10d5711c7b21071",
+        "originalPath": "seal-use-Seal-real-two-sta-e6b1c--results-and-390px-reviewer/capture-8e8c07cd-33c3-45d8-8e08-0159cab9e1ba/06-seal-review-en-390.png"
+      },
+      "sha256": "538055f3c9c52a6b294410e083b40c7edf4a27d714655de299af50a144cc3ef4",
+      "bytes": 51321,
+      "width": 390,
+      "height": 844,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "scenario": "oa-seal-use",
+        "state": "seal-review",
+        "name": "06-seal-review-en-390",
+        "locale": "en",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "fullPage": false,
+        "image": "06-seal-review-en-390.png",
+        "imageSHA256": "538055f3c9c52a6b294410e083b40c7edf4a27d714655de299af50a144cc3ef4",
+        "capturedAt": "2026-10-09T10:37:33.604Z",
+        "captureSessionId": "8e8c07cd-33c3-45d8-8e08-0159cab9e1ba",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/seal-use/06-seal-review-zh-390.png",
+      "scenario": "oa-seal-use",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611137862,
+        "name": "scenario-browser-evidence-oa-seal-use",
+        "sha256": "f55c1d8f53ab93406f41a44ba9f878f3958be5ad0b4ec2b6d10d5711c7b21071",
+        "originalPath": "seal-use-Seal-real-two-sta-e6b1c--results-and-390px-reviewer/capture-8e8c07cd-33c3-45d8-8e08-0159cab9e1ba/06-seal-review-zh-390.png"
+      },
+      "sha256": "097cdca7408992583acd8c9f4c99a82899cbd5a3ba678296828548b67a44f083",
+      "bytes": 49691,
+      "width": 390,
+      "height": 844,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "scenario": "oa-seal-use",
+        "state": "seal-review",
+        "name": "06-seal-review-zh-390",
+        "locale": "zh",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "fullPage": false,
+        "image": "06-seal-review-zh-390.png",
+        "imageSHA256": "097cdca7408992583acd8c9f4c99a82899cbd5a3ba678296828548b67a44f083",
+        "capturedAt": "2026-10-09T10:37:33.485Z",
+        "captureSessionId": "8e8c07cd-33c3-45d8-8e08-0159cab9e1ba",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/seal-use/07-seal-next-stage-en-desktop.png",
+      "scenario": "oa-seal-use",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611137862,
+        "name": "scenario-browser-evidence-oa-seal-use",
+        "sha256": "f55c1d8f53ab93406f41a44ba9f878f3958be5ad0b4ec2b6d10d5711c7b21071",
+        "originalPath": "seal-use-Seal-real-two-sta-e6b1c--results-and-390px-reviewer/capture-8e8c07cd-33c3-45d8-8e08-0159cab9e1ba/07-seal-next-stage-en-desktop.png"
+      },
+      "sha256": "3fa1479d5aca34b5c349c1d7c507c102ad9ae45021e60c12ef4cc0f82288fb93",
+      "bytes": 197005,
+      "width": 1440,
+      "height": 1529,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "scenario": "oa-seal-use",
+        "state": "seal-next-stage",
+        "name": "07-seal-next-stage-en-desktop",
+        "locale": "en",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "07-seal-next-stage-en-desktop.png",
+        "imageSHA256": "3fa1479d5aca34b5c349c1d7c507c102ad9ae45021e60c12ef4cc0f82288fb93",
+        "capturedAt": "2026-10-09T10:37:34.061Z",
+        "captureSessionId": "8e8c07cd-33c3-45d8-8e08-0159cab9e1ba",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/seal-use/07-seal-next-stage-zh-desktop.png",
+      "scenario": "oa-seal-use",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611137862,
+        "name": "scenario-browser-evidence-oa-seal-use",
+        "sha256": "f55c1d8f53ab93406f41a44ba9f878f3958be5ad0b4ec2b6d10d5711c7b21071",
+        "originalPath": "seal-use-Seal-real-two-sta-e6b1c--results-and-390px-reviewer/capture-8e8c07cd-33c3-45d8-8e08-0159cab9e1ba/07-seal-next-stage-zh-desktop.png"
+      },
+      "sha256": "8b9818381fbe2f6d855775f46803dccc2b6bf9af9a028246f6dd9ab58a7fa2ba",
+      "bytes": 191004,
+      "width": 1440,
+      "height": 1478,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "scenario": "oa-seal-use",
+        "state": "seal-next-stage",
+        "name": "07-seal-next-stage-zh-desktop",
+        "locale": "zh",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "07-seal-next-stage-zh-desktop.png",
+        "imageSHA256": "8b9818381fbe2f6d855775f46803dccc2b6bf9af9a028246f6dd9ab58a7fa2ba",
+        "capturedAt": "2026-10-09T10:37:33.926Z",
+        "captureSessionId": "8e8c07cd-33c3-45d8-8e08-0159cab9e1ba",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/seal-use/08-seal-approved-en-desktop.png",
+      "scenario": "oa-seal-use",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611137862,
+        "name": "scenario-browser-evidence-oa-seal-use",
+        "sha256": "f55c1d8f53ab93406f41a44ba9f878f3958be5ad0b4ec2b6d10d5711c7b21071",
+        "originalPath": "seal-use-Seal-real-two-sta-e6b1c--results-and-390px-reviewer/capture-8e8c07cd-33c3-45d8-8e08-0159cab9e1ba/08-seal-approved-en-desktop.png"
+      },
+      "sha256": "7f11735076983fc8f5a6c909923cca9a70886de184a06bb9ac89ac0499922b4c",
+      "bytes": 206345,
+      "width": 1440,
+      "height": 1614,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "scenario": "oa-seal-use",
+        "state": "seal-approved",
+        "name": "08-seal-approved-en-desktop",
+        "locale": "en",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "08-seal-approved-en-desktop.png",
+        "imageSHA256": "7f11735076983fc8f5a6c909923cca9a70886de184a06bb9ac89ac0499922b4c",
+        "capturedAt": "2026-10-09T10:37:35.611Z",
+        "captureSessionId": "8e8c07cd-33c3-45d8-8e08-0159cab9e1ba",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/seal-use/08-seal-approved-zh-desktop.png",
+      "scenario": "oa-seal-use",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611137862,
+        "name": "scenario-browser-evidence-oa-seal-use",
+        "sha256": "f55c1d8f53ab93406f41a44ba9f878f3958be5ad0b4ec2b6d10d5711c7b21071",
+        "originalPath": "seal-use-Seal-real-two-sta-e6b1c--results-and-390px-reviewer/capture-8e8c07cd-33c3-45d8-8e08-0159cab9e1ba/08-seal-approved-zh-desktop.png"
+      },
+      "sha256": "b7697c526e630b8135d69ef2dd82ad23472d591f556443d0eed931ff49af398e",
+      "bytes": 199442,
+      "width": 1440,
+      "height": 1563,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "scenario": "oa-seal-use",
+        "state": "seal-approved",
+        "name": "08-seal-approved-zh-desktop",
+        "locale": "zh",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "08-seal-approved-zh-desktop.png",
+        "imageSHA256": "b7697c526e630b8135d69ef2dd82ad23472d591f556443d0eed931ff49af398e",
+        "capturedAt": "2026-10-09T10:37:35.471Z",
+        "captureSessionId": "8e8c07cd-33c3-45d8-8e08-0159cab9e1ba",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/seal-use/09-seal-rejected-en-desktop.png",
+      "scenario": "oa-seal-use",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611137862,
+        "name": "scenario-browser-evidence-oa-seal-use",
+        "sha256": "f55c1d8f53ab93406f41a44ba9f878f3958be5ad0b4ec2b6d10d5711c7b21071",
+        "originalPath": "seal-use-Seal-real-two-sta-e6b1c--results-and-390px-reviewer/capture-8e8c07cd-33c3-45d8-8e08-0159cab9e1ba/09-seal-rejected-en-desktop.png"
+      },
+      "sha256": "4ce2b94273a36ef050bcce6419d424930e07c9656e5781624a2341fd2c88a0bc",
+      "bytes": 208938,
+      "width": 1440,
+      "height": 1529,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "scenario": "oa-seal-use",
+        "state": "seal-rejected",
+        "name": "09-seal-rejected-en-desktop",
+        "locale": "en",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "09-seal-rejected-en-desktop.png",
+        "imageSHA256": "4ce2b94273a36ef050bcce6419d424930e07c9656e5781624a2341fd2c88a0bc",
+        "capturedAt": "2026-10-09T10:37:37.019Z",
+        "captureSessionId": "8e8c07cd-33c3-45d8-8e08-0159cab9e1ba",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/seal-use/09-seal-rejected-zh-desktop.png",
+      "scenario": "oa-seal-use",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11611137862,
+        "name": "scenario-browser-evidence-oa-seal-use",
+        "sha256": "f55c1d8f53ab93406f41a44ba9f878f3958be5ad0b4ec2b6d10d5711c7b21071",
+        "originalPath": "seal-use-Seal-real-two-sta-e6b1c--results-and-390px-reviewer/capture-8e8c07cd-33c3-45d8-8e08-0159cab9e1ba/09-seal-rejected-zh-desktop.png"
+      },
+      "sha256": "2ebd298479cbc65e0ac7171e1cc3e1d93f477874534d4b6df48c991d5cc57cd2",
+      "bytes": 202160,
+      "width": 1440,
+      "height": 1478,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "scenario": "oa-seal-use",
+        "state": "seal-rejected",
+        "name": "09-seal-rejected-zh-desktop",
+        "locale": "zh",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "09-seal-rejected-zh-desktop.png",
+        "imageSHA256": "2ebd298479cbc65e0ac7171e1cc3e1d93f477874534d4b6df48c991d5cc57cd2",
+        "capturedAt": "2026-10-09T10:37:36.877Z",
+        "captureSessionId": "8e8c07cd-33c3-45d8-8e08-0159cab9e1ba",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/travel/travel-01-catalog-en-desktop.png",
+      "scenario": "oa-travel",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11610673542,
+        "name": "scenario-browser-evidence-oa-travel",
+        "sha256": "ac199cd8281cdf4768a8ba774119fd31a3468463286352d442d92d7960ba9512",
+        "originalPath": "travel-scenarios-travel-sc-c5f01-l-scenes-and-390px-controls/capture-travel-bcfeeecd-4751-484e-96e8-4f28b43c20ee/travel-01-catalog-en-desktop.png"
+      },
+      "sha256": "8d83c13cd7d69df7d89bf1b59eebc6d4d9a5cc47117224034a8fb0e04c26fa0e",
+      "bytes": 447246,
+      "width": 1440,
+      "height": 2653,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "scenario": "oa-travel",
+        "state": "catalog",
+        "name": "travel-01-catalog-en-desktop",
+        "locale": "en",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "travel-01-catalog-en-desktop.png",
+        "imageSHA256": "8d83c13cd7d69df7d89bf1b59eebc6d4d9a5cc47117224034a8fb0e04c26fa0e",
+        "capturedAt": "2026-10-09T10:39:19.813Z",
+        "captureSessionId": "bcfeeecd-4751-484e-96e8-4f28b43c20ee",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/travel/travel-01-catalog-zh-desktop.png",
+      "scenario": "oa-travel",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11610673542,
+        "name": "scenario-browser-evidence-oa-travel",
+        "sha256": "ac199cd8281cdf4768a8ba774119fd31a3468463286352d442d92d7960ba9512",
+        "originalPath": "travel-scenarios-travel-sc-c5f01-l-scenes-and-390px-controls/capture-travel-bcfeeecd-4751-484e-96e8-4f28b43c20ee/travel-01-catalog-zh-desktop.png"
+      },
+      "sha256": "e086828e8861694133b7803d96a918522f3998465ddb7fdd637b3f213821e9c3",
+      "bytes": 428626,
+      "width": 1440,
+      "height": 2622,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "scenario": "oa-travel",
+        "state": "catalog",
+        "name": "travel-01-catalog-zh-desktop",
+        "locale": "zh",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "travel-01-catalog-zh-desktop.png",
+        "imageSHA256": "e086828e8861694133b7803d96a918522f3998465ddb7fdd637b3f213821e9c3",
+        "capturedAt": "2026-10-09T10:39:19.541Z",
+        "captureSessionId": "bcfeeecd-4751-484e-96e8-4f28b43c20ee",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/travel/travel-02-filled-travel-en-desktop.png",
+      "scenario": "oa-travel",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11610673542,
+        "name": "scenario-browser-evidence-oa-travel",
+        "sha256": "ac199cd8281cdf4768a8ba774119fd31a3468463286352d442d92d7960ba9512",
+        "originalPath": "travel-scenarios-travel-sc-c5f01-l-scenes-and-390px-controls/capture-travel-bcfeeecd-4751-484e-96e8-4f28b43c20ee/travel-02-filled-travel-en-desktop.png"
+      },
+      "sha256": "fc135db4f4544da83305cb49ad787c01db4c363b61ca2fb14e2894280ef7b160",
+      "bytes": 160123,
+      "width": 1440,
+      "height": 1464,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "scenario": "oa-travel",
+        "state": "filled-travel",
+        "name": "travel-02-filled-travel-en-desktop",
+        "locale": "en",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "travel-02-filled-travel-en-desktop.png",
+        "imageSHA256": "fc135db4f4544da83305cb49ad787c01db4c363b61ca2fb14e2894280ef7b160",
+        "capturedAt": "2026-10-09T10:39:20.938Z",
+        "captureSessionId": "bcfeeecd-4751-484e-96e8-4f28b43c20ee",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/travel/travel-02-filled-travel-zh-desktop.png",
+      "scenario": "oa-travel",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11610673542,
+        "name": "scenario-browser-evidence-oa-travel",
+        "sha256": "ac199cd8281cdf4768a8ba774119fd31a3468463286352d442d92d7960ba9512",
+        "originalPath": "travel-scenarios-travel-sc-c5f01-l-scenes-and-390px-controls/capture-travel-bcfeeecd-4751-484e-96e8-4f28b43c20ee/travel-02-filled-travel-zh-desktop.png"
+      },
+      "sha256": "c5d262685c9b2ec46c6a2c0f66ea0a7831ed7324c9f116613c7dc23dce89bdcf",
+      "bytes": 156772,
+      "width": 1440,
+      "height": 1464,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "scenario": "oa-travel",
+        "state": "filled-travel",
+        "name": "travel-02-filled-travel-zh-desktop",
+        "locale": "zh",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "travel-02-filled-travel-zh-desktop.png",
+        "imageSHA256": "c5d262685c9b2ec46c6a2c0f66ea0a7831ed7324c9f116613c7dc23dce89bdcf",
+        "capturedAt": "2026-10-09T10:39:20.787Z",
+        "captureSessionId": "bcfeeecd-4751-484e-96e8-4f28b43c20ee",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/travel/travel-03-designer-en-desktop.png",
+      "scenario": "oa-travel",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11610673542,
+        "name": "scenario-browser-evidence-oa-travel",
+        "sha256": "ac199cd8281cdf4768a8ba774119fd31a3468463286352d442d92d7960ba9512",
+        "originalPath": "travel-scenarios-travel-sc-c5f01-l-scenes-and-390px-controls/capture-travel-bcfeeecd-4751-484e-96e8-4f28b43c20ee/travel-03-designer-en-desktop.png"
+      },
+      "sha256": "eba71fe4984ebb639a2a53b0fef5e0050ace76a079ae1ab499e012daae3c010c",
+      "bytes": 182335,
+      "width": 1440,
+      "height": 1312,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "scenario": "oa-travel",
+        "state": "designer",
+        "name": "travel-03-designer-en-desktop",
+        "locale": "en",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "travel-03-designer-en-desktop.png",
+        "imageSHA256": "eba71fe4984ebb639a2a53b0fef5e0050ace76a079ae1ab499e012daae3c010c",
+        "capturedAt": "2026-10-09T10:39:20.528Z",
+        "captureSessionId": "bcfeeecd-4751-484e-96e8-4f28b43c20ee",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/travel/travel-03-designer-zh-desktop.png",
+      "scenario": "oa-travel",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11610673542,
+        "name": "scenario-browser-evidence-oa-travel",
+        "sha256": "ac199cd8281cdf4768a8ba774119fd31a3468463286352d442d92d7960ba9512",
+        "originalPath": "travel-scenarios-travel-sc-c5f01-l-scenes-and-390px-controls/capture-travel-bcfeeecd-4751-484e-96e8-4f28b43c20ee/travel-03-designer-zh-desktop.png"
+      },
+      "sha256": "b357bce99cbeea4a6a92f64865b1c8bf62d5429533583854a007f9ce7184f229",
+      "bytes": 177033,
+      "width": 1440,
+      "height": 1295,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "scenario": "oa-travel",
+        "state": "designer",
+        "name": "travel-03-designer-zh-desktop",
+        "locale": "zh",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "travel-03-designer-zh-desktop.png",
+        "imageSHA256": "b357bce99cbeea4a6a92f64865b1c8bf62d5429533583854a007f9ce7184f229",
+        "capturedAt": "2026-10-09T10:39:20.371Z",
+        "captureSessionId": "bcfeeecd-4751-484e-96e8-4f28b43c20ee",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/travel/travel-04-request-detail-pending-en-desktop.png",
+      "scenario": "oa-travel",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11610673542,
+        "name": "scenario-browser-evidence-oa-travel",
+        "sha256": "ac199cd8281cdf4768a8ba774119fd31a3468463286352d442d92d7960ba9512",
+        "originalPath": "travel-scenarios-travel-sc-c5f01-l-scenes-and-390px-controls/capture-travel-bcfeeecd-4751-484e-96e8-4f28b43c20ee/travel-04-request-detail-pending-en-desktop.png"
+      },
+      "sha256": "1bbdbc87286255a54ee1c1fd58af03947234556e5d7957ee7c607c1546d7071d",
+      "bytes": 171567,
+      "width": 1440,
+      "height": 1489,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "scenario": "oa-travel",
+        "state": "request-detail-pending",
+        "name": "travel-04-request-detail-pending-en-desktop",
+        "locale": "en",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "travel-04-request-detail-pending-en-desktop.png",
+        "imageSHA256": "1bbdbc87286255a54ee1c1fd58af03947234556e5d7957ee7c607c1546d7071d",
+        "capturedAt": "2026-10-09T10:39:22.062Z",
+        "captureSessionId": "bcfeeecd-4751-484e-96e8-4f28b43c20ee",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/travel/travel-04-request-detail-pending-zh-desktop.png",
+      "scenario": "oa-travel",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11610673542,
+        "name": "scenario-browser-evidence-oa-travel",
+        "sha256": "ac199cd8281cdf4768a8ba774119fd31a3468463286352d442d92d7960ba9512",
+        "originalPath": "travel-scenarios-travel-sc-c5f01-l-scenes-and-390px-controls/capture-travel-bcfeeecd-4751-484e-96e8-4f28b43c20ee/travel-04-request-detail-pending-zh-desktop.png"
+      },
+      "sha256": "bf536d5eb51e7253194b71649fd80efd1c622a9b96c54739bd93e47c478d3c98",
+      "bytes": 168220,
+      "width": 1440,
+      "height": 1472,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "scenario": "oa-travel",
+        "state": "request-detail-pending",
+        "name": "travel-04-request-detail-pending-zh-desktop",
+        "locale": "zh",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "travel-04-request-detail-pending-zh-desktop.png",
+        "imageSHA256": "bf536d5eb51e7253194b71649fd80efd1c622a9b96c54739bd93e47c478d3c98",
+        "capturedAt": "2026-10-09T10:39:21.912Z",
+        "captureSessionId": "bcfeeecd-4751-484e-96e8-4f28b43c20ee",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/travel/travel-05-review-pending-en-desktop.png",
+      "scenario": "oa-travel",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11610673542,
+        "name": "scenario-browser-evidence-oa-travel",
+        "sha256": "ac199cd8281cdf4768a8ba774119fd31a3468463286352d442d92d7960ba9512",
+        "originalPath": "travel-scenarios-travel-sc-c5f01-l-scenes-and-390px-controls/capture-travel-bcfeeecd-4751-484e-96e8-4f28b43c20ee/travel-05-review-pending-en-desktop.png"
+      },
+      "sha256": "f1a4a8188addb53f4c45470736dc22344ca78d502d0612fb3369e6ba85459070",
+      "bytes": 186019,
+      "width": 1440,
+      "height": 1710,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "scenario": "oa-travel",
+        "state": "review-pending",
+        "name": "travel-05-review-pending-en-desktop",
+        "locale": "en",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "travel-05-review-pending-en-desktop.png",
+        "imageSHA256": "f1a4a8188addb53f4c45470736dc22344ca78d502d0612fb3369e6ba85459070",
+        "capturedAt": "2026-10-09T10:39:24.021Z",
+        "captureSessionId": "bcfeeecd-4751-484e-96e8-4f28b43c20ee",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/travel/travel-05-review-pending-zh-desktop.png",
+      "scenario": "oa-travel",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11610673542,
+        "name": "scenario-browser-evidence-oa-travel",
+        "sha256": "ac199cd8281cdf4768a8ba774119fd31a3468463286352d442d92d7960ba9512",
+        "originalPath": "travel-scenarios-travel-sc-c5f01-l-scenes-and-390px-controls/capture-travel-bcfeeecd-4751-484e-96e8-4f28b43c20ee/travel-05-review-pending-zh-desktop.png"
+      },
+      "sha256": "87965c3cf03b2d08aefc84525bae3cd34ddc44e239bd6078324dbdb9bca6d659",
+      "bytes": 180429,
+      "width": 1440,
+      "height": 1693,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "scenario": "oa-travel",
+        "state": "review-pending",
+        "name": "travel-05-review-pending-zh-desktop",
+        "locale": "zh",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "travel-05-review-pending-zh-desktop.png",
+        "imageSHA256": "87965c3cf03b2d08aefc84525bae3cd34ddc44e239bd6078324dbdb9bca6d659",
+        "capturedAt": "2026-10-09T10:39:23.852Z",
+        "captureSessionId": "bcfeeecd-4751-484e-96e8-4f28b43c20ee",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/travel/travel-06-review-pending-en-390.png",
+      "scenario": "oa-travel",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11610673542,
+        "name": "scenario-browser-evidence-oa-travel",
+        "sha256": "ac199cd8281cdf4768a8ba774119fd31a3468463286352d442d92d7960ba9512",
+        "originalPath": "travel-scenarios-travel-sc-c5f01-l-scenes-and-390px-controls/capture-travel-bcfeeecd-4751-484e-96e8-4f28b43c20ee/travel-06-review-pending-en-390.png"
+      },
+      "sha256": "7e829f8384bcd30e924b949237bbd97e825dd871694b62259cf32071a20e7a70",
+      "bytes": 46508,
+      "width": 390,
+      "height": 844,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "scenario": "oa-travel",
+        "state": "review-pending",
+        "name": "travel-06-review-pending-en-390",
+        "locale": "en",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "fullPage": false,
+        "image": "travel-06-review-pending-en-390.png",
+        "imageSHA256": "7e829f8384bcd30e924b949237bbd97e825dd871694b62259cf32071a20e7a70",
+        "capturedAt": "2026-10-09T10:39:24.323Z",
+        "captureSessionId": "bcfeeecd-4751-484e-96e8-4f28b43c20ee",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/travel/travel-06-review-pending-zh-390.png",
+      "scenario": "oa-travel",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11610673542,
+        "name": "scenario-browser-evidence-oa-travel",
+        "sha256": "ac199cd8281cdf4768a8ba774119fd31a3468463286352d442d92d7960ba9512",
+        "originalPath": "travel-scenarios-travel-sc-c5f01-l-scenes-and-390px-controls/capture-travel-bcfeeecd-4751-484e-96e8-4f28b43c20ee/travel-06-review-pending-zh-390.png"
+      },
+      "sha256": "d97b2d244162292a47df1392c35e0fc4ea9a0ec85bc123dbed6b736493644ae1",
+      "bytes": 45377,
+      "width": 390,
+      "height": 844,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "scenario": "oa-travel",
+        "state": "review-pending",
+        "name": "travel-06-review-pending-zh-390",
+        "locale": "zh",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "fullPage": false,
+        "image": "travel-06-review-pending-zh-390.png",
+        "imageSHA256": "d97b2d244162292a47df1392c35e0fc4ea9a0ec85bc123dbed6b736493644ae1",
+        "capturedAt": "2026-10-09T10:39:24.173Z",
+        "captureSessionId": "bcfeeecd-4751-484e-96e8-4f28b43c20ee",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/travel/travel-07-review-next-en-desktop.png",
+      "scenario": "oa-travel",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11610673542,
+        "name": "scenario-browser-evidence-oa-travel",
+        "sha256": "ac199cd8281cdf4768a8ba774119fd31a3468463286352d442d92d7960ba9512",
+        "originalPath": "travel-scenarios-travel-sc-c5f01-l-scenes-and-390px-controls/capture-travel-bcfeeecd-4751-484e-96e8-4f28b43c20ee/travel-07-review-next-en-desktop.png"
+      },
+      "sha256": "70235825aeda839db019e3247d0eaa5ccc978164d483b14160119e6f2ab943c7",
+      "bytes": 202186,
+      "width": 1440,
+      "height": 1866,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "scenario": "oa-travel",
+        "state": "review-next",
+        "name": "travel-07-review-next-en-desktop",
+        "locale": "en",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "travel-07-review-next-en-desktop.png",
+        "imageSHA256": "70235825aeda839db019e3247d0eaa5ccc978164d483b14160119e6f2ab943c7",
+        "capturedAt": "2026-10-09T10:39:25.631Z",
+        "captureSessionId": "bcfeeecd-4751-484e-96e8-4f28b43c20ee",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/travel/travel-07-review-next-zh-desktop.png",
+      "scenario": "oa-travel",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11610673542,
+        "name": "scenario-browser-evidence-oa-travel",
+        "sha256": "ac199cd8281cdf4768a8ba774119fd31a3468463286352d442d92d7960ba9512",
+        "originalPath": "travel-scenarios-travel-sc-c5f01-l-scenes-and-390px-controls/capture-travel-bcfeeecd-4751-484e-96e8-4f28b43c20ee/travel-07-review-next-zh-desktop.png"
+      },
+      "sha256": "66ab049943cd6083540aa5ff5466168aa7669db0db9246cb0d1dc4e68661ae1e",
+      "bytes": 195038,
+      "width": 1440,
+      "height": 1849,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "scenario": "oa-travel",
+        "state": "review-next",
+        "name": "travel-07-review-next-zh-desktop",
+        "locale": "zh",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "travel-07-review-next-zh-desktop.png",
+        "imageSHA256": "66ab049943cd6083540aa5ff5466168aa7669db0db9246cb0d1dc4e68661ae1e",
+        "capturedAt": "2026-10-09T10:39:25.458Z",
+        "captureSessionId": "bcfeeecd-4751-484e-96e8-4f28b43c20ee",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/travel/travel-08-request-detail-approved-en-desktop.png",
+      "scenario": "oa-travel",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11610673542,
+        "name": "scenario-browser-evidence-oa-travel",
+        "sha256": "ac199cd8281cdf4768a8ba774119fd31a3468463286352d442d92d7960ba9512",
+        "originalPath": "travel-scenarios-travel-sc-c5f01-l-scenes-and-390px-controls/capture-travel-bcfeeecd-4751-484e-96e8-4f28b43c20ee/travel-08-request-detail-approved-en-desktop.png"
+      },
+      "sha256": "11875084683d43cec71a5cc4cce04f4fe4625bbe8cb9be101f12253704c7ca88",
+      "bytes": 203133,
+      "width": 1440,
+      "height": 1801,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "scenario": "oa-travel",
+        "state": "request-detail-approved",
+        "name": "travel-08-request-detail-approved-en-desktop",
+        "locale": "en",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "travel-08-request-detail-approved-en-desktop.png",
+        "imageSHA256": "11875084683d43cec71a5cc4cce04f4fe4625bbe8cb9be101f12253704c7ca88",
+        "capturedAt": "2026-10-09T10:39:26.775Z",
+        "captureSessionId": "bcfeeecd-4751-484e-96e8-4f28b43c20ee",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/travel/travel-08-request-detail-approved-zh-desktop.png",
+      "scenario": "oa-travel",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11610673542,
+        "name": "scenario-browser-evidence-oa-travel",
+        "sha256": "ac199cd8281cdf4768a8ba774119fd31a3468463286352d442d92d7960ba9512",
+        "originalPath": "travel-scenarios-travel-sc-c5f01-l-scenes-and-390px-controls/capture-travel-bcfeeecd-4751-484e-96e8-4f28b43c20ee/travel-08-request-detail-approved-zh-desktop.png"
+      },
+      "sha256": "5378a4b98a0d7397ec256f555e86656369c9e0cc6be07de430457c902554c71f",
+      "bytes": 198189,
+      "width": 1440,
+      "height": 1784,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "scenario": "oa-travel",
+        "state": "request-detail-approved",
+        "name": "travel-08-request-detail-approved-zh-desktop",
+        "locale": "zh",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "travel-08-request-detail-approved-zh-desktop.png",
+        "imageSHA256": "5378a4b98a0d7397ec256f555e86656369c9e0cc6be07de430457c902554c71f",
+        "capturedAt": "2026-10-09T10:39:26.607Z",
+        "captureSessionId": "bcfeeecd-4751-484e-96e8-4f28b43c20ee",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/travel/travel-09-request-detail-rejected-en-desktop.png",
+      "scenario": "oa-travel",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11610673542,
+        "name": "scenario-browser-evidence-oa-travel",
+        "sha256": "ac199cd8281cdf4768a8ba774119fd31a3468463286352d442d92d7960ba9512",
+        "originalPath": "travel-scenarios-travel-sc-c5f01-l-scenes-and-390px-controls/capture-travel-bcfeeecd-4751-484e-96e8-4f28b43c20ee/travel-09-request-detail-rejected-en-desktop.png"
+      },
+      "sha256": "b2aa2676fee29526168905f0734f37fbe971a3da8092941b607d852c6e8a606c",
+      "bytes": 198333,
+      "width": 1440,
+      "height": 1645,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "scenario": "oa-travel",
+        "state": "request-detail-rejected",
+        "name": "travel-09-request-detail-rejected-en-desktop",
+        "locale": "en",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "travel-09-request-detail-rejected-en-desktop.png",
+        "imageSHA256": "b2aa2676fee29526168905f0734f37fbe971a3da8092941b607d852c6e8a606c",
+        "capturedAt": "2026-10-09T10:39:28.741Z",
+        "captureSessionId": "bcfeeecd-4751-484e-96e8-4f28b43c20ee",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/travel/travel-09-request-detail-rejected-zh-desktop.png",
+      "scenario": "oa-travel",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11610673542,
+        "name": "scenario-browser-evidence-oa-travel",
+        "sha256": "ac199cd8281cdf4768a8ba774119fd31a3468463286352d442d92d7960ba9512",
+        "originalPath": "travel-scenarios-travel-sc-c5f01-l-scenes-and-390px-controls/capture-travel-bcfeeecd-4751-484e-96e8-4f28b43c20ee/travel-09-request-detail-rejected-zh-desktop.png"
+      },
+      "sha256": "2597ba5956021cfd934149623ba4594a5e2bccb87bf5dfe9d3abf919dee7551c",
+      "bytes": 194221,
+      "width": 1440,
+      "height": 1628,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "scenario": "oa-travel",
+        "state": "request-detail-rejected",
+        "name": "travel-09-request-detail-rejected-zh-desktop",
+        "locale": "zh",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "travel-09-request-detail-rejected-zh-desktop.png",
+        "imageSHA256": "2597ba5956021cfd934149623ba4594a5e2bccb87bf5dfe9d3abf919dee7551c",
+        "capturedAt": "2026-10-09T10:39:28.570Z",
+        "captureSessionId": "bcfeeecd-4751-484e-96e8-4f28b43c20ee",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/travel/travel-10-validation-errors-en-desktop.png",
+      "scenario": "oa-travel",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11610673542,
+        "name": "scenario-browser-evidence-oa-travel",
+        "sha256": "ac199cd8281cdf4768a8ba774119fd31a3468463286352d442d92d7960ba9512",
+        "originalPath": "travel-scenarios-travel-sc-c5f01-l-scenes-and-390px-controls/capture-travel-bcfeeecd-4751-484e-96e8-4f28b43c20ee/travel-10-validation-errors-en-desktop.png"
+      },
+      "sha256": "7345ea48882c797cb9d8ad1360f6f21c20c8b8c309ca03bc966efc4d49239e91",
+      "bytes": 168116,
+      "width": 1440,
+      "height": 1534,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "scenario": "oa-travel",
+        "state": "validation-errors",
+        "name": "travel-10-validation-errors-en-desktop",
+        "locale": "en",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "travel-10-validation-errors-en-desktop.png",
+        "imageSHA256": "7345ea48882c797cb9d8ad1360f6f21c20c8b8c309ca03bc966efc4d49239e91",
+        "capturedAt": "2026-10-09T10:39:21.474Z",
+        "captureSessionId": "bcfeeecd-4751-484e-96e8-4f28b43c20ee",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685"
+      }
+    },
+    {
+      "file": "docs/images/scenarios/travel/travel-10-validation-errors-zh-desktop.png",
+      "scenario": "oa-travel",
+      "suite": "scenario",
+      "captureCommit": "8c26d953e53991d3e445aa69c530726f1d81daae",
+      "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685",
+      "artifact": {
+        "id": 11610673542,
+        "name": "scenario-browser-evidence-oa-travel",
+        "sha256": "ac199cd8281cdf4768a8ba774119fd31a3468463286352d442d92d7960ba9512",
+        "originalPath": "travel-scenarios-travel-sc-c5f01-l-scenes-and-390px-controls/capture-travel-bcfeeecd-4751-484e-96e8-4f28b43c20ee/travel-10-validation-errors-zh-desktop.png"
+      },
+      "sha256": "17a0885ab8684aa12ba560a150bdb4ab3f49ccfd08639a07904564e15b1b7a24",
+      "bytes": 166537,
+      "width": 1440,
+      "height": 1517,
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceRevision": "8c26d953e53991d3e445aa69c530726f1d81daae",
+        "scenario": "oa-travel",
+        "state": "validation-errors",
+        "name": "travel-10-validation-errors-zh-desktop",
+        "locale": "zh",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "fullPage": true,
+        "image": "travel-10-validation-errors-zh-desktop.png",
+        "imageSHA256": "17a0885ab8684aa12ba560a150bdb4ab3f49ccfd08639a07904564e15b1b7a24",
+        "capturedAt": "2026-10-09T10:39:21.323Z",
+        "captureSessionId": "bcfeeecd-4751-484e-96e8-4f28b43c20ee",
+        "captureRunId": "37918452685",
+        "captureRunAttempt": "1",
+        "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/37918452685"
+      }
+    }
+  ],
+  "imageCount": 104,
+  "totalImageBytes": 23292297,
+  "archiveDigestNote": "Recorded historical artifact archive digests; only original PNGs and sidecars were reverified for this documentation change.",
+  "identicalOriginalGroups": [
+    {
+      "sha256": "8d83c13cd7d69df7d89bf1b59eebc6d4d9a5cc47117224034a8fb0e04c26fa0e",
+      "files": [
+        "docs/images/scenarios/seal-use/01-seal-catalog-en-desktop.png",
+        "docs/images/scenarios/travel/travel-01-catalog-en-desktop.png"
+      ],
+      "reason": "The shared six-card scenario catalog has identical original PNG bytes in the separate travel and seal-use capture sessions; it is not a distinct state."
+    },
+    {
+      "sha256": "e086828e8861694133b7803d96a918522f3998465ddb7fdd637b3f213821e9c3",
+      "files": [
+        "docs/images/scenarios/seal-use/01-seal-catalog-zh-desktop.png",
+        "docs/images/scenarios/travel/travel-01-catalog-zh-desktop.png"
+      ],
+      "reason": "The shared six-card scenario catalog has identical original PNG bytes in the separate travel and seal-use capture sessions; it is not a distinct state."
+    }
+  ],
+  "uniqueImageSHA256Count": 102
+}

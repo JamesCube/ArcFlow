@@ -1,5 +1,9 @@
 # 业务案例图集 / Business journeys in pictures
 
+新增五类独立图集：[出差／用印／收货／付款／合同](galleries/README.md)，含各自设计器、真实业务状态与条件路由补充。
+
+Five additional case galleries: [travel, seal use, receiving, payment and contracts](galleries/README.en.md), including their designers, real states and conditional-routing supplements.
+
 [README 中文](../README.md) · [English README](../README.en.md) · [先看流程设计器](DESIGNER_GALLERY.md) · [本地试用](GETTING_STARTED.md)
 
 [OA 请假](#oa) · [ERP 采购](#erp) · [CRM 报价](#crm) · [若依与 H5](#other-clients) · [截图来源](#provenance)
