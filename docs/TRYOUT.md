@@ -168,6 +168,13 @@ python3 scripts/package-tryout.py --output-dir /tmp/arcflow-rc-two
 <!-- topic:troubleshooting-and-boundaries -->
 ## 排错与边界
 
+<!-- topic:safe-failure-diagnostics -->
+### 安全失败诊断
+
+服务无法启动、提前退出或就绪超时时，启动器会输出失败阶段、各服务状态及退出码，并区分 UI 未响应与后端认证 API 未就绪。每个服务仅检查私有日志末尾最多 64 KiB，输出最多六条固定的已识别原因提示，例如端口冲突、JAR／UI 依赖缺失、Java 配置、权限或磁盘空间问题。这些提示用于排查，不保证覆盖完整根因。未知日志、异常详情、凭据和请求数据不会复制到诊断摘要，也不会另存诊断文件。失败及正常 Ctrl-C 停止时都会终止本次进程组并删除私有运行目录。
+
+若没有识别到原因，请先运行 `python3 scripts/tryout.py --check`，再按[手动启动指南](GETTING_STARTED.md#简体中文)在本机排查。不要将凭据文件或未经检查的原始日志粘贴到问题报告中。强制结束进程或系统崩溃仍可能阻止清理，请参阅上方停止说明。
+
 - 工具失败：自行安装/选择支持工具再 check；同终端核对 `java -version`、`javac -version`、`mvn -version`、`node --version`、`npm --version`；非 PATH Maven 用 `--maven`。
 - 端口占用：选两个空闲端口或停自己拥有的进程，不改成公开接口。
 - 下载/构建失败：检查错误、配置 registry 和代理后重试；源码包不是离线安装器，不绕过 TLS。

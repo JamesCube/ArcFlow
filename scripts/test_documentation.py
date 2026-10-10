@@ -168,5 +168,47 @@ class DocumentationContractTests(unittest.TestCase):
         self.assertTrue(any('category' in x for x in self.errors()))
 
 
+class TryoutDocumentationTests(unittest.TestCase):
+    def test_safe_failure_diagnostics_are_registered_in_both_languages(self):
+        manifest = docs.unique_json(docs.ROOT / 'docs/documentation-map.json')
+        entry = next(item for item in manifest['documents'] if item['path'] == 'docs/TRYOUT.md')
+        self.assertIn('safe-failure-diagnostics', entry['topics'])
+        for relative in ['docs/TRYOUT.md', 'docs/TRYOUT.en.md']:
+            with self.subTest(path=relative):
+                text = (docs.ROOT / relative).read_text()
+                self.assertEqual(1, text.count('<!-- topic:safe-failure-diagnostics -->'))
+
+    def test_safe_failure_guidance_keeps_bounds_privacy_cleanup_and_localized_recovery(self):
+        # Check the actual guidance, not just matching topic markers: the language
+        # split must not silently drop the diagnostic limits or recovery warnings.
+        expected = {
+            'docs/TRYOUT.md': [
+                '无法启动、提前退出或就绪超时', '失败阶段', '状态及退出码',
+                'UI 未响应与后端认证 API 未就绪', '末尾最多 64 KiB', '最多六条固定',
+                '不保证覆盖完整根因', '未知日志、异常详情、凭据和请求数据不会复制',
+                '不会另存诊断文件', '失败及正常 Ctrl-C', '终止本次进程组并删除私有运行目录',
+                'python3 scripts/tryout.py --check', '(GETTING_STARTED.md#简体中文)',
+                '不要将凭据文件或未经检查的原始日志', '强制结束进程或系统崩溃仍可能阻止清理',
+            ],
+            'docs/TRYOUT.en.md': [
+                'cannot start, exits early, or never becomes ready', 'failing phase', 'state/exit code',
+                'unresponsive UI', 'authenticated backend API that is not ready',
+                'at most the last 64 KiB', 'up to six fixed', 'not a complete root-cause analysis',
+                'Unknown text, exception details, credentials and request data are never copied',
+                'no diagnostic file is saved', 'stops its process groups and deletes the private runtime directory',
+                'on failure as well as normal Ctrl-C', 'python3 scripts/tryout.py --check',
+                '(GETTING_STARTED.en.md#english)',
+                'Do not paste the private credentials file or unreviewed raw logs',
+                'Forced kills and OS crashes still cannot guarantee cleanup',
+            ],
+        }
+        for relative, fragments in expected.items():
+            text = (docs.ROOT / relative).read_text()
+            section = text.split('<!-- topic:safe-failure-diagnostics -->', 1)[-1].split('\n\n- ', 1)[0]
+            for fragment in fragments:
+                with self.subTest(path=relative, guidance=fragment):
+                    self.assertIn(fragment, section)
+
+
 if __name__ == '__main__':
     unittest.main()

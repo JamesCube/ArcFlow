@@ -443,7 +443,8 @@
         "readiness-and-stopping",
         "build-a-versioned-source-bundle",
         "release-candidate-checklist",
-        "troubleshooting-and-boundaries"
+        "troubleshooting-and-boundaries",
+        "safe-failure-diagnostics"
       ]
     },
     {
