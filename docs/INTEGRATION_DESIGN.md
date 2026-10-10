@@ -1,7 +1,18 @@
-# 企业框架与 Vue 设计器集成设计（规划）
+# 企业框架与设计器集成设计（提议）
 
-这份文档讨论后续如何接入企业框架。仓库已有[独立审批示例](../examples/approval-demo/README.md)和基于固定官方版本的[若依参考集成](../examples/ruoyi-vue3/README.md)，支持顺序阶段、ALL/ANY 分组，以及各自的设计器。若依示例使用宿主的登录、菜单和权限；审批领域库另有可选 [JDBC 存储](../examples/approval-jdbc/README.md)。这些都位于同步 DAG 内核之外。[类型化请假与采购单](BUSINESS_DOCUMENTS.md)已经提供 Java 和 HTTP 接口，但还没有采购表单或任意业务类型插件。下面的通用企业 API、条件分支和完整持久化方案仍是设计草案。
+<!-- Legacy fragments remain entry points after the language split. -->
+<a id="企业框架与-vue-设计器集成设计规划"></a>
 
+<a id="zh"></a>
+<a id="en"></a>
+<a id="简体中文"></a>
+<a id="english"></a>
+
+[English](INTEGRATION_DESIGN.en.md) · [文档目录](README.md)
+
+本文是通用企业集成的设计说明，不是已发布 API。当前源码已实现独立审批、固定官方若依、采购表单、九类单据、六项场景和三个专用场景的受限条件；精确范围见[架构](development/ARCHITECTURE.md)。下文资源路径与通用 DSL 仍为提议，不能用来替代[实际接口参考](api/API_REFERENCE.md)。
+
+<!-- topic:first-reference-integration -->
 ## 首个参考接入方向
 
 首个参考集成使用官方 RuoYi-Vue 的 `springboot3` 分支和官方 RuoYi-Vue3（Vue 3 / Vite / Element Plus）。适配或更新时，应锁定双方 tag/commit，并检查 JDK、Spring Boot、数据库、鉴权及依赖是否兼容。上游主分支会变化，不能用它代替明确的版本号。
@@ -15,6 +26,7 @@ RuoYi-Vue-Plus 是 Dromara 独立改写的项目，需要单独适配。其他 J
 
 后续可考虑 [Dromara RuoYi-Vue-Plus](https://github.com/dromara/RuoYi-Vue-Plus) 和 [芋道 ruoyi-vue-pro](https://github.com/YunaiV/ruoyi-vue-pro)。前者已有 WarmFlow，后者已有 Flowable。ArcFlow 的示例适配应独立、可选；替换现有工作流和迁移旧流程需要另行设计。
 
+<!-- topic:backend-responsibilities -->
 ## 后端适配边界
 
 宿主适配和引擎各自负责以下部分：
@@ -32,12 +44,14 @@ RuoYi-Vue-Plus 是 Dromara 独立改写的项目，需要单独适配。其他 J
 - GET `/api/arcflow/instances/{id}`：实例状态
 - GET `/api/arcflow/instances/{id}/history`：有权限可见的审批历史
 
+<!-- topic:frontend-reference -->
 ## 前端参考示例
 
-前端计划覆盖发起页、待办/已办列表、审批详情、历史时间线和 Vue 流程设计器。已有示例支持节点属性、发布前校验和只读快照；条件分支与拖拽配置还需实现。界面自行设计，使用合规的开源组件。可以参考常见的钉钉式审批操作方式，但不复制其专有代码、品牌或素材。
+前端计划覆盖发起页、待办/已办列表、审批详情、历史时间线和 Vue 流程设计器。已有示例支持节点属性、发布前校验和只读快照；通用条件分支与拖拽配置还需另行设计；现有专用场景的受限条件不等于这套通用能力。界面自行设计，使用合规的开源组件。可以参考常见的钉钉式审批操作方式，但不复制其专有代码、品牌或素材。
 
 审批表单通过适配层关联企业业务表单，业务字段不写死在内核里。
 
+<!-- topic:versioned-model-separate-ui-and-execution -->
 ## 版本化模型，隔离 UI 与运行时
 
 建议流程文档包含 `schemaVersion`、`processKey`、`definitionVersion`、`nodes`、`edges`，以及单独的 `designerMetadata`。
@@ -49,6 +63,7 @@ RuoYi-Vue-Plus 是 Dromara 独立改写的项目，需要单独适配。其他 J
 - 已发布定义保持不变，实例固定使用启动时的版本；修改设计器中的图形不影响运行中的实例。
 - 为 schema 升级和迁移制定规则并增加兼容性测试。此 JSON 模型不使用 BPMN XML，也不提供 BPMN 兼容性。
 
+<!-- topic:what-the-reference-must-verify -->
 ## 示例需要验证什么
 
 参考集成至少要能走通：发布流程 → 发起 → 候选人收到待办 → 按权限审批 → 查看历史。还要测试越权访问、重复提交、并发审批、重启恢复、定义版本升级和租户隔离。完成页面和正常流程只是开始，生产使用还需要这些检查和相应的运行保障。

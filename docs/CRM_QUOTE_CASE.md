@@ -1,4 +1,15 @@
-# 报价折扣审批 / Quote discount approval
+# 报价折扣审批
+
+<!-- Legacy fragments remain entry points after the language split. -->
+<a id="报价折扣审批--quote-discount-approval"></a>
+<a id="验收与下一步--verification-and-next-steps"></a>
+
+<a id="zh"></a>
+<a id="en"></a>
+<a id="简体中文"></a>
+<a id="english"></a>
+
+[English](CRM_QUOTE_CASE.en.md) · [文档目录](README.md)
 
 本文说明**隔离的合成 CRM 报价案例**及其接入、验证边界。[PR #20](https://github.com/JamesCube/ArcFlow/pull/20)
 已合入 main `66ec531270a513f884125065f19fe4e78762992f`；精确提交验收记录见
@@ -11,11 +22,7 @@
 原生若依 CRM 页面和三端共享列表不在本例已实现范围内。
 验收门槛见 [CRM 兼容性与发布检查](CRM_COMPATIBILITY_READINESS.md)。
 
-This document describes the isolated synthetic CRM case merged through PR #20. The linked
-acceptance checkpoint records its exact tested head and matching merge tree. The older
-baseline above is retained for history. Later commits need their own reports; a merged
-example is not a deployment or production-readiness claim.
-
+<!-- topic:runnable-scope -->
 ## 可以运行的边界
 
 - 独立端新增 `/api/crm` 宿主示例及 `/quote-discount.html` 页面，中英文可切换。
@@ -30,10 +37,7 @@ example is not a deployment or production-readiness claim.
 - 不连接真实 CRM、客户账号、模型供应商、付款或库存接口；没有客户通知、签约、商机成交或回写。
   `APPROVED` 仅表示这份不可变快照通过人工审批。
 
-This is a bounded local synthetic example. It adds an explicit typed document and host boundary,
-not a condition gateway, CRM connector, organizational role resolver, or a business-system writeback.
-No third-party credentials, customer records or external LLM calls are used.
-
+<!-- topic:start-locally -->
 ## 本地启动
 
 首次试用可从仓库根目录运行一键启动脚本；所需 Java、Maven、Node 等版本见[启动要求](TRYOUT.md#requirements)：
@@ -48,11 +52,6 @@ python3 scripts/tryout.py
 [双终端手动启动步骤](GETTING_STARTED.md#简体中文)包含密码设置和 `npm ci`；该方式的默认地址为
 `http://localhost:5173/quote-discount.html`。两种方式都要保持各自配置的 hostname 和端口。
 
-Run the launcher above from the repository root, open its printed quote URL and use its
-private credentials file. For persistent data, use the [manual setup](GETTING_STARTED.md#english),
-including password configuration and `npm ci`. Follow the [English walkthrough](GETTING_STARTED.md#try-other-cases-en)
-or [中文操作步骤](GETTING_STARTED.md#try-other-cases-zh) for sample values and role changes.
-
 密码只保留在当前页面内存，退出后清除；页面不写入 localStorage、sessionStorage 或 URL。
 报价页与主工作区不共享登录态，但使用同一后端的演示账号。
 先 Alice 提交，再退出并以 Bob 登录审核，最后 Carol 复核。
@@ -61,14 +60,11 @@ or [中文操作步骤](GETTING_STARTED.md#try-other-cases-zh) for sample values
 未提交的审批意见仅保留在当前登录页内存中。切换中英文、刷新相同步骤或请求失败不会清空意见；
 确认保存、步骤或流程版本变化、退出及页面导航会清除对应草稿，不跨账号或申请复用。
 
-Unsubmitted review comments stay in the current signed-in page's memory across language changes,
-same-step refreshes and failed requests. Confirmed saves, step/version changes, sign-out and page
-navigation clear the corresponding draft; comments never carry into another actor or request.
-
 报价页面通过独立地址访问，尚未加入共享主导航或采购／成员待办工作区。
 部署静态构建时须保留 `dist/quote-discount.html` 和 `dist/crm-quote/`，并将 `/api` 反向代理到后端；
 Origin 配置和原有非简单客户端头校验继续生效。
 
+<!-- topic:document-and-http-contract -->
 ## 单据与 HTTP 契约
 
 新增 `BusinessDocument.QuoteDiscount`，wire type 为 `quoteDiscount`。所有字段必填：
@@ -107,6 +103,7 @@ Origin 配置和原有非简单客户端头校验继续生效。
 防止绕过客户读权、归属销售及源报价版本核对。生产宿主应单独实现相同边界，而非放开通用入口。
 原若依四项权限和请求包装保持原样；本次没有提供原生若依 CRM 适配器。
 
+<!-- topic:money-dates-and-source-validation -->
 ## 金额、时间与来源校验
 
 - 公共 businessId/title/reason、item、quantity、currency 和两位小数/JPY 规则复用现有采购限制。
@@ -125,6 +122,7 @@ Origin 配置和原有非简单客户端头校验继续生效。
 若接入有并发版本变更的真实系统，应在源系统事务或一致性令牌内完成读取和绑定；此示例不声称
 在外部 CRM 并发变更下提供跨系统事务。生产级客户/附件/字段权限仍由宿主实现。
 
+<!-- topic:revision-binding-and-idempotency -->
 ## 报价版本绑定与原幂等契约
 
 独立宿主将报价编号和版本编码为确定性 SHA-256 提交键，由原 store 在提交快照时原子保存。
@@ -141,6 +139,7 @@ Origin 配置和原有非简单客户端头校验继续生效。
 报价请求不能从请假接口读取或审批。历史审批完成后，宿主不对源报价执行任何写操作。
 源系统当前版本不同会显示“报价已更新，请重新提交审批”，旧结果不会当作新版本授权。
 
+<!-- topic:storage-and-upgrade-requirements -->
 ## 存储格式与升级门槛
 
 - JSON 1–5 继续严格读取；首次写入 quoteDiscount 使用 snapshot schema 6。
@@ -153,12 +152,8 @@ Origin 配置和原有非简单客户端头校验继续生效。
   再启用报价提交；不能混合滚动写入。JDBC 没有新增自动 SQL 迁移或降级步骤。
 - 备份仅用于受控恢复，直接恢复旧备份会丢失之后的申请和审批，不能作为无损降级。
 
-Snapshot schema 6 is required only once quotes are written; schema-5 leave/procurement
-readability and the existing SQL revision 3 contract are retained. Upgrade every reader and
-stop incompatible writers before enabling quotes. The pre-upgrade backup is a recovery aid,
-not a lossless downgrade path.
-
-## 验收与下一步 / Verification and next steps
+<!-- topic:verification-and-next-steps -->
+## 验收与下一步
 
 此前本地检查记录随交付包保存，不替代后续提交的回归。`examples/crm-quote/http_smoke.py` 使用随机、临时密码启动打包后的
 真实 Spring Boot HTTP 服务，完成报价、两步审批、篡改拒绝、跨流程隔离与重启恢复。
@@ -182,9 +177,3 @@ CRM 已接受提交的浏览器、桌面与 390px 双语截图、真实数据库
 2. 修改页面或存储时，保留对应提交的 PostgreSQL/MySQL 合同、双语浏览器旅程和截图，明确失败或跳过项。
 3. 准备新的发布时，独立复核增量和 exact-head CI；合并示例不等于部署或生产验收。
 4. 共享工作区接入仍未实现：需同步扩展独立端、若依和 H5 的 quoteDiscount 解析、金额精度、业务权限和只读详情，再单独验收；H5 继续不新建。
-
-For subsequent changes, review the new delta, rerun affected checks and record actual
-browser/server-database results and exact-head remote CI rather than reusing this checkpoint.
-The dedicated page remains the only quote UI in scope. Shared standalone/RuoYi/H5 quote
-views require a separate integration; approval never sends a quote, charges a payment,
-notifies a customer or writes to a CRM.

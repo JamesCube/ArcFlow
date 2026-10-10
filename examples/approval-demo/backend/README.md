@@ -1,13 +1,23 @@
-# 独立审批后端 / Standalone approval backend
+<!-- topic:scope -->
+# 独立审批后端
 
-[简体中文](#zh) · [English](#en) · [开发文档 / Developer guide](../../../docs/development/README.md) · [接口参考 / API reference](../../../docs/api/API_REFERENCE.md)
-
+<!-- Legacy fragments remain entry points after the language split. -->
+<a id="authentication-and-http-boundaries"></a>
+<a id="en"></a>
+<a id="english"></a>
+<a id="persistence-and-verification"></a>
+<a id="run"></a>
 <a id="zh"></a>
-## 简体中文
+<a id="独立审批后端--standalone-approval-backend"></a>
+<a id="简体中文"></a>
+
+[English](README.en.md)
+
 
 这是当前 `main` 的本地示例宿主，使用 **Spring Boot 4.1.1、Java 17+**，通过临时 Jackson 2 兼容模块复用审批领域契约。共享领域／JDBC 的构建父版本和若依上游未一起升级，详见[宿主迁移边界](../../../docs/SUPPORTED_HOST_MIGRATION.md)。请只在回环地址使用合成数据；固定账号、JSON 存储和框架升级不构成生产就绪承诺。
 
-### 运行
+<!-- topic:run -->
+## 运行
 
 需要完整 JDK 17+、Maven 3.9+，以下交互命令使用 Bash。从仓库根目录先安装本地依赖：
 
@@ -30,7 +40,8 @@ mvn -f examples/approval-demo/backend/pom.xml spring-boot:run
 
 前端启动、Node 版本、依赖顺序与排障见[开发环境](../../../docs/development/QUICKSTART.md#zh)。
 
-### 身份与 HTTP 边界
+<!-- topic:transport -->
+## 身份与 HTTP 边界
 
 - `/api/**` 需要 `alice`、`bob` 或 `carol` 的 HTTP Basic。服务端从认证 Principal 取得 actor；JSON 不能提供申请人或审批人覆盖值。
 - Alice 可发布，Bob／Carol 可被指派；决定只能由保存的当前步骤成员执行。管理员或发布者没有代投权限。
@@ -47,7 +58,8 @@ mvn -f examples/approval-demo/backend/pom.xml spring-boot:run
 
 领域共有九种业务类型，但通用 `/api/documents` 只接收 `leave`／`procurement`。六场景是 `oa-expense`、`oa-travel`、`oa-seal-use`、`erp-receiving`、`erp-payment`、`crm-contract`；只有收货、付款、合同允许条件定义 schema 4。完整映射与 SINGLE／ALL／ANY 边界见[架构说明](../../../docs/development/ARCHITECTURE.md#zh)。
 
-### 存储和验证
+<!-- topic:persistence -->
+## 存储和验证
 
 默认主文件、报价相邻文件及六个场景文件各自使用单写者 JSON 存储。当前严格读取 wrapper **1–13**；文件按实际内容单调升级，定义 schema **4** 需要 wrapper **13**。SQL revision **3** 属于独立可选 JDBC 适配器，本宿主不会自动切换到数据库。
 
@@ -59,61 +71,3 @@ mvn -f examples/approval-demo/backend/pom.xml verify
 ```
 
 测试覆盖 HTTP／安全边界及业务场景；打包后可继续运行真实 HTTP 与 Playwright 检查，见[分层验证清单](../../../docs/development/QUICKSTART.md#zh)和[宿主 CI](../../../.github/workflows/approval-demo.yml)。测试存在不等于当前提交已通过，框架迁移通过也不代替若依／H5／数据库验证。
-
-<a id="en"></a>
-## English
-
-This local host on current `main` uses **Spring Boot 4.1.1 and Java 17+**, with a temporary Jackson 2 compatibility module to preserve shared approval contracts. Domain/JDBC build parents and native RuoYi upstream did not migrate with it; see [host migration boundaries](../../../docs/SUPPORTED_HOST_MIGRATION.md). Use loopback and synthetic data. Demo accounts, JSON storage, and a framework upgrade do not establish production readiness.
-
-### Run
-
-Use a full JDK 17+, Maven 3.9+, and Bash for these interactive commands. Install local dependencies from the repository root first:
-
-```bash
-mvn install
-mvn -f examples/approval-domain/pom.xml install
-
-umask 077
-mkdir -p "$PWD/examples/approval-demo/backend/data"
-export APPROVAL_DATA_FILE="$PWD/examples/approval-demo/backend/data/requests.json"
-export APPROVAL_UI_ORIGIN='http://localhost:5173'
-read -rs -p 'Alice demo password: ' APPROVAL_ALICE_PASSWORD; echo
-read -rs -p 'Bob demo password: ' APPROVAL_BOB_PASSWORD; echo
-read -rs -p 'Carol demo password: ' APPROVAL_CAROL_PASSWORD; echo
-export APPROVAL_ALICE_PASSWORD APPROVAL_BOB_PASSWORD APPROVAL_CAROL_PASSWORD
-mvn -f examples/approval-demo/backend/pom.xml spring-boot:run
-```
-
-There are no default passwords. Choose three different demo-only values, each at least 12 characters and at most 72 UTF-8 bytes. The backend binds to `127.0.0.1:8080`; the standalone Vite UI proxies `/api`. Without `APPROVAL_DATA_FILE`, the path is `./data/requests.json` relative to the backend working directory. Reuse one absolute path on restart. If the frontend address changes, set its exact `APPROVAL_UI_ORIGIN`; there are no wildcard origins or open CORS rules.
-
-See [development setup](../../../docs/development/QUICKSTART.md#en) for frontend startup, Node versions, dependency order, and troubleshooting.
-
-### Authentication and HTTP boundaries
-
-- `/api/**` requires Basic authentication as `alice`, `bob`, or `carol`. The server derives actors from the authenticated Principal; client JSON cannot override applicant or voter identity.
-- Alice can publish; Bob/Carol can be assigned. Only eligible members of the saved current stage can vote. Publishers/administrators cannot vote on another person's behalf.
-- POST uses `Content-Type: application/json` and `X-Arcflow-Client: approval-demo`. Foreign Origin, cross-site Fetch Metadata, and missing client headers are rejected. There is no form login, session authentication, or browser Basic challenge dialog.
-- HTTP uses the shared strict Jackson 2 mapper: unknown/duplicate fields, trailing content, and invalid numeric/scalar coercions fail. Do not send client-computed routes, derived totals, or scripts.
-
-The [API reference](../../../docs/api/API_REFERENCE.en.md) is the consolidated contract for paths, fields, responses, authorization, errors, and retries. [Runnable examples](../../../docs/api/examples/README.md) accompany it. Endpoint families are:
-
-| Family | Accepted scope |
-| --- | --- |
-| `/api/process`, `/api/requests`, `/api/documents` | Main leave/procurement process, legacy leave creation, typed documents, and member inbox |
-| `/api/crm` | Isolated quotes, fixed Bob → Carol, with source-version/ownership checks |
-| `/api/scenarios/{scenarioId}/...` | Six exact-type scenarios; submissions require `Idempotency-Key`, with separate processes/stores |
-
-The domain has nine types, but generic `/api/documents` accepts only `leave`/`procurement`. The six catalog IDs are `oa-expense`, `oa-travel`, `oa-seal-use`, `erp-receiving`, `erp-payment`, and `crm-contract`. Only receiving, payment, and contract permit conditional definition schema 4. See [architecture](../../../docs/development/ARCHITECTURE.md#en) for the full map and SINGLE/ALL/ANY semantics.
-
-### Persistence and verification
-
-The main file, adjacent quote file, and six scenario files each use single-writer JSON storage. Current readers strictly accept wrappers **1–13**. Files upgrade monotonically when content requires it; definition schema **4** requires wrapper **13**. SQL revision **3** belongs to the separate optional JDBC adapter; this host never switches to a database automatically.
-
-Stop incompatible readers/writers, back up every file, and deploy compatible binaries before upgrading. Reads do not rewrite files; format increases save exact immediately-preceding bytes. Restoring an old backup loses later changes. See [persistence and migration](../../../docs/development/PERSISTENCE.md#en) for the version matrix and rollout steps.
-
-```bash
-# From the repository root after installing core and domain
-mvn -f examples/approval-demo/backend/pom.xml verify
-```
-
-Tests cover HTTP/security and scenario boundaries. After packaging, run relevant live-HTTP and Playwright checks using the [layered checklist](../../../docs/development/QUICKSTART.md#en) and [host CI](../../../.github/workflows/approval-demo.yml). Test presence is not a passing current-commit result. Host dependency verification does not replace native RuoYi, H5, or database acceptance.

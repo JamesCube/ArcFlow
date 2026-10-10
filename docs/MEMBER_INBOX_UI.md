@@ -1,39 +1,51 @@
-# 成员收件箱前端接入 / Member inbox frontend adoption
+# 成员收件箱前端接入：历史检查点
 
-This is a historical local checkpoint for its stated input tree. For the later combined source, see [LOCAL_INTEGRATION](LOCAL_INTEGRATION.md) and the exact commit’s CI results.
+<!-- Legacy fragments remain entry points after the language split. -->
+<a id="pr-18-文案整合--local-copy-integration"></a>
+<a id="使用方式--behavior"></a>
+<a id="尚未验证--remaining-gates"></a>
+<a id="成员收件箱前端接入--member-inbox-frontend-adoption"></a>
+<a id="本地验证--local-validation"></a>
 
-本地补丁以 `cac609569807ae65d488a9e79c8cf463aebad961` 为基础，接入该版本的全成员收件箱 API。仅修改三个前端及其测试、说明；不改领域、存储或后端接口，不包含采购界面；另已在本地接入 PR #18 的前端文案，未合并该 PR。
+<a id="zh"></a>
+<a id="en"></a>
+<a id="简体中文"></a>
+<a id="english"></a>
 
-This local-only change is based on backend commit `cac609569807ae65d488a9e79c8cf463aebad961`, tree `a1dc75ae7e14f822a2b581d27238a8aadd1b52dc`. It does not publish a branch, PR, deployment or upstream change.
+[English](MEMBER_INBOX_UI.en.md) · [文档目录](README.md)
 
-## 使用方式 / Behavior
+本文是指定输入树的历史本地检查点，后续组合源码见[本地集成](LOCAL_INTEGRATION.md)，使用时核对精确提交 CI。
 
-- 独立桌面：打开“待我审批”或“我已审批”，分别筛选申请当前状态、保存的流程版本；点击“加载更多”。申请列表仍保留申请人和参与人的历史可见范围。
-- 若依：待办、已办分别分页与筛选；“我的申请”和参与历史仍使用兼容列表。沿用原生登录与读取权限，查询参数不能指定另一个人。
-- H5：待办、已办分别保存游标。两列表共用状态、流程版本筛选，界面明确说明作用范围；搜索仅检索已加载结果。打开详情、返回及切换列表保留分页进度；“我参与的”及直接打开历史详情按需加载兼容列表。
-- 已办只包含本人实际作出的审批决定。全员同意中的部分投票仍可显示“审批中”；同一个人进入后续节点时可同时出现在待办和已办。
-- 显示的数量是已加载行数，不是服务端总数。分页是实时列表；“更新数据”从第一页重新查询，才能发现较新的申请或成员变化。
-- 退出、身份变化、筛选变化会取消旧请求并使旧响应失效。记录缓存按只追加的审批历史保留较新的快照，避免慢响应覆盖已保存的决定。
-- 不确定的审批结果不会自动重试。独立桌面尝试读取历史以恢复状态，恢复失败时锁定该申请的审批操作；若依要求先刷新；H5 使用详情新鲜度和确认上下文保护。
+基于后端 `cac609569807ae65d488a9e79c8cf463aebad961`，tree `a1dc75ae7e14f822a2b581d27238a8aadd1b52dc`，仅修改三个前端及测试/说明，不改领域、存储或后端，不含采购界面。当时已本地接入 PR #18 文案，但未合并该 PR；没有发布分支、PR、部署或上游变更。
 
-English: all three consumers use bounded, independent PENDING/HANDLED cursors. Standalone and native filters are per box; mobile filters are explicitly shared and reset both cursors. Legacy applicant/history visibility remains intact. Actor/session epochs, AbortSignals and per-read generations reject late success and error responses. Cross-list caches cannot replace a longer saved decision history with an older snapshot. Loaded counts do not imply a total or frozen multi-page snapshot.
+<!-- topic:behavior -->
+## 使用行为
 
-## 本地验证 / Local validation
+- 独立桌面：待办/已办分别按当前状态、保存流程版本筛选并加载更多，申请列表保留申请人和参与历史范围。
+- 若依：两类分别分页/筛选，我的申请与参与历史仍用兼容列表，沿用原生认证/读取权限，不能查询他人身份。
+- H5：两列表独立游标，共用明确标注的状态/版本筛选，筛选变更重置两者。搜索仅查已加载行；详情往返/切换保留分页，我参与的及历史直达按需读取兼容列表。
+- 已办只算真实个人决定；部分 ALL 仍可待决，同人后续阶段可同时待办/已办。
+- 数量是已加载行数，不是总数；实时列表需从第一页更新才能发现新申请/成员变化，不保证冻结跨页快照。
+- 退出、身份或筛选变化取消旧请求。身份/会话代次、AbortSignal 与读取代次丢弃迟到成功/错误；跨列表缓存不能以较短旧历史覆盖已保存决定。
+- 不确定决定不自动重试：独立端尝试读历史恢复，失败锁定该申请操作；若依要求刷新；H5 以详情新鲜度和确认上下文保护。
 
-- Standalone: 271 unit/component/DOM tests; Vite production build.
-- Native RuoYi overlay: 44 pure Node tests and 11 mounted DOM tests. The standalone suite includes 10 pre-existing native submission compatibility cases.
-- Mobile/H5: 71 unit/DOM tests, Vue TypeScript checking and H5 production build.
-- Real client/HTTP: 22 assertions against a fresh Java 17 backend, using the actual standalone API transport and pagination controller. Creates 27 synthetic requests and verifies two pages, actor membership, partial ALL votes, subsequent-stage pending/handled overlap, filter reset and logout cleanup.
-- Independent source review covered session isolation, stale replies, cache consistency, partial votes and page preservation. Findings in native legacy reconciliation, mobile route paging and standalone uncertain-decision recovery were fixed and regression-tested.
+<!-- topic:local-validation -->
+## 本地验证
 
-All final JavaScript checks used already-installed binaries. No dependencies were installed or downloaded; unit/DOM/build checks used a fail-closed preload blocking network I/O. The HTTP check used only its own disposable loopback backend. A prior npm route was stopped after a registry-network restriction; it is not used as final verification evidence.
+- 独立端：271 单元/组件/DOM 测试及 Vite 生产构建。
+- 若依 overlay：44 纯 Node、11 挂载 DOM；独立套件含 10 项已有若依提交兼容用例。
+- H5：71 单元/DOM、Vue TypeScript 检查及生产构建。
+- 真实客户端/HTTP：新 Java 17 后端、实际 API 传输和分页控制器，22 断言、27 个合成申请；验证两页、成员、部分 ALL、后续阶段双列表重叠、筛选重置和退出清理。
+- 独立源码审查检查会话隔离、旧响应、缓存一致、部分投票及分页保留。若依旧列表协调、移动路由分页、独立端不确定决定恢复的问题均已修复并回归。
 
-## 尚未验证 / Remaining gates
+最终 JS 检查仅用已安装工具，未下载/安装；单元/DOM/构建用拒绝网络的 preload，HTTP 仅用自己的临时回环后端。此前 npm 路径在 registry 网络限制后停止，不作为最终证据。
 
-没有运行本补丁的 Chromium 或其他浏览器，也没有截图、远端 CI 或完整若依宿主构建结果。移动端仍是 H5；App、小程序、真机、无障碍及跨浏览器行为需单独验收。历史截图或旧提交的通过记录不能代表本补丁。
+<!-- topic:remaining-gates -->
+## 未验证门槛
 
-The complete pinned RuoYi frontend/server environment was not present, so its full production build and native login/permission/browser integration remain unrun. Vite/SFC builds, mounted DOM tests and local HTTP checks are not visual or production acceptance. The backend producer's database matrix is separate evidence; this frontend patch does not extend those claims.
+未运行 Chromium/其他浏览器，没有截图、远端 CI 或完整锁定若依前后端构建/登录权限浏览器结果；环境缺少完整若依。H5 不代表 App/小程序、真机、无障碍或跨浏览器。Vite/SFC、DOM 和本地 HTTP 不是视觉或生产验收，旧截图/旧提交不能证明本补丁。后端生产者数据库矩阵独立，前端补丁不扩展它。
 
-## PR #18 文案整合 / Local copy integration
+<!-- topic:pr-18-copy-integration -->
+## PR #18 文案整合
 
-已按 PR #18 的准确提交 `188924015b991848923aa477f9b169de0a28b17e`，在本地整合 12 个前端及测试选择器文件。流程、分页、取消与会话隔离实现保持不变；新增 DOM 用例检查切换语言、第二页加载、退出以及旧身份响应隔离。PR #18 仍未合并，后端基础仍为上方的 `cac6095`。启动脚本和根包描述两个非前端文件未纳入。详情见 [文案整合记录](MEMBER_INBOX_COPY_INTEGRATION.md)。
+准确来源 `188924015b991848923aa477f9b169de0a28b17e`，本地纳入 12 个前端/选择器文件。流程、分页、取消和会话隔离不变；新增 DOM 测试语言切换、第二页、退出及旧身份迟到响应。当时 PR #18 仍未合并，后端仍 `cac6095`；启动脚本和根包描述不纳入，见[整合记录](MEMBER_INBOX_COPY_INTEGRATION.md)。

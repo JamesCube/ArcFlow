@@ -28,6 +28,12 @@ for file in DIST.rglob('*.html'):
   if 'alt' not in img:errors.append(f'{file}: image missing alt')
  for ref in p.refs:
   u=urlsplit(ref)
+  if u.netloc=='github.com' and u.path.startswith('/JamesCube/ArcFlow/blob/main/'):
+   relative=unquote(u.path.removeprefix('/JamesCube/ArcFlow/blob/main/'))
+   source=(ROOT.parent/relative).resolve()
+   if not source.is_relative_to(ROOT.parent.resolve()) or not source.is_file():errors.append(f'{file}: missing repository document {ref}')
+   if relative.endswith('.md') and p.lang=='en' and not relative.endswith('.en.md'):errors.append(f'{file}: English navigation points to Chinese document {ref}')
+   if relative.endswith('.en.md') and p.lang=='zh-CN':errors.append(f'{file}: Chinese navigation points to English document {ref}')
   if u.scheme or u.netloc: continue
   if not u.path:
    if u.fragment and u.fragment not in p.ids:errors.append(f'{file}: absent #{u.fragment}')

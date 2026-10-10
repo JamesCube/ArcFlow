@@ -1,108 +1,79 @@
-# Local integration of procurement and member worklists
+# 采购与成员待办历史本地集成
 
-This records the initial local verification of the combined source. It is not a deployment,
-production acceptance result, or evidence that all source branches are merged.
-The CRM quote case is being developed separately and is not included here.
+<!-- Legacy fragments remain entry points after the language split. -->
+<a id="combined-behavior"></a>
+<a id="inputs-and-source-identity"></a>
+<a id="local-integration-of-procurement-and-member-worklists"></a>
+<a id="remaining-acceptance-at-this-checkpoint"></a>
+<a id="verification"></a>
 
-## Inputs and source identity
+<a id="zh"></a>
+<a id="en"></a>
+<a id="简体中文"></a>
+<a id="english"></a>
 
-The local inputs were reconstructed from persistent source/patch bundles and
-checked against their exact Git trees before any conflict resolution:
+[English](LOCAL_INTEGRATION.en.md) · [文档目录](README.md)
 
-| Input | Commit or provenance | Exact tree |
+本文记录组合源码最初的本地验证，不是部署、生产验收或全部源分支已合并的证明。当时 CRM 报价独立开发，未包含在此范围；当前实现见[架构](development/ARCHITECTURE.md)。
+
+<!-- topic:inputs-and-source-identity -->
+## 输入与源码身份
+
+输入从持久源码/补丁包恢复，解决冲突前逐一核对精确 Git tree：
+
+| 输入 | 提交或来源 | 精确 tree |
 | --- | --- | --- |
-| Earlier main | `9333bdba4743bc8d490f00d2dc48323553c205e6` | `af97795a1b97a28a8d417fcc09c53bae17e0534f` |
-| Typed business / PR #16 | `e8568d437abae184ccba549a6a2dfde577201802` | `125b7ae405c537d999026ee1d3b1c6ac81656f73` |
-| Procurement UI | Local source, not published | `8c26a8ab2c193d01e4a0b023ed384ccdf161df22` |
-| Member inbox backend | `cac609569807ae65d488a9e79c8cf463aebad961` | `a1dc75ae7e14f822a2b581d27238a8aadd1b52dc` |
-| Member inbox frontend + PR #18 copy | Local source, not published | `0bbdb6351b7f7003b4045fff46919f9728079791` |
-| PR #17 documentation | `976d3047969d15e34f3f76acd439cafd9d60403c` | `f6a135562e044dc8bc51e5f65e6f8c6f47881631` |
+| 早期 main | `9333bdba4743bc8d490f00d2dc48323553c205e6` | `af97795a1b97a28a8d417fcc09c53bae17e0534f` |
+| 类型化业务 / PR #16 | `e8568d437abae184ccba549a6a2dfde577201802` | `125b7ae405c537d999026ee1d3b1c6ac81656f73` |
+| 采购界面 | 本地源码，未发布 | `8c26a8ab2c193d01e4a0b023ed384ccdf161df22` |
+| 成员待办后端 | `cac609569807ae65d488a9e79c8cf463aebad961` | `a1dc75ae7e14f822a2b581d27238a8aadd1b52dc` |
+| 成员待办前端与 PR #18 文案 | 本地源码，未发布 | `0bbdb6351b7f7003b4045fff46919f9728079791` |
+| PR #17 文档 | `976d3047969d15e34f3f76acd439cafd9d60403c` | `f6a135562e044dc8bc51e5f65e6f8c6f47881631` |
 
-PR #16 was subsequently merged into main as
-`9143f3dacc71a5cf8e512bc8ad235744718430dd`. The exact input provenance above
-is retained so this combination can be reviewed independently of branch names.
-PR #18 interface copy was subsequently merged as
-`86488effa4af80e86446799a1109dc85ab1d0423`; the copy is already included here.
-PR #17’s separate docs-only reconciliation is not this feature bundle.
+PR #16 后来合入 main `9143f3dacc71a5cf8e512bc8ad235744718430dd`，保留以上输入用于独立复核。PR #18 文案后来合为 `86488effa4af80e86446799a1109dc85ab1d0423`，已包含在组合中。PR #17 独立纯文档协调不是本功能包。
 
-## Combined behavior
+<!-- topic:combined-behavior -->
+## 组合行为
 
-- Legacy leave and immutable typed leave/procurement documents share approval,
-  authorization, saved process versions, audit and durable submission keys.
-- Standalone and RuoYi forms retain independent drafts/keys for leave and
-  procurement, exact decimal money and read-only business snapshots. H5 remains
-  review-only.
-- Pending and handled tabs use bounded actor worklists, with separate cursors,
-  stale-response guards and detail refresh after decisions. The compatible
-  visible-request list remains in use for applicant/history and detail refresh;
-  this change does not make every legacy read bounded.
-- JDBC member rows include process IDs. Queries bind both actor and configured
-  process before applying filters/continuation. Backfill validates each request
-  against its own retained process definition, including mixed-process batches.
-- Global applicant/key compatibility is preserved across processes. Reusing a
-  key for a different process or typed intent conflicts rather than creating a
-  second request.
-- JSON typed snapshots remain schema 5. Member projection uses SQL revision 3,
-  explicit migration and stopped-writer bounded backfill. Constructors do not
-  execute DDL or silently migrate.
-- The concise bilingual docs and interface copy are retained, with historical
-  screenshots/server results still attributed to their original source.
+- 旧请假和不可变类型化请假/采购共用审批、授权、流程版本、审计和持久键。
+- 独立/若依为两类分别保留草稿/键、精确小数和只读快照，H5 仅审批。
+- 待办/已办使用有界身份列表、独立游标、旧响应保护和决定后详情刷新；申请人/历史/详情仍用兼容可见列表，不使所有旧读取有界。
+- JDBC 成员行含流程 ID，查询先绑定身份/配置流程，再筛选/续页；回填用每笔自身保留定义，支持混合流程批次。
+- 全局申请人/键仍跨流程，同键改流程或类型化意图冲突，不创建第二笔。
+- 当时类型化 JSON 为 5；成员投影 SQL revision 3，显式停写有界回填，构造器不执行 DDL 或静默迁移。
+- 保留双语说明/文案，历史图片及服务器结果仍归属原源。
 
-## Verification
+<!-- topic:verification -->
+## 验证
 
-Completed against this combined source on 2026-10-08, using installed tools
-and cached dependencies without registry downloads:
+2026-10-08 对组合源码使用现有工具和缓存依赖执行，无 registry 下载：
 
-- Core offline regression: 24 checks passed; QuickStart output also passed.
-  The Maven JUnit wrapper passed as well.
-- Launcher Python tests: 17 passed.
-- Approval domain: 75 tests passed.
-- Standalone backend service/MVC/security: 48 tests passed.
-- Generic JDBC: 108 executed tests passed on Java 17 and again on Java 21,
-  including 74 shared H2 contracts.
-  In that run PostgreSQL and MySQL were skipped because no server was selected.
-- Separate real MySQL 8.0.46 run: 80 tests passed, no skips/errors/failures.
+- 内核离线 24 检查、QuickStart 输出、Maven JUnit 包装通过。
+- 启动器 Python 17 通过；领域 75；独立服务/MVC/安全 48。
+- 通用 JDBC 在 Java 17、21 各执行 108 通过，含 H2 共用 74；未选服务器，PostgreSQL/MySQL 被跳过。
+- 独立真实 MySQL 8.0.46：80 通过，零跳过/错误/失败。
+- 独立/共享若依单元和挂载测试 442；H5 280；若依 inbox helpers/API 51、DOM 19。64 个若依提交已计在 442 内。
+- 独立构建、移动类型检查/H5 构建通过。
+- 分组/收件箱真实 HTTP 70 断言，含重启；移动 HTTP 177 状态+229 不变量，含两次重启；类型化 HTTP 28 状态+18 不变量，含重启。
+- 实际独立客户端+组合后端对 26 请假和 1 采购执行 37 断言：原始精确金额、键重放、分页、部分/最终投票及已办筛选。
+- 本地文档路径/锚点 217，无缺失；独立/若依共享业务/提交 helper 一致。
 
-- Standalone/shared-native unit and mounted-component tests: 442 passed.
-- H5/mobile unit and mounted-component tests: 280 passed.
-- Native inbox helpers/API: 51 passed; mounted native inbox tests: 19 passed.
-  The 64 native submission tests are already included in the 442 count.
-- Standalone build, mobile typecheck and H5 build: passed.
-- Parallel/member-inbox live HTTP: 70 assertions, including restart.
-- Mobile HTTP: 177 status checks and 229 invariants, including two restarts.
-- Typed-document HTTP: 28 status checks and 18 invariants, including restart.
-- Real standalone client plus combined backend: 37 assertions on 26 leave and
-  one procurement request, covering exact raw money, key replay, paging,
-  partial/final votes and handled filters.
-- Local documentation paths and anchors: 217 checked, none missing.
-- Shared business/submission helpers match between standalone and native code.
+前端 Node 24.19.0。MySQL 使用全新一次性 8.0.46 库并在后关闭，不能将通用套件跳过误报通过；单独运行才是真实服务器证据，PostgreSQL 本地未跑。
 
-Node 24.19.0 was used for frontend checks. The MySQL run used a fresh disposable
-8.0.46 database and shut it down afterward. The generic JDBC suites skipped
-PostgreSQL/MySQL when no server was selected; the separate MySQL result above
-is the real-server evidence. PostgreSQL remains unrun locally.
+没有新浏览器图、完整锁定若依构建/浏览器、App/小程序/真机或生产部署。输入包旧 CI/浏览器不代替组合检查。兼容申请人/历史/详情仍可读取全部可见申请，有界 inbox 不改变它。
 
-No new browser screenshots, full pinned RuoYi-host build/browser acceptance,
-native/mini-program/real-device acceptance or production deployment are claimed.
-Earlier input bundles’ CI/browser runs do not substitute for checks on this
-combined source. The compatible applicant/history/detail list can still read
-all visible requests; bounded member inboxes do not make that legacy API bounded.
+<!-- topic:remaining-acceptance-at-this-checkpoint -->
+## 当时剩余验收
 
-## Remaining acceptance at this checkpoint
+1. 源码与证据一起保留，发布分支前复核精确 tree。
+2. 另获授权后发布，并运行精确提交远端 CI、PostgreSQL、MySQL 8.4 与其他 Java/数据库组合。
+3. 验收界面前运行锁定若依及真实浏览器，含中断、重复点击、导航。
+4. CRM 独立审查并组合 schema/业务兼容检查后才集成。
 
-1. Keep this local source and its test evidence together; review the exact tree
-   before creating a publication branch.
-2. Publish only after separate authorization, then run exact-commit remote CI,
-   PostgreSQL, MySQL 8.4 and the remaining Java/database combinations.
-3. Run the pinned RuoYi host and actual-browser workflows before accepting the
-   combined UI, including interrupted requests, repeated clicks and navigation.
-4. Integrate the separate CRM case only after its own review and combined
-   schema/business compatibility checks.
+随后候选以 PR #17 文档 tree `7a80130d16c72b22ab4746d46d72d005ebf7d1c5` 准备，保留当时类型化/兼容措辞；仍需候选精确 CI，本记录不声称通过。
 
-A subsequent publication candidate was prepared on the exact PR #17 documentation tree `7a80130d16c72b22ab4746d46d72d005ebf7d1c5`, preserving its current typed-business and compatibility wording. Code-level acceptance still needs the exact candidate CI; this local record does not claim those jobs passed.
+发布前静态审查修正过期移动选择器并收窄桌面成功断言。审批 CI 显式选择全部 19 若依 inbox DOM，精确命令本地通过。桌面/H5/若依浏览器已编写 >25 行、第二页采购、部分投票和后续阶段重叠流程，但当时尚未执行、待候选 CI。
 
-Before publication, static review corrected stale mobile browser selectors and narrowed a desktop success-status assertion. The approval-demo CI now explicitly selects all 19 native inbox component tests with the existing pinned frontend tools; that exact test command passed locally. Desktop, H5 and native RuoYi browser pagination journeys have been authored for more than 25 rows, second-page procurement, partial voting and later-stage overlap. They are pending exact-candidate CI and have not yet run.
+发布基线 main `2fbc40b2b166dd79b166bb17e89128d20658601d` 与上述 PR #17 tree 相同，六条合并后工作流在功能候选准备前通过，不覆盖新增量。
 
-The publication base is main `2fbc40b2b166dd79b166bb17e89128d20658601d`, whose tree matches the PR #17 candidate above. Its six post-merge workflows passed before this separate feature candidate was prepared. That base acceptance does not cover the new feature delta.
-
-The publication review also reproduced and fixed a native controlled-input issue: the process-version filter now keeps per-box drafts, echoes input updates and applies server filters only on change. All 24 native inbox DOM tests (including five new regressions), 64 shared native submission tests and 51 native helpers passed after that fix. This raises the combined distinct frontend suite to 797 tests. The complete pinned-host browser execution remains an exact-CI gate.
+发布审查另复现并修复若依受控输入问题：版本筛选按 box 保存草稿、回显输入，仅在 change 时应用服务端筛选。修复后全部 24 inbox DOM（含新增 5）、64 共享提交和 51 helpers 通过，组合独立前端总数升至 797。完整锁定宿主浏览器仍待精确 CI。

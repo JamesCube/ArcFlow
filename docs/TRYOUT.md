@@ -1,26 +1,44 @@
-# ArcFlow local tryout
+# 本地试用与源码打包
 
-Run the standalone Vue approval designer and Spring Boot backend from one terminal. The launcher builds the Java core, shared approval domain, backend and UI from source. You’ll need the tools below; the bundle does not include a prebuilt app. This demo is for localhost and test data only.
+<!-- Legacy fragments remain entry points after the language split. -->
+<a id="arcflow-local-tryout"></a>
+<a id="build-a-versioned-source-bundle"></a>
+<a id="readiness-and-stopping"></a>
+<a id="release-candidate-checklist"></a>
+<a id="requirements"></a>
+<a id="start-from-a-checkout-or-extracted-source-bundle"></a>
+<a id="troubleshooting-and-boundaries"></a>
+<a id="verify-and-extract"></a>
+<a id="what-to-try"></a>
 
-RuoYi has a separate example and setup guide. This launcher starts only the standalone app, without RuoYi, MySQL or Redis.
+<a id="zh"></a>
+<a id="en"></a>
+<a id="简体中文"></a>
+<a id="english"></a>
 
-Use current `main`, or the [accepted three-case checkpoint](CRM_COMPATIBILITY_READINESS.md#accepted-crm-checkpoint), to try all the cases below. The designer [screenshots](DESIGNER_SHOWCASE.md) include the older tested commit `e1ee9c6bdb971949c4f8746fe88b9ff49e6d4c36`; that historical checkpoint does not include the current procurement and CRM examples. The older `v0.1.0-alpha.1` source archives contain the earlier sequential demo, without the Chinese-first workbench, ALL/ANY groups or JDBC adapter.
+[English](TRYOUT.en.md) · [文档目录](README.md)
 
-## Requirements
+在一个终端从源码运行独立 Vue 设计器和 Spring Boot。启动器构建内核、领域、后端、UI，需要以下工具，源码包不含预构建应用；仅用于 localhost 与测试数据。
 
-- Linux or macOS with a POSIX environment. Native Windows is not supported by this launcher; use a Linux environment such as WSL.
-- Python 3.9 or newer (`python3`).
-- A full JDK 17 or newer (`java` and `javac`), not only a JRE.
-- Maven 3.8 or newer (`mvn`), or an existing Maven executable supplied with `--maven`.
-- Node.js and npm. The UI's pinned dependencies require **Node 22.22.2+ within 22.x, 24.15.0+ within 24.x, or 26+**. Node 23 and 25 do not satisfy the supported engine ranges.
-- Network access for the initial Maven/npm dependency downloads and a writable checkout, Maven local repository and npm cache.
-- Two available loopback ports, defaulting to backend `8080` and UI `5173`.
+若依另有[独立设置](../examples/ruoyi-vue3/README.md)，启动器不启动若依、MySQL 或 Redis。当前 main 可体验全部场景；[已接受三案例检查点](CRM_COMPATIBILITY_READINESS.md#accepted-crm-checkpoint)只对应当时请假/采购/报价。[设计器历史图](DESIGNER_SHOWCASE.md)的 `e1ee9c6bdb971949c4f8746fe88b9ff49e6d4c36` 不含后来的采购/CRM；更早 `v0.1.0-alpha.1` 仅顺序演示，无中文工作台、ALL/ANY 或 JDBC。
 
-The launcher checks the installed tools and tells you what needs fixing. It does not install Python, Java, Maven or Node, and needs no administrator privileges. It also leaves RuoYi setup to you. Maven and npm download application dependencies, so the first build needs network access. `npm ci` uses the committed lockfile and runs the packages’ install scripts.
+<!-- topic:requirements -->
+## 环境要求
 
-## Start from a checkout or extracted source bundle
+- Linux/macOS POSIX；不支持原生 Windows 启动器，可用 WSL 等 Linux。
+- Python 3.9+（`python3`）。
+- 完整 JDK 17+（`java`、`javac`），不能只有 JRE。
+- Maven 3.8+（`mvn`），或 `--maven` 指定已有可执行文件。
+- Node/npm：锁定依赖支持 **22.x 中 22.22.2+、24.x 中 24.15.0+，或 26+**；23/25 不在范围内。
+- 首次 Maven/npm 下载所需网络，以及可写源码、Maven 仓库、npm 缓存。
+- 两个空闲回环端口，默认后端 8080、UI 5173。
 
-From the ArcFlow source root (the directory containing `pom.xml`):
+启动器检查工具并提示修复，不安装 Python/Java/Maven/Node，无需管理员权限，不代设若依。首次依赖下载需要网络；`npm ci` 使用提交锁文件并执行包安装脚本。
+
+<!-- topic:start-from-a-checkout-or-extracted-source-bundle -->
+## 从源码或解压包启动
+
+在含 `pom.xml` 的源码根目录：
 
 ```sh
 # Check tools and port availability without building or starting the applications.
@@ -30,18 +48,17 @@ python3 scripts/tryout.py --check
 python3 scripts/tryout.py
 ```
 
-Keep that terminal open. The first build can take several minutes while dependencies download. Wait for the launcher's ready message, then open the exact UI URL it prints. The default UI address is `http://127.0.0.1:5173` and the default backend address is `http://127.0.0.1:8080`.
+保持终端打开，首次下载/构建可能数分钟。等待 ready 后打开准确打印的 URL，默认 UI `http://127.0.0.1:5173`，后端 `http://127.0.0.1:8080`。就绪消息提供三个入口：
 
-The ready message lists two pages on that same origin:
+- 主工作区：请假/采购，可在 Request type → Procurement 选择采购。
+- `/quote-discount.html`：独立合成报价，固定 Bob→Carol；同账号另行登录，记录不在主工作区/inbox。
+- `/scenarios.html`：当前六项独立场景目录，原启动器标签保留 OA expense；具体范围见[架构](development/ARCHITECTURE.md)。
 
-- **OA leave / ERP procurement:** the main workspace. Select **Request type → Procurement** to try a purchase request.
-- **CRM quote discount:** `/quote-discount.html`, a separate synthetic example with fixed Bob → Carol approval. Sign in separately with the same demo accounts; its records are not in the main workspace or its inbox.
+示例值与角色步骤见[第一次审批](GETTING_STARTED.md)。不启动若依/H5，也不需供应商账号或 AI 凭据。
 
-For sample values and each role's next step, follow the [three-case walkthrough](GETTING_STARTED.md#try-other-cases-en) / [三种业务案例](GETTING_STARTED.md#try-other-cases-zh). The launcher does not start RuoYi or the H5 review client. No vendor account or AI credentials are needed.
+启动器为 alice/bob/carol 生成不同密码，写入私有临时 `credentials.json` 并打印路径，用本地编辑器查看。仅本次有效，无默认/共享密码，不应放入 issue、聊天、截图或版本控制。
 
-The launcher generates a different password for `alice`, `bob` and `carol`, writes them to a private temporary `credentials.json` file, and prints its path. Open the file in a local text editor. These passwords work only for this run; there are no shared or default passwords. Keep the file private and leave its contents out of issues, chat, screenshots and source control.
-
-Custom ports or an existing Maven installation:
+自定义端口或 Maven：
 
 ```sh
 python3 scripts/tryout.py --backend-port 18080 --ui-port 15173
@@ -49,34 +66,37 @@ python3 scripts/tryout.py --maven /absolute/path/to/maven/bin/mvn
 python3 scripts/tryout.py --help
 ```
 
-Open the printed URL exactly as shown. The launcher configures the backend’s allowed UI origin and the UI proxy together, so changing only the hostname or port can break requests. Both applications bind to loopback. If a port is busy, the launcher stops and reports it.
+按打印地址访问，后端允许 Origin 与 UI 代理由启动器一起配置，单独换主机名/端口会破坏请求。两者只绑定回环，占用端口时停止并报告。
 
-## What to try
+<!-- topic:what-to-try -->
+## 体验流程
 
-1. Sign in as `alice` with the generated Alice password. Open **Process designer**, assign the first approval to Bob, add a second approval assigned to Carol, then choose **Publish template** (**发布流程** in Chinese) to publish the Bob → Carol sequence.
-2. Submit a request with a synthetic title/reason and `1` day.
-3. Sign out and sign in as `bob`. Open **Needs my review** and approve the current step. The request remains pending and advances to Carol.
-4. Sign out and sign in as `carol`. Approve the final step. Sign back in as Alice to inspect the approved status, saved process definition and ordered activity history.
-5. Publish a different sequence and compare an existing request: its stored definition keeps the original version.
+1. Alice 登录，打开 Process designer，第一步 Bob、第二步 Carol，点击 Publish template（发布流程）。
+2. 用合成标题/原因、1 天提交。
+3. 退出后 Bob 登录，Needs my review 审当前步骤，申请仍待 Carol。
+4. Carol 登录完成终审，再以 Alice 查看已通过、保存定义和有序历史。
+5. 发布另一流程，比较旧申请仍保持原版本。
 
-To try groups, select a stage and choose **全员同意（ALL）** or **任一同意（ANY）**, keeping Bob and Carol selected. ALL needs both approvals, and either person can reject the request. ANY advances on one approval and rejects only after both reject. Publish, then submit a new test request. Participants are fixed for that request, and the stages still run in order.
+分组可选择全员同意（ALL）或任一同意（ANY），勾 Bob/Carol。ALL 双方同意才通过、任一可拒绝；ANY 一人同意即推进、两人都拒绝才驳回。发布后新建申请，参与人随申请固定，阶段仍顺序执行。
 
-A fresh store starts with one approval step assigned to Bob. Only Alice can publish. In the single-reviewer flow above, only the current assignee can decide the next step, and a rejection ends the request. See the [sequential contract](SEQUENTIAL_APPROVAL.md) for the full rules.
+空存储默认 Bob 单步骤，仅 Alice 可发布。单人模式只有当前成员能决定，拒绝立即结束，见[顺序契约](SEQUENTIAL_APPROVAL.md)。
 
-## Readiness and stopping
+<!-- topic:readiness-and-stopping -->
+## 就绪与停止
 
-- `--check` checks prerequisites only. Dependency downloads, builds, startup and browser interactions can still fail.
-- Wait for the ready message after the build. The launcher first checks the backend’s authenticated API and the UI’s HTTP response.
-- Try the steps above to check the app in your browser. The ready message does not mean the full test suite or browser tests have run.
-- Press **Ctrl-C in the launching terminal** to stop both application processes and delete the private temporary credentials, runtime data and logs. Each new run starts with new credentials and a fresh, empty request store. The published process and requests from the previous tryout do not survive normal shutdown.
-- Build outputs, installed `node_modules`, the Maven local repository and npm cache remain available for later builds. They do not contain the tryout's generated password file or approval store.
-- A forced kill, OS crash or power loss can prevent cleanup. If that occurs, stop any remaining application processes, then remove the private temporary runtime directory whose location the launcher printed. Never expose that directory or use real employee, leave or health data in this demo.
+- `--check` 仅查要求，下载、构建、启动和浏览器仍可能失败。
+- 构建后先检查认证后端 API 与 UI HTTP，再打印 ready。
+- 手动体验以上步骤；ready 不代表完整套件或浏览器测试已跑。
+- 启动终端 Ctrl-C 停两个服务并删除临时凭据、数据和日志。每次新账号/空存储，正常停止不保留已发布流程或申请。
+- 构建输出、node_modules、Maven 仓库/npm 缓存保留，不含该次密码文件/审批存储。
+- 强杀、系统崩溃或断电可能来不及清理；先停残留服务，再删除打印的私有运行目录。不得公开该目录或使用真实员工/请假/健康数据。
 
-To keep your data or test a normal restart, use the manual setup in [Getting started](GETTING_STARTED.md#english) and the [backend instructions](../examples/approval-demo/backend/README.md). The launcher always uses disposable data.
+保留数据或测正常重启请用[手动入门](GETTING_STARTED.md)及[后端说明](../examples/approval-demo/backend/README.md)；启动器始终一次性数据。
 
-## Build a versioned source bundle
+<!-- topic:build-a-versioned-source-bundle -->
+## 打包版本化源码
 
-To package a committed version, you need Python 3.9+ and Git. People running the extracted bundle do not need Git.
+打包需要 Python 3.9+ 和 Git；运行解压包不需 Git。
 
 ```sh
 # Commit the intended sources before packaging HEAD.
@@ -86,22 +106,22 @@ python3 scripts/package-tryout.py
 python3 scripts/package-tryout.py --ref YOUR_COMMIT_OR_TAG --output-dir /tmp/arcflow-bundles
 ```
 
-The default destination is `dist/tryout/`. Output names are:
+默认输出 `dist/tryout/`：
 
 ```text
 arcflow-tryout-VERSION-COMMIT12-source.tar.gz
 arcflow-tryout-VERSION-COMMIT12-source.tar.gz.sha256
 ```
 
-`VERSION` is read from the selected commit's root `pom.xml`; `COMMIT12` is the first 12 characters of its Git object ID. The bundle contains `TRYOUT_BUNDLE.json` with the full commit ID, project version and commit timestamp. Packaging refuses HEAD when tracked files have unstaged or staged edits. Untracked and ignored files are never included; a named older ref is read from its committed tree regardless of working-tree edits. The selected commit must already contain the launcher, packaging script and this guide.
+VERSION 来自所选提交根 pom，COMMIT12 是 Git ID 前 12 位，`TRYOUT_BUNDLE.json` 保存完整提交、版本和提交时间。打包 HEAD 时拒绝已跟踪暂存/未暂存修改；不含未跟踪/忽略文件。指定旧 ref 按提交树读取，不受工作区修改影响，且该提交须已有启动器、打包脚本和本指南。
 
-The packager uses `git archive`, applies explicit exclusions, normalizes tar ownership/permissions/timestamps and fixes the gzip timestamp. Repeated packaging of the same commit with the same packaging implementation and Python/zlib toolchain produces identical bytes and SHA-256 checksums; output-directory names and the current wall clock do not enter the archive. Compression output can vary across zlib implementations, so record the toolchain if reproducing a published checksum on another machine. Symlinks and other unsupported archive entries are rejected rather than dereferenced.
+`git archive` 配显式排除，规范 tar 所有权/权限/时间并固定 gzip 时间。同提交、同打包实现及 Python/zlib 工具链重复产物和 SHA-256 相同，不受输出目录名/当前时间影响；跨 zlib 实现可能不同，应记录工具链。拒绝软链接和其他不支持条目，不解引用。
 
-The source bundle includes the project's committed code, tests, docs, license and npm lockfile, including the separate RuoYi overlay source. It excludes `.git`, private `.env` files, runtime/data directories, generated build/test output, installed dependencies and disposable RuoYi upstream checkouts. It contains no prebuilt JAR, installed runtime, dependency cache, generated credentials or persisted approval data. Packaging a `SNAPSHOT` version leaves it a snapshot. Release status and CI results must be checked separately.
+包含已提交代码、测试、文档、许可证、npm lock 和独立若依 overlay；排除 .git、私密 .env、运行数据、构建/测试输出、已装依赖和临时上游检出。无预构建 JAR、运行环境、缓存、生成凭据或审批数据。SNAPSHOT 打包后仍是 snapshot，发布/CI 另查。
 
-### Verify and extract
+### 校验与解压
 
-Keep the `.tar.gz` and `.sha256` in the same directory. Replace the example basename with the actual generated filename:
+将 tar.gz 与 sha256 放一起，用实际文件名替换占位：
 
 ```sh
 # Linux:
@@ -117,11 +137,12 @@ python3 scripts/tryout.py --check
 python3 scripts/tryout.py
 ```
 
-Get the expected checksum from a trusted source. It detects changed bytes but does not identify the publisher or replace a signature. To recreate a bundle, use the source repository and the full commit in `TRYOUT_BUNDLE.json`. The extracted directory has no Git database and cannot be repackaged by this script.
+从可信来源取得预期 hash；它检测字节变化，不认证发布者或代替签名。复现需源码仓库和 manifest 完整提交；解压包没有 Git 数据，不能由此脚本重打包。
 
-## Release-candidate checklist
+<!-- topic:release-candidate-checklist -->
+## 发布候选检查清单
 
-Before publishing a candidate, run the checks below against its exact commit with a clean tracked working tree and the documented tools. This is a checklist, not a test-results record:
+在干净跟踪工作区、文档工具及精确提交运行以下检查；这是清单，不是已通过记录：
 
 ```sh
 # Launcher and packaging regression checks.
@@ -139,18 +160,19 @@ python3 scripts/package-tryout.py --output-dir /tmp/arcflow-rc-one
 python3 scripts/package-tryout.py --output-dir /tmp/arcflow-rc-two
 ```
 
-- Confirm the two archive SHA-256 values printed by the packaging commands match. Use new/empty output directories so old bundles do not obscure the result.
-- Verify the sidecar checksum, extract one archive into a new directory, and run `python3 scripts/tryout.py --check` followed by `python3 scripts/tryout.py` from that extracted root. Complete the Bob → Carol journey above and verify Ctrl-C stops both services and removes that run's private runtime directory.
-- Check that the Java, approval-demo and browser CI jobs passed for the **same full commit** listed in `TRYOUT_BUNDLE.json`. Open the jobs themselves: the `main` badge, a successful build or the launcher’s ready message does not verify browser behavior.
-- Record the OS and tool versions, full commit, checksum, and any failed or skipped checks. The demo remains experimental and local-only even when these checks pass.
+- 两次打印 SHA-256 必须一致，使用新/空输出目录避免旧包混淆。
+- 校验 sidecar，解压到新目录运行 check 和启动，走完 Bob→Carol，确认 Ctrl-C 停两服务并删除私有目录。
+- 检查与 manifest **相同完整提交**的 Java、审批、浏览器 CI 作业本身；main badge、构建成功或 ready 不能证明浏览器。
+- 记录 OS、工具版本、完整提交、hash 及失败/跳过。全部通过后仍为实验性本地演示。
 
-## Troubleshooting and boundaries
+<!-- topic:troubleshooting-and-boundaries -->
+## 排错与边界
 
-- **Tool check fails:** install or select the supported tool yourself, then rerun `--check`. Check `java -version`, `javac -version`, `mvn -version`, `node --version`, and `npm --version` in the same terminal. For a Maven installation outside `PATH`, use `--maven`.
-- **A port is already in use:** choose two unused ports using the launcher flags, or stop the process you own that uses the port. Do not change the server binding to a public interface.
-- **Dependency download/build fails:** inspect the reported error. Confirm access to your configured Maven/npm registries and correct proxy settings, then rerun. An extracted source bundle is not an offline installer. Never bypass TLS verification to fetch dependencies.
-- **Browser authentication fails:** use the credentials file for the current run and the exact printed URL. A password from a previous run will not work.
-- **Unexpected request result after a network interruption:** retry the unchanged form with its retained idempotency key. Page reload or logout loses that client key; inspect the request list before a new submission. See [durable retry boundaries](SUBMISSION_IDEMPOTENCY.md).
-- **Need production deployment:** this package is intended for local trials. It uses demo identities and a single-writer JSON file, and the [host migration notes](SUPPORTED_HOST_MIGRATION.md) describe its maintained Spring Boot 4 baseline and temporary Jackson 2 compatibility bridge. Production security and clustered persistence have not been validated. The launcher does not include RuoYi, and the demo has no conditional routing, timers or BPMN compatibility. Single-reviewer and fixed-participant ALL/ANY stages are supported.
+- 工具失败：自行安装/选择支持工具再 check；同终端核对 `java -version`、`javac -version`、`mvn -version`、`node --version`、`npm --version`；非 PATH Maven 用 `--maven`。
+- 端口占用：选两个空闲端口或停自己拥有的进程，不改成公开接口。
+- 下载/构建失败：检查错误、配置 registry 和代理后重试；源码包不是离线安装器，不绕过 TLS。
+- 认证失败：用当前运行密码及精确 URL，旧密码无效。
+- 断网后结果不确定：原表单/键重试；重载/退出会丢键，先查列表，见[持久重试](SUBMISSION_IDEMPOTENCY.md)。
+- 生产需求：演示身份、单写者 JSON 未验证生产安全或集群持久性。[宿主迁移](SUPPORTED_HOST_MIGRATION.md)说明 Boot 4 与临时 Jackson 2 兼容层。启动器不含若依；支持顺序/ALL/ANY，条件仅限付款/收货/合同，不是通用路由，定时器/BPMN 不支持。
 
-For a useful bug report, include the manifest's full commit (or checkout commit), OS, Python/Java/Maven/Node versions, command, error and expected result. Remove credentials and real personal information before sharing any log.
+报告问题时提供完整提交、OS、Python/Java/Maven/Node 版本、命令、错误和预期；先移除凭据和真实个人信息。

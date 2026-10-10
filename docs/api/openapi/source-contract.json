@@ -1,0 +1,24 @@
+{
+  "formatVersion": 1,
+  "description": "Reviewed behavioral guard for contracts not fully expressible as JSON Schema. Digests normalize Java tokens (comments and whitespace are ignored). A changed digest requires source, specification, example and test review; do not refresh merely to silence CI. This file does not generate or define server behavior.",
+  "sources": {
+    "examples/approval-demo/backend/src/main/java/com/arcflow/demo/ApprovalController.java": "36b08bb1aec185872969f34d9d7132fefe18a669007111c9a678a3c10c6970b9",
+    "examples/approval-demo/backend/src/main/java/com/arcflow/demo/JsonConfig.java": "79d15955849a654275c5c43e96fa513fa54040b1235d6771d9b299ee08fc8aa5",
+    "examples/approval-demo/backend/src/main/java/com/arcflow/demo/QuoteDiscountController.java": "2feed8a0ab005624aea80afc02f3538d20296bcca9ebd46d293ee8e1792b9251",
+    "examples/approval-demo/backend/src/main/java/com/arcflow/demo/ScenarioConfiguration.java": "b18effefc9694335fc52207a43336fba0ec4f54b986145cd56be10aeae1c9bd0",
+    "examples/approval-demo/backend/src/main/java/com/arcflow/demo/ScenarioController.java": "32bcdc70c9dd4d693795bac69ce92ac0a28c62be7a10b490cf6e282edfefde35",
+    "examples/approval-demo/backend/src/main/java/com/arcflow/demo/SecurityConfig.java": "41659b5679bae7377197892bda9bef6d25e9dd01777236e2b3af3b92ab5ee3ae",
+    "examples/approval-domain/src/main/java/com/arcflow/approval/ApprovalService.java": "1f00b8256b730a07d8a83c7f19c51b27cfaad3735c60bf0154387a8666e62ae1",
+    "examples/approval-domain/src/main/java/com/arcflow/approval/BusinessDocument.java": "54ef6f38b34df98d8b8fe12dd914b8e3dcacb15400e93e16c9fc5daf852ef029",
+    "examples/approval-domain/src/main/java/com/arcflow/approval/ConditionalRouting.java": "e7744fd20fbf4c069463ad79ac03d83a576d434a2b799d7eeb438f401d4fef26",
+    "examples/approval-domain/src/main/java/com/arcflow/approval/InboxQuery.java": "ea0476f5ecf5459445b71e43bb6ab0583aa379a1fe6332b02045f2f9736ce0a7",
+    "examples/approval-domain/src/main/java/com/arcflow/approval/ProcessDefinition.java": "952b0972e3af7fe977773ef76acb5035a57715803f4611a0ed9e38ba849dbe8f",
+    "examples/approval-domain/src/main/java/com/arcflow/approval/QuoteDiscountCase.java": "6e52c61b912fbb5dce1cd740d14f031c846e7c8e1795fb41fb81112096ca799d",
+    "examples/approval-domain/src/main/java/com/arcflow/approval/ScenarioCase.java": "93b478f2fbfcf69ee80f6b3923b2083c44c59d2565ae5ff708bde41e8ed0ed97",
+    "examples/approval-domain/src/main/java/com/arcflow/approval/ScenarioCatalog.java": "4c5b138986308fb62d51e3e12c0903d7d47acd9434cc54ed05cfc39c05d30699",
+    "examples/approval-domain/src/main/java/com/arcflow/approval/StrictBusinessTypeResolver.java": "b7b9538df7e2fd7582e25ea8f751320c69a5ffbdeb3e82cc1bf17dc1a51cdfae",
+    "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowConfiguration.java": "fc255ffeb2400b8f1f276ffc0eb4f00477bcb48aef11e1425e3a85d57a752f26",
+    "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowController.java": "994e1dc0606ea572e4a9a9140c30491b5a44d8d1ca92eebd72bb9427513b4cf3",
+    "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowErrors.java": "4abe942eaad37d13f41870c605e396ccd479ce15fa6a6cac431d9bf0bb86327e"
+  }
+}
