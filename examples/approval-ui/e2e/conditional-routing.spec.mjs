@@ -140,7 +140,7 @@ test(`conditional routing: payment ${locale}: frozen low/high routes with indivi
   await switchUser(page, 'bob', 'payment'); await select(page, business.title)
   low = await vote(page, 'payment', low, 'bob', comments.paymentFinal[locale]); completed(low, 1)
   await handled(page, business.title); await captures(page, info, 'payment-low-complete', locale, checkpoints, low)
-  await page.getByTestId('designer-tab').click(); await expect(page.getByTestId('condition-enabled')).toHaveCount(0); await expect(page.locator('.routing-readonly')).toContainText('Conditional step')
+  await page.getByTestId('designer-tab').click(); await language(page, locale); await expect(page.getByTestId('condition-enabled')).toHaveCount(0); await expect(page.locator('.routing-readonly')).toContainText(locale === 'zh' ? '条件节点' : 'Conditional step')
   const stored = await api(request, 'alice', `${base}/requests`)
   expect(stored.find(view => view.request.id === low.request.id)).toEqual(low)
   expect(stored.find(view => view.request.id === high.request.id)).toEqual(high)
