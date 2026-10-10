@@ -6,12 +6,14 @@
 
 全部图片是提交 [`8c26d95`](https://github.com/JamesCube/ArcFlow/commit/8c26d953e53991d3e445aa69c530726f1d81daae) 的原始截图，来自[运行 37918452685](https://github.com/JamesCube/ArcFlow/actions/runs/37918452685)，不是当前 main 的重新采集。界面与相关应用源码在文档基线 [`199db754`](https://github.com/JamesCube/ArcFlow/commit/199db7548f6faba5dfef105eaaf7311972adb388) 保持一致；这不代表新提交通过了测试。每张图片下方标注实际语言、视口、PNG 尺寸和采集状态。点击图片查看原图。
 
+<!-- topic:scope-and-limits -->
 ## 能力与边界
 
 通过仅表示人工审批完成，不会真实盖章、电子签署、上传文件或通知外部系统；文件引用与印章信息均为合成数据。
 
 所有账号和业务资料均为合成演示数据。390px 是 Chromium 浏览器视口，不是原生 H5 客户端或实体手机验收；长页高度不是视口高度。中英文只是界面语言，合成标题／流程名可能保留双语。
 
+<!-- topic:process-configuration-and-business-states -->
 ## 流程配置与业务状态
 
 ### 流程设计器：文件审核 → 用印复核
@@ -88,6 +90,7 @@
 
 采集状态: `seal-catalog` · [PNG SHA-256](../images/scenarios/provenance.json): `e086828e8861694133b7803d96a918522f3998465ddb7fdd637b3f213821e9c3`
 
+<!-- topic:sources-and-reproduction -->
 ## 来源与复现
 
 - [历史采集运行](https://github.com/JamesCube/ArcFlow/actions/runs/37918452685) · [commit](https://github.com/JamesCube/ArcFlow/commit/8c26d953e53991d3e445aa69c530726f1d81daae)

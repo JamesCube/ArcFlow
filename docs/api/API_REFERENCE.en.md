@@ -1,12 +1,49 @@
 # ArcFlow HTTP API Reference
 
-[简体中文](./API_REFERENCE.md) · [English](./API_REFERENCE.en.md) · [Developer guide](../development/README.md#en)
+<!-- Legacy fragments remain entry points after the language split. -->
+<a id="1-宿主与边界--hosts-and-boundaries"></a>
+<a id="10-http-错误与恢复--errors"></a>
+<a id="11-若依原生差异--ruoyi-native-adapter"></a>
+<a id="12-源码索引与变更检查--sources-and-change-checklist"></a>
+<a id="2-独立示例调用约定--standalone-transport"></a>
+<a id="21-base-url认证与请求头"></a>
+<a id="22-json数字与版本"></a>
+<a id="3-路由清单--endpoint-inventory"></a>
+<a id="31-通用审批--generic-approval"></a>
+<a id="32-六场景--registered-scenarios"></a>
+<a id="33-报价折扣--dedicated-quote-host"></a>
+<a id="4-写入-dto--command-payloads"></a>
+<a id="41-旧请假--legacysubmission"></a>
+<a id="42-类型化提交--documentsubmission"></a>
+<a id="43-发布--publication"></a>
+<a id="44-审批决定--decision"></a>
+<a id="5-幂等与安全重试--idempotency-and-retries"></a>
+<a id="6-流程与条件--process-definitions"></a>
+<a id="7-成员收件箱--member-inbox"></a>
+<a id="8-响应模型与读取详情--request-snapshots"></a>
+<a id="9-业务文档完整字段--business-schemas"></a>
+<a id="91-公共规范"></a>
+<a id="910-contractapprovalcrm-contract"></a>
+<a id="92-leave通用"></a>
+<a id="93-procurement通用"></a>
+<a id="94-quotediscountcrm"></a>
+<a id="95-expenseoa-expense"></a>
+<a id="96-traveloa-travel"></a>
+<a id="97-sealuseoa-seal-use"></a>
+<a id="98-receivingerp-receiving"></a>
+<a id="99-paymentrequesterp-payment"></a>
+<a id="arcflow-http-api-reference--http-接口参考"></a>
 
-Source baseline: [`main` at `666ff64b280157e44a86f07a15fcb42f859ec11a`](https://github.com/JamesCube/ArcFlow/tree/666ff64b280157e44a86f07a15fcb42f859ec11a). This reference describes the example hosts implemented in this repository. It is not a specification for an unimplemented platform API. The Java `arcflow-core` library does not start an HTTP server.
+[简体中文](./API_REFERENCE.md) · [English](./API_REFERENCE.en.md) · [Developer guide](../development/README.en.md)
 
-- [Endpoint inventory JSON](./endpoint-inventory.json): an offline mapping of the four Controllers for detecting route drift; this is not OpenAPI.
-- [Executable request examples](./examples/README.md): use your own local configuration and synthetic data. Never commit passwords, Authorization headers or real business information.
-- Controller, DTO and domain-validation source links at the end are authoritative. This documentation supplies a reviewed static reference and real-host examples, not an OpenAPI/Swagger file. Numeric token precision, raw UTF-16 lengths, cross-field rules, authorization and concurrency remain server-enforced contracts.
+Source baseline: [`main` at `199db7548f6faba5dfef105eaaf7311972adb388`](https://github.com/JamesCube/ArcFlow/tree/199db7548f6faba5dfef105eaaf7311972adb388). This reference describes the example hosts implemented in this repository. It is not a specification for an unimplemented platform API. The Java `arcflow-core` library does not start an HTTP server.
+
+- [Endpoint inventory JSON](./endpoint-inventory.json): 30 offline mappings from the four Controllers for detecting route drift; this is not OpenAPI.
+- Static OpenAPI contracts: [standalone host](./openapi/standalone.openapi.json) (21 operations) and [RuoYi host](./openapi/ruoyi.openapi.json) (9 operations), with separate authentication, envelopes and status codes.
+- [Executable request examples](./examples/README.en.md): use your own local configuration and synthetic data. Never commit passwords, Authorization headers or real business information.
+- Controller, DTO and domain-validation source links at the end are authoritative. The static OpenAPI files and executable HTTP examples support inspection and verification. Numeric token precision, raw UTF-16 lengths, cross-field rules, authorization and concurrency remain server-enforced contracts; structural validation alone cannot guarantee that a request succeeds.
+
+<!-- topic:hosts -->
 
 ## 1. Hosts and boundaries
 
@@ -19,7 +56,9 @@ Source baseline: [`main` at `666ff64b280157e44a86f07a15fcb42f859ec11a`](https://
 
 These APIs do not make payments, sign contracts, apply seals, place purchase orders, post inventory, download attachments, synchronize a live CRM or convert currencies. A business reference is a data field, not a downloadable file URL.
 
-The following are **not implemented**: `/api/auth/me`, `/api/users`, `/api/login`, `/api/session`, `/api/csrf`, a separate process-validation endpoint, `GET /requests/{id}`, request editing/deletion/withdrawal, approval delegation, or a cross-host unified inbox. The application has no configured Swagger UI or generated `/v3/api-docs`; this directory supplies no OpenAPI file. Publication validates a definition as part of the command. Frontend validation does not constitute an HTTP validation API.
+The following are **not implemented**: `/api/auth/me`, `/api/users`, `/api/login`, `/api/session`, `/api/csrf`, a separate process-validation endpoint, `GET /requests/{id}`, request editing/deletion/withdrawal, approval delegation, or a cross-host unified inbox. The application has no configured Swagger UI or generated `/v3/api-docs`; the OpenAPI files in this directory are version-controlled static contracts, not runtime endpoints. Publication validates a definition as part of the command. Frontend validation does not constitute an HTTP validation API.
+
+<!-- topic:transport -->
 
 ## 2. Standalone transport
 
@@ -51,7 +90,11 @@ The demo directory contains active `alice`, `bob` and `carol`. Alice may publish
 - Business `documentVersion`, process `schemaVersion` and publication `version`, frozen `routing.schemaVersion`, and the private persistence wrapper schema are separate version systems. The private file wrapper schema is not a submission property.
 - Submission and decision bodies cannot supply server-generated request IDs, applicant IDs, status, history, definition snapshots, selected routing or calculated totals to override server state. Process publication separately accepts `Publication.definition` (§4.3).
 
+<!-- topic:routes -->
+
 ## 3. Endpoint inventory
+
+The four Controllers declare 30 mappings: 9 generic, 7 scenario, 5 quote and 9 RuoYi mappings. The scenario count includes the literal seal-use submission path, which takes precedence over the scenario template.
 
 The success codes below are the actual Controller statuses. All standalone submissions return 201, including successful replays; no `Location` response header is promised. Other successful operations return 200. See §10 for errors.
 
@@ -85,7 +128,8 @@ Sources: [ScenarioController.java](../../examples/approval-demo/backend/src/main
 | GET | `/api/scenarios/{scenarioId}/process` | Scenario ID | 200 `ProcessDefinition` |
 | POST | `/api/scenarios/{scenarioId}/process` | `Publication` | 200 next definition; directory publication permission required |
 | GET | `/api/scenarios/{scenarioId}/requests` | Scenario ID | 200 identity-filtered `ScenarioView[]` |
-| POST | `/api/scenarios/{scenarioId}/documents` | `DocumentSubmission` and required key | 201 `ScenarioView` |
+| POST | `/api/scenarios/{scenarioId}/documents` | `DocumentSubmission` and required key; seal use takes the dedicated mapping below | 201 `ScenarioView` |
+| POST | `/api/scenarios/oa-seal-use/documents` | `DocumentSubmission` and required key; `application/json` only, raw-input limits in §9.7 | 201 `ScenarioView` |
 | POST | `/api/scenarios/{scenarioId}/requests/{id}/decisions` | `Decision` | 200 `ScenarioView` |
 
 Only these six scenario IDs are registered. An otherwise valid call for an unknown scenario returns 404 `Scenario not found`. The submitted business type must exactly match its scenario or it returns 400. Each scenario has an independent process and request file; it is not a tag filter over `/api/requests`. A request belonging to another scenario cannot be decided through the current scenario.
@@ -133,7 +177,9 @@ There is no quote publication endpoint. The process has fixed sequential `salesM
 
 `QuoteVersion` contains `businessId,revision,customerRef,ownerId,readerIds[],item,quantity,listUnitPrice,currency,validUntil`. Only the owner may submit, and all initial reviewers must have read access to that revision. Submitted customer, item, quantity, list price, currency and validity date must match the saved immutable revision or the request returns 409. An absent/unreadable revision returns 404. An expired quote's initial submission returns 400; a superseded revision returns 409.
 
-`QuoteView` contains `request,listTotal,requestedTotal,reductionTotal,discountPercent,thresholdReached,expired,quoteUpdated`. Totals and the percentage are strings. The three monetary totals are formatted by currency. The displayed percentage is rounded half-up to four decimal places with trailing zeros removed. `thresholdReached` means the exact discount is at least 10%; it **does not select the approval route**. Expiry is checked against the UTC calendar day; the `validUntil` day remains valid. After submission, expiry/source revision changes update informational flags only. They do not automatically approve/withdraw a request, rewrite its document or prevent an otherwise authorized vote.
+`QuoteView` contains `request,listTotal,requestedTotal,reductionTotal,discountPercent,thresholdReached,expired,quoteUpdated`. It has no `revision` field: the source quote version is `QuoteVersion.revision`, while the submitted document records `request.business.quoteRevision`. Totals and the percentage are strings. The three monetary totals are formatted by currency. The displayed percentage is rounded half-up to four decimal places with trailing zeros removed. `thresholdReached` means the exact discount is at least 10%; it **does not select the approval route**. Expiry is checked against the UTC calendar day; the `validUntil` day remains valid. After submission, expiry/source revision changes update informational flags only. They do not automatically approve/withdraw a request, rewrite its document or prevent an otherwise authorized vote.
+
+<!-- topic:commands -->
 
 ## 4. Command payloads
 
@@ -203,6 +249,8 @@ Both `expectedVersion` and `definition.version` must equal the current published
 - Repeating the same decision by the same actor for the same request/stage returns the current saved request without another event. A new comment does not replace the recorded comment. The opposite decision returns 409.
 - A noncurrent stage, terminal request without that actor's prior vote, or stage outside the effective route returns 409. A visible request but wrong stage participant returns 403. An absent or invisible request returns 404.
 
+<!-- topic:idempotency -->
+
 ## 5. Idempotency and safe retries
 
 | Submission endpoint | `Idempotency-Key` |
@@ -228,6 +276,8 @@ Recommended client flow:
 
 Quote replay for the same revision and intent similarly returns saved state. Changing the requested discount or other intent conflicts; the endpoint is not a way to create multiple requests for one revision.
 
+<!-- topic:process-routing -->
+
 ## 6. Process definitions and conditions
 
 Sources: [ProcessDefinition.java](../../examples/approval-domain/src/main/java/com/arcflow/approval/ProcessDefinition.java), [ConditionalRouting.java](../../examples/approval-domain/src/main/java/com/arcflow/approval/ConditionalRouting.java).
@@ -250,6 +300,8 @@ Conditions select extra human review stages only at submission time. At least on
 | erp-receiving | `field:"receiving.hasRejectedLines",operator:"EQ",expected` | expected is a JSON boolean; the fact is derived from rejected line quantities |
 | crm-contract | `field:"contract.termsKind",operator,values` | operator `EQ/IN`; unique `STANDARD/NONSTANDARD` values; exactly one for EQ, one or two for IN |
 
+Payment thresholds are decoded through Jackson JsonNode, which removes trailing decimal zeroes before the domain checks their scale: `threshold:1.000` is accepted. This differs from business-money DTOs, which preserve lexical scale. For those DTOs, scale is measured after applying the exponent; for example, `1.000e3` has scale 0.
+
 All money predicates in a definition must use the same currency. Submission currency must match **every** predicate, even inside an otherwise successful ANY rule. A mismatch rejects submission instead of silently removing review or converting currency. Unused predicate properties must be absent, not null.
 
 Example condition on an optional payment review node:
@@ -259,6 +311,8 @@ Example condition on an optional payment review node:
 ```
 
 A schema-4 request saves its full original `definition` plus `routing:{schemaVersion:1,stepIds,evaluations}`. Selected IDs retain original order. Evaluations contain every conditional node and every atom's `{field,actualValue,result}`, without short-circuiting. Later publication or source changes do not reselect an existing request's route. Users assigned only to skipped stages gain no read, pending or voting rights from those skipped assignments.
+
+<!-- topic:inbox -->
 
 ## 7. Member inbox
 
@@ -283,6 +337,8 @@ Unknown fields, including actor/userId, repeated parameters, empty numbers, sign
 - One request may appear in both a user's HANDLED and PENDING boxes, for example when a later stage assigns them again.
 - Sort order is descending `createdAt`, then descending request ID for ties. `updatedAt` does not control order.
 - At most limit items are returned. `nextCursor:null` means no current next page. A cursor is an ordering position, not authorization or a consistent-snapshot token. Real decisions can change membership; refresh from the first page.
+
+<!-- topic:responses -->
 
 ## 8. Request snapshots and detail reading
 
@@ -330,6 +386,8 @@ Typical newly created legacy leave response; IDs/times are generated by the serv
 
 The server rechecks live active identity, assignment and applicable business ACLs. Renaming or deleting historical users does not rewrite saved IDs. Button visibility is not authorization; writes are checked server-side.
 
+<!-- topic:business-models -->
+
 ## 9. Complete business-document schemas
 
 Source: [BusinessDocument.java](../../examples/approval-domain/src/main/java/com/arcflow/approval/BusinessDocument.java). All fields listed for a business type or line are required. A blank-permitted explanation still requires a string, not omission/null. Unknown properties are rejected. The command-level optional decision comment is separate from these business fields.
@@ -340,7 +398,7 @@ Every business has exact `type,businessId,title,reason`. References match `[A-Za
 
 `leave`, `procurement` and `quoteDiscount` do **not** have documentVersion. All six scenario types require `documentVersion:1`. Supported currencies are only `CNY,USD,EUR,GBP,JPY`, without conversion. Dates must be real `YYYY-MM-DD` calendar dates; the six scenarios require years 0001–9999. Quote domain parsing uses Java LocalDate and additionally checks UTC validity on initial submission.
 
-Seal use, receiving, payment and contract apply fixed Unicode White_Space/C0/BOM blank checks. Older types use Java `isBlank()` rules, which are not identical. Do not use invisible characters to satisfy required text. Text is trimmed where specified; invalid references are not automatically repaired by trimming.
+Seal use, receiving, payment and contract apply fixed Unicode White_Space/C0/BOM blank checks. Older types use Java `isBlank()` rules, which are not identical. Do not use invisible characters to satisfy required text. Text is trimmed where specified; invalid references are not automatically repaired by trimming. Expense-line description and travel title, reason and destination additionally reject text that becomes Java `isBlank()` after Java `trim()` removes leading/trailing U+0000–U+0020. This rejects NUL-only/C0-only input without treating NBSP or BOM as Java whitespace; it does not forbid every embedded control character.
 
 ### 9.2 `leave` — generic host
 
@@ -438,6 +496,8 @@ Complete fields: `type,documentVersion,businessId,title,reason,customerRef,contr
 - dueOn dates must fall within the contract term and be nondecreasing in array order; same-day milestones are allowed.
 - contractRevision is a declared field, not a quote-host-style source-revision lock. Approval does not sign/deliver a contract, create receivables or update CRM.
 
+<!-- topic:errors -->
+
 ## 10. Errors and recovery
 
 Controlled standalone errors use `{ "message":"…" }`, not a universal code/data envelope. Messages may be English or bilingual. Use HTTP status and context rather than treating English wording as stable machine error codes.
@@ -456,9 +516,11 @@ The standalone 503 message is `Storage unavailable; no change confirmed. Refresh
 
 <a id="ruoyi-native-host"></a>
 
+<!-- topic:ruoyi -->
+
 ## 11. Native RuoYi adapter
 
-Sources: [ArcFlowController.java](../../examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowController.java), [ArcFlowErrors.java](../../examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowErrors.java), [ArcFlowConfiguration.java](../../examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowConfiguration.java). See the [native integration README](../../examples/ruoyi-vue3/README.md) for setup, login and permissions.
+Sources: [ArcFlowController.java](../../examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowController.java), [ArcFlowErrors.java](../../examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowErrors.java), [ArcFlowConfiguration.java](../../examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowConfiguration.java). See the [native integration README](../../examples/ruoyi-vue3/README.en.md) for setup, login and permissions.
 
 | Method/path | Permission | Success HTTP/body |
 | --- | --- | --- |
@@ -485,12 +547,30 @@ Important differences:
 7. No `/arcflow/scenarios` or `/arcflow/crm` Controller exists. The overlay has no native six-scenario/schema-4 HTTP integration. Generic publication accepts schema 2/3 only.
 8. Approval storage remains single-writer local JSON in this example. RuoYi's MySQL identity database does not imply JDBC approval storage or distributed business transactions.
 
+<!-- topic:maintenance -->
+
 ## 12. Source index and change checklist
 
 - Routes: [generic Controller](../../examples/approval-demo/backend/src/main/java/com/arcflow/demo/ApprovalController.java), [scenario Controller](../../examples/approval-demo/backend/src/main/java/com/arcflow/demo/ScenarioController.java), [quote Controller](../../examples/approval-demo/backend/src/main/java/com/arcflow/demo/QuoteDiscountController.java), [native Controller](../../examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowController.java)
 - Authentication/transport: [SecurityConfig](../../examples/approval-demo/backend/src/main/java/com/arcflow/demo/SecurityConfig.java), [JsonConfig](../../examples/approval-demo/backend/src/main/java/com/arcflow/demo/JsonConfig.java), [application.properties](../../examples/approval-demo/backend/src/main/resources/application.properties)
 - Domain: [ApprovalService](../../examples/approval-domain/src/main/java/com/arcflow/approval/ApprovalService.java), [BusinessDocument](../../examples/approval-domain/src/main/java/com/arcflow/approval/BusinessDocument.java), [ProcessDefinition](../../examples/approval-domain/src/main/java/com/arcflow/approval/ProcessDefinition.java), [InboxQuery](../../examples/approval-domain/src/main/java/com/arcflow/approval/InboxQuery.java)
 - Specialized models: [ScenarioCatalog](../../examples/approval-domain/src/main/java/com/arcflow/approval/ScenarioCatalog.java), [ScenarioCase](../../examples/approval-domain/src/main/java/com/arcflow/approval/ScenarioCase.java), [QuoteDiscountCase](../../examples/approval-domain/src/main/java/com/arcflow/approval/QuoteDiscountCase.java), [ConditionalRouting](../../examples/approval-domain/src/main/java/com/arcflow/approval/ConditionalRouting.java)
-- Detailed contracts: [idempotency](../SUBMISSION_IDEMPOTENCY.md), [member inbox](../MEMBER_INBOX.md), [business documents](../BUSINESS_DOCUMENTS.md), [conditional routing](../CONDITIONAL_ROUTING.md)
+- Detailed contracts: [idempotency](../SUBMISSION_IDEMPOTENCY.en.md), [member inbox](../MEMBER_INBOX.en.md), [business documents](../BUSINESS_DOCUMENTS.en.md), [conditional routing](../CONDITIONAL_ROUTING.en.md)
 
 When changing an interface, update its Controller/DTO, domain validation, this reference, request examples and HTTP tests together. Record migrations and verification separately when changing form versions, persistence schemas or host integration. Documentation and examples are not claims of production readiness, deployment or acceptance across all hosts.
+
+### 12.1 Contract and real-HTTP verification
+
+From the repository root, run offline checks, then build and verify the real standalone host:
+
+```sh
+python3 scripts/check_api_contract.py
+python3 scripts/verify_developer_docs.py
+mvn install
+mvn -f examples/approval-domain/pom.xml install
+mvn -f examples/approval-demo/backend/pom.xml verify
+python3 scripts/verify_api_examples.py \
+  --jar examples/approval-demo/backend/target/approval-demo-0.1.0-SNAPSHOT.jar
+```
+
+The offline check detects drift between Controller mappings, static OpenAPI contracts and examples. It does not replace real-host validation of numeric tokens, authorization or state transitions. The HTTP verifier starts its own temporary standalone host; it does not verify RuoYi login, MySQL, a live CRM or payment services. See the [executable examples](./examples/README.en.md) for the full scope and manual requests.

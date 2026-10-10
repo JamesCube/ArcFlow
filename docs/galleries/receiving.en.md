@@ -1,17 +1,19 @@
 # ERP receiving · real UI gallery
 
-[简体中文](receiving.md) · [English](receiving.en.md) · [Five galleries](README.en.md) · [Scenario contract](../RECEIVING_SCENARIO.md)
+[简体中文](receiving.md) · [English](receiving.en.md) · [Five galleries](README.en.md) · [Scenario contract](../RECEIVING_SCENARIO.en.md)
 
 Two synthetic receipt lines contain 80 PCS and 10 BOX, with accepted and rejected quantities. Configure ALL/ANY, then inspect the old ALL snapshot, partial votes, procurement review and early advancement of a new ANY request. Different units are totaled separately.
 
 Every image is an original capture at [`8c26d95`](https://github.com/JamesCube/ArcFlow/commit/8c26d953e53991d3e445aa69c530726f1d81daae) from [run 37918452685](https://github.com/JamesCube/ArcFlow/actions/runs/37918452685), not a new capture of current main. The UI and relevant application source are unchanged at documentation baseline [`199db754`](https://github.com/JamesCube/ArcFlow/commit/199db7548f6faba5dfef105eaaf7311972adb388); this is not a test pass for a later commit. Each image labels its actual language, viewport, PNG size and capture state. Click to open the original.
 
+<!-- topic:scope-and-limits -->
 ## Scope and limits
 
 No live purchase-order balance, inventory posting or ERP writeback is connected. Receiving states do not have complete Chinese/English pairs: both language pages label each original’s actual UI language. All 390px receiving and routing images are long full-page captures, not one visible phone screen. Conditional receiving captures remain PENDING, not approved.
 
 Accounts and business data are synthetic. A 390px capture is a Chromium browser viewport, not the separate H5 client or physical-device acceptance; full-page height is not viewport height. UI language does not translate synthetic user-entered titles or process names.
 
+<!-- topic:process-configuration-and-business-states -->
 ## Process configuration and business states
 
 ### Designer: publish a new ANY version
@@ -134,6 +136,7 @@ UI language: Chinese · browser viewport: 390×844 · full-page original: 390×3
 
 Capture state: `15-any-approved-zh-390` · [PNG SHA-256](../images/scenarios/provenance.json): `00c439f81bc1d85bacef43ea40261994d101ba44bc2ed1e2cc991a2500484cc3`
 
+<!-- topic:conditional-routing-supplement -->
 ## Additional conditional-routing test
 
 These images come from a separate test. Typed, restricted conditions are evaluated at submission; the route and explanations stay with the request. This is not arbitrary BPMN, scripting or a free-form branching engine. Original languages and widths are preserved; missing language/viewport variants are not invented.
@@ -154,6 +157,7 @@ UI language: Chinese · browser viewport: 390×844 · full-page original: 390×3
 
 Capture state: `receiving-clean-zh-390px` · [PNG SHA-256](../images/scenarios/provenance.json): `1e55edb0b7642a2f65bd400f6d8f33a5b6890c2f63e6bfd68cb1418b0d31d581`
 
+<!-- topic:sources-and-reproduction -->
 ## Sources and reproduction
 
 - [historical capture run](https://github.com/JamesCube/ArcFlow/actions/runs/37918452685) · [commit](https://github.com/JamesCube/ArcFlow/commit/8c26d953e53991d3e445aa69c530726f1d81daae)

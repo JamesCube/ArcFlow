@@ -64,10 +64,17 @@ for (const lang of ['zh','en']) {
     await page.goto(lang==='en'?'./en/':'./');
     const links=page.locator('.developer-links');
     await links.scrollIntoViewIfNeeded();
-    await expect(links.locator('a').nth(0)).toHaveAttribute('href','https://github.com/JamesCube/ArcFlow/blob/main/docs/development/README.md');
+    await expect(links.locator('a').nth(0)).toHaveAttribute('href',`https://github.com/JamesCube/ArcFlow/blob/main/docs/README${lang==='en'?'.en':''}.md`);
     await expect(links.locator('a').nth(1)).toHaveAttribute('href',`https://github.com/JamesCube/ArcFlow/blob/main/docs/api/API_REFERENCE${lang==='en'?'.en':''}.md`);
     await expect(links.locator('a').nth(0)).toBeVisible();
     await expect(links.locator('a').nth(1)).toBeVisible();
+    await expect(links.locator('a').nth(2)).toHaveAttribute('href',`https://github.com/JamesCube/ArcFlow/blob/main/docs/development/QUICKSTART${lang==='en'?'.en':''}.md`);
+    await expect(links.locator('a').nth(3)).toHaveAttribute('href',`https://github.com/JamesCube/ArcFlow/blob/main/docs/api/README${lang==='en'?'.en':''}.md`);
+    await expect(links.locator('a')).toHaveCount(4);
+    const docs=await page.locator('a[href*="/blob/main/"]').evaluateAll(nodes=>nodes.map(n=>n.href));
+    expect(docs.length).toBeGreaterThan(8);
+    for(const href of docs) expect(new URL(href).pathname.endsWith(lang==='en'?'.en.md':'.md')).toBe(true);
+    if(lang==='zh') for(const href of docs) expect(new URL(href).pathname.endsWith('.en.md')).toBe(false);
     await expect(page.locator('#command')).toContainText('666ff64b280157e44a86f07a15fcb42f859ec11a');
     await expect(page.locator('.versions')).not.toContainText('Not merged');
     await expect(page.locator('.versions')).not.toContainText('未合并');

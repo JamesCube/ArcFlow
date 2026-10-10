@@ -6,12 +6,14 @@
 
 全部图片是提交 [`8c26d95`](https://github.com/JamesCube/ArcFlow/commit/8c26d953e53991d3e445aa69c530726f1d81daae) 的原始截图，来自[运行 37918452685](https://github.com/JamesCube/ArcFlow/actions/runs/37918452685)，不是当前 main 的重新采集。界面与相关应用源码在文档基线 [`199db754`](https://github.com/JamesCube/ArcFlow/commit/199db7548f6faba5dfef105eaaf7311972adb388) 保持一致；这不代表新提交通过了测试。每张图片下方标注实际语言、视口、PNG 尺寸和采集状态。点击图片查看原图。
 
+<!-- topic:scope-and-limits -->
 ## 能力与边界
 
 无真实采购订单余额、库存入账或 ERP 回写。收货图不具备逐状态中英文配对：两种语言页均标注每张原图的真实语言。390px 收货及路由图均为长页截图，并非一屏可见；条件路由收货截图仍为 PENDING，不能当作通过截图。
 
 所有账号和业务资料均为合成演示数据。390px 是 Chromium 浏览器视口，不是原生 H5 客户端或实体手机验收；长页高度不是视口高度。中英文只是界面语言，合成标题／流程名可能保留双语。
 
+<!-- topic:process-configuration-and-business-states -->
 ## 流程配置与业务状态
 
 ### 流程设计器：将新版本发布为 ANY
@@ -134,6 +136,7 @@
 
 采集状态: `15-any-approved-zh-390` · [PNG SHA-256](../images/scenarios/provenance.json): `00c439f81bc1d85bacef43ea40261994d101ba44bc2ed1e2cc991a2500484cc3`
 
+<!-- topic:conditional-routing-supplement -->
 ## 条件路由补充用例
 
 以下图片来自另一独立用例。条件在提交时求值，路径与解释随申请保存；这是有类型的受限条件，不是任意 BPMN、脚本或自由分支引擎。截图保留真实语言与宽度，没有人为补齐不存在的语言／视口版本。
@@ -154,6 +157,7 @@
 
 采集状态: `receiving-clean-zh-390px` · [PNG SHA-256](../images/scenarios/provenance.json): `1e55edb0b7642a2f65bd400f6d8f33a5b6890c2f63e6bfd68cb1418b0d31d581`
 
+<!-- topic:sources-and-reproduction -->
 ## 来源与复现
 
 - [历史采集运行](https://github.com/JamesCube/ArcFlow/actions/runs/37918452685) · [commit](https://github.com/JamesCube/ArcFlow/commit/8c26d953e53991d3e445aa69c530726f1d81daae)

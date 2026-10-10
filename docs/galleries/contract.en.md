@@ -1,17 +1,19 @@
 # CRM contracts · real UI gallery
 
-[简体中文](contract.md) · [English](contract.en.md) · [Five galleries](README.en.md) · [Scenario contract](../PAYMENT_CONTRACT_SCENARIOS.md)
+[简体中文](contract.md) · [English](contract.en.md) · [Five galleries](README.en.md) · [Scenario contract](../PAYMENT_CONTRACT_SCENARIOS.en.md)
 
 Terms, dates, payment milestones and acceptance criteria form the synthetic contract. Inspect multi-stage and multi-member review, amount/date validation, saved process snapshots and additional review selected by standard/nonstandard terms.
 
 Every image is an original capture at [`8c26d95`](https://github.com/JamesCube/ArcFlow/commit/8c26d953e53991d3e445aa69c530726f1d81daae) from [run 37918452685](https://github.com/JamesCube/ArcFlow/actions/runs/37918452685), not a new capture of current main. The UI and relevant application source are unchanged at documentation baseline [`199db754`](https://github.com/JamesCube/ArcFlow/commit/199db7548f6faba5dfef105eaaf7311972adb388); this is not a test pass for a later commit. Each image labels its actual language, viewport, PNG size and capture state. Click to open the original.
 
+<!-- topic:scope-and-limits -->
 ## Scope and limits
 
 No contract signing, customer notification or CRM writeback occurs. Fixed flows and conditional routes are separate synthetic tests; approved and rejected requests are separate branches. ANY in the condition editor combines conditions and can coexist with ALL voting at that stage.
 
 Accounts and business data are synthetic. A 390px capture is a Chromium browser viewport, not the separate H5 client or physical-device acceptance; full-page height is not viewport height. UI language does not translate synthetic user-entered titles or process names.
 
+<!-- topic:process-configuration-and-business-states -->
 ## Process configuration and business states
 
 ### Designer: publish a new process version
@@ -108,6 +110,7 @@ UI language: English · browser viewport: 1440×1000 · full-page original: 1440
 
 Capture state: `rejected` · [PNG SHA-256](../images/scenarios/provenance.json): `88fee5512aa34e00f27153bae244251e93fd08da79fa4f0a82f0d3f9771d8377`
 
+<!-- topic:conditional-routing-supplement -->
 ## Additional conditional-routing test
 
 These images come from a separate test. Typed, restricted conditions are evaluated at submission; the route and explanations stay with the request. This is not arbitrary BPMN, scripting or a free-form branching engine. Original languages and widths are preserved; missing language/viewport variants are not invented.
@@ -144,6 +147,7 @@ UI language: Chinese · browser viewport: 390×844 · full-page original: 390×3
 
 Capture state: `contract-standard-complete-zh-390px` · [PNG SHA-256](../images/scenarios/provenance.json): `c07ef104beb4f77305f7e5c8e4c8f5ab673684c8a0a7902be396ce93ddee8129`
 
+<!-- topic:sources-and-reproduction -->
 ## Sources and reproduction
 
 - [historical capture run](https://github.com/JamesCube/ArcFlow/actions/runs/37918452685) · [commit](https://github.com/JamesCube/ArcFlow/commit/8c26d953e53991d3e445aa69c530726f1d81daae)

@@ -6,12 +6,14 @@
 
 全部图片是提交 [`8c26d95`](https://github.com/JamesCube/ArcFlow/commit/8c26d953e53991d3e445aa69c530726f1d81daae) 的原始截图，来自[运行 37918452685](https://github.com/JamesCube/ArcFlow/actions/runs/37918452685)，不是当前 main 的重新采集。界面与相关应用源码在文档基线 [`199db754`](https://github.com/JamesCube/ArcFlow/commit/199db7548f6faba5dfef105eaaf7311972adb388) 保持一致；这不代表新提交通过了测试。每张图片下方标注实际语言、视口、PNG 尺寸和采集状态。点击图片查看原图。
 
+<!-- topic:scope-and-limits -->
 ## 能力与边界
 
 不会真实签署、通知客户或回写 CRM。固定流程与条件路由是不同合成用例；通过与驳回也是独立分支。条件编辑器的 ANY 指条件组合，可与节点的 ALL 会签同时存在。
 
 所有账号和业务资料均为合成演示数据。390px 是 Chromium 浏览器视口，不是原生 H5 客户端或实体手机验收；长页高度不是视口高度。中英文只是界面语言，合成标题／流程名可能保留双语。
 
+<!-- topic:process-configuration-and-business-states -->
 ## 流程配置与业务状态
 
 ### 流程设计器：发布新流程版本
@@ -108,6 +110,7 @@ v2 在 Bob 商务审核、Bob 与 Carol 的 ALL 联合复核之后新增最终 A
 
 采集状态: `rejected` · [PNG SHA-256](../images/scenarios/provenance.json): `540ff82ba60279e889ad1857adaa04649a219ee19ddc50d633019d3bb4a213a4`
 
+<!-- topic:conditional-routing-supplement -->
 ## 条件路由补充用例
 
 以下图片来自另一独立用例。条件在提交时求值，路径与解释随申请保存；这是有类型的受限条件，不是任意 BPMN、脚本或自由分支引擎。截图保留真实语言与宽度，没有人为补齐不存在的语言／视口版本。
@@ -144,6 +147,7 @@ v2 在 Bob 商务审核、Bob 与 Carol 的 ALL 联合复核之后新增最终 A
 
 采集状态: `contract-standard-complete-zh-390px` · [PNG SHA-256](../images/scenarios/provenance.json): `c07ef104beb4f77305f7e5c8e4c8f5ab673684c8a0a7902be396ce93ddee8129`
 
+<!-- topic:sources-and-reproduction -->
 ## 来源与复现
 
 - [历史采集运行](https://github.com/JamesCube/ArcFlow/actions/runs/37918452685) · [commit](https://github.com/JamesCube/ArcFlow/commit/8c26d953e53991d3e445aa69c530726f1d81daae)

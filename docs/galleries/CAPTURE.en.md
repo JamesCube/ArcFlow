@@ -2,6 +2,7 @@
 
 [简体中文](CAPTURE.md) · [English](CAPTURE.en.md) · [Gallery index](README.en.md)
 
+<!-- topic:historical-capture-identity -->
 ## Historical capture identity
 
 - Exact application commit: [`8c26d953e53991d3e445aa69c530726f1d81daae`](https://github.com/JamesCube/ArcFlow/commit/8c26d953e53991d3e445aa69c530726f1d81daae)
@@ -15,6 +16,7 @@ The relevant application trees are identical between capture commit `8c26d95` an
 
 The travel and seal-use catalog captures share two byte-identical locale pairs: 104 source files, 102 unique PNG byte sequences. The manifest declares these duplicate groups explicitly; they are the same shared catalog state.
 
+<!-- topic:real-application-and-evidence-boundaries -->
 ## Real application, bounded evidence
 
 The fixtures drive the real standalone Spring Boot backend and Chromium UI with disposable authenticated accounts and synthetic data. No generated UI, rewritten success screen or retouched/cropped PNG is included. Lost-response tests drop delivery only after the backend really saves; a saved response is not fabricated. No login screenshots, passwords, HAR, videos or saved authentication state are published.
@@ -25,9 +27,10 @@ Receiving and routing do not provide every state in both languages and widths. T
 
 No currency-error screenshot exists in this set. Browser assertions exercise that error, but an assertion is not a screenshot. These images do not establish database compatibility, authorization, idempotency, accessibility certification, cross-browser/physical-device support, external effects or production readiness. Historical local Chromium startup was blocked by an IPC socket restriction; the originals came from the successful GitHub Actions run above. This change does not claim a fresh local application-browser pass.
 
+<!-- topic:capture-from-an-isolated-checkout -->
 ## Capture from an isolated checkout
 
-Follow the [development prerequisites](../development/QUICKSTART.md#en), including a full JDK and supported Node version. Use a disposable checkout of the capture SHA to reproduce that historical version. The Playwright configuration creates temporary stores and credentials and starts its own backend/UI; never point it at real data or a shared service. Install Chromium and Noto CJK fonts in an environment that permits browser execution.
+Follow the [development prerequisites](../development/QUICKSTART.en.md#en), including a full JDK and supported Node version. Use a disposable checkout of the capture SHA to reproduce that historical version. The Playwright configuration creates temporary stores and credentials and starts its own backend/UI; never point it at real data or a shared service. Install Chromium and Noto CJK fonts in an environment that permits browser execution.
 
 ```bash
 git checkout 8c26d953e53991d3e445aa69c530726f1d81daae
@@ -46,6 +49,7 @@ npm run test:e2e -- e2e/conditional-routing.spec.mjs --output=gallery-results/ro
 
 Run these commands serially. Preserve new sidecars, exact commit, workflow/run identity, viewport, state and SHA-256; do not relabel local results as the old CI run. Dates, request IDs and other incidental data can differ. Reproducing behavior is not byte-identical image reproduction. For current-source testing, use a separate current checkout and label those results with its actual head.
 
+<!-- topic:check-this-documentation-checkout -->
 ## Check this documentation checkout
 
 Run these from a checkout containing the gallery documentation, not from the historical capture SHA:

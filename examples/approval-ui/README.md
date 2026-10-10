@@ -1,51 +1,109 @@
-# ArcFlow approval UI prototype
+# 独立审批界面
 
-A Vue 3 + Vite UI for the Spring Boot approval example. Publish a process, submit a sample leave request, decide its assigned steps, and see the result and activity history. As Alice, you can add, remove, reorder, name and assign 1–8 approval steps. Each step has one approver or an ALL/ANY group. Each submitted request keeps a **read-only definition snapshot**, so later template edits do not change it. Steps run in order, including group steps. The editor does not support arbitrary graphs. The demo offers Bob and Carol as approvers. The shared domain supports groups of 2–16 stable participant IDs; this UI only uses the fixed demo accounts. It includes no DingTalk assets or RuoYi integration.
+<!-- Legacy fragments remain entry points after the language split. -->
+<a id="arcflow-approval-ui-prototype"></a>
+<a id="automated-coverage"></a>
+<a id="combined-verification-and-visual-boundary"></a>
+<a id="contract-and-boundaries"></a>
+<a id="erp-payment-request-and-crm-contract-approval"></a>
+<a id="erp-receiving"></a>
+<a id="expense-and-travel"></a>
+<a id="focused-workbench"></a>
+<a id="paginated-member-worklists"></a>
+<a id="payment-and-contract-review-candidate--付款与合同审批候选"></a>
+<a id="procurement-and-member-inbox-together"></a>
+<a id="real-browser-first-run-check"></a>
+<a id="restricted-conditional-routes--受限条件路径"></a>
+<a id="run"></a>
+<a id="seal-use-review"></a>
+<a id="unified-typed-scenario-library"></a>
+<a id="workspace-visual-redesign"></a>
 
-## Run
+[English](README.en.md)
 
-Requires Node 22.22.2+ (or 24.15+) (Node 22 LTS recommended) and a running approval backend at `http://localhost:8080`.
 
-From the repository root:
+<!-- topic:scope -->
+适用范围：当前源码的 Vue 3 + Vite 客户端。它连接[独立后端](../approval-demo/backend/README.md)，提供请假/采购工作区、报价页、六场景目录和流程设计器。只使用 localhost 与合成业务数据。
+
+- `/`：请假与采购；`/quote-discount.html`：报价折扣；`/scenarios.html`：六场景；`/receiving.html`：独立收货入口。
+- 六场景按完整 ID 排序：`crm-contract`、`erp-payment`、`erp-receiving`、`oa-expense`、`oa-seal-use`、`oa-travel`。
+- Alice 设计、发布和发起；Bob、Carol 根据保存的步骤参与审批。固定演示账号不代表动态角色、部门或租户集成。
+
+<!-- topic:run -->
+## 启动与基本检查
+
+先按[开发环境](../../docs/development/QUICKSTART.md)启动后端。使用 package.json 支持的 Node.js（推荐 Node 22）和 npm，从仓库根目录运行：
 
 ```sh
 cd examples/approval-ui
 npm ci
 npm run dev
-```
-
-Open `http://localhost:5173`. The Vite development proxy forwards `/api` to the backend. Configure the backend's permitted UI origin if changing that URL. The backend requires user-provided `APPROVAL_ALICE_PASSWORD`, `APPROVAL_BOB_PASSWORD`, and `APPROVAL_CAROL_PASSWORD`; there are no built-in passwords. Choose three different demo-only passwords, each at least 12 characters and at most 72 UTF-8 bytes. Multibyte characters can reach the byte limit sooner. Sign in as Alice to design/publish and submit, sign out, then sign in as Bob or Carol to review the currently assigned step. Refresh fetches requests and the published template from other sessions while preserving an unsaved local draft. Drafts are lost when signing out or reloading the page; publish to persist.
-
-```sh
 npm test
 npm run build
 ```
 
-## Contract and boundaries
+打开 `http://localhost:5173`。Vite 将 `/api` 代理到本地 8080 端口；更换地址必须同步后端允许的 UI Origin。三个演示密码由环境变量提供，没有默认密码。认证信息只存在内存中，登录尝试后清空输入，退出清除会话与申请数据；刷新整页需要重新登录。
 
-- GET `/api/me`, `/api/people`, `/api/process`, `/api/requests`
-- POST `/api/process`: `{expectedVersion, definition}`; Alice-only version-checked publication
-- POST `/api/requests`: `{title, reason, days, processVersion}`
-- POST `/api/requests/{id}/decisions`: `{stepId, decision: "APPROVE" | "REJECT", comment}`
-- All requests send an explicit Basic Authorization header and `X-Arcflow-Client: approval-demo`, with `credentials: omit` and `cache: no-store`.
-- Credentials are held in a private in-memory API closure. Password input clears after login attempts; logout clears the closure and all request data. There is no browser storage or persistent session. Browsers/password managers may independently offer to remember input; do not save demo passwords on shared machines.
-- This demo is localhost-only and intended for synthetic data. Remote deployment requires a separate security review and production authentication/session design.
-- Schema 2 and 3 use an ordered node array: fixed start, 1–8 approval steps, fixed end. Schema 2 keeps the legacy single-assignee shape. Schema 3 additionally supports `parallelApproval` nodes with `assigneeId: null`, unique `assigneeIds`, and `completionMode: "ALL" | "ANY"`. Converting a local step to a group upgrades only the draft until publication. Array order determines execution; there are no layout coordinates or graph edges. Server validation and authorization remain authoritative. The activity view shows each snapshotted step and every participant’s saved vote, comment and timestamp. The single `approverId` compatibility field is not a complete group assignment; the UI derives all eligible, unvoted participants from the saved definition and history.
-- Repeated assignees are allowed as separately identified steps. A request cannot be submitted if its applicant is assigned anywhere in the published process. Each decision sends the exact current step ID; intermediate approval leaves the request pending. A single-step rejection ends it immediately. ALL requires every participant to approve and ends on any rejection. ANY advances on the first approval and ends only after all participants reject. Remaining participants in a completed group display “Not required”; later groups display “Upcoming” or “Not reached”.
-- Published-version conflicts preserve the draft and require refresh/reset/reapplication. A later publication never edits a running request. See the [sequential contract](../../docs/SEQUENTIAL_APPROVAL.md).
-- Repeated clicks while a mutation is in flight are suppressed. No automatic retry occurs after an ambiguous network failure. The form retains a random submission key and original payload/version in memory for manual retries; normalized edits create a new intent. Page reload, close or logout loses that client key, so inspect saved requests before creating another submission. The backend durably scopes submission keys to the applicant and decision retries to the saved step/participant. See [retry and migration boundaries](../../docs/SUBMISSION_IDEMPOTENCY.md).
-- The backend saves a local JSON snapshot across restarts. This is not a production database. Schema-1 saved data has an explicit tested migration; arbitrary workflow migration, production persistence, branching and RuoYi embedding are not provided by this UI. The separate [native RuoYi host](../ruoyi-vue3/README.md#configure-and-vote-in-groups) has its own real-directory group editor and participant worklist.
-- The production build is static. The Vite proxy is development-only: production hosting needs a separately configured same-origin `/api` reverse proxy and HTTPS.
+生产构建是静态文件，Vite 代理不随构建发布。正式宿主需要独立设计同源 API、HTTPS、身份与会话安全，不能直接公开此演示。
 
-## Automated coverage
+<!-- topic:designer -->
+## 设计、发布与处理
 
-Component and pure-model tests cover edit/reorder/reset/publish, role restrictions, 1–8 limits, malformed definitions, stale versions and interrupted requests, refresh with a dirty draft, repeated clicks, logout races, per-step decisions, and immutable instance snapshots. Parallel-specific tests cover mode conversion, distinct membership, partial ALL approval/ANY rejection, early termination, repeated participants, group draft conflicts, non-first-member eligibility, and per-participant status. The production build checks compilation. Use the browser tests and their screenshots to check rendering.
+设计器支持开始、1–8 个顺序步骤、结束。每步为 SINGLE、ALL 或 ANY；领域层允许 2–16 个固定成员，本示例只有 Bob/Carol 可选。选择卡片后在单一检查器中编辑，连接处可插入步骤，支持 50 次本地撤销/重做。
 
-## Real-browser first-run check
+- ALL 要求全员同意，任一驳回终止；ANY 首个同意即可通过，只有全员驳回才终止。
+- 同一人可在不同步骤分别表决。未轮到的步骤不能提前处理，完成的分组不会伪造其他成员的票。
+- 发布检查 expectedVersion；冲突保留草稿，刷新后重新应用。刷新工作区保留未发布草稿，退出或刷新整页丢失；成功发布清空撤销历史。
+- 已提交申请保留不可变流程、业务内容及逐人记录。管理员或页面提示不能扩大服务端权限。完整定义包含申请人时禁止提交。
+- 中英文切换只改变界面，用户输入、流程名称和意见保留原文。手机布局可切换流程和设置；Escape 返回所选卡片。
 
-The approval-demo CI runs Chromium against the actual backend and Vite server on the same runner. It covers the fresh single-step flow, add/reorder/publish, sequential approval, read-only approvers, repeated decision clicks, rejection, reload/re-login, immutable request snapshots and recovery from an injected 503. A second browser journey covers ALL/ANY editing, voting by the non-first member, partial groups, immutable group snapshots, repeated clicks, reload/re-login and a mobile result view. The injected error checks UI recovery only; all other flows use the real backend.
+当前审批人来自保存的定义与历史，不能使用单一兼容字段 `approverId` 代表全部分组成员。
 
-To run locally from the repository root (JDK 17+, Maven, supported Node/npm):
+<!-- topic:state -->
+## 列表、草稿与不确定响应
+
+“待我审批”和“我的处理”分别使用服务端分页、游标、过滤条件和加载状态。处理记录要求实际表决，同一申请可在下一步骤再次进入待办。数字是已加载行数，不是服务端总数。详情沿用可见申请列表与共享快照缓存，没有单申请 GET 接口。
+
+每种业务保留自己的草稿、原提交键与流程版本、设计器撤销状态和原步骤意见。换场景或语言不改变它们。新发布不能改变不确定提交的重试版本；成功提交只清理原表单。延迟响应只能更新原作用域，退出、切换身份或未授权响应清除全部作用域。旧列表响应不能覆盖已确认的新决策。
+
+写入期间抑制重复点击。网络结果不确定时不自动新建请求；原键和内容留在内存供手工重试。刷新整页、关闭或退出会丢失键，重新提交前先检查保存的记录。恢复失败时禁止继续决策。详见[幂等与恢复](../../docs/SUBMISSION_IDEMPOTENCY.md)。
+
+<!-- topic:scenarios -->
+## 业务表单和响应边界
+
+客户端严格检查类型、元数据和响应，不把六场景合并成宽松通用表单。共享精确数字解析器在 JavaScript 舍入前检查原始 JSON 数字。
+
+| 业务 | 当前边界 | 场景响应 |
+| --- | --- | --- |
+| 请假/采购 | 独立草稿；采购数量为整数、价格保留十进制文本，`3 × USD 0.10 = USD 0.30` | 通用申请直接返回 |
+| 报价折扣 | 独立报价页面、独立流程与业务校验 | 见[报价契约](../../docs/CRM_QUOTE_CASE.md) |
+| 报销/出差 | 明细费用或目的地、日期、事由、预算；出差 1–90 天为派生显示 | `{request,total}`，total 为十进制字符串 |
+| 用印 | 七个表单字段，份数 1–100；文件引用只作惰性文本 | `{request,total:null}` |
+| 收货 | 1–20 行，PCS/BOX 分别汇总；接收不超过订购，合格+不合格=接收，有不合格时说明原因 | `{request,total:null,summary}` |
+| 付款 | 发票原额、已结算、本次分配、扣减及四项精确合计；净额必须大于零 | `{request,total,paymentSummary}`，total 为净额 |
+| 合同 | 合同金额与 1–20 里程碑之和相等，日期在期限内且非递减；非标准条款须说明 | `{request,total}`，total 为合同金额 |
+
+原始无效数字留在输入框供纠正，不截断或自动转换。业务引用不保证跨申请唯一；收货不做跨单数量分配，付款不预留发票余额。所有提交内容只读保存。详细字段、限制与例子统一见[接口参考](../../docs/api/API_REFERENCE.md)和[能力目录](../../docs/CAPABILITIES.md)。
+
+这些操作只产生内部审核结果，不付款、不入库、不盖章、不签约、不预订出行、不向外部 ERP/CRM 回写。
+
+<!-- topic:routing -->
+## 受限条件路径
+
+仅付款、收货、合同显示“节点执行条件”。它与审批分组 ALL/ANY 表决独立：
+
+- 付款净额：EQ/GT/GTE/LT/LTE；CNY/USD/EUR/GBP/JPY，阈值 0–20,000,000,000，最多两位小数，JPY 为整数，同流程币种一致。
+- 收货：是否存在不合格行，匹配 true/false。
+- 合同：STANDARD/NONSTANDARD，EQ 或 IN。
+
+最多八个平铺条件，至少一个无条件审批，不支持嵌套或开始/结束节点条件。付款币种不匹配阻止提交；不会换汇或静默跳过。清除所有条件仍保留 schema 4；schema 2/3 结构不变。
+
+表单预览使用当前发布或重试绑定的流程。服务端提交时独立评估并冻结选择的步骤和判定依据，客户端重算并拒绝伪造结果。未纳入步骤明确标为条件未满足，不显示为通过。后续发布不改变原路线。详见[条件路由](../../docs/CONDITIONAL_ROUTING.md)。
+
+<!-- topic:verify -->
+## 验证界面与真实 HTTP
+
+先构建后端，再执行浏览器套件：
 
 ```sh
 mvn install
@@ -57,341 +115,17 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-On a clean Linux machine, Playwright may also require system browser dependencies (`npx playwright install --with-deps chromium`, which can need administrator permission). Stop other servers on ports 8080 and 5173 first: the test deliberately refuses to reuse an existing app or store. It generates disposable demo passwords and a fresh temporary data directory, and binds both servers to loopback. Test data is synthetic. The temporary `arcflow-e2e-*` directory in your OS temporary folder may be removed after the run; it is not your normal demo store.
+Linux 可能需要 Playwright 系统依赖。测试拒绝复用 8080/5173 上已有服务，使用新临时存储与临时密码；可用 `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` 指定现有 Chromium。不要并发运行共享端口的套件。
 
-Only successful authenticated workspace views are captured under ignored `test-results/` directories; no password-form screenshots, authentication traces, HAR, videos or saved browser sessions are recorded. CI retains screenshot artifacts for seven days. These screenshots cover the standalone demo. They do not verify RuoYi rendering or production readiness. Backend restart persistence has separate backend tests.
-
-To use an already installed Chromium for local verification, set `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` to its absolute path. CI continues to use Playwright’s managed browser by default.
-
-## Focused workbench
-
-The [workbench guide](../../docs/DESIGNER_WORKBENCH.md) covers connector insertion, compact stage cards, a single inspector, consistent Chinese/English workspace labels, and 50-edit local undo/redo. Select a card to configure its name, people and exact ALL/ANY rule. Workspace Refresh preserves edits; browser reload or sign out discards the memory-only draft. Confirmed publication clears undo history. The workspace opens in English and one global language selector switches the login/workspace/designer UI consistently (the standalone designer component retains its own selector). User-entered process names, request data and comments are preserved verbatim; unknown server details are clearly identified as original text beneath localized recovery guidance.
-
-The previous desktop and 390px stacked layouts passed the real Chromium workbench journey at `836e605`, retained as historical evidence in the [verified gallery](../../docs/DESIGNER_SHOWCASE.md). The journey checks insertion, invalid-group focus, undo, Escape focus return, narrow inspector visibility, no horizontal overflow and publication. The same source tree was merged as `e1ee9c6`. Browser-native text undo, 200% zoom, cross-browser coverage and a formal accessibility audit remain unverified.
-
-## Workspace visual redesign
-
-The workspace has a navy navigation rail, shared text and status styles, compact stage cards and one inspector. On mobile, you can switch between the flow and its settings. Escape returns to the selected card, including read-only reviewers; switching views or languages preserves the draft and undo history. The request overview counts only records actually returned for the signed-in user.
-
-The [scenario suite](e2e/VISUAL_SCENARIOS.md) captures Chinese and English leave-request forms, sequential steps, ALL/ANY groups, saved snapshots and mobile views. It uses a fresh backend in a separate CI run. Check that the browser job passed for your revision, then inspect its screenshots; unit tests and a successful build do not show how the UI renders. Keep the example on localhost with synthetic leave requests and the fixed Bob/Carol accounts. These leave-workspace captures do not cover the separate scenario library described below. Dynamic role resolution, tenant isolation, arbitrary branching and production use have not been verified.
-
-## Paginated member worklists
-
-**Needs my review** and **My decisions** use the bounded server inbox instead of filtering the legacy full list. Each has its own cursor, filter values, load-more/retry state and loaded-item count. Handled means an actual saved vote; a request can remain pending, or appear in both boxes when the same person reviews a later stage. The existing request list and applicant form keep their broader historical visibility.
-
-Changing filters restarts only that box; signing out or changing identity clears both boxes and all cached records. In-flight reads are aborted and late responses ignored, even when the transport ignores cancellation. A shared actor-scoped snapshot cache prevents older page/legacy replies undoing a saved decision. Decisions restart both first pages; uncertain results also recover through the broader legacy history, with further decisions locked if that recovery fails. Refresh intentionally restarts live worklists; counts are loaded rows, never a server total.
-
-A dependency-free launcher exercises the actual installed client transport/pager against a fresh disposable backend with 27 synthetic requests:
+从 UI 目录运行这些真实客户端 HTTP 检查，它们各自启动并关闭隔离后端：
 
 ```sh
 node scripts/verify-inbox-http.mjs ../approval-demo/backend/target/approval-demo-0.1.0-SNAPSHOT.jar
-```
-
-Run it from this UI directory with Java 17+ on PATH (or `JAVA=/absolute/path/to/java`). It never targets an existing backend, downloads packages, or writes to a persistent demo store. The original local unit/DOM/build/HTTP checkpoint and browser acceptance boundaries are listed in [MEMBER_INBOX_UI](../../docs/MEMBER_INBOX_UI.md).
-
-## Procurement and member inbox together
-
-The document selector keeps independent leave/procurement drafts and submission
-intent keys. Procurement validates item, quantity, currency and decimal price,
-then submits a typed immutable business snapshot. Pending/handled tabs use the
-bounded member API and keep their own continuation state. Details use the
-shared request snapshot cache and compatible visible-request list. See [the business contract](../../docs/BUSINESS_DOCUMENTS.md),
-[procurement scope](../../docs/PROCUREMENT_UI.md) and
-[combined verification](../../docs/LOCAL_INTEGRATION.md).
-
-Returning to an unchanged document form reuses its unresolved submission key
-and original process snapshot, even after a publication refresh. A successful
-submission clears only that form. Sign-out clears both forms and retry slots;
-editing a form's normalized payload starts a new intent for that form.
-
-## Unified typed scenario library
-
-`/scenarios.html` includes six explicitly compiled templates: OA Expense,
-OA Travel, OA Seal Use, ERP Receiving, ERP Payment Request and CRM Contract Approval. The backend catalog is stably sorted
-by full ID: `crm-contract`, `erp-payment`, `erp-receiving`, `oa-expense`, `oa-seal-use`, `oa-travel`.
-The matching catalog and UI must be deployed together. Unknown templates,
-unknown metadata and malformed response envelopes fail closed; the registry
-does not execute arbitrary user-defined schemas.
-
-All six cards open their own active scope within the shared in-memory library
-sign-in. `/receiving.html` also remains an independent bilingual receiving desk.
-The existing `/` leave/procurement workspace remains available.
-
-Switching cards preserves each scenario's form, unresolved submission key and
-original process snapshot/version, unpublished process draft, designer
-undo/selection, selected records, review notes and original-stage retained notes.
-An unchanged uncertain retry keeps its original process version even after a
-refresh sees a newer publication. Refresh preserves a dirty draft. Successful
-submission clears only its originating form; delayed replies stay in their
-originating scope and cannot take over newer navigation. Lists and loaded-item
-counts belong to the selected scenario, rather than a cross-scenario inbox.
-Sign-out, identity change or an unauthorized response invalidates every scope.
-Credentials and unsaved work remain memory-only; browser reload clears them.
-
-Response contracts stay distinct: Expense and Travel require exactly
-`{request, total}` with a decimal-string total; Seal requires exactly
-`{request, total: null}`; Receiving requires exactly
-`{request, total: null, summary}`. A permissive union of those envelopes would
-hide wrong-scenario data and is not accepted.
-
-### Expense and Travel
-
-The reusable form renderer shows Expense line items or Travel destination,
-dates, purpose and estimated budget. Travel's inclusive 1–90-day duration is
-display-only, derived from its validated dates. Estimated cost uses exact decimal
-text internally and numeric JSON on the wire; JPY is whole yen. Travel metadata
-has no line items. Monetary totals retain Expense's exact decimal semantics.
-
-All data is synthetic. Travel approval does not book travel, reimburse expenses,
-issue payments, send notifications or write back to another system.
-
-The independent Expense and Travel browser journeys use the fresh real-backend
-launcher, preserving both single-scenario review and cross-scenario retry,
-draft, designer and retained-note isolation coverage:
-
-```sh
-npm run test:e2e -- e2e/scenarios.spec.mjs e2e/travel-scenarios.spec.mjs
-```
-
-Set `ARCFLOW_CAPTURE_SCENARIOS=1` for Expense captures or
-`ARCFLOW_CAPTURE_TRAVEL_SCENARIOS=1` for authenticated bilingual Travel captures
-and per-image revision/run/hash sidecars. Travel plans 20 images across 10
-bilingual states, including validation errors and narrow reviewer controls.
-Travel output uses unique `capture-travel-<UUID>/` directories; Expense output
-uses unique `capture-<UUID>/` directories. Capture is not publication.
-
-### Seal-use review
-
-Seal uses seven real input fields and the immutable nine-property `sealUse`
-document. Its copy count stays raw text while editing and becomes an integer
-from 1 through 100 only after validation. Decimal, exponent and malformed count
-input is preserved for correction, never truncated or treated as money.
-Metadata retains the existing DTO shape: `copyCount` has kind `integer`,
-`maxLength: 16`; `lineItems` is explicitly null. Fixed root text lengths and
-strict Seal-specific field validation remain enforced.
-
-Seal shows document, synthetic seal category and copy count in the form, list
-and saved detail. The initial process is Bob's `documentReview`, then Carol's
-`sealReview`. Approval records review only: it does not apply a physical or
-electronic seal, sign anything, upload or verify a file, or fetch the inert
-synthetic document reference.
-
-The unit/DOM suite includes shared raw Seal vectors, strict transport and metadata
-negatives, mounted bilingual form/detail cases, Catalog switching and retry
-identity/version, independent designer undo, note retention and interruption
-cases. `e2e/seal-use.spec.mjs` remains a separate real-backend journey covering
-publication, form validation, pending and next-stage review, approved/rejected
-results, reload and 390px reviewer controls:
-
-```sh
-npm run test:e2e -- e2e/seal-use.spec.mjs
-```
-
-It creates images only when `ARCFLOW_CAPTURE_SCENARIOS=1`, alongside per-image
-SHA-256 and run/source provenance in unique `capture-<UUID>/` directories.
-
-### ERP receiving
-
-The receiving desk records a synthetic purchase order reference, warehouse,
-delivery date, and 1–20 individually identified material lines. Each line has
-an independent purchase order line reference and a `PCS` or `BOX` unit.
-Ordered, received, accepted and rejected quantities are integers from 0 to
-100,000; ordered must be positive, received cannot exceed ordered, and accepted
-plus rejected must equal received. At least one line must receive goods.
-Rejected goods require an exception reason (up to 1,000 UTF-16 code units).
-The input preserves raw text until validation, so blanks, fractions, exponent
-notation, signed or oversized values cannot silently become valid integers.
-Line IDs and purchase order line references are unique within a document;
-there is no cross-document quantity allocation or order-balance validation.
-
-Quantities are reconciled and summarized separately per unit, in PCS then BOX
-order. No combined scalar total treats pieces and boxes as interchangeable.
-The receiving summary is
-`{kind: "receiving", lineCount, exceptionLineCount, quantities}`; each quantity
-row is `{unit, received, accepted, rejected}`. Optional exception reasons and
-Receiving-specific quantity/enumeration metadata remain strictly validated.
-
-The receiving namespace is `/api/scenarios/erp-receiving` with `/process`,
-`/documents`, `/requests`, and `/requests/{id}/decisions`. Its own process,
-records and business snapshots stay isolated from the other scenario stores.
-Submission keys retain the store's existing applicant-scoped binding; no new
-scenario scope is added to the shared JDBC key contract. The shared workspace
-preserves original submission keys and process snapshots for uncertain retries,
-suppresses repeated mutations, clears actor-scoped state on sign-out, rejects
-malformed acknowledgements, and retains unconfirmed comments under their
-original stage.
-
-The default schema-3 route is an ALL inspection by Bob and Carol followed by a
-separate procurement review by Bob. Bob deliberately serves both stages in this
-fixed-account demo. Alice can use the real ProcessDesigner to publish a changed
-ordered single/ALL/ANY process; submitted receipts retain their saved process.
-The displayed process defines actual assignments. There is no dynamic role
-resolution or separation-of-duties guarantee.
-
-This is a localhost synthetic-data demonstration. It does not fetch real
-purchase orders, check cumulative received quantities across receipts, post
-stock, create payments, or write back to an external ERP. Approval completes
-only the review lifecycle. Browser reload/sign-out clears unsaved forms,
-comments, retry keys and credentials; saved data remains in the backend.
-
-Receiving-specific tests cover exact raw quantity boundaries, per-unit summaries,
-metadata allow-lists, malformed acknowledgements, uncertain retries, identity
-changes, immutable process/business snapshots, Bob's repeated stages, ALL
-rejection, bilingual validation, focus and retained-note recovery. The separate
-browser journey is `e2e/receiving.spec.mjs`; it exercises real persisted
-transitions and an injected lost acknowledgement:
-
-```sh
-npm run test:e2e -- e2e/receiving.spec.mjs
-```
-
-`ARCFLOW_CAPTURE_RECEIVING=1` opts into credential-free screenshots of signed-in
-desktop/mobile workspaces with SHA-256 metadata. The [receiving evidence guide](e2e/RECEIVING_SCENARIOS.md)
-describes the clean-checkout, exact-revision provenance requirements and all
-15 expected captures. A compatibility-backend run must be labeled separately
-from acceptance against the repository's declared backend version.
-
-Run the real installed-client HTTP journey against a built backend jar:
-
-```sh
 node scripts/verify-receiving-http.mjs ../approval-demo/backend/target/approval-demo-0.1.0-SNAPSHOT.jar
-```
-
-It starts a fresh loopback backend on port 18089 with generated disposable
-credentials and a temporary store, checks the client transport and workspace,
-then stops its own backend. Set `JAVA` to a Java 17+ executable or
-`ARCFLOW_RECEIVING_TEST_PORT` to another free loopback port. This verifies HTTP
-behavior; it does not verify browser rendering.
-
-### Combined verification and visual boundary
-
-Run every retained scenario journey against the same combined backend and UI:
-
-```sh
-npm run test:e2e -- e2e/scenarios.spec.mjs e2e/travel-scenarios.spec.mjs e2e/seal-use.spec.mjs e2e/receiving.spec.mjs
-```
-
-The shared catalog checks require all four cards, localized titles and the
-backend's exact full-ID order. A combined browser case also checks independent
-four-scenario drafts and the standalone Receiving entry point. These assertions
-supplement the original candidate journeys; they do not replace them.
-
-Expense/Travel/Seal capture metadata prefers `ARCFLOW_SOURCE_REVISION` over
-`GITHUB_SHA`, so a CI checkout of an explicit PR head is not mislabeled with a
-synthetic merge revision. Supply the actual checked-out revision. Without a
-revision, local captures are labeled `LOCAL_UNVERIFIED_WORKTREE`. Receiving
-independently reads the actual Git HEAD and requires a clean tracked source tree
-for capture. No login screenshots, traces, HARs, saved browser sessions or
-credential logs are recorded.
-
-Test discovery, a unit/DOM pass or a successful production build does not prove
-browser, backend, database or visual acceptance. Individual candidate results
-are not proof for this combined tree: rerun the combined gates and retain their
-exact source and backend identity. The external reference image remains
-unavailable (HTTP 403); no pixel comparison or reference-image visual acceptance
-is claimed. Original bilingual browser captures and independent pixel review
-remain required. Unified reader support does not establish deployment or
-scenario acceptance, and older binaries cannot read every new scenario schema.
-
-## Payment and contract review candidate / 付款与合同审批候选
-
-This unmerged extension adds independent ERP payment allocation and CRM contract milestone reviews to the six-entry `/scenarios.html` catalog. It uses nine exact business types, monotonic JSON wrappers 1–12 and separate compiled API/store boundaries. Actual ALL/ANY and versioned human review do not execute payment, signing or external writes. See [business models, workflow semantics, compatibility and verification gates](../../docs/PAYMENT_CONTRACT_SCENARIOS.md). Earlier candidate descriptions refer to the PR39 baseline. This extension requires matching frontend and backend versions; old schema-10 readers cannot read the new documents.
-
-
-### ERP payment request and CRM contract approval
-
-Payment uses its own teal invoice-allocation desk. Every invoice retains its
-original amount, declared prior settlement, current allocation and deduction.
-The form shows per-line outstanding/net amounts and four exact document totals.
-Positive deductions require a reason. Zero net requests cannot be submitted.
-
-Contract uses a distinct plum dossier with terms, a declared revision and an
-ordered milestone editor. The amount must exactly equal the milestone sum;
-dates stay within the contract term and in nondecreasing order. Nonstandard
-terms require an explanation. Switching to standard terms preserves the text
-and reports a validation error until the explanation is explicitly cleared.
-Neither flags nor amounts dynamically change the fixed route.
-
-Both preserve raw editable numeric text, validate before numeric JSON emission,
-and calculate with decimal strings and BigInt. Lines can be added, removed or
-reordered, with stable IDs and a 1–20 limit. Submitted documents are read-only.
-Payment responses require exactly `{request,total,paymentSummary}`; its total
-means net requested. Contract responses require exactly `{request,total}`;
-its total means contract amount. The four earlier envelopes remain unchanged.
-
-The two journeys in `e2e/complex-scenarios.spec.mjs` verify the fresh default v1,
-real designer publication to v2, lost-response retry pinned to the original v1,
-repeated reviewer decisions, ALL/ANY outcomes, bilingual forms/errors/details
-and 390px controls. To execute with the declared project backend:
-
-```sh
-npm run test:e2e -- e2e/complex-scenarios.spec.mjs
-ARCFLOW_CAPTURE_COMPLEX_SCENARIOS=1 npm run test:e2e -- e2e/complex-scenarios.spec.mjs
-node scripts/verify-complex-captures.mjs test-results
 node scripts/verify-complex-http.mjs ../approval-demo/backend/target/approval-demo-0.1.0-SNAPSHOT.jar
-```
-
-The capture verifier requires the complete 40-image matrix, original PNG hashes,
-source/UI/backend identity and one session per scenario. CI additionally binds
-evidence to the exact clean head, run, attempt, repository and declared runtime.
-A custom `ARCFLOW_BACKEND_JAR`/`ARCFLOW_BACKEND_RUNTIME` can label supplementary
-local checks; it must never be passed off as the declared runtime. The HTTP
-launcher tests the installed client and a fresh disposable real backend but
-does not verify rendering. No screenshots are produced when browser launch is
-blocked. Original inaccessible gallery images remain unverified and are not
-replaced by synthetic captures or edited images.
-
-All references, invoice balances and contract revisions are synthetic inputs.
-There is no verified ERP/CRM source, cross-request invoice reservation, currency
-conversion, bank data, payment execution, signing, customer delivery, receivable
-creation or external writeback. Approval is an internal review result only.
-
-## Restricted conditional routes / 受限条件路径
-
-The designer exposes “When this step runs / 节点执行条件” only for ERP Payment,
-ERP Receiving and CRM Contract. Select a stage, keep it always included or add
-flat ALL/ANY conditions. This is separate from a group's ALL/ANY voting rule.
-Schema 4 supports:
-
-- Payment net total: EQ, GT, GTE, LT, LTE against a threshold in CNY, USD, EUR,
-  GBP or JPY. Use 0–20,000,000,000, at most two decimals; JPY requires whole
-  amounts. Every amount condition in one process must use the same currency.
-- Receiving: whether any receipt line has rejected goods, equal to true or false.
-- Contract: STANDARD or NONSTANDARD terms, with EQ or IN.
-
-Keep at least one unconditional approval and at most eight predicates across
-the whole process. Conditions cannot be nested or assigned to start/end. A
-payment's currency must match every amount condition; a mismatch blocks
-submission, never triggers conversion or a silent skip. Changing SINGLE/ALL/ANY
-review mode preserves conditions. Clearing all conditions keeps schema 4 and
-omits absent runIf fields. Existing schema-2/3 wire shapes are unchanged.
-
-The form previews the route from the published (or retry-pinned) process and
-current valid document. The server independently evaluates and freezes the
-selected step IDs plus ordered per-condition actual values/results at submit.
-The UI recomputes that snapshot and rejects forged results before displaying or
-acting on it. Progress, pending actions and history replay use selected stages;
-the full saved route explicitly shows “Condition not met / 条件未满足，未纳入”.
-Skipped stages are never shown as approved. The detail includes the saved rule,
-actual value, each predicate's result and overall inclusion outcome. Applicant
-self-approval exclusions still check the entire definition, including skipped
-stages. Submitted instances keep their definition and route after publication.
-
-仅付款、收货、合同三类场景展示条件编辑器。条件匹配与多人表决的 ALL/ANY
-互相独立。提交时冻结实际路径与判定依据；详情保留完整流程，并明确标记未纳入节点。
-后续发布不会改变旧申请；不提供通用表达式、嵌套条件、汇率换算或动态人员解析。
-
-Focused DOM/model tests cover bilingual editing, undo/redo, mode changes,
-read-only roles, predicate limits, currency/precision boundaries, exact numeric
-response lexemes, forged snapshots and selected-route history. The dependency-
-free HTTP acceptance script uses the actual frontend workspace/codecs against a
-fresh backend, including lost-response retries across later publication:
-
-```sh
 node scripts/verify-routing-http.mjs ../approval-demo/backend/target/approval-demo-0.1.0-SNAPSHOT.jar
-npm run test:e2e -- e2e/conditional-routing.spec.mjs
 ```
 
-The Playwright suite contains real-backend payment/receiving/contract journeys
-and 390px Chinese/English captures. Its presence alone is not browser evidence;
-see [routing acceptance](e2e/CONDITIONAL_ROUTING.md) for run status and limits.
+截图只记录成功登录后的合成工作区，不记录密码页、HAR、认证轨迹或会话文件。必须保留精确源码、后端身份、运行 ID 和哈希；兼容后端结果不能冒充声明版本通过。测试发现、单元测试、构建或旧截图均不证明当前浏览器通过。
+
+按需执行[常规视觉场景](e2e/VISUAL_SCENARIOS.md)、[收货](e2e/RECEIVING_SCENARIOS.md)、[付款合同](e2e/COMPLEX_SCENARIOS.md)、[条件路由](e2e/CONDITIONAL_ROUTING.md)的命令和证据要求。跨浏览器、真机、200% 缩放和正式无障碍审计仍需独立验证。

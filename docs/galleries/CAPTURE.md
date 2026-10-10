@@ -2,6 +2,7 @@
 
 [简体中文](CAPTURE.md) · [English](CAPTURE.en.md) · [图集总入口](README.md)
 
+<!-- topic:historical-capture-identity -->
 ## 历史采集身份
 
 - 应用精确提交：[`8c26d953e53991d3e445aa69c530726f1d81daae`](https://github.com/JamesCube/ArcFlow/commit/8c26d953e53991d3e445aa69c530726f1d81daae)
@@ -15,6 +16,7 @@
 
 出差与用印的共享目录有两组按语言对应的同字节原图：104 个来源文件、102 个唯一 PNG。清单明确声明这些重复组，它们是相同目录状态。
 
+<!-- topic:real-application-and-evidence-boundaries -->
 ## 真实应用与证据边界
 
 用例驱动真实独立 Spring Boot 后端与 Chromium 界面，使用临时登录账号和合成数据。没有生成 UI、改写成功画面或裁剪／修饰原图。丢响应测试在后端真实保存后才中断返回，不伪造保存结果。不公开登录截图、密码、HAR、视频或认证状态。
@@ -25,6 +27,7 @@
 
 本组没有币种错误截图。浏览器断言检查过该错误，但断言不能代替图片。截图不能证明数据库兼容性、权限、幂等、无障碍认证、跨浏览器／实体设备支持、外部业务动作或生产就绪。历史本地 Chromium 启动受 IPC socket 限制，原图来自上面成功的 GitHub Actions 运行。本次文档工作不宣称新完成本地应用浏览器验收。
 
+<!-- topic:capture-from-an-isolated-checkout -->
 ## 在隔离检出目录复现
 
 先按[开发环境文档](../development/QUICKSTART.md#zh)准备完整 JDK 和支持的 Node 版本。在可丢弃的目录检出采集 SHA，复现历史应用。Playwright 配置会创建临时存储与密码并启动独立后端和 UI，不要指向真实数据或共享服务。在允许运行浏览器的环境安装 Chromium 与 Noto CJK 中文字体。
@@ -46,6 +49,7 @@ npm run test:e2e -- e2e/conditional-routing.spec.mjs --output=gallery-results/ro
 
 串行运行以上命令。保留新 sidecar、实际 commit、工作流／运行身份、视口、状态与 SHA-256，不要把本地结果冒充原 CI 运行。日期、申请 ID 等细节可能改变，复现行为不等于逐字节重现图片。测试当前源码时另用当前检出目录，并按真实 head 标注。
 
+<!-- topic:check-this-documentation-checkout -->
 ## 检查本次文档
 
 在包含本次图集的检出目录运行，不要在历史采集 SHA 上运行新增的检查脚本：

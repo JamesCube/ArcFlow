@@ -232,8 +232,10 @@
     "footerDisclosure": "本页为静态项目介绍，不提供在线审批服务。无追踪脚本、无数据收集表单。",
     "mobileMenu": "打开导航",
     "noJS": "页面内容和源码链接无需 JavaScript。开启 JavaScript 可切换场景与放大截图。",
-    "developerLink": "开发文档与 API",
+    "developerLink": "分类文档索引",
     "apiLink": "HTTP 接口参考",
+    "quickLink": "开发环境与验证",
+    "contractLink": "OpenAPI 与维护约定",
     "galleryLink": "继续看出差、用印、收货、付款与合同图集",
     "galleryNote": "五类独立图集，104 张历史真实原图；每张标注语言、视口和采集来源。"
   },
@@ -470,8 +472,10 @@
     "footerDisclosure": "A static project website, not an online approval service. No tracking scripts or data collection forms.",
     "mobileMenu": "Open navigation",
     "noJS": "Content and source links work without JavaScript. Enable it for scenario tabs and full-screen images.",
-    "developerLink": "Developer docs and API",
+    "developerLink": "Documentation by task",
     "apiLink": "HTTP API reference",
+    "quickLink": "Development setup",
+    "contractLink": "OpenAPI and contract maintenance",
     "galleryLink": "Explore travel, seal-use, receiving, payment and contract galleries",
     "galleryNote": "Five dedicated galleries, 104 historical original captures, each labeled by language, viewport and source."
   }

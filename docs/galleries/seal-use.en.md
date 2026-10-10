@@ -1,17 +1,19 @@
 # OA seal use · real UI gallery
 
-[简体中文](seal-use.md) · [English](seal-use.en.md) · [Five galleries](README.en.md) · [Scenario contract](../SEAL_USE_SCENARIO.md)
+[简体中文](seal-use.md) · [English](seal-use.en.md) · [Five galleries](README.en.md) · [Scenario contract](../SEAL_USE_SCENARIO.en.md)
 
 Synthetic delivery documents illustrate a non-monetary approval: document reference, seal category, purpose and copy count, followed by document review and seal-use review. Approval and rejection belong to separate requests.
 
 Every image is an original capture at [`8c26d95`](https://github.com/JamesCube/ArcFlow/commit/8c26d953e53991d3e445aa69c530726f1d81daae) from [run 37918452685](https://github.com/JamesCube/ArcFlow/actions/runs/37918452685), not a new capture of current main. The UI and relevant application source are unchanged at documentation baseline [`199db754`](https://github.com/JamesCube/ArcFlow/commit/199db7548f6faba5dfef105eaaf7311972adb388); this is not a test pass for a later commit. Each image labels its actual language, viewport, PNG size and capture state. Click to open the original.
 
+<!-- topic:scope-and-limits -->
 ## Scope and limits
 
 Approval records a human decision; it does not stamp, electronically sign, upload a document or notify another system. Document references and seal information are synthetic.
 
 Accounts and business data are synthetic. A 390px capture is a Chromium browser viewport, not the separate H5 client or physical-device acceptance; full-page height is not viewport height. UI language does not translate synthetic user-entered titles or process names.
 
+<!-- topic:process-configuration-and-business-states -->
 ## Process configuration and business states
 
 ### Designer: document review → seal-use review
@@ -88,6 +90,7 @@ UI language: English · browser viewport: 1440×1000 · full-page original: 1440
 
 Capture state: `seal-catalog` · [PNG SHA-256](../images/scenarios/provenance.json): `8d83c13cd7d69df7d89bf1b59eebc6d4d9a5cc47117224034a8fb0e04c26fa0e`
 
+<!-- topic:sources-and-reproduction -->
 ## Sources and reproduction
 
 - [historical capture run](https://github.com/JamesCube/ArcFlow/actions/runs/37918452685) · [commit](https://github.com/JamesCube/ArcFlow/commit/8c26d953e53991d3e445aa69c530726f1d81daae)

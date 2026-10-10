@@ -1,17 +1,19 @@
 # ERP payment requests · real UI gallery
 
-[简体中文](payment.md) · [English](payment.en.md) · [Five galleries](README.en.md) · [Scenario contract](../PAYMENT_CONTRACT_SCENARIOS.md)
+[简体中文](payment.md) · [English](payment.en.md) · [Five galleries](README.en.md) · [Scenario contract](../PAYMENT_CONTRACT_SCENARIOS.en.md)
 
 Invoice allocations, declared settled amounts, deductions and the net request amount demonstrate exact-money validation. Inspect ALL voting, a partial ANY rejection, original snapshots after publication, and routes frozen from the net amount.
 
 Every image is an original capture at [`8c26d95`](https://github.com/JamesCube/ArcFlow/commit/8c26d953e53991d3e445aa69c530726f1d81daae) from [run 37918452685](https://github.com/JamesCube/ArcFlow/actions/runs/37918452685), not a new capture of current main. The UI and relevant application source are unchanged at documentation baseline [`199db754`](https://github.com/JamesCube/ArcFlow/commit/199db7548f6faba5dfef105eaaf7311972adb388); this is not a test pass for a later commit. Each image labels its actual language, viewport, PNG size and capture state. Click to open the original.
 
+<!-- topic:scope-and-limits -->
 ## Scope and limits
 
 This reviews a request; it does not transfer money, lock a balance or verify a real invoice. Fixed-flow and conditional-routing captures come from different tests and requests, not one continuous transaction. A partial ANY rejection can remain PENDING.
 
 Accounts and business data are synthetic. A 390px capture is a Chromium browser viewport, not the separate H5 client or physical-device acceptance; full-page height is not viewport height. UI language does not translate synthetic user-entered titles or process names.
 
+<!-- topic:process-configuration-and-business-states -->
 ## Process configuration and business states
 
 ### Designer: publish a new process version
@@ -108,6 +110,7 @@ UI language: English · browser viewport: 1440×1000 · full-page original: 1440
 
 Capture state: `rejected` · [PNG SHA-256](../images/scenarios/provenance.json): `d78aff7bd53c2d0aeba7152c9427924108be4a4981aa32055e2107d8bcfd31eb`
 
+<!-- topic:conditional-routing-supplement -->
 ## Additional conditional-routing test
 
 These images come from a separate test. Typed, restricted conditions are evaluated at submission; the route and explanations stay with the request. This is not arbitrary BPMN, scripting or a free-form branching engine. Original languages and widths are preserved; missing language/viewport variants are not invented.
@@ -154,6 +157,7 @@ UI language: Chinese · browser viewport: 390×844 · full-page original: 390×3
 
 Capture state: `payment-low-complete-zh-390px` · [PNG SHA-256](../images/scenarios/provenance.json): `fcd2cf6728b4780f593f6f6e33e4a7b2d38feb5e56c4202760a5f84b3f5c2b92`
 
+<!-- topic:sources-and-reproduction -->
 ## Sources and reproduction
 
 - [historical capture run](https://github.com/JamesCube/ArcFlow/actions/runs/37918452685) · [commit](https://github.com/JamesCube/ArcFlow/commit/8c26d953e53991d3e445aa69c530726f1d81daae)

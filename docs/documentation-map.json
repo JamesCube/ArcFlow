@@ -1,0 +1,906 @@
+{
+  "formatVersion": 1,
+  "description": "Maintained Chinese/English documentation pairs and immutable historical source artifacts. Categories follow reader intent; topic equality is a structural gate, not an automatic translation-quality claim.",
+  "documents": [
+    {
+      "path": "CONTRIBUTING.md",
+      "category": "how-to",
+      "topics": [
+        "contributing",
+        "docs"
+      ]
+    },
+    {
+      "path": "README.md",
+      "category": "index",
+      "topics": [
+        "overview"
+      ]
+    },
+    {
+      "path": "contracts/seal-use/CONTRACT.md",
+      "category": "history",
+      "topics": [
+        "status",
+        "source",
+        "next"
+      ]
+    },
+    {
+      "path": "contracts/seal-use/README.md",
+      "category": "reference",
+      "topics": [
+        "scope",
+        "run",
+        "artifacts"
+      ]
+    },
+    {
+      "path": "contracts/seal-use/java/evidence/VERIFICATION.md",
+      "category": "history",
+      "topics": [
+        "status",
+        "source",
+        "next"
+      ]
+    },
+    {
+      "path": "contracts/seal-use/js/CONTRACT-NOTES.md",
+      "category": "history",
+      "topics": [
+        "status",
+        "source",
+        "next"
+      ]
+    },
+    {
+      "path": "docs/BUILD_REPRODUCIBILITY.md",
+      "category": "how-to",
+      "topics": [
+        "why-these-versions-are-pinned",
+        "ci-checks"
+      ]
+    },
+    {
+      "path": "docs/BUSINESS_DOCUMENTS.md",
+      "category": "reference",
+      "topics": [
+        "scope",
+        "java-and-http",
+        "idempotency-and-authorization",
+        "storage-compatibility",
+        "verification-and-historical-evidence",
+        "historical-member-inbox-baseline",
+        "erp-payment-and-crm-contract-extension"
+      ]
+    },
+    {
+      "path": "docs/CAPABILITIES.md",
+      "category": "explanation",
+      "topics": [
+        "three-separate-layers",
+        "flow-design-and-versions",
+        "approval-rules-and-voting",
+        "people-identity-and-permissions",
+        "task-handling-and-history",
+        "business-forms-and-scenarios",
+        "reliability-storage-and-recovery",
+        "integration-clients-and-core",
+        "existing-cases-and-step-by-step-screens",
+        "proposed-sequence-scenarios-visual-forms-and-configuration",
+        "business-template-progress-merged-unified-integration-and-future-candidates"
+      ]
+    },
+    {
+      "path": "docs/CASE_GALLERY.md",
+      "category": "tutorial",
+      "topics": [
+        "leave-end-to-end",
+        "procurement-from-amount-to-outcome",
+        "quote-discount-manager-to-finance",
+        "ruoyi-and-h5",
+        "versions-sources-and-reproduction"
+      ]
+    },
+    {
+      "path": "docs/CONDITIONAL_ROUTING.md",
+      "category": "reference",
+      "topics": [
+        "current-main-scope",
+        "historical-implementation-checkpoint",
+        "definition-and-safety-boundary",
+        "frozen-request-contract",
+        "migration-and-database-contract",
+        "required-evidence",
+        "local-verification-checkpoint-2026-10-09"
+      ]
+    },
+    {
+      "path": "docs/CRM_COMPATIBILITY_READINESS.md",
+      "category": "history",
+      "topics": [
+        "accepted-crm-checkpoint-2026-10-08",
+        "historical-baseline-and-scope",
+        "critical-interfaces",
+        "coverage-and-evidence-boundaries",
+        "gates-for-subsequent-changes"
+      ]
+    },
+    {
+      "path": "docs/CRM_QUOTE_CASE.md",
+      "category": "reference",
+      "topics": [
+        "runnable-scope",
+        "start-locally",
+        "document-and-http-contract",
+        "money-dates-and-source-validation",
+        "revision-binding-and-idempotency",
+        "storage-and-upgrade-requirements",
+        "verification-and-next-steps"
+      ]
+    },
+    {
+      "path": "docs/DESIGNER_GALLERY.md",
+      "category": "tutorial",
+      "topics": [
+        "arrange-the-stages",
+        "edit-the-order",
+        "configure-and-validate",
+        "publish-and-preserve",
+        "the-rules-in-action"
+      ]
+    },
+    {
+      "path": "docs/DESIGNER_SHOWCASE.md",
+      "category": "history",
+      "topics": [
+        "01-inspect-a-flow-and-configure-one-stage",
+        "02-stack-settings-below-the-flow-at-390px",
+        "try-it-from-source",
+        "tested-capabilities-and-limits",
+        "sources-and-verification"
+      ]
+    },
+    {
+      "path": "docs/DESIGNER_WORKBENCH.md",
+      "category": "explanation",
+      "topics": [
+        "interaction",
+        "design-references-and-deliberate-differences",
+        "verification-boundary"
+      ]
+    },
+    {
+      "path": "docs/DOCUMENTATION_AUDIT.md",
+      "category": "reference",
+      "topics": [
+        "baseline",
+        "decisions",
+        "api",
+        "gates"
+      ]
+    },
+    {
+      "path": "docs/DOCUMENTATION_STANDARD.md",
+      "category": "reference",
+      "topics": [
+        "languages-and-naming",
+        "page-types-and-organization",
+        "reusable-structures-where-useful",
+        "sources-of-truth-and-versions",
+        "editing-and-translation-workflow",
+        "before-submitting"
+      ]
+    },
+    {
+      "path": "docs/EXPENSE_SCENARIO.md",
+      "category": "reference",
+      "topics": [
+        "start",
+        "fields-and-rules",
+        "http-and-authorization",
+        "retry-and-storage",
+        "verification",
+        "visual-walkthrough"
+      ]
+    },
+    {
+      "path": "docs/GALLERY_CAPTURE.md",
+      "category": "how-to",
+      "topics": [
+        "capture-contract",
+        "run",
+        "accepted-capture-runs",
+        "evidence-and-limits"
+      ]
+    },
+    {
+      "path": "docs/GETTING_STARTED.md",
+      "category": "tutorial",
+      "topics": [
+        "1-start-the-standalone-demo",
+        "2-complete-a-request",
+        "3-try-the-designer",
+        "4-try-procurement-and-quote-approvals",
+        "5-check-restart-persistence",
+        "troubleshooting",
+        "next-steps"
+      ]
+    },
+    {
+      "path": "docs/INTEGRATION_DESIGN.md",
+      "category": "explanation",
+      "topics": [
+        "first-reference-integration",
+        "backend-responsibilities",
+        "frontend-reference",
+        "versioned-model-separate-ui-and-execution",
+        "what-the-reference-must-verify"
+      ]
+    },
+    {
+      "path": "docs/LOCAL_INTEGRATION.md",
+      "category": "history",
+      "topics": [
+        "inputs-and-source-identity",
+        "combined-behavior",
+        "verification",
+        "remaining-acceptance-at-this-checkpoint"
+      ]
+    },
+    {
+      "path": "docs/MEMBER_INBOX.md",
+      "category": "reference",
+      "topics": [
+        "http-contract",
+        "membership-rules",
+        "ordering-and-consistency",
+        "storage-boundary",
+        "host-integration-with-typed-business-documents",
+        "verification"
+      ]
+    },
+    {
+      "path": "docs/MEMBER_INBOX_COPY_INTEGRATION.md",
+      "category": "history",
+      "topics": [
+        "reconciliation",
+        "verification"
+      ]
+    },
+    {
+      "path": "docs/MEMBER_INBOX_UI.md",
+      "category": "history",
+      "topics": [
+        "behavior",
+        "local-validation",
+        "remaining-gates",
+        "pr-18-copy-integration"
+      ]
+    },
+    {
+      "path": "docs/PARALLEL_APPROVAL.md",
+      "category": "reference",
+      "topics": [
+        "scope-and-definition",
+        "completion-and-rejection",
+        "commands-identity-and-compatibility-fields",
+        "persistence-and-rollout",
+        "verification"
+      ]
+    },
+    {
+      "path": "docs/PARALLEL_DESIGNER_VERIFICATION.md",
+      "category": "history",
+      "topics": [
+        "scope",
+        "provenance",
+        "tests-that-passed-locally",
+        "blocked-or-not-rerun",
+        "run-the-checks-in-your-development-environment"
+      ]
+    },
+    {
+      "path": "docs/PAYMENT_CONTRACT_SCENARIOS.md",
+      "category": "reference",
+      "topics": [
+        "current-scope",
+        "historical-implementation-checkpoint",
+        "payment-request-review",
+        "contract-approval",
+        "shared-strictness-immutability-and-retries",
+        "historical-nine-type-json-and-jdbc-compatibility",
+        "verification-and-screenshots"
+      ]
+    },
+    {
+      "path": "docs/PROCUREMENT_UI.md",
+      "category": "reference",
+      "topics": [
+        "entry-points-and-scope",
+        "exact-amounts-and-quantities",
+        "saved-snapshots-and-retries",
+        "verification-method"
+      ]
+    },
+    {
+      "path": "docs/README.md",
+      "category": "index",
+      "topics": [
+        "start-here",
+        "tutorials-complete-a-journey",
+        "how-to-guides-complete-a-task",
+        "explanation-understand-the-design",
+        "reference-inspect-rules-and-compatibility",
+        "historical-evidence-follow-the-source",
+        "maintenance-and-navigation"
+      ]
+    },
+    {
+      "path": "docs/RECEIVING_SCENARIO.md",
+      "category": "reference",
+      "topics": [
+        "current-scope-and-historical-evidence",
+        "scenario-and-review-flow",
+        "quantity-and-response-contract",
+        "historical-persistence-and-compatibility-gate",
+        "verification"
+      ]
+    },
+    {
+      "path": "docs/ROADMAP.md",
+      "category": "explanation",
+      "topics": [
+        "implemented-initial-core",
+        "experimental-local-approval-demo",
+        "implemented-optional-transactional-jdbc-storage",
+        "implemented-fixed-all-any-groups",
+        "implemented-durable-submission-idempotency",
+        "implemented-shared-leave-and-procurement-approval",
+        "implemented-paginated-member-worklists",
+        "implemented-nine-business-types-and-restricted-routing",
+        "next-a-sustainable-general-approval-model",
+        "optional-enterprise-integrations-and-visualization",
+        "dag-evolution"
+      ]
+    },
+    {
+      "path": "docs/RUOYI_SHOWCASE.md",
+      "category": "history",
+      "topics": [
+        "complete-two-stage-approval-in-the-native-workspace",
+        "01-design-and-publish-from-native-menus",
+        "02-complete-review-in-the-same-host",
+        "run-it-and-inspect-capture-sources",
+        "limits-and-licenses"
+      ]
+    },
+    {
+      "path": "docs/SEAL_USE_SCENARIO.md",
+      "category": "reference",
+      "topics": [
+        "current-scope",
+        "historical-candidate-scope",
+        "what-the-form-actually-records",
+        "review-and-identity",
+        "historical-explicit-schema-compatibility",
+        "verification-and-acceptance",
+        "business-boundaries"
+      ]
+    },
+    {
+      "path": "docs/SEQUENTIAL_APPROVAL.md",
+      "category": "reference",
+      "topics": [
+        "definition",
+        "edit-publish-start",
+        "step-commands-and-visibility",
+        "restart-and-previous-demo-data"
+      ]
+    },
+    {
+      "path": "docs/SUBMISSION_IDEMPOTENCY.md",
+      "category": "reference",
+      "topics": [
+        "http-and-identity",
+        "intent-and-replay",
+        "atomicity-races-and-failures",
+        "upgrade-and-rollback",
+        "client-retry-lifetime",
+        "verification",
+        "typed-business-documents"
+      ]
+    },
+    {
+      "path": "docs/SUPPORTED_HOST_MIGRATION.md",
+      "category": "history",
+      "topics": [
+        "scope",
+        "explicit-jackson-2-bridge",
+        "compatibility-gates",
+        "upgrade-limits"
+      ]
+    },
+    {
+      "path": "docs/TRAVEL_SCENARIO.md",
+      "category": "reference",
+      "topics": [
+        "current-scope",
+        "historical-candidate-and-scenario-scope",
+        "form-and-business-rules",
+        "host-identity-and-isolation",
+        "historical-schema-8-rollout-and-recovery",
+        "verification-and-visual-acceptance"
+      ]
+    },
+    {
+      "path": "docs/TRYOUT.md",
+      "category": "how-to",
+      "topics": [
+        "requirements",
+        "start-from-a-checkout-or-extracted-source-bundle",
+        "what-to-try",
+        "readiness-and-stopping",
+        "build-a-versioned-source-bundle",
+        "release-candidate-checklist",
+        "troubleshooting-and-boundaries"
+      ]
+    },
+    {
+      "path": "docs/UNIFIED_SCENARIO_INTEGRATION.md",
+      "category": "history",
+      "topics": [
+        "current-main-scope",
+        "historical-candidate-status",
+        "local-verification-checkpoint",
+        "historical-reader-and-writer-contract",
+        "historical-four-scenario-isolation",
+        "jdbc-compatibility",
+        "verification-gates",
+        "rollout-and-stop-conditions"
+      ]
+    },
+    {
+      "path": "docs/api/API_REFERENCE.md",
+      "category": "reference",
+      "topics": [
+        "hosts",
+        "transport",
+        "routes",
+        "commands",
+        "idempotency",
+        "process-routing",
+        "inbox",
+        "responses",
+        "business-models",
+        "errors",
+        "ruoyi",
+        "maintenance"
+      ]
+    },
+    {
+      "path": "docs/api/README.md",
+      "category": "index",
+      "topics": [
+        "navigation",
+        "format-scope",
+        "offline-checks",
+        "change-workflow"
+      ]
+    },
+    {
+      "path": "docs/api/examples/README.md",
+      "category": "how-to",
+      "topics": [
+        "verify",
+        "manual-requests",
+        "payload-routes"
+      ]
+    },
+    {
+      "path": "docs/development/ARCHITECTURE.md",
+      "category": "explanation",
+      "topics": [
+        "module-boundaries",
+        "the-lifecycle-of-a-request",
+        "voting-and-conditional-paths",
+        "nine-types-six-catalog-scenarios",
+        "where-to-extend"
+      ]
+    },
+    {
+      "path": "docs/development/PERSISTENCE.md",
+      "category": "reference",
+      "topics": [
+        "keep-three-version-systems-separate",
+        "default-json-one-local-writer",
+        "json-rollout-and-recovery",
+        "optional-jdbc-explicit-wiring-and-migration",
+        "verification-is-specific-to-its-environment"
+      ]
+    },
+    {
+      "path": "docs/development/QUICKSTART.md",
+      "category": "how-to",
+      "topics": [
+        "1-tools-and-build-order",
+        "2-run-a-persistent-local-backend",
+        "3-run-the-standalone-ui",
+        "4-verify-changes",
+        "5-common-development-failures"
+      ]
+    },
+    {
+      "path": "docs/development/README.md",
+      "category": "index",
+      "topics": [
+        "choose-your-task",
+        "three-distinctions-to-keep-in-mind"
+      ]
+    },
+    {
+      "path": "docs/galleries/CAPTURE.md",
+      "category": "how-to",
+      "topics": [
+        "historical-capture-identity",
+        "real-application-and-evidence-boundaries",
+        "capture-from-an-isolated-checkout",
+        "check-this-documentation-checkout"
+      ]
+    },
+    {
+      "path": "docs/galleries/README.md",
+      "category": "index",
+      "topics": [
+        "travel",
+        "seal-use",
+        "receiving",
+        "payment",
+        "contract",
+        "evidence-and-reading-notes"
+      ]
+    },
+    {
+      "path": "docs/galleries/contract.md",
+      "category": "tutorial",
+      "topics": [
+        "scope-and-limits",
+        "process-configuration-and-business-states",
+        "conditional-routing-supplement",
+        "sources-and-reproduction"
+      ]
+    },
+    {
+      "path": "docs/galleries/payment.md",
+      "category": "tutorial",
+      "topics": [
+        "scope-and-limits",
+        "process-configuration-and-business-states",
+        "conditional-routing-supplement",
+        "sources-and-reproduction"
+      ]
+    },
+    {
+      "path": "docs/galleries/receiving.md",
+      "category": "tutorial",
+      "topics": [
+        "scope-and-limits",
+        "process-configuration-and-business-states",
+        "conditional-routing-supplement",
+        "sources-and-reproduction"
+      ]
+    },
+    {
+      "path": "docs/galleries/seal-use.md",
+      "category": "tutorial",
+      "topics": [
+        "scope-and-limits",
+        "process-configuration-and-business-states",
+        "sources-and-reproduction"
+      ]
+    },
+    {
+      "path": "docs/galleries/travel.md",
+      "category": "tutorial",
+      "topics": [
+        "scope-and-limits",
+        "process-configuration-and-business-states",
+        "sources-and-reproduction"
+      ]
+    },
+    {
+      "path": "docs/history/README.md",
+      "category": "index",
+      "topics": [
+        "scope",
+        "records"
+      ]
+    },
+    {
+      "path": "examples/approval-demo/README.md",
+      "category": "how-to",
+      "topics": [
+        "scope",
+        "run",
+        "boundaries",
+        "verify"
+      ]
+    },
+    {
+      "path": "examples/approval-demo/backend/README.md",
+      "category": "how-to",
+      "topics": [
+        "scope",
+        "run",
+        "transport",
+        "persistence"
+      ]
+    },
+    {
+      "path": "examples/approval-domain/README.md",
+      "category": "reference",
+      "topics": [
+        "scope",
+        "install",
+        "identity",
+        "persistence",
+        "inbox",
+        "verify"
+      ]
+    },
+    {
+      "path": "examples/approval-jdbc/MYSQL_VERIFICATION.md",
+      "category": "history",
+      "topics": [
+        "status",
+        "source",
+        "next"
+      ]
+    },
+    {
+      "path": "examples/approval-jdbc/README.md",
+      "category": "reference",
+      "topics": [
+        "scope",
+        "build",
+        "schema",
+        "migration",
+        "integration",
+        "retry-inbox",
+        "limits"
+      ]
+    },
+    {
+      "path": "examples/approval-mobile/ACCEPTANCE.md",
+      "category": "history",
+      "topics": [
+        "status",
+        "source",
+        "next"
+      ]
+    },
+    {
+      "path": "examples/approval-mobile/HTTP_VERIFICATION.md",
+      "category": "history",
+      "topics": [
+        "status",
+        "source",
+        "next"
+      ]
+    },
+    {
+      "path": "examples/approval-mobile/MEMBER_INBOX_ADOPTION.md",
+      "category": "history",
+      "topics": [
+        "status",
+        "source",
+        "next"
+      ]
+    },
+    {
+      "path": "examples/approval-mobile/README.md",
+      "category": "how-to",
+      "topics": [
+        "scope",
+        "run",
+        "behavior",
+        "verify"
+      ]
+    },
+    {
+      "path": "examples/approval-mobile/REVIEW.md",
+      "category": "history",
+      "topics": [
+        "status",
+        "source",
+        "next"
+      ]
+    },
+    {
+      "path": "examples/approval-ui/README.md",
+      "category": "how-to",
+      "topics": [
+        "scope",
+        "run",
+        "designer",
+        "state",
+        "scenarios",
+        "routing",
+        "verify"
+      ]
+    },
+    {
+      "path": "examples/approval-ui/e2e/COMPLEX_SCENARIOS.md",
+      "category": "how-to",
+      "topics": [
+        "scope",
+        "journeys",
+        "captures",
+        "history"
+      ]
+    },
+    {
+      "path": "examples/approval-ui/e2e/CONDITIONAL_ROUTING.md",
+      "category": "how-to",
+      "topics": [
+        "scope",
+        "coverage",
+        "history"
+      ]
+    },
+    {
+      "path": "examples/approval-ui/e2e/RECEIVING_SCENARIOS.md",
+      "category": "how-to",
+      "topics": [
+        "scope",
+        "journeys",
+        "captures"
+      ]
+    },
+    {
+      "path": "examples/approval-ui/e2e/VISUAL_SCENARIOS.md",
+      "category": "how-to",
+      "topics": [
+        "scope",
+        "captures",
+        "scope-limits"
+      ]
+    },
+    {
+      "path": "examples/ruoyi-vue3/README.md",
+      "category": "how-to",
+      "topics": [
+        "scope",
+        "prepare",
+        "identity",
+        "contract",
+        "verify"
+      ]
+    },
+    {
+      "path": "examples/ruoyi-vue3/tests/README.md",
+      "category": "how-to",
+      "topics": [
+        "scope",
+        "prepare",
+        "coverage",
+        "local",
+        "limits"
+      ]
+    },
+    {
+      "path": "website/README.md",
+      "category": "how-to",
+      "topics": [
+        "scope",
+        "build",
+        "content",
+        "publication"
+      ]
+    }
+  ],
+  "historicalSources": [
+    {
+      "source": "examples/approval-demo/README.md",
+      "path": "docs/history/199db754/examples/approval-demo/README.md.txt",
+      "revision": "199db7548f6faba5dfef105eaaf7311972adb388",
+      "sha256": "da15a21b5255a1046c4483fe784a20c8e8bfa88918f68ee7d2093ce033d08081"
+    },
+    {
+      "source": "examples/approval-domain/README.md",
+      "path": "docs/history/199db754/examples/approval-domain/README.md.txt",
+      "revision": "199db7548f6faba5dfef105eaaf7311972adb388",
+      "sha256": "be643228e6b769ebc0a18a649c66476d1694982e0f938044248ebb9fd0d9227e"
+    },
+    {
+      "source": "examples/approval-ui/README.md",
+      "path": "docs/history/199db754/examples/approval-ui/README.md.txt",
+      "revision": "199db7548f6faba5dfef105eaaf7311972adb388",
+      "sha256": "8397104f4444a033b6f69f46720685c9a9e1e8a3b7b68ec496efcf65c1a731ed"
+    },
+    {
+      "source": "examples/approval-jdbc/README.md",
+      "path": "docs/history/199db754/examples/approval-jdbc/README.md.txt",
+      "revision": "199db7548f6faba5dfef105eaaf7311972adb388",
+      "sha256": "258ec4ae51ad4b3f6ef7c54ba7d660c04f401bd8537ccdd3cb4ae37ac6165fb8"
+    },
+    {
+      "source": "examples/approval-mobile/README.md",
+      "path": "docs/history/199db754/examples/approval-mobile/README.md.txt",
+      "revision": "199db7548f6faba5dfef105eaaf7311972adb388",
+      "sha256": "b9af8b5ba631987be7d09c58efb48711f7417f70fcee6617b0f369731ea405c3"
+    },
+    {
+      "source": "examples/ruoyi-vue3/README.md",
+      "path": "docs/history/199db754/examples/ruoyi-vue3/README.md.txt",
+      "revision": "199db7548f6faba5dfef105eaaf7311972adb388",
+      "sha256": "7cf9f7155b66576df58e840b2519e05fd6c601c168671a70a051f90e2350d06f"
+    },
+    {
+      "source": "website/README.md",
+      "path": "docs/history/199db754/website/README.md.txt",
+      "revision": "199db7548f6faba5dfef105eaaf7311972adb388",
+      "sha256": "0a58727d487b11532c7e76f89105574f165798f15f7029ab039ad8967a7ad8f0"
+    },
+    {
+      "source": "examples/ruoyi-vue3/tests/README.md",
+      "path": "docs/history/199db754/examples/ruoyi-vue3/tests/README.md.txt",
+      "revision": "199db7548f6faba5dfef105eaaf7311972adb388",
+      "sha256": "0902116f6c7b857f1ee4fc2ee3de59ef182e52650b36d59bfc8012e24cb7ffa4"
+    },
+    {
+      "source": "contracts/seal-use/CONTRACT.md",
+      "path": "docs/history/199db754/contracts/seal-use/CONTRACT.md.txt",
+      "revision": "199db7548f6faba5dfef105eaaf7311972adb388",
+      "sha256": "3cbe7eb85ab7fdcea8c03305e1ad6de5999beb163576f200b8a0a6f397f252a5"
+    },
+    {
+      "source": "contracts/seal-use/java/evidence/VERIFICATION.md",
+      "path": "docs/history/199db754/contracts/seal-use/java/evidence/VERIFICATION.md.txt",
+      "revision": "199db7548f6faba5dfef105eaaf7311972adb388",
+      "sha256": "55ee3afa67304ec98444a68eab621f2887fcaafb6371f3ab13d2c9d7fb42c73a"
+    },
+    {
+      "source": "contracts/seal-use/js/CONTRACT-NOTES.md",
+      "path": "docs/history/199db754/contracts/seal-use/js/CONTRACT-NOTES.md.txt",
+      "revision": "199db7548f6faba5dfef105eaaf7311972adb388",
+      "sha256": "93aa1a653133efe2cdd99dc7eac52e785036d728d1fd41d724168771ea23616e"
+    },
+    {
+      "source": "examples/approval-jdbc/MYSQL_VERIFICATION.md",
+      "path": "docs/history/199db754/examples/approval-jdbc/MYSQL_VERIFICATION.md.txt",
+      "revision": "199db7548f6faba5dfef105eaaf7311972adb388",
+      "sha256": "157f4bdf43c40bb7eaf836666b0f43765f146c0388f20cca64b079a581b9c274"
+    },
+    {
+      "source": "examples/approval-mobile/ACCEPTANCE.md",
+      "path": "docs/history/199db754/examples/approval-mobile/ACCEPTANCE.md.txt",
+      "revision": "199db7548f6faba5dfef105eaaf7311972adb388",
+      "sha256": "b0cfed6ab83905f6c2944fd91b715efccc9fdf23d8afc7a9d9ed978e4c34911e"
+    },
+    {
+      "source": "examples/approval-mobile/HTTP_VERIFICATION.md",
+      "path": "docs/history/199db754/examples/approval-mobile/HTTP_VERIFICATION.md.txt",
+      "revision": "199db7548f6faba5dfef105eaaf7311972adb388",
+      "sha256": "360e8c2ddffb9fd80eb73e4160993c4da49e2a9e3f259a6cf54a75b087b710d1"
+    },
+    {
+      "source": "examples/approval-mobile/MEMBER_INBOX_ADOPTION.md",
+      "path": "docs/history/199db754/examples/approval-mobile/MEMBER_INBOX_ADOPTION.md.txt",
+      "revision": "199db7548f6faba5dfef105eaaf7311972adb388",
+      "sha256": "bee3d0bc62d1a0e471458476dee6410bb2e98a291746177e2a9eeb9768999b7f"
+    },
+    {
+      "source": "examples/approval-mobile/REVIEW.md",
+      "path": "docs/history/199db754/examples/approval-mobile/REVIEW.md.txt",
+      "revision": "199db7548f6faba5dfef105eaaf7311972adb388",
+      "sha256": "050aeeb51199a5e2d48b0dff2550072ea02afad24a21d5c3ef1e9dd5794a5630"
+    },
+    {
+      "source": "contracts/seal-use/README.md",
+      "path": "docs/history/199db754/contracts/seal-use/README.md.txt",
+      "revision": "199db7548f6faba5dfef105eaaf7311972adb388",
+      "sha256": "4c37631c30a4734ec5121afbe154d2b7c5f4eeffbf6cd675a841fa85de85647f"
+    }
+  ]
+}
