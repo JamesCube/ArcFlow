@@ -503,7 +503,7 @@ jobs:
       - name: Verify conditional client, frozen-route retries and real selected-stage votes
         run: node scripts/verify-routing-http.mjs ../approval-demo/backend/target/approval-demo-0.1.0-SNAPSHOT.jar
         working-directory: examples/approval-ui
-      - name: Verify conditional designer and all three real routing journeys on a fresh backend
+      - name: Verify conditional designer and six bilingual real routing journeys on a fresh backend
         env:
           ARCFLOW_BACKEND_RUNTIME: declared-Boot-4.1.1
         run: npm run test:e2e -- e2e/conditional-routing.spec.mjs --output=routing-visual-results

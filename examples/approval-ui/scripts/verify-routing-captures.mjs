@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict'
+import { captureContract, captureNames, captureJourneys, expectedRoutes } from './routing-capture-contract.mjs'
 import { readdir, readFile, stat } from 'node:fs/promises'
 import { resolve, join, basename } from 'node:path'
 import { createHash } from 'node:crypto'
 import { crc32, inflateSync } from 'node:zlib'
 const root = resolve(process.argv[2] || 'routing-visual-results')
-const expected = new Set(['payment-conditions-en-desktop', 'payment-conditions-zh-390px', 'payment-low-frozen-desktop', 'payment-high-complete-desktop', 'payment-low-complete-zh-390px', 'receiving-clean-frozen-desktop', 'receiving-clean-zh-390px', 'contract-in-any-editor-desktop', 'contract-in-any-editor-zh-390px', 'contract-standard-complete-desktop', 'contract-standard-complete-zh-390px'])
+const expected = new Set(captureNames)
 const hash = bytes => createHash('sha256').update(bytes).digest('hex')
 const maxPngBytes = 64 * 1024 * 1024, maxInflatedBytes = 128 * 1024 * 1024
 // Chromium emits non-interlaced 8-bit RGB/RGBA PNGs. Validate the complete
@@ -53,14 +54,14 @@ function validatePng(bytes) {
 }
 async function files(directory) { const entries = await readdir(directory, { withFileTypes: true }); return (await Promise.all(entries.map(entry => entry.isDirectory() ? files(join(directory, entry.name)) : entry.isFile() ? [join(directory, entry.name)] : []))).flat() }
 const all = await files(root), images = all.filter(file => file.endsWith('.png')), receipts = all.filter(file => basename(file) === 'routing-receipt.json')
-assert.equal(images.length, expected.size); assert.equal(receipts.length, 3)
+assert.equal(images.length, expected.size); assert.equal(receipts.length, 6)
 assert.ok(process.env.ARCFLOW_EXPECT_SOURCE_REVISION, 'An expected source revision is required')
 assert.ok(process.env.ARCFLOW_EXPECT_RUNTIME_REPORT, 'A verified backend archive report is required')
 const runtime = JSON.parse(await readFile(resolve(process.env.ARCFLOW_EXPECT_RUNTIME_REPORT), 'utf8'))
 assert.equal(runtime.schemaVersion, 1); assert.equal(runtime.sourceRevision, process.env.ARCFLOW_EXPECT_SOURCE_REVISION)
 assert.equal(runtime.springBootVersion, '4.1.1'); assert.match(runtime.springFrameworkVersion, /^7\./); assert.match(runtime.springSecurityVersion, /^7\./)
 assert.match(runtime.backendJarSHA256, /^[0-9a-f]{64}$/)
-const identities = new Set(), scenarios = new Set()
+const identities = new Set(), scenarios = new Set(), captureMetadata = new Map()
 function provenance(metadata) {
   assert.equal(metadata.sourceRevision, process.env.ARCFLOW_EXPECT_SOURCE_REVISION)
   assert.equal(metadata.sourceWorkingTree, 'clean-commit')
@@ -76,8 +77,9 @@ for (const image of images) {
   assert.ok(expected.delete(stem), `Unexpected or duplicate capture ${stem}`); provenance(metadata)
   assert.equal(metadata.state, stem); assert.equal(metadata.image, basename(image)); assert.equal(metadata.imageSHA256, hash(bytes))
   const pixels = validatePng(bytes)
-  assert.equal(metadata.fullPage, true); assert.deepEqual(metadata.viewport, stem.endsWith('-390px') ? { width: 390, height: 844 } : { width: 1440, height: 1000 })
+  assert.equal(metadata.fullPage, true); assert.deepEqual(metadata.scrollOrigin, { x: 0, y: 0 }, 'Capture must start at the page origin'); assert.deepEqual(metadata.viewport, stem.endsWith('-390px') ? { width: 390, height: 844 } : { width: 1440, height: 1000 })
   assert.equal(pixels.width, metadata.viewport.width); assert.ok(pixels.height >= metadata.viewport.height)
+  captureMetadata.set(stem, metadata)
   assert.equal(metadata.locale, stem.includes('-zh-') ? 'zh-CN' : 'en'); assert.ok(Number.isFinite(Date.parse(metadata.capturedAt)))
 }
 for (const receipt of receipts) {
@@ -85,10 +87,57 @@ for (const receipt of receipts) {
   assert.equal(metadata.result, 'passed'); assert.equal(metadata.realBackend, true); assert.equal(metadata.backendSha256, metadata.backendJarSHA256)
   assert.ok(metadata.requests.length >= 2)
   const ids = new Set(metadata.requests.map(request => request.processId)); assert.equal(ids.size, 1); const scenario = [...ids][0]
-  assert.ok(['erp-payment', 'erp-receiving', 'crm-contract'].includes(scenario)); assert.ok(!scenarios.has(scenario)); scenarios.add(scenario)
+  assert.ok(Object.hasOwn(captureContract, scenario)); assert.ok(['en', 'zh'].includes(metadata.locale))
+  const identity = `${scenario}-${metadata.locale}`
+  assert.ok(!scenarios.has(identity)); scenarios.add(identity)
   assert.ok(metadata.requests.some(request => request.routing?.evaluations.some(evaluation => evaluation.result === false)))
   assert.ok(metadata.requests.some(request => request.routing?.evaluations.some(evaluation => evaluation.result === true)))
-  if (scenario !== 'erp-receiving') assert.ok(metadata.requests.some(request => request.status === 'APPROVED'))
+  assert.ok(metadata.requests.some(request => request.status === 'APPROVED'))
+  if (scenario === 'erp-receiving') assert.ok(metadata.requests.some(request => request.status === 'REJECTED'))
+  assert.equal(new Set(metadata.requests.map(request => request.id)).size, metadata.requests.length, 'Duplicate saved request')
+  const checkpoints = new Map(metadata.checkpoints.map(checkpoint => [checkpoint.state, checkpoint]))
+  assert.equal(checkpoints.size, metadata.checkpoints.length, 'Duplicate checkpoint')
+  assert.equal(checkpoints.size, Object.values(captureContract[scenario]).filter(Boolean).length, 'Missing business checkpoint')
+  for (const journey of captureJourneys[scenario]) {
+    const ids = journey.map(state => checkpoints.get(state)?.requestId)
+    assert.ok(ids.every(id => id && id === ids[0]), `One request must continue through ${journey.join(', ')}`)
+    const final = metadata.requests.find(request => request.id === ids[0]), route = expectedRoutes[journey[0]]
+    assert.ok(final, 'Journey has no saved request')
+    assert.deepEqual(final.routing.stepIds, route.stepIds, `Wrong saved route for ${journey[0]}`)
+    assert.equal(final.routing.evaluations.length, 1)
+    assert.equal(final.routing.evaluations[0].stepId, route.conditionStepId)
+    assert.equal(final.routing.evaluations[0].result, route.result)
+    assert.equal(final.routing.evaluations[0].predicates.length, 1)
+    assert.equal(final.routing.evaluations[0].predicates[0].actualValue, route.actualValue)
+    assert.equal(final.routing.evaluations[0].predicates[0].result, route.result)
+  }
+  for (const [state, requirement] of Object.entries(captureContract[scenario])) {
+    const checkpoint = checkpoints.get(state)
+    if (requirement) {
+      assert.ok(checkpoint, `Missing checkpoint ${state}`)
+      assert.equal(checkpoint.status, requirement.status); assert.equal(checkpoint.currentStepId, requirement.currentStepId)
+      const votes = checkpoint.history.filter(event => event.action !== 'SUBMIT')
+      assert.deepEqual(votes.map(event => [event.actorId, event.stepId, event.action]), requirement.expectedVotes, `Wrong actual votes at ${state}`)
+      assert.ok(votes.every(event => typeof event.comment === 'string' && event.comment.trim()), `Missing business comment at ${state}`)
+      const final = metadata.requests.find(request => request.id === checkpoint.requestId)
+      assert.ok(final, `Checkpoint has no saved request: ${state}`)
+      if (requirement.status !== 'PENDING') {
+        assert.equal(final.status, requirement.status, `Saved terminal status differs at ${state}`)
+        assert.equal(final.currentStepId, requirement.currentStepId, `Saved terminal step differs at ${state}`)
+        assert.deepEqual(final.history, checkpoint.history, `Terminal checkpoint has extra or missing votes: ${state}`)
+      }
+      assert.deepEqual(final.history.slice(0, checkpoint.history.length), checkpoint.history, `Checkpoint does not match saved history: ${state}`)
+      assert.ok(votes.every(event => final.routing.stepIds.includes(event.stepId)), 'A skipped stage cannot have votes')
+    }
+    for (const viewport of ['desktop', '390px']) {
+      const image = captureMetadata.get(`${state}-${metadata.locale}-${viewport}`)
+      assert.ok(image, `Missing paired capture ${state}`)
+      assert.equal(image.requestId, checkpoint?.requestId ?? null)
+      assert.equal(image.requestStatus, checkpoint?.status ?? null)
+      assert.equal(image.currentStepId, checkpoint?.currentStepId ?? null)
+      assert.equal(image.decisionCount, requirement?.expectedVotes.length ?? null)
+    }
+  }
 }
-assert.equal(expected.size, 0); assert.equal(identities.size, 1); assert.equal(scenarios.size, 3)
-console.log('Verified 11 complete routing PNGs and 3 successful browser-journey receipts with exact source/run/inspected-backend provenance. Image integrity is not independent pixel acceptance or authenticity certification.')
+assert.equal(expected.size, 0); assert.equal(identities.size, 1); assert.equal(scenarios.size, 6)
+console.log('Verified 80 complete routing PNGs and 6 successful browser-journey receipts with exact source/run/inspected-backend provenance. Image integrity is not independent pixel acceptance or authenticity certification.')

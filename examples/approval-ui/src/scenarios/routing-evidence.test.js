@@ -7,7 +7,8 @@ import { join, resolve } from 'node:path'
 import { createHash } from 'node:crypto'
 import { spawnSync } from 'node:child_process'
 import { crc32, deflateSync } from 'node:zlib'
-const folders = [], states = ['payment-conditions-en-desktop', 'payment-conditions-zh-390px', 'payment-low-frozen-desktop', 'payment-high-complete-desktop', 'payment-low-complete-zh-390px', 'receiving-clean-frozen-desktop', 'receiving-clean-zh-390px', 'contract-in-any-editor-desktop', 'contract-in-any-editor-zh-390px', 'contract-standard-complete-desktop', 'contract-standard-complete-zh-390px']
+import { captureContract, captureNames, captureJourneys, expectedRoutes } from '../../scripts/routing-capture-contract.mjs'
+const folders = [], states = captureNames
 afterEach(async () => { await Promise.all(folders.splice(0).map(folder => rm(folder, { recursive: true, force: true }))) })
 const common = { sourceRevision: '1'.repeat(40), sourceWorkingTree: 'clean-commit', trackedDiffSHA256: '2'.repeat(64), uiSourceTreeSHA256: '3'.repeat(64), backendJarSHA256: '4'.repeat(64), backendRuntime: 'declared-Boot-4.1.1', captureRunId: '123', captureRunAttempt: '1', captureRepository: 'fixture/repo' }
 const signature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])
@@ -28,9 +29,22 @@ async function fixture(mutate = () => {}) {
   const images = states.map(state => {
     const width = state.endsWith('-390px') ? 390 : 1440, height = width === 390 ? 844 : 1000
     const bytes = Buffer.from(width === 390 ? mobilePng : desktopPng)
-    return { state, bytes, metadata: { ...common, state, image: `${state}.png`, imageSHA256: createHash('sha256').update(bytes).digest('hex'), viewport: { width, height }, fullPage: true, locale: state.includes('-zh-') ? 'zh-CN' : 'en', capturedAt: '2026-10-09T00:00:00Z' } }
+    return { state, bytes, metadata: { ...common, state, image: `${state}.png`, imageSHA256: createHash('sha256').update(bytes).digest('hex'), viewport: { width, height }, fullPage: true, scrollOrigin: { x: 0, y: 0 }, locale: state.includes('-zh-') ? 'zh-CN' : 'en', capturedAt: '2026-10-10T00:00:00Z', requestId: null, requestStatus: null, currentStepId: null, decisionCount: null } }
   })
-  const receipts = ['erp-payment', 'erp-receiving', 'crm-contract'].map(processId => ({ ...common, result: 'passed', realBackend: true, backendSha256: common.backendJarSHA256, requests: [false, true].map(result => ({ processId, status: 'APPROVED', routing: { evaluations: [{ result }] } })) }))
+  const receipts = Object.entries(captureContract).flatMap(([processId, requirements]) => ['en', 'zh'].map(locale => {
+    const requestMap = new Map(), checkpoints = []
+    for (const [state, requirement] of Object.entries(requirements)) {
+      if (!requirement) continue
+      const journey = captureJourneys[processId].find(states => states.includes(state))
+      const id = `${processId}-${locale}-${journey[0]}`
+      const route = expectedRoutes[journey[0]]
+      const history = [{ action: 'SUBMIT', actorId: 'alice', stepId: null, comment: '' }, ...requirement.expectedVotes.map(([actorId, stepId, action]) => ({ actorId, stepId, action, comment: 'Reviewed delivery quantities.' }))]
+      requestMap.set(id, { id, processId, status: requirement.status, currentStepId: requirement.currentStepId, history, routing: { stepIds: route.stepIds, evaluations: [{ stepId: route.conditionStepId, result: route.result, predicates: [{ actualValue: route.actualValue, result: route.result }] }] } })
+      checkpoints.push({ state, requestId: id, status: requirement.status, currentStepId: requirement.currentStepId, history })
+      for (const viewport of ['desktop', '390px']) Object.assign(images.find(image => image.state === `${state}-${locale}-${viewport}`).metadata, { requestId: id, requestStatus: requirement.status, currentStepId: requirement.currentStepId, decisionCount: requirement.expectedVotes.length })
+    }
+    return { ...common, result: 'passed', realBackend: true, backendSha256: common.backendJarSHA256, locale, requests: [...requestMap.values()], checkpoints }
+  }))
   const runtime = { schemaVersion: 1, sourceRevision: common.sourceRevision, backendJarSHA256: common.backendJarSHA256, springBootVersion: '4.1.1', springFrameworkVersion: '7.0.0', springSecurityVersion: '7.0.0' }
   mutate(images, receipts, runtime)
   await writeFile(join(root, 'routing-runtime.json'), JSON.stringify(runtime))
@@ -40,7 +54,7 @@ async function fixture(mutate = () => {}) {
 }
 const verify = root => spawnSync(process.execPath, [resolve('scripts/verify-routing-captures.mjs'), root], { encoding: 'utf8', env: { ...process.env, ARCFLOW_EXPECT_SOURCE_REVISION: common.sourceRevision, ARCFLOW_EXPECT_RUNTIME_REPORT: join(root, 'routing-runtime.json'), ARCFLOW_EXPECT_CAPTURE_RUN_ID: '123', ARCFLOW_EXPECT_CAPTURE_RUN_ATTEMPT: '1', ARCFLOW_EXPECT_CAPTURE_REPOSITORY: 'fixture/repo' } })
 describe('routing screenshot matrix and provenance gate', () => {
-  it('validates complete RGB/RGBA PNGs, consecutive IDAT chunks and the required metadata matrix', async () => { const result = verify(await fixture()); expect(result.status, result.stderr).toBe(0); expect(result.stdout).toContain('11 complete routing PNGs') })
+  it('validates complete RGB/RGBA PNGs, consecutive IDAT chunks and the required metadata matrix', async () => { const result = verify(await fixture()); expect(result.status, result.stderr).toBe(0); expect(result.stdout).toContain('80 complete routing PNGs') })
   it.each([
     ['missing image', images => images.pop()],
     ['wrong revision', images => { images[0].metadata.sourceRevision = '5'.repeat(40) }],
@@ -48,6 +62,8 @@ describe('routing screenshot matrix and provenance gate', () => {
     ['different backend', images => { images[0].metadata.backendJarSHA256 = '5'.repeat(64) }],
     ['stale run attempt', images => { images[0].metadata.captureRunAttempt = '2' }],
     ['wrong locale', images => { images[0].metadata.locale = 'zh-CN' }],
+    ['scrolled full-page capture', images => { images[0].metadata.scrollOrigin.y = 900 }],
+    ['missing scroll origin', images => { delete images[0].metadata.scrollOrigin }],
     ['wrong viewport height', images => { images[0].metadata.viewport.height = 1 }],
     ['changed image bytes', images => { images[0].bytes[23]++ }],
     ['forged pixel width', images => replaceBytes(images[0], png(390, 1000))],
@@ -59,8 +75,21 @@ describe('routing screenshot matrix and provenance gate', () => {
     ['missing journey', (_images, receipts) => receipts.pop()],
     ['duplicate scenario', (_images, receipts) => { receipts[0].requests = receipts[1].requests }],
     ['incomplete journey', (_images, receipts) => { receipts[0].result = 'incomplete' }],
-    ['no included path', (_images, receipts) => { receipts[0].requests[1].routing.evaluations[0].result = false }],
-    ['no skipped path', (_images, receipts) => { receipts[0].requests[0].routing.evaluations[0].result = true }],
+    ['no included path', (_images, receipts) => { receipts[0].requests.forEach(request => { request.routing.evaluations[0].result = false }) }],
+    ['no skipped path', (_images, receipts) => { receipts[0].requests.forEach(request => { request.routing.evaluations[0].result = true }) }],
+    ['saved terminal status contradicts checkpoint', (_images, receipts) => { receipts[0].requests[0].status = 'PENDING' }],
+    ['saved terminal step contradicts checkpoint', (_images, receipts) => { receipts[0].requests[0].currentStepId = 'payment-final' }],
+    ['swapped journey record', (_images, receipts) => { receipts[0].checkpoints.find(checkpoint => checkpoint.state === 'payment-high-partial').requestId = receipts[0].requests[0].id }],
+    ['wrong saved route', (_images, receipts) => { receipts[0].requests[0].routing.stepIds = ['payment-check', 'payment-final'] }],
+    ['wrong saved route fact', (_images, receipts) => { receipts[0].requests[0].routing.evaluations[0].predicates[0].actualValue = 'CNY 10000' }],
+    ['unexpected final vote', (_images, receipts) => { receipts[0].requests[0].history = [...receipts[0].requests[0].history, { action: 'REJECT', actorId: 'carol', stepId: 'payment-final', comment: 'Unrequested later vote' }] }],
+    ['missing checkpoint', (_images, receipts) => { receipts[0].checkpoints.pop() }],
+    ['wrong partial vote actor', (_images, receipts) => { receipts[0].checkpoints.find(checkpoint => checkpoint.state === 'payment-high-partial').history.at(-1).actorId = 'carol' }],
+    ['wrong final status', (_images, receipts) => { receipts[0].checkpoints.find(checkpoint => checkpoint.state === 'payment-high-complete').status = 'PENDING' }],
+    ['wrong capture request', images => { images.find(image => image.state === 'payment-high-partial-en-desktop').metadata.requestId = 'unrelated' }],
+    ['wrong paired capture vote count', images => { images.find(image => image.state === 'payment-high-partial-en-390px').metadata.decisionCount = 2 }],
+    ['missing business comment', (_images, receipts) => { receipts[0].checkpoints.find(checkpoint => checkpoint.state === 'payment-high-partial').history.at(-1).comment = '' }],
+    ['partial checkpoint not saved', (_images, receipts) => { receipts[0].checkpoints[0].requestId = 'missing' }],
   ])('rejects %s', async (_label, mutate) => { expect(verify(await fixture(mutate)).status).not.toBe(0) })
   it.each([
     ['header-only placeholder', () => desktopPng.subarray(0, 24), 'Truncated PNG chunk data'],
