@@ -44,7 +44,7 @@ export const processNames = {
 export const comments = {
   paymentFirst: { en: 'Invoice allocations match the accepted delivery. No further deduction is required.', zh: '发票分配与已验收货物一致，无需追加扣款。' },
   paymentSecond: { en: 'Supplier balance and remaining invoice amounts checked.', zh: '已核对供应商余额及发票剩余可分配金额。' },
-  paymentFinal: { en: 'The requested settlement amount is within this month’s approved budget.', zh: '本次申请结算金额在本月已批准预算内。' },
+  paymentFinal: { en: 'The requested settlement amount is within the approved monthly budget.', zh: '本次申请结算金额在本月已批准预算内。' },
   receivingFirst: { en: 'Received quantities checked. The two damaged brackets have been isolated.', zh: '已核实收货数量，两件变形支架已隔离。' },
   receivingSecond: { en: 'Inspection is complete. Accept the conforming goods and replace the two damaged brackets.', zh: '质检完成，合格品可接收，两件不合格支架安排补发。' },
   receivingFinal: { en: 'Supplier replacement has been agreed. The receipt can be recorded.', zh: '已与供应商确认补发安排，可完成本次验收。' },

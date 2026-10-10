@@ -40,16 +40,18 @@ async function fill(page, prefix, business) {
 }
 async function capture(page, info, name, mobile = false, view = null) {
   await page.setViewportSize(mobile ? MOBILE : DESKTOP)
-  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))))
-  const width = await page.evaluate(() => ({ inner: innerWidth, document: document.documentElement.scrollWidth, body: document.body.scrollWidth }))
-  expect(width.document).toBeLessThanOrEqual(width.inner); expect(width.body).toBeLessThanOrEqual(width.inner)
   await expect(page.locator('input[type=password]')).toHaveCount(0)
   await expect(page.locator('.sf-shell')).toBeVisible()
   if (mobile && await page.locator('.designer-workbench').isVisible()) await page.locator('.mobile-designer-switch').getByRole('button', { name: /节点设置|Step settings/ }).click()
   await page.evaluate(() => document.fonts.ready)
+  // Full-page screenshots retain sticky elements at the current scroll offset.
+  // Return to the real page origin rather than moving/hiding any DOM content.
+  await page.evaluate(() => { scrollTo({ top: 0, left: 0, behavior: 'instant' }); return new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))) })
+  const layout = await page.evaluate(() => ({ inner: innerWidth, document: document.documentElement.scrollWidth, body: document.body.scrollWidth, origin: { x: scrollX, y: scrollY } }))
+  expect(layout.document).toBeLessThanOrEqual(layout.inner); expect(layout.body).toBeLessThanOrEqual(layout.inner); expect(layout.origin).toEqual({ x: 0, y: 0 })
   const stem = `${name}${mobile ? '-390px' : '-desktop'}`, bytes = await page.screenshot({ fullPage: true, animations: 'disabled' })
   writeFileSync(info.outputPath(`${stem}.png`), bytes, { flag: 'wx' })
-  writeFileSync(info.outputPath(`${stem}.json`), JSON.stringify({ ...await sourceProvenance(), state: stem, image: `${stem}.png`, imageSHA256: createHash('sha256').update(bytes).digest('hex'), viewport: page.viewportSize(), locale: await page.locator('.sf-shell').getAttribute('lang'), fullPage: true, capturedAt: new Date().toISOString(), requestId: view?.request.id ?? null, requestStatus: view?.request.status ?? null, currentStepId: view?.request.currentStepId ?? null, decisionCount: view ? view.request.history.filter(event => event.action !== 'SUBMIT').length : null }, null, 2), { flag: 'wx' })
+  writeFileSync(info.outputPath(`${stem}.json`), JSON.stringify({ ...await sourceProvenance(), state: stem, image: `${stem}.png`, imageSHA256: createHash('sha256').update(bytes).digest('hex'), viewport: page.viewportSize(), scrollOrigin: layout.origin, locale: await page.locator('.sf-shell').getAttribute('lang'), fullPage: true, capturedAt: new Date().toISOString(), requestId: view?.request.id ?? null, requestStatus: view?.request.status ?? null, currentStepId: view?.request.currentStepId ?? null, decisionCount: view ? view.request.history.filter(event => event.action !== 'SUBMIT').length : null }, null, 2), { flag: 'wx' })
 }
 async function receipt(info, views, locale, checkpoints) {
   const jar = process.env.ARCFLOW_TEST_BACKEND_JAR

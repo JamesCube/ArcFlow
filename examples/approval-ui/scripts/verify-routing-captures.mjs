@@ -77,7 +77,7 @@ for (const image of images) {
   assert.ok(expected.delete(stem), `Unexpected or duplicate capture ${stem}`); provenance(metadata)
   assert.equal(metadata.state, stem); assert.equal(metadata.image, basename(image)); assert.equal(metadata.imageSHA256, hash(bytes))
   const pixels = validatePng(bytes)
-  assert.equal(metadata.fullPage, true); assert.deepEqual(metadata.viewport, stem.endsWith('-390px') ? { width: 390, height: 844 } : { width: 1440, height: 1000 })
+  assert.equal(metadata.fullPage, true); assert.deepEqual(metadata.scrollOrigin, { x: 0, y: 0 }, 'Capture must start at the page origin'); assert.deepEqual(metadata.viewport, stem.endsWith('-390px') ? { width: 390, height: 844 } : { width: 1440, height: 1000 })
   assert.equal(pixels.width, metadata.viewport.width); assert.ok(pixels.height >= metadata.viewport.height)
   captureMetadata.set(stem, metadata)
   assert.equal(metadata.locale, stem.includes('-zh-') ? 'zh-CN' : 'en'); assert.ok(Number.isFinite(Date.parse(metadata.capturedAt)))

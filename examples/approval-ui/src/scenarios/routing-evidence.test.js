@@ -29,7 +29,7 @@ async function fixture(mutate = () => {}) {
   const images = states.map(state => {
     const width = state.endsWith('-390px') ? 390 : 1440, height = width === 390 ? 844 : 1000
     const bytes = Buffer.from(width === 390 ? mobilePng : desktopPng)
-    return { state, bytes, metadata: { ...common, state, image: `${state}.png`, imageSHA256: createHash('sha256').update(bytes).digest('hex'), viewport: { width, height }, fullPage: true, locale: state.includes('-zh-') ? 'zh-CN' : 'en', capturedAt: '2026-10-10T00:00:00Z', requestId: null, requestStatus: null, currentStepId: null, decisionCount: null } }
+    return { state, bytes, metadata: { ...common, state, image: `${state}.png`, imageSHA256: createHash('sha256').update(bytes).digest('hex'), viewport: { width, height }, fullPage: true, scrollOrigin: { x: 0, y: 0 }, locale: state.includes('-zh-') ? 'zh-CN' : 'en', capturedAt: '2026-10-10T00:00:00Z', requestId: null, requestStatus: null, currentStepId: null, decisionCount: null } }
   })
   const receipts = Object.entries(captureContract).flatMap(([processId, requirements]) => ['en', 'zh'].map(locale => {
     const requestMap = new Map(), checkpoints = []
@@ -62,6 +62,8 @@ describe('routing screenshot matrix and provenance gate', () => {
     ['different backend', images => { images[0].metadata.backendJarSHA256 = '5'.repeat(64) }],
     ['stale run attempt', images => { images[0].metadata.captureRunAttempt = '2' }],
     ['wrong locale', images => { images[0].metadata.locale = 'zh-CN' }],
+    ['scrolled full-page capture', images => { images[0].metadata.scrollOrigin.y = 900 }],
+    ['missing scroll origin', images => { delete images[0].metadata.scrollOrigin }],
     ['wrong viewport height', images => { images[0].metadata.viewport.height = 1 }],
     ['changed image bytes', images => { images[0].bytes[23]++ }],
     ['forged pixel width', images => replaceBytes(images[0], png(390, 1000))],
