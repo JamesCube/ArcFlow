@@ -1,0 +1,1069 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "ArcFlow RuoYi native ArcFlow overlay",
+    "version": "0.1.0-SNAPSHOT",
+    "description": "Checked-in contract, not a deployed Swagger endpoint. No login or single-request GET route is implemented. RuoYi owns token authentication, permissions, sessions and host error behavior. Only these nine /arcflow mappings belong to this overlay. Configure the server URL/token transport for your actual RuoYi host. No Basic authentication, quote/scenario controller or added login route."
+  },
+  "servers": [
+    {
+      "url": "/",
+      "description": "Relative to the configured RuoYi host; frontend dev-api/prod-api are proxy prefixes."
+    }
+  ],
+  "security": [
+    {
+      "ruoyiBearer": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "native"
+    }
+  ],
+  "paths": {
+    "/arcflow/documents": {
+      "post": {
+        "operationId": "ruoyi_submitDocument",
+        "tags": [
+          "native"
+        ],
+        "summary": "Submit or replay a business approval intent",
+        "description": "Authenticated active identity; domain checks exact effective-route visibility and live stage assignment.",
+        "x-source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowController.java",
+        "x-handler": "submitDocument",
+        "x-java-return": "AjaxResult",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 200
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Request"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "msg",
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Host authentication/permission and unhandled failures have host-owned statuses/envelopes. Do not assume standalone {message} or HTTP 401 for all native login failures."
+          },
+          "400": {
+            "description": "Invalid JSON, fields, query, type, key, lexical number or domain constraints.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, idempotent intent, stage/decision or source snapshot conflict. Reconcile current state before retrying.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Caught checked storage IOException; refresh before retrying. A change may already have committed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Controlled ArcFlow inactive-account or domain publication/assignment rejection. Outer RuoYi authentication/permission filters can still use host-owned behavior described by default.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          }
+        },
+        "x-ruoyi-permission": "arcflow:request:submit",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenericSubmission"
+              }
+            }
+          }
+        },
+        "x-idempotency": "optional-header"
+      }
+    },
+    "/arcflow/me": {
+      "get": {
+        "operationId": "ruoyi_me",
+        "tags": [
+          "native"
+        ],
+        "summary": "Read authenticated identity",
+        "description": "Authenticated active identity; domain checks exact effective-route visibility and live stage assignment.",
+        "x-source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowController.java",
+        "x-handler": "me",
+        "x-java-return": "AjaxResult",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 200
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/NativePerson"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "msg",
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Host authentication/permission and unhandled failures have host-owned statuses/envelopes. Do not assume standalone {message} or HTTP 401 for all native login failures."
+          },
+          "403": {
+            "description": "Controlled ArcFlow inactive-account or domain publication/assignment rejection. Outer RuoYi authentication/permission filters can still use host-owned behavior described by default.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          }
+        },
+        "x-ruoyi-permission": "arcflow:request:read"
+      }
+    },
+    "/arcflow/people": {
+      "get": {
+        "operationId": "ruoyi_people",
+        "tags": [
+          "native"
+        ],
+        "summary": "List active directory summaries",
+        "description": "Authenticated active identity; domain checks exact effective-route visibility and live stage assignment.",
+        "x-source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowController.java",
+        "x-handler": "people",
+        "x-java-return": "AjaxResult",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 200
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Person"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "msg",
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Host authentication/permission and unhandled failures have host-owned statuses/envelopes. Do not assume standalone {message} or HTTP 401 for all native login failures."
+          },
+          "403": {
+            "description": "Controlled ArcFlow inactive-account or domain publication/assignment rejection. Outer RuoYi authentication/permission filters can still use host-owned behavior described by default.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          }
+        },
+        "x-ruoyi-permission": "arcflow:request:read"
+      }
+    },
+    "/arcflow/process": {
+      "get": {
+        "operationId": "ruoyi_process",
+        "tags": [
+          "native"
+        ],
+        "summary": "Read current process definition",
+        "description": "Authenticated active identity; domain checks exact effective-route visibility and live stage assignment.",
+        "x-source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowController.java",
+        "x-handler": "process",
+        "x-java-return": "AjaxResult",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 200
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GenericProcessDefinition"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "msg",
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Host authentication/permission and unhandled failures have host-owned statuses/envelopes. Do not assume standalone {message} or HTTP 401 for all native login failures."
+          },
+          "403": {
+            "description": "Controlled ArcFlow inactive-account or domain publication/assignment rejection. Outer RuoYi authentication/permission filters can still use host-owned behavior described by default.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          }
+        },
+        "x-ruoyi-permission": "arcflow:request:read"
+      },
+      "post": {
+        "operationId": "ruoyi_publish",
+        "tags": [
+          "native"
+        ],
+        "summary": "Publish next process version",
+        "description": "Native arcflow:process:publish permission plus the host actor directory publication check.",
+        "x-source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowController.java",
+        "x-handler": "publish",
+        "x-java-return": "AjaxResult",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 200
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GenericProcessDefinition"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "msg",
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Host authentication/permission and unhandled failures have host-owned statuses/envelopes. Do not assume standalone {message} or HTTP 401 for all native login failures."
+          },
+          "400": {
+            "description": "Invalid JSON, fields, query, type, key, lexical number or domain constraints.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, idempotent intent, stage/decision or source snapshot conflict. Reconcile current state before retrying.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Caught checked storage IOException; refresh before retrying. A change may already have committed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Controlled ArcFlow inactive-account or domain publication/assignment rejection. Outer RuoYi authentication/permission filters can still use host-owned behavior described by default.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          }
+        },
+        "x-ruoyi-permission": "arcflow:process:publish",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenericPublication"
+              }
+            }
+          }
+        },
+        "x-idempotency": "none"
+      }
+    },
+    "/arcflow/requests": {
+      "get": {
+        "operationId": "ruoyi_requests",
+        "tags": [
+          "native"
+        ],
+        "summary": "List visible complete request snapshots",
+        "description": "Authenticated active identity; domain checks exact effective-route visibility and live stage assignment.",
+        "x-source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowController.java",
+        "x-handler": "requests",
+        "x-java-return": "AjaxResult",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 200
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Request"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "msg",
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Host authentication/permission and unhandled failures have host-owned statuses/envelopes. Do not assume standalone {message} or HTTP 401 for all native login failures."
+          },
+          "403": {
+            "description": "Controlled ArcFlow inactive-account or domain publication/assignment rejection. Outer RuoYi authentication/permission filters can still use host-owned behavior described by default.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          }
+        },
+        "x-ruoyi-permission": "arcflow:request:read"
+      },
+      "post": {
+        "operationId": "ruoyi_submit",
+        "tags": [
+          "native"
+        ],
+        "summary": "Submit or replay a business approval intent",
+        "description": "Authenticated active identity; domain checks exact effective-route visibility and live stage assignment.",
+        "x-source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowController.java",
+        "x-handler": "submit",
+        "x-java-return": "AjaxResult",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 200
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Request"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "msg",
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Host authentication/permission and unhandled failures have host-owned statuses/envelopes. Do not assume standalone {message} or HTTP 401 for all native login failures."
+          },
+          "400": {
+            "description": "Invalid JSON, fields, query, type, key, lexical number or domain constraints.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, idempotent intent, stage/decision or source snapshot conflict. Reconcile current state before retrying.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Caught checked storage IOException; refresh before retrying. A change may already have committed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Controlled ArcFlow inactive-account or domain publication/assignment rejection. Outer RuoYi authentication/permission filters can still use host-owned behavior described by default.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          }
+        },
+        "x-ruoyi-permission": "arcflow:request:submit",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LegacySubmission"
+              }
+            }
+          }
+        },
+        "x-idempotency": "optional-header"
+      }
+    },
+    "/arcflow/requests/inbox": {
+      "get": {
+        "operationId": "ruoyi_inbox",
+        "tags": [
+          "native"
+        ],
+        "summary": "Read actor-scoped pending or handled work",
+        "description": "Authenticated active identity; domain checks exact effective-route visibility and live stage assignment.",
+        "x-source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowController.java",
+        "x-handler": "inbox",
+        "x-java-return": "AjaxResult",
+        "parameters": [
+          {
+            "name": "box",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "HANDLED"
+              ],
+              "default": "PENDING"
+            },
+            "description": ""
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "x-json-integer": true,
+              "default": 25
+            },
+            "description": "Single decimal-digit parameter, at most ten digits; no sign, exponent or fractional form."
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "APPROVED",
+                "REJECTED"
+              ]
+            },
+            "description": ""
+          },
+          {
+            "name": "processVersion",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2147483647,
+              "x-json-integer": true
+            },
+            "description": "Single decimal-digit parameter, at most ten digits."
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 1024,
+              "pattern": "^[A-Za-z0-9_-]+(?![\\s\\S])"
+            },
+            "description": "Opaque actor/filter-bound ordering cursor; changing filters requires a fresh first page."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 200
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/InboxPage"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "msg",
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Host authentication/permission and unhandled failures have host-owned statuses/envelopes. Do not assume standalone {message} or HTTP 401 for all native login failures."
+          },
+          "400": {
+            "description": "Invalid JSON, fields, query, type, key, lexical number or domain constraints.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Caught checked inbox IOException; refresh before retrying.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Controlled ArcFlow inactive-account or domain publication/assignment rejection. Outer RuoYi authentication/permission filters can still use host-owned behavior described by default.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          }
+        },
+        "x-ruoyi-permission": "arcflow:request:read",
+        "x-reject-unknown-query-parameters": true,
+        "x-reject-repeated-query-parameters": true
+      }
+    },
+    "/arcflow/requests/{id}/decisions": {
+      "post": {
+        "operationId": "ruoyi_decide",
+        "tags": [
+          "native"
+        ],
+        "summary": "Record or replay an assigned participant decision",
+        "description": "Authenticated active identity; domain checks exact effective-route visibility and live stage assignment.",
+        "x-source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowController.java",
+        "x-handler": "decide",
+        "x-java-return": "AjaxResult",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Server-returned request ID in this exact host/store."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 200
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Request"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "msg",
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Host authentication/permission and unhandled failures have host-owned statuses/envelopes. Do not assume standalone {message} or HTTP 401 for all native login failures."
+          },
+          "400": {
+            "description": "Invalid JSON, fields, query, type, key, lexical number or domain constraints.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, idempotent intent, stage/decision or source snapshot conflict. Reconcile current state before retrying.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Caught checked storage IOException; refresh before retrying. A change may already have committed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown scenario or missing/invisible request/quote revision.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Controlled ArcFlow inactive-account or domain publication/assignment rejection. Outer RuoYi authentication/permission filters can still use host-owned behavior described by default.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          }
+        },
+        "x-ruoyi-permission": "arcflow:request:decide",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NativeDecision"
+              }
+            }
+          }
+        },
+        "x-idempotency": "decision-replay"
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Reference": {
+        "$ref": "./schemas.json#/$defs/Reference"
+      },
+      "ActorId": {
+        "$ref": "./schemas.json#/$defs/ActorId"
+      },
+      "Currency": {
+        "$ref": "./schemas.json#/$defs/Currency"
+      },
+      "Date": {
+        "$ref": "./schemas.json#/$defs/Date"
+      },
+      "Money": {
+        "$ref": "./schemas.json#/$defs/Money"
+      },
+      "NonnegativeMoney": {
+        "$ref": "./schemas.json#/$defs/NonnegativeMoney"
+      },
+      "DisplayMoney": {
+        "$ref": "./schemas.json#/$defs/DisplayMoney"
+      },
+      "DocumentType": {
+        "$ref": "./schemas.json#/$defs/DocumentType"
+      },
+      "Leave": {
+        "$ref": "./schemas.json#/$defs/Leave"
+      },
+      "Procurement": {
+        "$ref": "./schemas.json#/$defs/Procurement"
+      },
+      "QuoteDiscount": {
+        "$ref": "./schemas.json#/$defs/QuoteDiscount"
+      },
+      "ExpenseLine": {
+        "$ref": "./schemas.json#/$defs/ExpenseLine"
+      },
+      "Expense": {
+        "$ref": "./schemas.json#/$defs/Expense"
+      },
+      "Travel": {
+        "$ref": "./schemas.json#/$defs/Travel"
+      },
+      "SealUse": {
+        "$ref": "./schemas.json#/$defs/SealUse"
+      },
+      "ReceivingLine": {
+        "$ref": "./schemas.json#/$defs/ReceivingLine"
+      },
+      "Receiving": {
+        "$ref": "./schemas.json#/$defs/Receiving"
+      },
+      "PaymentLine": {
+        "$ref": "./schemas.json#/$defs/PaymentLine"
+      },
+      "PaymentRequest": {
+        "$ref": "./schemas.json#/$defs/PaymentRequest"
+      },
+      "ContractMilestone": {
+        "$ref": "./schemas.json#/$defs/ContractMilestone"
+      },
+      "ContractApproval": {
+        "$ref": "./schemas.json#/$defs/ContractApproval"
+      },
+      "BusinessDocument": {
+        "$ref": "./schemas.json#/$defs/BusinessDocument"
+      },
+      "GenericBusinessDocument": {
+        "$ref": "./schemas.json#/$defs/GenericBusinessDocument"
+      },
+      "ScenarioBusinessDocument": {
+        "$ref": "./schemas.json#/$defs/ScenarioBusinessDocument"
+      },
+      "LegacySubmission": {
+        "$ref": "./schemas.json#/$defs/LegacySubmission"
+      },
+      "GenericSubmission": {
+        "$ref": "./schemas.json#/$defs/GenericSubmission"
+      },
+      "QuoteSubmission": {
+        "$ref": "./schemas.json#/$defs/QuoteSubmission"
+      },
+      "ScenarioSubmission": {
+        "$ref": "./schemas.json#/$defs/ScenarioSubmission"
+      },
+      "SealSubmission": {
+        "$ref": "./schemas.json#/$defs/SealSubmission"
+      },
+      "Decision": {
+        "$ref": "./schemas.json#/$defs/Decision"
+      },
+      "NativeDecision": {
+        "$ref": "./schemas.json#/$defs/NativeDecision"
+      },
+      "PaymentPredicate": {
+        "$ref": "./schemas.json#/$defs/PaymentPredicate"
+      },
+      "ReceivingPredicate": {
+        "$ref": "./schemas.json#/$defs/ReceivingPredicate"
+      },
+      "ContractPredicate": {
+        "$ref": "./schemas.json#/$defs/ContractPredicate"
+      },
+      "RoutingPredicate": {
+        "$ref": "./schemas.json#/$defs/RoutingPredicate"
+      },
+      "RunIf": {
+        "$ref": "./schemas.json#/$defs/RunIf"
+      },
+      "BoundaryNode": {
+        "$ref": "./schemas.json#/$defs/BoundaryNode"
+      },
+      "ApprovalNode": {
+        "$ref": "./schemas.json#/$defs/ApprovalNode"
+      },
+      "ParallelNode": {
+        "$ref": "./schemas.json#/$defs/ParallelNode"
+      },
+      "ProcessNode": {
+        "$ref": "./schemas.json#/$defs/ProcessNode"
+      },
+      "ProcessDefinition": {
+        "$ref": "./schemas.json#/$defs/ProcessDefinition"
+      },
+      "GenericProcessDefinition": {
+        "$ref": "./schemas.json#/$defs/GenericProcessDefinition"
+      },
+      "Publication": {
+        "$ref": "./schemas.json#/$defs/Publication"
+      },
+      "GenericPublication": {
+        "$ref": "./schemas.json#/$defs/GenericPublication"
+      },
+      "Person": {
+        "$ref": "./schemas.json#/$defs/Person"
+      },
+      "NativePerson": {
+        "$ref": "./schemas.json#/$defs/NativePerson"
+      },
+      "Event": {
+        "$ref": "./schemas.json#/$defs/Event"
+      },
+      "RoutingFact": {
+        "$ref": "./schemas.json#/$defs/RoutingFact"
+      },
+      "RoutingEvaluation": {
+        "$ref": "./schemas.json#/$defs/RoutingEvaluation"
+      },
+      "FrozenRoute": {
+        "$ref": "./schemas.json#/$defs/FrozenRoute"
+      },
+      "Request": {
+        "$ref": "./schemas.json#/$defs/Request"
+      },
+      "InboxPage": {
+        "$ref": "./schemas.json#/$defs/InboxPage"
+      },
+      "ReceivingQuantities": {
+        "$ref": "./schemas.json#/$defs/ReceivingQuantities"
+      },
+      "ReceivingSummary": {
+        "$ref": "./schemas.json#/$defs/ReceivingSummary"
+      },
+      "PaymentSummary": {
+        "$ref": "./schemas.json#/$defs/PaymentSummary"
+      },
+      "ScenarioView": {
+        "$ref": "./schemas.json#/$defs/ScenarioView"
+      },
+      "QuoteView": {
+        "$ref": "./schemas.json#/$defs/QuoteView"
+      },
+      "QuoteVersion": {
+        "$ref": "./schemas.json#/$defs/QuoteVersion"
+      },
+      "LocalizedText": {
+        "$ref": "./schemas.json#/$defs/LocalizedText"
+      },
+      "FieldOption": {
+        "$ref": "./schemas.json#/$defs/FieldOption"
+      },
+      "FormField": {
+        "$ref": "./schemas.json#/$defs/FormField"
+      },
+      "FormSection": {
+        "$ref": "./schemas.json#/$defs/FormSection"
+      },
+      "LineItems": {
+        "$ref": "./schemas.json#/$defs/LineItems"
+      },
+      "ScenarioId": {
+        "$ref": "./schemas.json#/$defs/ScenarioId"
+      },
+      "ScenarioTemplate": {
+        "$ref": "./schemas.json#/$defs/ScenarioTemplate"
+      },
+      "Error": {
+        "$ref": "./schemas.json#/$defs/Error"
+      },
+      "NativeError": {
+        "$ref": "./schemas.json#/$defs/NativeError"
+      },
+      "ScenarioDate": {
+        "$ref": "./schemas.json#/$defs/ScenarioDate"
+      }
+    },
+    "securitySchemes": {
+      "ruoyiBearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Typical native RuoYi Authorization: Bearer token. Obtained and validated by the separately configured host, not ArcFlow. No token endpoint is declared here."
+      }
+    },
+    "parameters": {
+      "IdempotencyKey": {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}(?![\\s\\S])"
+        },
+        "description": "Exactly one value when present; case-sensitive, no comma-combined value. Same actor/key/normalized intent replays current state; changed intent conflicts."
+      },
+      "RequiredIdempotencyKey": {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}(?![\\s\\S])"
+        },
+        "description": "Exactly one value when present; case-sensitive, no comma-combined value. Same actor/key/normalized intent replays current state; changed intent conflicts."
+      }
+    },
+    "responses": {}
+  },
+  "x-controller-route-count": 9,
+  "x-host": "ruoyi"
+}

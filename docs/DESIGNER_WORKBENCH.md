@@ -1,33 +1,49 @@
-# Approval designer workbench
+# 审批设计器工作台
 
-This update adds a flow canvas, a node settings panel and local undo/redo to the standalone Vue designer. The code and browser tests are in merged commit [`e1ee9c6`](https://github.com/JamesCube/ArcFlow/commit/e1ee9c6bdb971949c4f8746fe88b9ff49e6d4c36). See the [desktop and narrow-screen screenshots](DESIGNER_SHOWCASE.md). The approval domain, JDBC adapter and MySQL behavior are unchanged. The demo remains experimental and has not been validated for production use or feature parity with commercial approval tools.
+<!-- Legacy fragments remain entry points after the language split. -->
+<a id="approval-designer-workbench"></a>
+<a id="design-references-and-deliberate-differences"></a>
+<a id="interaction"></a>
+<a id="verification-boundary"></a>
 
-## Interaction
+<a id="zh"></a>
+<a id="en"></a>
+<a id="简体中文"></a>
+<a id="english"></a>
 
-- The canvas shows the steps in order, with fixed start/end nodes. Each review card shows its name, participant names and initials, and approval rule.
-- Use the button on a connector to insert a step there. Existing IDs stay the same. The new step is selected, with focus in its name field.
-- The settings panel edits one selected stage. It stays on the right on wide screens and moves below the flow on narrow screens. Selecting a stage with a pointer scrolls the narrow-screen panel into view.
-- At this commit, the designer opens in Chinese and has an English toggle; the rest of the demo and its server errors are in English. Current `main` also translates the surrounding workspace. See the [current UI guide](../examples/approval-ui/README.md).
-- ALL is labelled “全员同意（ALL）”: everyone must approve; any rejection rejects the request. ANY is labelled “任一同意（ANY）”: one approval advances; only every participant rejecting rejects it. The rule is always visible in the inspector. A group remains one ordered stage, not a pair of graphical branches.
-- Bob and Carol are the only demo participants. Switching a single-reviewer stage to a group selects both and announces the change. You can edit the checklist, but publication requires at least two participants.
-- The panel shows the published version, the version your draft started from, and whether you have unpublished changes. “Ready to publish” appears only when the draft has valid changes, is based on the current version and has no request in progress.
-- Drafts and undo history stay in page memory. Workspace Refresh keeps your edits; reloading the browser or signing out loses them. The Chinese warning explains the difference.
-- Undo/redo keeps up to 50 edits and combines uninterrupted typing into one edit. It covers names, assignments, modes, participants, insertion, movement, removal and reset. Undo never sends a network request. Successful publication clears the history. Recovering an older draft by undoing a reset still requires the usual version-conflict check.
-- Selecting a validation error opens the affected stage and focuses the invalid name or participant control. Errors are associated with their fields for assistive technology. Escape handling leaves IME composition alone.
-- You can insert and move stages with keyboard-accessible buttons. Enter opens a card’s settings; Escape returns focus to the card. Ctrl/Cmd+Z and Shift+Z/Y control local history while focus is on the canvas. Text fields keep their normal browser shortcuts.
+[English](DESIGNER_WORKBENCH.en.md) · [文档目录](README.md)
 
-## Design references and deliberate differences
+本文记录独立 Vue 设计器的流程画布、节点设置面板和本地撤销/重做功能。代码与浏览器测试位于已合并提交 [`e1ee9c6`](https://github.com/JamesCube/ArcFlow/commit/e1ee9c6bdb971949c4f8746fe88b9ff49e6d4c36)，见[桌面与窄屏截图](DESIGNER_SHOWCASE.md)。该变更未修改审批领域、JDBC 适配器或 MySQL 行为。演示仍是实验性的，未验证生产使用或与商业审批工具的功能对等。
 
-The connector buttons and single-node settings panel draw on patterns documented in [Feishu’s approval designer](https://www.feishu.cn/hc/zh-CN/articles/360036163653-%E7%AE%A1%E7%90%86%E5%91%98%E8%AE%BE%E8%AE%A1%E6%89%B9%E6%B5%81%E7%A8%8B) and [DingTalk Yida’s approval nodes](https://docs.aliwork.com/docs/yida_support/_2/trbqg6/rq8i94). The implementation uses no copied proprietary code, artwork or assets.
+<!-- topic:interaction -->
+## 交互
 
-Yida documents “或签” as allowing the first operator to decide the outcome. ArcFlow ANY rejects only when everyone rejects, so the settings panel spells out that rule.
+- 画布按顺序显示步骤，开始和结束节点固定。审批卡片显示名称、成员名与首字母、审批规则。
+- 点击连线按钮在该处插入步骤；已有 ID 不变。新步骤自动选中并聚焦名称输入框。
+- 设置面板一次编辑一个阶段，宽屏在右侧，窄屏在流程下方；用指针选中阶段会把窄屏面板滚入视野。
+- 该提交默认中文设计器并提供英文切换，演示其他部分和服务端错误仍为英文。当前 `main` 已翻译外围工作区，见[当前界面指南](../examples/approval-ui/README.md)。
+- ALL 显示“全员同意（ALL）”：全员同意才推进，任一拒绝则驳回；ANY 显示“任一同意（ANY）”：一人同意即推进，只有全员拒绝才驳回。规则始终显示在面板中；分组仍是一个有序阶段，不是两条图形分支。
+- 演示仅 Bob、Carol 两名参与人。单人改为分组时会选中两人并提示，可修改勾选，但发布至少需要两人。
+- 面板显示已发布版本、草稿基线版本及未发布修改。只有草稿有效、确有修改、基于当前版本且无请求进行中时，才显示“Ready to publish”。
+- 草稿与撤销历史保存在页面内存。工作区 Refresh 保留编辑；浏览器重载或退出登录会丢失，中文提示说明这一区别。
+- 撤销/重做最多保存 50 次编辑，连续输入合为一次，覆盖名称、指派、规则、成员、插入、移动、删除和重置。撤销不发网络请求；发布成功清空历史。撤销重置以恢复旧草稿时，仍需版本冲突检查。
+- 选择验证错误会打开对应阶段并聚焦错误的名称或成员控件；错误与字段关联，便于辅助技术读取。Escape 不干扰输入法组合输入。
+- 可用键盘按钮插入和移动阶段，Enter 打开卡片设置，Escape 将焦点还给卡片。画布聚焦时 Ctrl/Cmd+Z 与 Shift+Z/Y 管理本地历史，文本输入保留浏览器快捷键。
 
-Text contrast and keyboard behavior were designed with the [WCAG contrast guidance](https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html) and [WAI keyboard-interface guidance](https://www.w3.org/WAI/ARIA/apg/practices/keyboard-interface/) in mind. A WCAG audit has not been performed.
+<!-- topic:design-references-and-deliberate-differences -->
+## 设计参考与差异
 
-## Verification boundary
+连线按钮和单节点设置面板参考了[飞书审批设计器](https://www.feishu.cn/hc/zh-CN/articles/360036163653-%E7%AE%A1%E7%90%86%E5%91%98%E8%AE%BE%E8%AE%A1%E6%89%B9%E6%B5%81%E7%A8%8B)及[钉钉宜搭审批节点](https://docs.aliwork.com/docs/yida_support/_2/trbqg6/rq8i94)的公开交互说明；未复制专有代码、图片或素材。
 
-The [approval CI run for this commit](https://github.com/JamesCube/ArcFlow/actions/runs/37258262057) passed 185 UI tests, 35 backend tests and all three Chromium journeys. Component and model tests cover insertion positions, stable IDs, one/eight-stage limits, local history, selected-node focus, invalid groups, read-only users, repeated interactions and requests in progress, IME Escape, keeping history during navigation, restoring stale drafts after reset, and clearing history after publication. The suite also includes the earlier sequential and group tests.
+宜搭的“或签”由首位操作人决定结果；ArcFlow ANY 只有全员拒绝才驳回，因此面板明确写出规则。
 
-The successful [screenshot run at `836e605`](https://github.com/JamesCube/ArcFlow/actions/runs/37257554086) checked the Chinese labels, connector insertion, focus on invalid groups, local undo, Escape focus return, publication, and the stacked settings panel at 390px with no horizontal overflow. Its source tree matches merged `e1ee9c6`. The [original screenshots and their source details](DESIGNER_SHOWCASE.md) are saved in this repository.
+文本对比度和键盘交互参考 [WCAG 对比度](https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html)及 [WAI 键盘界面](https://www.w3.org/WAI/ARIA/apg/practices/keyboard-interface/)指南，但尚未执行 WCAG 审计。
 
-Desktop and narrow-screen browser tests now pass. Browser-native text undo, 200% zoom, other browsers and accessibility still need separate checks. To rerun the tests from `examples/approval-ui`, use `npm test`, `npm run build`, then `npm run test:e2e`.
+<!-- topic:verification-boundary -->
+## 验证边界
+
+[该提交的审批 CI](https://github.com/JamesCube/ArcFlow/actions/runs/37258262057)通过 185 个界面测试、35 个后端测试和三个 Chromium 流程。组件/模型测试覆盖插入位置、稳定 ID、1/8 阶段上限、本地历史、选中节点焦点、非法分组、只读用户、重复交互与进行中请求、输入法 Escape、导航保留历史、重置后恢复过期草稿、发布后清空历史，也包含早期顺序与分组测试。
+
+[`836e605` 的截图运行](https://github.com/JamesCube/ArcFlow/actions/runs/37257554086)验证中文标签、连线插入、非法分组聚焦、本地撤销、Escape 焦点返回、发布及 390px 堆叠面板无横向溢出。源码树与已合并 `e1ee9c6` 一致。[原图与来源](DESIGNER_SHOWCASE.md)保存在仓库。
+
+这些历史提交的桌面/窄屏浏览器测试通过，不代表其他提交验收。浏览器原生文本撤销、200% 缩放、其他浏览器和无障碍仍需单独检查。在 `examples/approval-ui` 中依次运行 `npm test`、`npm run build`、`npm run test:e2e` 可重测。

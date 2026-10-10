@@ -1,79 +1,82 @@
-# OA 费用报销 / Expense scenario
+# 费用报销
 
-场景库第一条独立模板包含真实结构的费用明细、不可变业务快照和可视化固定审批流程。
-全部使用合成数据。票据仅为文字引用；通过审批不会打款、上传票据、验证发票或写入财务系统。
+<!-- Legacy fragments remain entry points after the language split. -->
+<a id="390px-窄屏审批--narrow-screen-review"></a>
+<a id="fields-and-rules--字段与规则"></a>
+<a id="gallery--全流程实拍"></a>
+<a id="http-and-authorization"></a>
+<a id="oa-费用报销--expense-scenario"></a>
+<a id="retry-and-storage--重试与存储"></a>
+<a id="start--启动"></a>
+<a id="verification"></a>
+<a id="场景入口--scenario-catalog"></a>
+<a id="填写费用--itemized-expense-form"></a>
+<a id="审批通过--approved-request"></a>
+<a id="审批驳回--rejected-request"></a>
+<a id="当前审批--current-reviewer"></a>
+<a id="流程设计器--workflow-designer"></a>
+<a id="申请已提交--submitted-awaiting-review"></a>
 
-This is a bounded synthetic example, not a complete reimbursement system. Form sections/widgets
-come from compiled, versioned ScenarioCatalog metadata. The server validates explicit
-BusinessDocument.Expense data. Arbitrary drag-and-drop fields, scripts and formula execution are not supported.
+<a id="zh"></a>
+<a id="en"></a>
+<a id="简体中文"></a>
+<a id="english"></a>
 
-[查看全部实拍 / Open the full visual walkthrough](#gallery)
+[English](EXPENSE_SCENARIO.en.md) · [文档目录](README.md)
 
-## Start / 启动
+独立场景模板提供真实结构的费用明细、不可变业务快照与可视化固定审批。全部为合成数据，票据只是文字引用；通过不打款、上传票据、核验发票或写入财务系统。
 
-Run `python3 scripts/tryout.py` from the repository root. After READY, open its printed
-`/scenarios.html` URL. Use the disposable Alice/Bob/Carol passwords from the private credentials
-file; never put passwords in screenshots, URLs or source. This page signs in separately and
-keeps credentials only in memory. The manual [startup instructions](GETTING_STARTED.md) also apply.
-Static builds must retain `dist/scenarios.html` and its generated assets.
+这是有明确边界的演示，不是完整报销系统。表单分区/控件来自编译期版本化 `ScenarioCatalog`，服务端校验显式 `BusinessDocument.Expense`；不支持任意拖拽字段、脚本或公式执行。[完整实拍](#gallery)
 
-## Fields and rules / 字段与规则
+<!-- topic:start -->
+## 启动
 
-- businessId/title/reason, costCenter (ENGINEERING/SALES/OPERATIONS), currency and1–20 expense lines.
-- Each line: stable lineId, spentOn, category (TRAVEL/MEALS/OFFICE/OTHER), description, amount, receiptRef.
-- lineId and receiptRef are each unique within a claim. They do not provide cross-claim invoice verification.
-- References use1–128 ASCII characters, begin with a letter/digit, and otherwise allow letters/digits plus `._:/-`.
-- Title≤120, reason≤2000, description≤240 characters. Text must remain nonblank after normalization.
-- Dates must be real YYYY-MM-DD dates in years0001–9999. No company calendar, tax or expense-period policy is inferred.
-- Every amount is positive and≤1,000,000,000 with at most2 decimal places. JPY must be whole.
-  CNY/USD/EUR/GBP/JPY are supported; no exchange-rate conversion occurs.
-- Java BigDecimal and browser decimal text/BigInt preserve exact amounts. Total is derived, never submitted:
-  0.10 + 0.20 = 0.30. Receipt references are synthetic text, not file uploads.
+仓库根目录运行 `python3 scripts/tryout.py`，READY 后打开打印的 `/scenarios.html`。从私有凭据文件读取一次性 Alice/Bob/Carol 密码，不放入截图、URL 或源码。本页独立登录，凭据只存内存，也可按[手动启动](GETTING_STARTED.md)。静态部署须保留 `dist/scenarios.html` 及生成资源。
 
-默认 Bob 做费用审核，Carol 做财务复核。Alice 可编辑、发布1–8个固定审批步骤，支持 SINGLE/ALL/ANY。
-人名与步骤名称不是动态组织角色。表单结构在当前版本固定；设计器编辑审批流程。
-已提交的申请保留原业务数据、流程定义及版本。APPROVED/REJECTED只表示审批状态，不触发付款。
+<!-- topic:fields-and-rules -->
+## 字段与规则
 
-The dedicated standalone page is separate from shared leave/procurement lists, native RuoYi and
-the H5 application. It does not introduce a cross-scenario inbox or external business connector.
+- businessId/title/reason、成本中心 ENGINEERING/SALES/OPERATIONS、币种及 1–20 条费用。
+- 每行：稳定 lineId、spentOn、类别 TRAVEL/MEALS/OFFICE/OTHER、description、amount、receiptRef。
+- lineId 和 receiptRef 各自在本单唯一，不提供跨单发票验证。
+- 引用 1–128 ASCII 字符，字母/数字开头，余下允许字母/数字及 `._:/-`。
+- 标题 ≤120、原因 ≤2000、描述 ≤240 字符，规范化后非空。
+- 日期为年份 0001–9999 的真实 YYYY-MM-DD，不推断企业日历、税务或费用期间政策。
+- 金额为正、≤1,000,000,000、最多两位小数，JPY 整数；支持 CNY/USD/EUR/GBP/JPY，不换汇。
+- Java BigDecimal 和浏览器十进制文本/BigInt 保持精度，总额派生而非提交：0.10+0.20=0.30。票据引用不是上传。
 
-## HTTP and authorization
+默认 Bob 费用审核、Carol 财务复核。Alice 可发布 1–8 个固定 SINGLE/ALL/ANY 阶段，人名/步骤名不是动态角色。表单结构固定，设计器编辑流程；申请保留原业务/定义/版本，APPROVED/REJECTED 不触发付款。
 
-- GET `/api/scenarios`: form metadata.
-- GET/POST `/api/scenarios/oa-expense/process`: read/publish process; publication body is `{expectedVersion,definition}`.
-- GET `/api/scenarios/oa-expense/requests`: caller-visible requests.
-- POST `/api/scenarios/oa-expense/documents`: `{business,processVersion}` and exactly one `Idempotency-Key`.
-- POST `/api/scenarios/oa-expense/requests/{id}/decisions`: `{stepId,decision,comment}`.
+专用独立页面与共享请假/采购、若依、H5 分离，不增加跨场景待办或外部连接器。
 
-Business has `type:"expense"`, `documentVersion:1`, and all fields above. Amounts are JSON numbers,
-not strings. Response is `{request,total}`; total is an exact display string fixed to2 decimals,
-except whole JPY. Compatibility request.days is0; consumers must inspect business.type.
+<!-- topic:http-and-authorization -->
+## HTTP 与授权
 
-Identity comes from the authenticated principal. Existing Origin/client-header and domain
-publication/participant permissions apply. Unknown fields, duplicate keys, malformed decimal
-values, client-supplied identity/process/status/derived totals fail closed. Generic standalone
-`/api/documents` and native `/arcflow/documents` explicitly allow only leave/procurement.
+- GET `/api/scenarios`：表单元数据。
+- GET/POST `/api/scenarios/oa-expense/process`：读取/发布，发布为 `{expectedVersion,definition}`。
+- GET `/api/scenarios/oa-expense/requests`：调用者可见申请。
+- POST `/api/scenarios/oa-expense/documents`：`{business,processVersion}` 及恰好一个 `Idempotency-Key`。
+- POST `/api/scenarios/oa-expense/requests/{id}/decisions`：`{stepId,decision,comment}`。
 
-## Retry and storage / 重试与存储
+业务含 `type:"expense"`、`documentVersion:1` 及上述全部字段。金额为 JSON 数字，不是字符串。响应 `{request,total}` 中总额是精确显示字符串，除 JPY 整数外固定两位；兼容 `request.days` 为 0，须按 business.type 分支。
 
-Same caller/key and normalized intent replay the current durable request, including terminal
-state or after restart. Changing any header/line or original process version with the same key
-returns409. New key means new intent; businessId alone is not a uniqueness constraint. JDBC key
-scope remains global `(applicant_id,submission_key)` across processes.
+身份来自认证 Principal，沿用 Origin/客户端头、发布/参与人权限。未知字段、重复键、非法小数、客户端身份/流程/状态/派生总额全部拒绝；通用 `/api/documents` 和若依 `/arcflow/documents` 只允许请假/采购。
 
-The host uses process `oa-expense` and `approval.data-file + ".scenario-oa-expense.json"`.
-A compiled registry maps ids to runtimes; untrusted paths never select filenames.
+<!-- topic:retry-and-storage -->
+## 重试与存储
 
-- JSON schemas1–6 remain readable without rewriting. First Expense write uses schema7.
-- Expense inside schema5/6 is rejected. Schema7 never downgrades after later legacy writes.
-- Preserve exact bytes immediately before upgrade. Failed atomic replacement publishes neither
-  request nor retry binding; retry preserves the pre-upgrade backup.
-- JDBC stays SQL revision3: typed values use request_json and existing member projections.
-  Existing stopped-writer revision3/backfill requirements still apply; no new DDL is introduced.
-- Upgrade all readers and stop incompatible writers before Expense writes. Schema6 readers do
-  not understand Expense/schema7. Backups are historical recovery, not a lossless downgrade.
+同调用者/键/规范化意图返回当前持久申请，包括终态与重启后；同键改头字段、明细或原流程版本则 409。新键即新意图，businessId 不是唯一约束。JDBC 仍跨流程使用全局 `(applicant_id,submission_key)`。
 
-## Verification
+宿主流程 `oa-expense`，文件 `approval.data-file + ".scenario-oa-expense.json"`；编译期注册表映射运行时，不可信路径不能选文件。
+
+- JSON 1–6 保持严格只读兼容，首次报销最低 7。
+- 报销在 5/6 拒绝，升到 7 后旧接口不降级。
+- 升级保存紧邻之前原始字节，原子替换失败不发布申请/键，重试保留备份。
+- JDBC 保持 SQL revision 3，沿用 request_json 与成员投影；原停写迁移/回填要求不变，不增加 DDL。
+- 先升级全部 reader 并停不兼容 writer，schema 6 reader 不懂报销/7；备份是历史恢复而非无损降级。当前更高版本见[迁移指南](development/PERSISTENCE.md)。
+
+<!-- topic:verification -->
+## 验证
 
 ```sh
 mvn install
@@ -88,102 +91,47 @@ npm run build
 npm run test:e2e -- e2e/scenarios.spec.mjs
 ```
 
-Missing PostgreSQL/MySQL settings mean skipped tests, not server verification. Unit/MVC passes
-are not browser evidence. Check exact-candidate reports. Capture designer/form/pending/approved/
-rejected images only from authenticated real UI and a disposable real backend, in both languages;
-no mock success, altered DOM, image generation or retouching. Preserve per-image commit/run/hash provenance.
+没配 PostgreSQL/MySQL 是跳过，不是服务器验收；单元/MVC 不是浏览器证据。核对精确候选报告，仅以认证真实 UI 和一次性真实后端采集中英设计器/表单/待审/通过/拒绝，不模拟成功、修改 DOM、生成或修图。每图保留提交/运行/hash。
 
 <a id="gallery"></a>
-## Gallery / 全流程实拍
 
-以下16张原始截图来自隔离演示账号和真实浏览器/后端，包含中英文的场景入口、表单、设计器、
-待审、通过、驳回及390px审批视口。图片未经修改，页面里只有合成数据。
+<!-- topic:visual-walkthrough -->
+## 全流程实拍
 
-Capture source: `90007fc8d0499b45ca38a04d010029888ab5cbef`. [Passing browser run](https://github.com/JamesCube/ArcFlow/actions/runs/37803754153) · [Per-image provenance and SHA-256](images/expense/provenance.json).
+16 张中英原图来自隔离演示账号与真实浏览器/后端，全部合成数据且未修改；本页展示其中八张中文图，英文页面展示对应八张。
 
-Each language pair shows the same saved state. Approved and rejected requests are separate
-branches. Workflow v3/v4, form v1 and storage schema 7 are independent versions. The narrow
-images show the scrolled review controls in a 390px browser viewport; they are not native-app or
-physical-phone certification. Approval does not issue payment.
+采集提交 `90007fc8d0499b45ca38a04d010029888ab5cbef`：[通过的浏览器运行](https://github.com/JamesCube/ArcFlow/actions/runs/37803754153) · [逐图来源及 SHA-256](images/expense/provenance.json)。
 
-### 场景入口 / Scenario catalog
+两种语言展示相同保存状态，通过与驳回是独立分支。流程 v3/v4、表单 v1、存储 7 是不同版本；390px 图为滚动后的审批控件，不证明原生应用或真机。通过不付款。
 
-中文
+### 场景入口
 
-![场景入口 / Scenario catalog — 中文](images/expense/01-catalog-zh-desktop.png)
+![场景入口](images/expense/01-catalog-zh-desktop.png)
 
-English
+### 填写费用
 
-![场景入口 / Scenario catalog — English](images/expense/01-catalog-en-desktop.png)
+![填写费用](images/expense/02-filled-expense-zh-desktop.png)
 
-### 填写费用 / Itemized expense form
+### 流程设计器
 
-中文
+![流程设计器](images/expense/03-designer-zh-desktop.png)
 
-![填写费用 / Itemized expense form — 中文](images/expense/02-filled-expense-zh-desktop.png)
+### 申请已提交
 
-English
+![申请已提交](images/expense/04-request-detail-pending-zh-desktop.png)
 
-![填写费用 / Itemized expense form — English](images/expense/02-filled-expense-en-desktop.png)
+### 当前审批
 
-### 流程设计器 / Workflow designer
+![当前审批](images/expense/05-review-pending-zh-desktop.png)
 
-中文
+### 390px 窄屏审批
 
-![流程设计器 / Workflow designer — 中文](images/expense/03-designer-zh-desktop.png)
+![390px 窄屏审批](images/expense/06-review-pending-zh-390.png)
 
-English
+### 审批通过
 
-![流程设计器 / Workflow designer — English](images/expense/03-designer-en-desktop.png)
+![审批通过](images/expense/07-request-detail-approved-zh-desktop.png)
 
-### 申请已提交 / Submitted, awaiting review
+### 审批驳回
 
-中文
-
-![申请已提交 / Submitted, awaiting review — 中文](images/expense/04-request-detail-pending-zh-desktop.png)
-
-English
-
-![申请已提交 / Submitted, awaiting review — English](images/expense/04-request-detail-pending-en-desktop.png)
-
-### 当前审批 / Current reviewer
-
-中文
-
-![当前审批 / Current reviewer — 中文](images/expense/05-review-pending-zh-desktop.png)
-
-English
-
-![当前审批 / Current reviewer — English](images/expense/05-review-pending-en-desktop.png)
-
-### 390px 窄屏审批 / Narrow-screen review
-
-中文
-
-![390px 窄屏审批 / Narrow-screen review — 中文](images/expense/06-review-pending-zh-390.png)
-
-English
-
-![390px 窄屏审批 / Narrow-screen review — English](images/expense/06-review-pending-en-390.png)
-
-### 审批通过 / Approved request
-
-中文
-
-![审批通过 / Approved request — 中文](images/expense/07-request-detail-approved-zh-desktop.png)
-
-English
-
-![审批通过 / Approved request — English](images/expense/07-request-detail-approved-en-desktop.png)
-
-### 审批驳回 / Rejected request
-
-中文
-
-![审批驳回 / Rejected request — 中文](images/expense/08-request-detail-rejected-zh-desktop.png)
-
-English
-
-![审批驳回 / Rejected request — English](images/expense/08-request-detail-rejected-en-desktop.png)
-
-
+![审批驳回](images/expense/08-request-detail-rejected-zh-desktop.png)

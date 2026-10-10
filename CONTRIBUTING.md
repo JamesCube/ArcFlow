@@ -1,9 +1,16 @@
-# 参与贡献 / Contributing
+# 参与贡献
 
-[简体中文](#zh) · [English](#en) · [开发文档 / Developer guide](docs/development/README.md)
-
+<!-- Legacy fragments remain entry points after the language split. -->
+<a id="en"></a>
+<a id="english"></a>
 <a id="zh"></a>
-## 简体中文
+<a id="参与贡献--contributing"></a>
+<a id="简体中文"></a>
+
+<!-- topic:contributing -->
+
+[English](CONTRIBUTING.en.md)
+
 
 先看 [README](README.md) 的范围、[开发环境](docs/development/QUICKSTART.md#zh)与[架构](docs/development/ARCHITECTURE.md#zh)。准备增加功能时，先开 issue 说明要解决的问题、状态变化、失败处理与测试方案。
 
@@ -15,15 +22,19 @@
 - HTTP 变更同步更新[接口参考](docs/api/API_REFERENCE.md)与[可运行示例](docs/api/examples/README.md)。用户文档保持中英文可独立阅读，标清当前源码与历史标签；截图、测试和 CI 结论须对应准确版本。
 - 不提交密码、令牌、真实个人数据或无权使用的代码／素材。提交贡献表示你有权按本仓库 Apache 2.0 许可证提供这些内容。
 
-<a id="en"></a>
-## English
+<!-- topic:docs -->
+## 文档和接口变更
 
-Read the [README](README.en.md) for scope, then [development setup](docs/development/QUICKSTART.md#en) and [architecture](docs/development/ARCHITECTURE.md#en). Before adding a feature, open an issue describing the problem, state changes, failure handling, and tests.
+遵循[文档规范](docs/DOCUMENTATION_STANDARD.md)：中文 `.md`、英文 `.en.md` 成对维护，对应 topic 标记一致。同一次修改更新两种语言和分类登记表，历史证据原件与当前说明分开。
 
-- Use a full JDK 17+ and install local core/domain dependencies in order. The root build does not aggregate example modules.
-- Run `mvn verify` and `bash scripts/test.sh`, then use the [layered checklist](docs/development/QUICKSTART.md#en) for affected domain, host, storage, and client code. A skipped database test is not a pass.
-- For root-build changes, also run `python3 -m unittest discover -s scripts -p 'test_maven_build.py' -v`; see [build reproducibility](docs/BUILD_REPRODUCIBILITY.md).
-- Keep third-party runtime dependencies out of the core. Identity, Spring, database, web, and enterprise integrations belong in their own layers.
-- Cover behavioral changes with regression tests. Include conflict/failure cases for concurrency and transactions, and legacy data, strict rejection, restore, and [migration boundaries](docs/development/PERSISTENCE.md#en) for storage changes.
-- Update the [API reference](docs/api/API_REFERENCE.en.md) and [runnable examples](docs/api/examples/README.md) when HTTP changes. Keep user-facing Chinese/English documentation independently readable and distinguish current source from historical tags. Tie screenshots, tests, and CI claims to the exact revision.
-- Do not commit credentials, real personal data, or code/assets you lack permission to use. By contributing, you confirm you can provide the material under this repository's Apache 2.0 license.
+改动 controller、DTO、目录或条件类型时，同时更新已审阅的 [OpenAPI 契约](docs/api/README.md)、路由清单和相关可执行样例。规范的外形不能证明准确，必须对照真实宿主行为与测试。
+
+```sh
+python3 -m unittest discover -s scripts -p 'test_*docs*.py' -v
+python3 -m unittest discover -s scripts -p test_documentation.py -v
+python3 scripts/test_api_contract.py
+python3 scripts/check_documentation.py
+python3 scripts/check_api_contract.py
+python3 scripts/verify_developer_docs.py
+python3 scripts/verify_api_examples.py --jar examples/approval-demo/backend/target/approval-demo-0.1.0-SNAPSHOT.jar
+```

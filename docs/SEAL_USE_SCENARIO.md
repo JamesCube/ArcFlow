@@ -1,111 +1,81 @@
-# Seal-use review / 用印申请审批
+# 用印申请审批
 
-## Draft integration candidate
+<!-- Legacy fragments remain entry points after the language split. -->
+<a id="business-boundaries--业务边界"></a>
+<a id="draft-integration-candidate"></a>
+<a id="explicit-schema-compatibility"></a>
+<a id="review-and-identity"></a>
+<a id="seal-use-review--用印申请审批"></a>
+<a id="verification-and-acceptance"></a>
+<a id="what-the-form-actually-records"></a>
 
-This is the Seal-use slice of the local unified integration candidate based on accepted
-main `71910bfc2ac1b9d58e0f7f1b85e6bbb206321ec1`. It is not merged, deployed or accepted
-as a delivered scenario. Historical candidate tests do not establish combined-head success.
-Fresh Boot 4.1.1 HTTP, real-server, browser and independent pixel gates remain required;
-see [unified compatibility and acceptance](UNIFIED_SCENARIO_INTEGRATION.md).
+<a id="zh"></a>
+<a id="en"></a>
+<a id="简体中文"></a>
+<a id="english"></a>
 
-The compiled catalog contains Expense, Travel, Seal-use and Receiving, each isolated by
-business type, process, JSON file and session-local workspace. Generic/native endpoints
-still allow only Leave and Procurement; CRM keeps its separate source-authorization host.
-The `contracts/seal-use` prototype remains historical contract evidence.
+[English](SEAL_USE_SCENARIO.en.md) · [文档目录](README.md)
 
-## What the form actually records
+<!-- topic:current-scope -->
+## 当前范围
 
-The immutable document has exactly nine fields: `type: "sealUse"`, `documentVersion: 1`,
-`businessId`, `title`, `reason`, `documentName`, `documentRef`, `sealType` and `copyCount`.
-The form labels reason as business purpose, so the applicant enters the purpose only once.
-Seal types are the synthetic categories `OFFICIAL`, `CONTRACT` and `FINANCE`. Copy count is
-an integer from 1 to 100. A document reference is inert synthetic text, not a URL to fetch or
-proof that a real document exists or belongs to the applicant.
+当前 main 已包含六项独立场景，统一读取 JSON wrapper 1–13。本文保留早期统一候选的验证范围和版本边界，不能将当时的“未合并”或 wrapper 10 上限理解为当前状态。当前架构和上线步骤见[架构](development/ARCHITECTURE.md)与[存储迁移](development/PERSISTENCE.md)；精确提交 CI 另行核对。
 
-Title, purpose and document name are length-checked before Java-compatible edge trimming.
-Control/Unicode whitespace/BOM-only text is invalid. IDs, references and seal categories are
-not trimmed or case-folded. Integer JSON fields reject decimal/exponent tokens, strings,
-booleans and null. The form keeps raw copy-count text while typing, displays errors for
-invalid inputs and only normalizes on successful validation. Unknown and missing fields,
-duplicate JSON keys and trailing content fail closed. The dedicated Seal HTTP submission
-accepts only well-formed UTF-8 JSON bytes and limits the entire raw JSON request envelope to 8,000,000 UTF-16 code units before decoding;
-this transport bound does not cap aggregate stored snapshots or direct typed Java calls.
+<!-- topic:historical-candidate-scope -->
+## 历史候选范围
 
-There is no currency, amount, receipt table or financial total. Responses preserve the
-existing `{request, total}` envelope and include `total: null` for Seal-use. Expense continues
-to return and validate its exact monetary string. Lists and saved detail show copies and the
-synthetic seal category; copies are never formatted as money.
+原记录为基于已验收 main `71910bfc2ac1b9d58e0f7f1b85e6bbb206321ec1` 的本地统一候选中的用印部分，当时未合并、部署或验收为交付场景。历史候选测试不证明组合 head 成功，仍要求新的 Boot 4.1.1 HTTP、真实服务器、浏览器及独立像素验证，见[统一兼容与验收](UNIFIED_SCENARIO_INTEGRATION.md)。
 
-## Review and identity
+原编译期目录包括报销、出差、用印、收货，以类型、流程、JSON 和会话工作区隔离；当前为六项。通用/若依仍只接受请假、采购，CRM 报价保留单独源授权宿主。`contracts/seal-use` 原型是历史契约证据。
 
-The initial process is `oa-seal-use`: submit → Bob document review (`documentReview`) → Carol
-seal-use review (`sealReview`) → review complete. The shared 1–8-stage fixed-reviewer designer
-can publish a new process version. Every saved request retains its submitted process version,
-reviewers, business snapshot and per-stage history. Approval records a review outcome only.
+<!-- topic:what-the-form-actually-records -->
+## 表单实际记录什么
 
-The host uses the authenticated active principal, publisher authorization and workflow
-participant checks. Request paths select only compiled registry entries. The dedicated JSON
-filename is the configured approval data file plus `.scenario-oa-seal-use.json`; the URL does
-not choose a filesystem path. Seal submissions cannot enter the Expense or generic host,
-and Travel/Receiving/Expense/Leave/Procurement/Quote payloads cannot enter the Seal host.
+不可变单据恰有九个字段：`type: "sealUse"`、`documentVersion: 1`、`businessId`、`title`、`reason`、`documentName`、`documentRef`、`sealType`、`copyCount`。表单将 reason 标为业务目的，只填写一次。印章分类为合成的 `OFFICIAL`、`CONTRACT`、`FINANCE`；份数整数 1–100。文档引用是惰性合成文本，不是待抓取 URL，也不证明真实文档存在或归申请人。
 
-Exactly one valid applicant-scoped `Idempotency-Key` is required. Same normalized intent and
-original process version replay the current durable request after approval, rejection or
-restart; any changed business field or original process version conflicts. Document and
-business references are not uniqueness constraints. JDBC submission keys remain globally
-applicant-scoped across processes. The separate JSON scenario stores have their existing
-per-file key scope. Failed persistence must not publish an in-memory state or retry binding.
+标题、目的和文档名先校验长度，再按 Java 兼容方式 trim 边缘；仅控制字符/Unicode 空白/BOM 无效。ID、引用、类别不 trim 或忽略大小写。整数 JSON 拒绝小数/指数、字符串、布尔和 null；输入期间保留份数原始文字，显示错误，仅在校验成功时规范化。未知/缺少字段、重复键及尾随内容全部拒绝。专用 HTTP 只接受有效 UTF-8 JSON，在解码前将整个原始请求外层限制为 8,000,000 个 UTF-16 单元；不限制累积快照文件或直接类型化 Java 调用。
 
-The browser keeps each scenario's unsubmitted form, unresolved retry intent/key/version,
-designer draft, request selection and review note separately. Responses belong to their
-initiating scenario and authentication session. Logout clears the in-memory workspaces.
-Reload still loses unsaved browser state; this is not durable draft storage.
+没有币种、金额、票据表或财务总额。响应保留 `{request,total}`，用印 `total: null`；报销仍为精确金额字符串。列表和详情显示份数与合成类别，不把份数格式化为金额。
 
-## Explicit schema compatibility
+<!-- topic:review-and-identity -->
+## 审批与身份
 
-The unified reader accepts known snapshot schemas **1–10** with strict original shapes.
-Travel requires at least 8, Seal-use at least 9 and Receiving at least 10. Valid schema 8,
-including empty or Travel snapshots, is readable without mutation. Schema 9 may include
-valid Travel/Seal data; schema 10 can represent every registered type. Unknown types,
-future document versions, wrapper 11+ and invalid lower-version payloads fail closed.
+初始流程 `oa-seal-use`：提交 → Bob 文档审核（`documentReview`）→ Carol 用印审核（`sealReview`）→ 完成。共用设计器可发布 1–8 个固定成员阶段的新版本；申请保留原版本、成员、业务快照和逐阶段历史，通过仅记录审核结果。
 
-- First Seal-use write selects at least 9. Seal-use under schemas 1–8 is rejected.
-- Writes take the maximum of the existing wrapper and every document/definition/key
-  requirement. Seal in schema 10 stays at 10; legacy/Expense/Travel/decision/publication
-  writes never lower an existing 9 or 10. Reading never forces an upgrade.
-- Every actual upgrade backs up the exact bytes immediately before that upgrade, including
-  same-session earlier mutations. Existing backups survive collisions and retries.
-- Failed atomic replacement publishes neither request nor in-memory submission-key state.
-  Read/validation failure changes neither snapshots nor backups. JSON remains single-writer.
-- SQL revision 3 and its ready member projection remain unchanged. Type registration does
-  not rebuild that index; revision-2 installations retain the explicit migration/backfill.
-- Upgrade all readers/writers before new typed writes and stop old writers. Old independent
-  candidate binaries do not acquire cross-candidate compatibility merely through SQL revision 3.
-- Restoring a backup loses later submissions, decisions and publications; it is historical
-  recovery, not lossless downgrade. Do not renumber or weaken unknown-type checks.
+宿主检查认证活动身份、发布权限及参与人。路径只选编译期登记项，JSON 文件是配置数据文件加 `.scenario-oa-seal-use.json`，URL 不能选文件。用印不能进入报销/通用宿主，Travel/Receiving/Expense/Leave/Procurement/Quote 不能进入用印宿主。
 
-## Verification and acceptance
+恰好一个有效申请人范围的 `Idempotency-Key` 必填。相同规范化意图/原流程版本在通过、拒绝或重启后返回当前持久申请；改任何字段或原版本都冲突。文档/业务引用不是唯一约束。JDBC 键跨流程按申请人全局隔离，独立 JSON 保持每文件作用域。持久化失败不发布内存状态或映射。
 
-Run the normal Java core, domain, JDBC and UI test/build commands. The same four named Seal
-JDBC contracts are inherited by H2, PostgreSQL and MySQL suites. CI must require the new
-server cases to execute without skips. H2 success alone is not a real-server claim.
+浏览器分别保留各场景未提交表单、未确认重试意图/键/版本、设计器草稿、选中申请与评论。响应绑定发起场景及会话，退出清空内存工作区；重载仍丢失未保存数据，不是持久草稿。
 
-The host test class is `SealUseApiTest`; live authentication, process isolation, immutable
-snapshots, rejection and schema-9 restart are checked by:
+<!-- topic:historical-explicit-schema-compatibility -->
+## 历史显式格式兼容
+
+历史统一 reader 接受 **1–10** 的原始严格形状，当前使用 1–13。Travel 最低 8、Seal-use 最低 9、Receiving 最低 10；合法 8（包括空或出差）、9（出差/用印）只读打开，10 可表示当时所有类型。历史候选拒绝未知类型、未来单据版本、wrapper 11+ 及不合法的低版本载荷；当前未来 wrapper 边界见迁移指南。
+
+- 首次用印写入至少 9，在 1–8 中拒绝。
+- 写者取已有 wrapper 与全部单据/定义/键需求的最大值；已有 10 不降，旧接口/报销/出差/决定/发布也不降低 9/10。读取不强制升级。
+- 每次真实升级原样备份紧邻之前字节，包括同会话早先写入；重名和重试不覆盖旧备份。
+- 原子替换失败不发布申请或内存键；读取/校验失败不改快照/备份。JSON 仍单写者。
+- SQL revision 3 及就绪成员投影不变，登记类型不重建；revision 2 仍需显式迁移/回填。
+- 新类型写入前升级全部读写者并停旧写者，SQL revision 3 不让旧独立候选自动互相兼容。
+- 备份恢复丢失后续提交、决定、发布，是历史恢复，不是无损降级。不能重编号或放松未知类型检查。
+
+<!-- topic:verification-and-acceptance -->
+## 验证与验收
+
+运行通常的 Java 内核、领域、JDBC、界面测试和构建。同四项具名用印 JDBC 契约被 H2、PostgreSQL、MySQL 继承；CI 必须要求新服务器用例无跳过，H2 不能代替真实服务器。
+
+宿主测试类为 `SealUseApiTest`；真实认证、流程隔离、不可变快照、拒绝与 schema 9 重启可通过以下命令检查：
 
 ```sh
 python3 examples/scenarios/seal_use_http_smoke.py \
   --jar examples/approval-demo/backend/target/approval-demo-0.1.0-SNAPSHOT.jar
 ```
 
-Still required before publication as a completed scenario: exact-code host/server CI, actual
-browser journeys, Chinese and English original images of catalog/form/designer/validation/
-pending/next stage/approved/rejected and narrow reviewer controls, image provenance and
-independent pixel review. Test discovery, generated illustrations and Expense/Travel images
-cannot satisfy Seal screenshot acceptance. Original candidate image downloads returned HTTP 403 / 1010; original PNG bytes and independent pixel review remain unverified. No accepted Seal gallery is claimed here.
+该历史候选验收为完整场景前还要求精确源码宿主/服务器 CI、真实浏览器、中英文目录/表单/设计器/错误/待审/下一阶段/通过/拒绝/窄屏审批原图、来源及独立像素审查。测试发现、生成插画或报销/出差图片不能代替。原产物下载遇 HTTP 403/1010，原 PNG 与独立像素复核未验证，本记录不声称图集已验收。
 
-## Business boundaries / 业务边界
+<!-- topic:business-boundaries -->
+## 业务边界
 
-本示例只记录用印申请与人工审批结果，不执行实际盖章、电子签章、合同签署、文件上传、
-印章借出／归还、对外通知或任何业务系统回写。三种印章类型均为合成分类，不表示真实印章
-身份、法律权限或文件有效性。审批通过不等于已用印。
+仅记录用印申请与人工审核结果，不实际盖章、电子签章、签约、上传文件、借出/归还印章、通知或回写。三类印章都是合成分类，不代表真实印章身份、法律权限或文档效力；审批通过不等于已用印。

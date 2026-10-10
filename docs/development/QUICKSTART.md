@@ -1,11 +1,22 @@
-# 开发环境与验证 / Development setup and verification
+# 开发环境与验证
 
-[开发文档 / Developer guide](README.md) · [简体中文](#zh) · [English](#en)
+<!-- Legacy fragments remain entry points after the language split. -->
+<a id="1-tools-and-build-order"></a>
+<a id="2-run-a-persistent-local-backend"></a>
+<a id="3-run-the-standalone-ui"></a>
+<a id="4-verify-changes"></a>
+<a id="5-common-development-failures"></a>
+<a id="开发环境与验证--development-setup-and-verification"></a>
 
 <a id="zh"></a>
-## 简体中文
+<a id="en"></a>
+<a id="简体中文"></a>
+<a id="english"></a>
 
-### 1. 工具与构建顺序
+[English](QUICKSTART.en.md) · [文档目录](../README.md)
+
+<!-- topic:1-tools-and-build-order -->
+## 1. 工具与构建顺序
 
 - 完整 **JDK 17+**，包括 `java` 和 `javac`；源码基线为 Java 17，CI 覆盖 17 和 21。
 - **Maven 3.9+** 为推荐开发组合。根项目不是聚合构建：示例有独立 POM，必须先把本地依赖安装到 Maven 仓库。
@@ -30,7 +41,8 @@ mvn -f examples/approval-demo/backend/pom.xml verify
 
 这里只启动独立示例，无需 MySQL、Redis、若依或外部账号。只想临时体验可改用 `python3 scripts/tryout.py`，正常退出会清理该次数据，详见[一键试用](../TRYOUT.md)。
 
-### 2. 启动可保留数据的本地后端
+<!-- topic:2-run-a-persistent-local-backend -->
+## 2. 启动可保留数据的本地后端
 
 在终端 1 的仓库根目录设置私有绝对路径。重启必须复用它；不要把真实业务或人员数据写入演示。
 
@@ -52,7 +64,8 @@ mvn -f examples/approval-demo/backend/pom.xml spring-boot:run
 
 后端绑定 `127.0.0.1:8080`。环境变量对应的宿主配置在 [application.properties](../../examples/approval-demo/backend/src/main/resources/application.properties)。数据包括主文件及报价／六场景的相邻文件，备份范围见[存储说明](PERSISTENCE.md#zh)。
 
-### 3. 启动独立界面
+<!-- topic:3-run-the-standalone-ui -->
+## 3. 启动独立界面
 
 在终端 2 的同一仓库根目录：
 
@@ -71,7 +84,8 @@ npm run dev
 
 页面使用相同演示账号，但独立页面不共享登录内存。刷新或退出后需重新登录。新主工作区默认 Alice 提交、Bob 单步审批；按[第一次审批](../GETTING_STARTED.md#简体中文)验证发布、投票和重启。若依与 H5 需要各自启动；H5 仅支持现有请假／采购的查看和审批，见[H5 指南](../../examples/approval-mobile/README.md)。
 
-### 4. 验证修改
+<!-- topic:4-verify-changes -->
+## 4. 验证修改
 
 以下是命令清单，不是已通过的测试报告。各命令从仓库根目录运行；失败或跳过应单独记录。
 
@@ -108,7 +122,8 @@ npm run test:e2e
 
 Linux 上可能还需要 Playwright 系统依赖；CI 使用 `npx playwright install --with-deps chromium`。浏览器下载、系统依赖和端口检查失败不是测试通过。更细的 HTTP／浏览器命令见[UI 验证](../../examples/approval-ui/README.md#real-browser-first-run-check)、[JDBC 真机验证](../../examples/approval-jdbc/README.md)及 [CI 工作流](../../.github/workflows/)。改动涉及 H5 或若依时，还需运行其独立检查，不能用独立 UI 通过代替。
 
-### 5. 常见开发问题
+<!-- topic:5-common-development-failures -->
+## 5. 常见开发问题
 
 | 现象 | 检查 |
 | --- | --- |
@@ -118,120 +133,3 @@ Linux 上可能还需要 Playwright 系统依赖；CI 使用 `npx playwright ins
 | 401／403 或前端代理失败 | 检查账号密码、准确 Origin、代理目标；POST 必须带 `X-Arcflow-Client: approval-demo` |
 | 发布／提交得到 409 | 刷新当前版本；提交结果不确定时保留原键和原始意图，先核查再重试 |
 | 数据文件校验失败 | 停止写者、保留文件和备份，核对格式／二进制版本；不要删字段或降版本号绕过校验 |
-
-<a id="en"></a>
-## English
-
-### 1. Tools and build order
-
-- A full **JDK 17+**, including `java` and `javac`. The source baseline is Java 17; CI covers 17 and 21.
-- **Maven 3.9+** is the recommended development setup. The root is not a reactor build: examples have independent POMs, so install local dependencies first.
-- Standalone UI and H5 declare **`^22.22.2 || ^24.15.0 || >=26.0.0`** for Node, with npm. Run `npm ci` against committed lockfiles.
-- Git; Bash for the interactive password commands below. Python 3.9+ for the launcher and script checks. Initial dependency downloads need network access and writable caches.
-
-The [standalone backend](../../examples/approval-demo/backend/pom.xml) uses Spring Boot **4.1.1**. Domain and JDBC retain Boot **3.5.16** build/test parents and are not standalone Boot applications. Do not align all parents to work around resolution errors. The standalone host uses a temporary Jackson 2 bridge to preserve shared contracts; see [migration boundaries](../SUPPORTED_HOST_MIGRATION.md).
-
-From the repository root:
-
-```bash
-java -version
-javac -version
-mvn -version
-node --version
-npm --version
-
-mvn install
-mvn -f examples/approval-domain/pom.xml install
-mvn -f examples/approval-demo/backend/pom.xml verify
-```
-
-The standalone demo needs no MySQL, Redis, RuoYi, or external account. For a disposable run, use `python3 scripts/tryout.py`; normal shutdown removes that run's data. See [the launcher guide](../TRYOUT.md).
-
-### 2. Run a persistent local backend
-
-In terminal 1 at the repository root, choose a private absolute data path. Reuse it on restart, and use synthetic data only.
-
-```bash
-umask 077
-mkdir -p "$PWD/examples/approval-demo/backend/data"
-export APPROVAL_DATA_FILE="$PWD/examples/approval-demo/backend/data/requests.json"
-export APPROVAL_UI_ORIGIN='http://localhost:5173'
-
-read -rs -p 'Alice demo password: ' APPROVAL_ALICE_PASSWORD; echo
-read -rs -p 'Bob demo password: ' APPROVAL_BOB_PASSWORD; echo
-read -rs -p 'Carol demo password: ' APPROVAL_CAROL_PASSWORD; echo
-export APPROVAL_ALICE_PASSWORD APPROVAL_BOB_PASSWORD APPROVAL_CAROL_PASSWORD
-
-mvn -f examples/approval-demo/backend/pom.xml spring-boot:run
-```
-
-Accounts are `alice`, `bob`, and `carol`; there are no default passwords. Choose three different demo-only passwords, each at least 12 characters and at most 72 UTF-8 bytes. Missing or out-of-range values fail startup. Alice may publish, and Bob/Carol may be assigned reviews. Keep passwords out of source, URLs, screenshots, and reports.
-
-The backend binds to `127.0.0.1:8080`. Host properties are in [application.properties](../../examples/approval-demo/backend/src/main/resources/application.properties). Data includes the main file and adjacent quote/six-scenario files; see [backup scope](PERSISTENCE.md#en).
-
-### 3. Run the standalone UI
-
-In terminal 2, starting at the same repository root:
-
-```bash
-cd examples/approval-ui
-npm ci
-npm run dev
-```
-
-Open **http://localhost:5173**. Vite proxies `/api` to the loopback backend. The default UI port is strict. If you change the hostname or port, also change `APPROVAL_UI_ORIGIN`. A custom backend port requires matching backend configuration and UI `ARCFLOW_BACKEND_PORT`; the launcher can configure both for you.
-
-- `/`: leave/procurement, the process designer, and member inbox
-- `/quote-discount.html`: separate quote-discount page, fixed Bob → Carol
-- `/scenarios.html`: expense, travel, seal-use, receiving, payment, and contract catalog
-- `/receiving.html`: dedicated entry into the same receiving scenario
-
-The pages use the same demo accounts but do not share in-memory login state. Reloading or signing out requires another login. A fresh main workspace starts with Alice submitting and Bob reviewing one step. Follow [First approval](../GETTING_STARTED.md#english) to check publication, decisions, and restart. RuoYi and H5 need separate setup; H5 only reads/reviews existing leave/procurement requests. See [the H5 guide](../../examples/approval-mobile/README.md).
-
-### 4. Verify changes
-
-This is a command checklist, not a passing test report. Run from the repository root and report failed, skipped, and unrun stages separately.
-
-```bash
-# Core: Maven tests and the dependency-download-free JDK checks
-mvn verify
-bash scripts/test.sh
-
-# Reinstall changed domain code before building its consumer
-mvn install
-mvn -f examples/approval-domain/pom.xml install
-mvn -f examples/approval-demo/backend/pom.xml verify
-
-# UI model/DOM checks, dedicated quote tests, and production build
-(cd examples/approval-ui && npm ci && npm test && node --test tests/crm-quote/*.test.mjs && npm run build)
-
-# Optional storage: H2 runs by default; real PostgreSQL/MySQL need configuration
-mvn -f examples/approval-jdbc/pom.xml verify
-
-# Root-build, launcher, or packaging changes
-python3 -m unittest discover -s scripts -p 'test_maven_build.py' -v
-python3 scripts/test_tryout.py
-```
-
-For real-browser tests, package the backend first. Stop your existing 8080/5173 servers so tests can create isolated credentials and stores:
-
-```bash
-mvn -f examples/approval-demo/backend/pom.xml package
-cd examples/approval-ui
-npm ci
-npx playwright install chromium
-npm run test:e2e
-```
-
-Linux may need additional browser system libraries; CI uses `npx playwright install --with-deps chromium`. Browser-download, system-dependency, or port failures are not passing tests. See [UI acceptance](../../examples/approval-ui/README.md#real-browser-first-run-check), [real JDBC server verification](../../examples/approval-jdbc/README.md), and [CI workflows](../../.github/workflows/) for focused suites. H5 and native RuoYi changes require their own checks; standalone UI results cannot replace them.
-
-### 5. Common development failures
-
-| Symptom | Check |
-| --- | --- |
-| Missing `arcflow-core`/`approval-domain` | Install the root, then domain; root Maven does not recursively build examples |
-| Domain edits do not appear | Reinstall domain and rebuild/restart the backend; E2E launches the packaged JAR |
-| Startup rejected | Check passwords, file permissions, port 8080, and exclusive ownership of the data file |
-| 401/403 or proxy errors | Check credentials, exact Origin, and proxy target; POST needs `X-Arcflow-Client: approval-demo` |
-| Publication/submission returns 409 | Refresh the current version; after an uncertain submission retain its original key and intent and reconcile before retrying |
-| Snapshot validation fails | Stop writers, preserve the file/backups, and check format/binary compatibility; never delete fields or lower a version to bypass validation |

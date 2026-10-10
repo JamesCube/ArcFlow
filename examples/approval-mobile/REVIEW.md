@@ -1,75 +1,27 @@
-# Independent mobile client review
+# H5 独立审阅记录
 
-Reviewed **2026-10-05 UTC** against the mobile working tree based on **549e8da**.
-The review covered source, runtime dependency code, build output and automated
-DOM tests. No browser or device was used, and the reviewer changed only this note.
-Later Chromium CI results are recorded in [ACCEPTANCE.md](ACCEPTANCE.md).
+<!-- Legacy fragments remain entry points after the language split. -->
+<a id="acceptance-limits"></a>
+<a id="checks-repeated-independently"></a>
+<a id="draft-pr-ci-preflight"></a>
+<a id="findings-resolved-and-rechecked"></a>
+<a id="independent-mobile-client-review"></a>
+<a id="runtime-telemetry-inspection"></a>
 
-## Checks repeated independently
+[English](REVIEW.en.md)
 
-- `npm run typecheck`: passed.
-- `npm test`: **40 tests passed** in four files, including nine DOM view tests
-  and the reference enumeration of **2,304** mixed sequential/ALL/ANY states.
-- `npm run build:h5`: passed after the current dependency overrides and final
-  focus-handling changes.
-- Generated CSS retains native button resets/focus styles, 48px minimum text
-  button targets, tab class selectors and 16px native input/textarea fonts.
 
-## Draft-PR CI preflight
+<!-- topic:status -->
+## 记录范围
 
-Before publication, the reviewer checked the workflow, Playwright configuration,
-seven browser tests and their launcher. The workflow has read-only repository
-permissions and no merge/deploy step. It starts its own loopback servers, refuses to reuse existing servers, disables
-traces/video and uploads synthetic screenshots only after the job succeeds.
+此页是历史证据入口，原记录冻结于仓库基线 `199db7548f6faba5dfef105eaaf7311972adb388`。其中的日期、源提交、测试计数、候选状态、限制和未运行项属于原检查点，不能推断为当前源码或部署的验收。
 
-One configuration issue needed fixing before publication: Playwright reimports its
-configuration in workers, so it must not regenerate passwords or stores there.
-`scripts/browser-tests.mjs` now creates the run context once, then removes the
-directory it created when the runner exits. When workers import the configuration,
-they only validate and read that inherited context. Browser assertions now wait for
-server-confirmed decisions, completed failure reconciliation and populated
-details before measuring viewport overflow.
+<!-- topic:source -->
+## 原始材料
 
-Independent `npm run test:e2e -- --list` discovered all **seven** tests and left
-**zero new temporary directories**. This command did not start a browser or run
-those tests. Typecheck and all **40** unit/DOM tests were repeated successfully on
-Vitest **4.1.11**. The preflight found no further blockers to publishing the draft PR. The browser
-tests and screenshot review had not yet run.
+[读取完整原始记录](../../docs/history/199db754/examples/approval-mobile/REVIEW.md.txt)。原文件逐字节保留，不改写测试结论或把未执行写成通过；其 SHA-256 与来源登记在[历史索引](../../docs/history/README.md)。原始材料可能使用记录当时的语言，当前中文/英文入口提供相同范围和路径。
 
-## Findings resolved and rechecked
+<!-- topic:next -->
+## 当前使用
 
-- Confirmation now freezes request, step and decision. Refreshing to a later
-  repeated-assignee stage, including reconciliation after a lost response, closes
-  the old composer instead of applying its note/decision to the new stage.
-- H5-native buttons, inputs, textareas and labels replace the uni-H5 wrappers. Dialog focus handling includes disabled controls,
-  in-flight submission and reverse Tab after a failed submission.
-- Unknown host selectors fail closed. Enterprise entries cannot fall back to
-  demo login, produce an identity or send notifications.
-- A failed initial load no longer looks like an empty inbox; ordinary
-  refreshes no longer flash a failed-load state. Sampled low-contrast muted
-  labels were darkened.
-- The review checked in-memory credentials, same-origin endpoint restrictions,
-  logout and read generations, duplicate-click prevention and handling of
-  server-confirmed success. Group display semantics matched the tested
-  reference transitions. Server authorization remains authoritative.
-
-## Runtime telemetry inspection
-
-The application statistics option is disabled. The generated page chunk has no
-external URL; no uni-stat, tongji, sendBeacon or analytics strings were found in
-the built JavaScript. The upstream runtime still contains dormant AdConfig and
-AdReport definitions, including `hac1.dcloud.net.cn/ah5v2` and
-`has1.dcloud.net.cn/ahl`. AST reference inspection found only their static-property
-initializers, with no calls instantiating or invoking those classes. This was a static inspection; it does **not** show that the running app makes
-no external requests.
-
-## Acceptance limits
-
-This review did not launch a browser or take screenshots. Touch behavior,
-rendered layout at 360/390/430px, zoom/reflow, screen-reader output, full contrast,
-mobile keyboard/safe-area behavior, real Back/Forward history and browser network
-traffic remain unverified. DOM tests do not substitute for those checks.
-Android/iOS, mini-programs and enterprise SSO/messaging were not built or tested.
-The API remains a single-tenant, fixed-account local demo; this review does not
-establish production security or cross-tenant isolation. See `ACCEPTANCE.md` for the dependency audit and completed/pending checks, and
-`HTTP_VERIFICATION.md` for backend test results.
+请从[现行指南](README.md)开始，按目标提交重新运行相关验证。原型纯数据契约、模拟响应、模型测试、真实 HTTP、真实数据库与浏览器截图分别证明不同层次，不能互相替代。若检查受环境限制，记录阻塞与未运行范围。
