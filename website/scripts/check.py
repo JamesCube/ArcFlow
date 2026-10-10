@@ -43,6 +43,10 @@ for file in DIST.rglob('*.html'):
   if dest.is_dir():dest=dest/'index.html'
   if not dest.is_relative_to(DIST.resolve()) or not dest.exists():errors.append(f'{file}: missing {ref}')
  if file.name=='index.html':
+  suffix='.en.md' if p.lang=='en' else '.md'
+  for document in ['docs/README','docs/api/API_REFERENCE','docs/development/QUICKSTART','docs/api/README','docs/galleries/README','docs/galleries/conditional-routing/README']:
+   ref='https://github.com/JamesCube/ArcFlow/blob/main/'+document+suffix
+   if ref not in p.refs:errors.append(f'{file}: missing navigation entry {ref}')
   for meta in ['description','og:title','og:description','og:url','og:image','twitter:card']:
    if not p.meta.get(meta):errors.append(f'{file}: missing {meta}')
   if len([x for x in p.links if x.get('rel')=='canonical'])!=1:errors.append(f'{file}: canonical')

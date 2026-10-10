@@ -1,0 +1,472 @@
+{
+  "sourceRevision": "cb3f1077fc725e0031620b1210a819917d8684a4",
+  "sourceWorkingTree": "clean-commit",
+  "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "uiSourceTreeSHA256": "238a4e4c2696b782a1cdbeb5046d1b08c509e51bad7d3951cf53a55f85267921",
+  "backendRuntime": "declared-Boot-4.1.1",
+  "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+  "captureSessionId": "ddfa82a5-9e18-4c91-a53a-ff56f621af3f",
+  "captureRunId": "38016643460",
+  "captureRunAttempt": "1",
+  "captureRepository": "JamesCube/ArcFlow",
+  "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/38016643460",
+  "result": "passed",
+  "browser": "Chromium",
+  "realBackend": true,
+  "locale": "en",
+  "checkpoints": [
+    {
+      "state": "receiving-clean-frozen",
+      "requestId": "4b4fbe56-10fe-4a57-add0-48068aeb9064",
+      "status": "PENDING",
+      "currentStepId": "procurement-review",
+      "history": [
+        {
+          "actorId": "alice",
+          "action": "SUBMIT",
+          "comment": "",
+          "at": "2026-10-10T02:33:57.817851231Z",
+          "stepId": null
+        }
+      ]
+    },
+    {
+      "state": "receiving-exception-entered",
+      "requestId": "0578220d-45cd-49aa-bd75-b35a56bb8f8b",
+      "status": "PENDING",
+      "currentStepId": "receiving-inspection",
+      "history": [
+        {
+          "actorId": "alice",
+          "action": "SUBMIT",
+          "comment": "",
+          "at": "2026-10-10T02:33:56.757228895Z",
+          "stepId": null
+        }
+      ]
+    },
+    {
+      "state": "receiving-exception-partial",
+      "requestId": "0578220d-45cd-49aa-bd75-b35a56bb8f8b",
+      "status": "PENDING",
+      "currentStepId": "receiving-inspection",
+      "history": [
+        {
+          "actorId": "alice",
+          "action": "SUBMIT",
+          "comment": "",
+          "at": "2026-10-10T02:33:56.757228895Z",
+          "stepId": null
+        },
+        {
+          "actorId": "bob",
+          "action": "APPROVE",
+          "comment": "Received quantities checked. The two damaged brackets have been isolated.",
+          "at": "2026-10-10T02:33:59.233238021Z",
+          "stepId": "receiving-inspection"
+        }
+      ]
+    },
+    {
+      "state": "receiving-procurement-review",
+      "requestId": "0578220d-45cd-49aa-bd75-b35a56bb8f8b",
+      "status": "PENDING",
+      "currentStepId": "procurement-review",
+      "history": [
+        {
+          "actorId": "alice",
+          "action": "SUBMIT",
+          "comment": "",
+          "at": "2026-10-10T02:33:56.757228895Z",
+          "stepId": null
+        },
+        {
+          "actorId": "bob",
+          "action": "APPROVE",
+          "comment": "Received quantities checked. The two damaged brackets have been isolated.",
+          "at": "2026-10-10T02:33:59.233238021Z",
+          "stepId": "receiving-inspection"
+        },
+        {
+          "actorId": "carol",
+          "action": "APPROVE",
+          "comment": "Inspection is complete. Accept the conforming goods and replace the two damaged brackets.",
+          "at": "2026-10-10T02:34:00.363146732Z",
+          "stepId": "receiving-inspection"
+        }
+      ]
+    },
+    {
+      "state": "receiving-exception-approved",
+      "requestId": "0578220d-45cd-49aa-bd75-b35a56bb8f8b",
+      "status": "APPROVED",
+      "currentStepId": null,
+      "history": [
+        {
+          "actorId": "alice",
+          "action": "SUBMIT",
+          "comment": "",
+          "at": "2026-10-10T02:33:56.757228895Z",
+          "stepId": null
+        },
+        {
+          "actorId": "bob",
+          "action": "APPROVE",
+          "comment": "Received quantities checked. The two damaged brackets have been isolated.",
+          "at": "2026-10-10T02:33:59.233238021Z",
+          "stepId": "receiving-inspection"
+        },
+        {
+          "actorId": "carol",
+          "action": "APPROVE",
+          "comment": "Inspection is complete. Accept the conforming goods and replace the two damaged brackets.",
+          "at": "2026-10-10T02:34:00.363146732Z",
+          "stepId": "receiving-inspection"
+        },
+        {
+          "actorId": "bob",
+          "action": "APPROVE",
+          "comment": "Supplier replacement has been agreed. The receipt can be recorded.",
+          "at": "2026-10-10T02:34:01.457190757Z",
+          "stepId": "procurement-review"
+        }
+      ]
+    },
+    {
+      "state": "receiving-exception-rejected",
+      "requestId": "1e90e589-998d-48f6-ae35-2379f72ad24f",
+      "status": "REJECTED",
+      "currentStepId": null,
+      "history": [
+        {
+          "actorId": "alice",
+          "action": "SUBMIT",
+          "comment": "",
+          "at": "2026-10-10T02:33:57.290792599Z",
+          "stepId": null
+        },
+        {
+          "actorId": "bob",
+          "action": "REJECT",
+          "comment": "Damage affects the mounting surface. Return this batch for replacement.",
+          "at": "2026-10-10T02:34:02.186904600Z",
+          "stepId": "receiving-inspection"
+        }
+      ]
+    },
+    {
+      "state": "receiving-clean-approved",
+      "requestId": "4b4fbe56-10fe-4a57-add0-48068aeb9064",
+      "status": "APPROVED",
+      "currentStepId": null,
+      "history": [
+        {
+          "actorId": "alice",
+          "action": "SUBMIT",
+          "comment": "",
+          "at": "2026-10-10T02:33:57.817851231Z",
+          "stepId": null
+        },
+        {
+          "actorId": "bob",
+          "action": "APPROVE",
+          "comment": "All delivered quantities passed inspection and match the purchase order.",
+          "at": "2026-10-10T02:34:02.916051861Z",
+          "stepId": "procurement-review"
+        }
+      ]
+    }
+  ],
+  "backendSha256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+  "requests": [
+    {
+      "id": "0578220d-45cd-49aa-bd75-b35a56bb8f8b",
+      "processId": "erp-receiving",
+      "processVersion": 2,
+      "title": "Assembly line bracket receipt",
+      "businessId": "RECEIVING-EXCEPTION-EN-a1d65234",
+      "definition": {
+        "schemaVersion": 4,
+        "id": "erp-receiving",
+        "version": 2,
+        "name": "Goods receipt review",
+        "nodes": [
+          {
+            "id": "start",
+            "type": "start",
+            "name": "提交验收 / Submit receipt",
+            "assigneeId": null
+          },
+          {
+            "id": "receiving-inspection",
+            "type": "parallelApproval",
+            "name": "Warehouse and quality inspection",
+            "assigneeId": null,
+            "assigneeIds": [
+              "bob",
+              "carol"
+            ],
+            "completionMode": "ALL",
+            "runIf": {
+              "mode": "ALL",
+              "predicates": [
+                {
+                  "field": "receiving.hasRejectedLines",
+                  "operator": "EQ",
+                  "expected": true
+                }
+              ]
+            }
+          },
+          {
+            "id": "procurement-review",
+            "type": "approval",
+            "name": "Procurement review",
+            "assigneeId": "bob"
+          },
+          {
+            "id": "end",
+            "type": "end",
+            "name": "验收审批完成 / Review complete",
+            "assigneeId": null
+          }
+        ]
+      },
+      "routing": {
+        "schemaVersion": 1,
+        "stepIds": [
+          "receiving-inspection",
+          "procurement-review"
+        ],
+        "evaluations": [
+          {
+            "stepId": "receiving-inspection",
+            "result": true,
+            "predicates": [
+              {
+                "field": "receiving.hasRejectedLines",
+                "actualValue": "true",
+                "result": true
+              }
+            ]
+          }
+        ]
+      },
+      "status": "APPROVED",
+      "currentStepId": null,
+      "history": [
+        {
+          "actorId": "alice",
+          "action": "SUBMIT",
+          "comment": "",
+          "at": "2026-10-10T02:33:56.757228895Z",
+          "stepId": null
+        },
+        {
+          "actorId": "bob",
+          "action": "APPROVE",
+          "comment": "Received quantities checked. The two damaged brackets have been isolated.",
+          "at": "2026-10-10T02:33:59.233238021Z",
+          "stepId": "receiving-inspection"
+        },
+        {
+          "actorId": "carol",
+          "action": "APPROVE",
+          "comment": "Inspection is complete. Accept the conforming goods and replace the two damaged brackets.",
+          "at": "2026-10-10T02:34:00.363146732Z",
+          "stepId": "receiving-inspection"
+        },
+        {
+          "actorId": "bob",
+          "action": "APPROVE",
+          "comment": "Supplier replacement has been agreed. The receipt can be recorded.",
+          "at": "2026-10-10T02:34:01.457190757Z",
+          "stepId": "procurement-review"
+        }
+      ]
+    },
+    {
+      "id": "1e90e589-998d-48f6-ae35-2379f72ad24f",
+      "processId": "erp-receiving",
+      "processVersion": 2,
+      "title": "Damaged mounting bracket delivery",
+      "businessId": "RECEIVING-REJECTED-EN-a1d65234",
+      "definition": {
+        "schemaVersion": 4,
+        "id": "erp-receiving",
+        "version": 2,
+        "name": "Goods receipt review",
+        "nodes": [
+          {
+            "id": "start",
+            "type": "start",
+            "name": "提交验收 / Submit receipt",
+            "assigneeId": null
+          },
+          {
+            "id": "receiving-inspection",
+            "type": "parallelApproval",
+            "name": "Warehouse and quality inspection",
+            "assigneeId": null,
+            "assigneeIds": [
+              "bob",
+              "carol"
+            ],
+            "completionMode": "ALL",
+            "runIf": {
+              "mode": "ALL",
+              "predicates": [
+                {
+                  "field": "receiving.hasRejectedLines",
+                  "operator": "EQ",
+                  "expected": true
+                }
+              ]
+            }
+          },
+          {
+            "id": "procurement-review",
+            "type": "approval",
+            "name": "Procurement review",
+            "assigneeId": "bob"
+          },
+          {
+            "id": "end",
+            "type": "end",
+            "name": "验收审批完成 / Review complete",
+            "assigneeId": null
+          }
+        ]
+      },
+      "routing": {
+        "schemaVersion": 1,
+        "stepIds": [
+          "receiving-inspection",
+          "procurement-review"
+        ],
+        "evaluations": [
+          {
+            "stepId": "receiving-inspection",
+            "result": true,
+            "predicates": [
+              {
+                "field": "receiving.hasRejectedLines",
+                "actualValue": "true",
+                "result": true
+              }
+            ]
+          }
+        ]
+      },
+      "status": "REJECTED",
+      "currentStepId": null,
+      "history": [
+        {
+          "actorId": "alice",
+          "action": "SUBMIT",
+          "comment": "",
+          "at": "2026-10-10T02:33:57.290792599Z",
+          "stepId": null
+        },
+        {
+          "actorId": "bob",
+          "action": "REJECT",
+          "comment": "Damage affects the mounting surface. Return this batch for replacement.",
+          "at": "2026-10-10T02:34:02.186904600Z",
+          "stepId": "receiving-inspection"
+        }
+      ]
+    },
+    {
+      "id": "4b4fbe56-10fe-4a57-add0-48068aeb9064",
+      "processId": "erp-receiving",
+      "processVersion": 2,
+      "title": "Protective materials goods receipt",
+      "businessId": "RECEIVING-CLEAN-EN-a1d65234",
+      "definition": {
+        "schemaVersion": 4,
+        "id": "erp-receiving",
+        "version": 2,
+        "name": "Goods receipt review",
+        "nodes": [
+          {
+            "id": "start",
+            "type": "start",
+            "name": "提交验收 / Submit receipt",
+            "assigneeId": null
+          },
+          {
+            "id": "receiving-inspection",
+            "type": "parallelApproval",
+            "name": "Warehouse and quality inspection",
+            "assigneeId": null,
+            "assigneeIds": [
+              "bob",
+              "carol"
+            ],
+            "completionMode": "ALL",
+            "runIf": {
+              "mode": "ALL",
+              "predicates": [
+                {
+                  "field": "receiving.hasRejectedLines",
+                  "operator": "EQ",
+                  "expected": true
+                }
+              ]
+            }
+          },
+          {
+            "id": "procurement-review",
+            "type": "approval",
+            "name": "Procurement review",
+            "assigneeId": "bob"
+          },
+          {
+            "id": "end",
+            "type": "end",
+            "name": "验收审批完成 / Review complete",
+            "assigneeId": null
+          }
+        ]
+      },
+      "routing": {
+        "schemaVersion": 1,
+        "stepIds": [
+          "procurement-review"
+        ],
+        "evaluations": [
+          {
+            "stepId": "receiving-inspection",
+            "result": false,
+            "predicates": [
+              {
+                "field": "receiving.hasRejectedLines",
+                "actualValue": "false",
+                "result": false
+              }
+            ]
+          }
+        ]
+      },
+      "status": "APPROVED",
+      "currentStepId": null,
+      "history": [
+        {
+          "actorId": "alice",
+          "action": "SUBMIT",
+          "comment": "",
+          "at": "2026-10-10T02:33:57.817851231Z",
+          "stepId": null
+        },
+        {
+          "actorId": "bob",
+          "action": "APPROVE",
+          "comment": "All delivered quantities passed inspection and match the purchase order.",
+          "at": "2026-10-10T02:34:02.916051861Z",
+          "stepId": "procurement-review"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,2463 @@
+{
+  "schemaVersion": 1,
+  "capture": {
+    "commit": "cb3f1077fc725e0031620b1210a819917d8684a4",
+    "tree": "9572d7e400261f7e49760b77edf7c1b86b7d955f",
+    "runId": "38016643460",
+    "runAttempt": 1,
+    "runUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/38016643460",
+    "artifactId": 11655974545,
+    "archiveSHA256": "c733d1de07bedf1488252cff418264a748cb0e6053a75d09a799e655dece52c0"
+  },
+  "baseline": {
+    "commit": "10e092fae22720b8c125d1a28a75f6fc559cfce8",
+    "sourceComparison": {
+      "captureUiTreeSHA256": "238a4e4c2696b782a1cdbeb5046d1b08c509e51bad7d3951cf53a55f85267921",
+      "baselineUiTreeSHA256": "84366fc96ac26a6a45e8929ca5262ef3fcb15bdb3a8240b42d3eb97ea9dd1cac",
+      "unchangedTrees": [
+        {
+          "path": "src",
+          "captureTree": "b1e63401f96f18819b214cbac40e89e990e9ba68",
+          "baselineTree": "b1e63401f96f18819b214cbac40e89e990e9ba68"
+        },
+        {
+          "path": "examples/approval-domain/src",
+          "captureTree": "5cf2022eb74b71cda6133015bf98bbeb0a302184",
+          "baselineTree": "5cf2022eb74b71cda6133015bf98bbeb0a302184"
+        },
+        {
+          "path": "examples/approval-demo/backend/src",
+          "captureTree": "e8b1522fcb12319227aee14ce7f7f5ab1f130b05",
+          "baselineTree": "e8b1522fcb12319227aee14ce7f7f5ab1f130b05"
+        },
+        {
+          "path": "examples/approval-ui/src",
+          "captureTree": "b2a859583c1c4617144c2d5955dfa501dad324b2",
+          "baselineTree": "b2a859583c1c4617144c2d5955dfa501dad324b2"
+        },
+        {
+          "path": "examples/approval-ui/scripts",
+          "captureTree": "fd834ed03ce401b6c3feab817d3addd71b5bf43f",
+          "baselineTree": "fd834ed03ce401b6c3feab817d3addd71b5bf43f"
+        }
+      ],
+      "changedUiFiles": [
+        {
+          "path": "examples/approval-ui/README.en.md",
+          "status": "A",
+          "captureSHA256": null,
+          "baselineSHA256": "daa38e7ae54b4328bbb2da00559afb44532369cc34c27faa5e355de8705b859f"
+        },
+        {
+          "path": "examples/approval-ui/README.md",
+          "status": "M",
+          "captureSHA256": "8397104f4444a033b6f69f46720685c9a9e1e8a3b7b68ec496efcf65c1a731ed",
+          "baselineSHA256": "fe09a899ba0a6bdba8ef14e802a7937fe9323ff088b2839e59ecf019982d7138"
+        },
+        {
+          "path": "examples/approval-ui/e2e/COMPLEX_SCENARIOS.en.md",
+          "status": "A",
+          "captureSHA256": null,
+          "baselineSHA256": "1a58e379564229bb0e38931a85252e20d53d7587055404574318b9795421605e"
+        },
+        {
+          "path": "examples/approval-ui/e2e/COMPLEX_SCENARIOS.md",
+          "status": "M",
+          "captureSHA256": "72c8e3a0b7818ac73799189d4639207e4d08648391ce7d5ee011a86a041e440b",
+          "baselineSHA256": "39ab7f928f1ac658301610977f341f39173226ffcaed74dc34720c01b2f68c32"
+        },
+        {
+          "path": "examples/approval-ui/e2e/CONDITIONAL_ROUTING.en.md",
+          "status": "A",
+          "captureSHA256": null,
+          "baselineSHA256": "d7553e91d5495b966c63d4bfb96996368904f60876a11e1186d93b58ac3c092e"
+        },
+        {
+          "path": "examples/approval-ui/e2e/CONDITIONAL_ROUTING.md",
+          "status": "M",
+          "captureSHA256": "f2ca13c22fb6b2a166e16e841df2fc2b1707c74da11fa5bd677f42c215919354",
+          "baselineSHA256": "32edc81c0dc084e3c0cff619d036659c55603102cc66fc75682538646611ee68"
+        },
+        {
+          "path": "examples/approval-ui/e2e/RECEIVING_SCENARIOS.en.md",
+          "status": "A",
+          "captureSHA256": null,
+          "baselineSHA256": "1f74413606cace8e7318e144f0ae327e9be301feabf65bc2d6d8d800ccbf49f6"
+        },
+        {
+          "path": "examples/approval-ui/e2e/RECEIVING_SCENARIOS.md",
+          "status": "M",
+          "captureSHA256": "eb60c0cb4f2e0a213d459e78194cc86cfb4ff1682b9c45d8e9a7600cc88a3651",
+          "baselineSHA256": "0107371fcdc4bf7741e1794b134ee0ca39e629d4c5d479e1dd008d759e32b664"
+        },
+        {
+          "path": "examples/approval-ui/e2e/VISUAL_SCENARIOS.en.md",
+          "status": "A",
+          "captureSHA256": null,
+          "baselineSHA256": "7766890f7eee97d4237a165c0bcf94de9806f3807cbd46f9b122b8ccefa6ebbc"
+        },
+        {
+          "path": "examples/approval-ui/e2e/VISUAL_SCENARIOS.md",
+          "status": "M",
+          "captureSHA256": "5a9abe5eabbfd0db70a0170fa3e19a75f213363fc198e545891380ee7e3cc98b",
+          "baselineSHA256": "ed4dc2f6a29032f43847c486afe0c6c59cba781b1827aed877c0f60ba76d0bf2"
+        }
+      ],
+      "unchangedFiles": [
+        {
+          "path": "pom.xml",
+          "captureSHA256": "669005f8bd953f40bdae0a3c02c2fff8ed0f978250c276df6d751f4a41ea34ee",
+          "baselineSHA256": "669005f8bd953f40bdae0a3c02c2fff8ed0f978250c276df6d751f4a41ea34ee"
+        },
+        {
+          "path": "examples/approval-domain/pom.xml",
+          "captureSHA256": "141ecfd8c06d3526e4a3de1cfd361d80f8af1ccbf9d900e56bce9ee998f04bc2",
+          "baselineSHA256": "141ecfd8c06d3526e4a3de1cfd361d80f8af1ccbf9d900e56bce9ee998f04bc2"
+        },
+        {
+          "path": "examples/approval-demo/backend/pom.xml",
+          "captureSHA256": "ee63917bbf89b118087bf38cad3e22cb8f37e15160b3e5eb5f605756d27141f3",
+          "baselineSHA256": "ee63917bbf89b118087bf38cad3e22cb8f37e15160b3e5eb5f605756d27141f3"
+        },
+        {
+          "path": "examples/approval-ui/package.json",
+          "captureSHA256": "07dfe07be611809d06d157da68ea5471624869be827fde7b4eaf58f9ebc8b9c1",
+          "baselineSHA256": "07dfe07be611809d06d157da68ea5471624869be827fde7b4eaf58f9ebc8b9c1"
+        },
+        {
+          "path": "examples/approval-ui/package-lock.json",
+          "captureSHA256": "e0ff2be590a42ce62f51beb9decde6657ade03d71e123323d6b3dca2356ca9aa",
+          "baselineSHA256": "e0ff2be590a42ce62f51beb9decde6657ade03d71e123323d6b3dca2356ca9aa"
+        },
+        {
+          "path": "examples/approval-ui/playwright.config.mjs",
+          "captureSHA256": "71659c4241cb930a4058c230ca0099159c02fd674c1f8142807f74f477f06187",
+          "baselineSHA256": "71659c4241cb930a4058c230ca0099159c02fd674c1f8142807f74f477f06187"
+        },
+        {
+          "path": "examples/approval-ui/e2e/conditional-routing.spec.mjs",
+          "captureSHA256": "f14fd3f29924e81b520467528e1b8ba6fbdd6f0380cafdef3ad397e0dc7b6c3c",
+          "baselineSHA256": "f14fd3f29924e81b520467528e1b8ba6fbdd6f0380cafdef3ad397e0dc7b6c3c"
+        },
+        {
+          "path": "examples/approval-ui/e2e/conditional-fixtures.mjs",
+          "captureSHA256": "0c1b4ed0a19a9416c47feee375f220c0416f57a454ddeea94dbff6954713d8c3",
+          "baselineSHA256": "0c1b4ed0a19a9416c47feee375f220c0416f57a454ddeea94dbff6954713d8c3"
+        },
+        {
+          "path": "examples/approval-ui/e2e/complex-evidence.mjs",
+          "captureSHA256": "e5bf9d15b2fc09a96d827269841cf86b047d095b7252b6c7c2f4693c0d2f1d90",
+          "baselineSHA256": "e5bf9d15b2fc09a96d827269841cf86b047d095b7252b6c7c2f4693c0d2f1d90"
+        },
+        {
+          "path": "examples/approval-ui/scripts/routing-capture-contract.mjs",
+          "captureSHA256": "b4e680d4b597e510f9efd4d34aaeea9abcc2adc1c6ae599e8a2dc83e89b8bce3",
+          "baselineSHA256": "b4e680d4b597e510f9efd4d34aaeea9abcc2adc1c6ae599e8a2dc83e89b8bce3"
+        },
+        {
+          "path": "examples/approval-ui/scripts/verify-routing-captures.mjs",
+          "captureSHA256": "6e69c2ed3ec6db59c1cda449f9cf7efe6f0a2d25e00358c1254e546469e447d4",
+          "baselineSHA256": "6e69c2ed3ec6db59c1cda449f9cf7efe6f0a2d25e00358c1254e546469e447d4"
+        },
+        {
+          "path": ".github/workflows/approval-demo.yml",
+          "captureSHA256": "20e8c3e2b3b67c909d113b25ed1153899354d46a55ac3c32bf1f3dabfd4b624b",
+          "baselineSHA256": "20e8c3e2b3b67c909d113b25ed1153899354d46a55ac3c32bf1f3dabfd4b624b"
+        }
+      ]
+    }
+  },
+  "files": [
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/runtime/routing-runtime.json",
+      "originalPath": "approval-demo/backend/target/routing-runtime.json",
+      "sha256": "93eb36c3709913b06da7e1705e776922233840db6c2098032cfc55c49a0947fe",
+      "bytes": 2167,
+      "kind": "runtime"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-clean-approved-zh-390px.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-019f4-ection-and-clean-completion/receiving-clean-approved-zh-390px.json",
+      "sha256": "085c386bd719cf667842a38b2afb0feaec5a63ba8db12f9a4b653c4f92a7a662",
+      "bytes": 1180,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-clean-approved-zh-390px.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-019f4-ection-and-clean-completion/receiving-clean-approved-zh-390px.png",
+      "sha256": "0da09d62b2c238d9420797c8b325c44d7b379e6cc9db94179016301cb3abc45a",
+      "bytes": 276114,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-clean-approved-zh-desktop.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-019f4-ection-and-clean-completion/receiving-clean-approved-zh-desktop.json",
+      "sha256": "378fb74564faef2a6f1fb7734e9cef9c3bfff994d18899b0059c6162838c3db9",
+      "bytes": 1186,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-clean-approved-zh-desktop.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-019f4-ection-and-clean-completion/receiving-clean-approved-zh-desktop.png",
+      "sha256": "e7dad0a7dcf68852a32d4b134f4587af5e513e21e48f3ece11393efe48f83060",
+      "bytes": 315202,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-clean-frozen-zh-390px.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-019f4-ection-and-clean-completion/receiving-clean-frozen-zh-390px.json",
+      "sha256": "3482770377a23d116bfc5eb045a922f8e8f11a5d2d7b4577fe248b0d17fccc11",
+      "bytes": 1191,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-clean-frozen-zh-390px.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-019f4-ection-and-clean-completion/receiving-clean-frozen-zh-390px.png",
+      "sha256": "cac17fb5d45d8ebedda992afdd5d72e97b53e95e2b67e04383fce80a263d61bb",
+      "bytes": 261973,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-clean-frozen-zh-desktop.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-019f4-ection-and-clean-completion/receiving-clean-frozen-zh-desktop.json",
+      "sha256": "4c9d98614167ceef3027fb2db4a2bc73936d9e6fbe2a242bd7b4fe98080b0361",
+      "bytes": 1197,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-clean-frozen-zh-desktop.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-019f4-ection-and-clean-completion/receiving-clean-frozen-zh-desktop.png",
+      "sha256": "31738b16b6080927979df57545b1b8856767113f8dc6ebe47f4d96ca526efa68",
+      "bytes": 301584,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-conditions-zh-390px.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-019f4-ection-and-clean-completion/receiving-conditions-zh-390px.json",
+      "sha256": "199c810d7b91d4cb753dfcfe00f692e33a851c8b47974da331d60b2c72ddde1e",
+      "bytes": 1135,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-conditions-zh-390px.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-019f4-ection-and-clean-completion/receiving-conditions-zh-390px.png",
+      "sha256": "402d2385d016de3751bb80413d39763b680bdd5f682a672a54c983b4c1756f6e",
+      "bytes": 152258,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-conditions-zh-desktop.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-019f4-ection-and-clean-completion/receiving-conditions-zh-desktop.json",
+      "sha256": "62f448dbe486d8f138d1ce9fd4f47216020afe9de09b9461070246fd52692a2f",
+      "bytes": 1141,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-conditions-zh-desktop.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-019f4-ection-and-clean-completion/receiving-conditions-zh-desktop.png",
+      "sha256": "8f43f2dd4e28a27363f442bc82bd854c5de85ab88dbf92d683ea30bbb56accdd",
+      "bytes": 229963,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-exception-approved-zh-390px.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-019f4-ection-and-clean-completion/receiving-exception-approved-zh-390px.json",
+      "sha256": "29bdd3e24cd7f29d13a44eaf2d5520c91aac9f0119330e933b7e338ab7f215fe",
+      "bytes": 1188,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-exception-approved-zh-390px.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-019f4-ection-and-clean-completion/receiving-exception-approved-zh-390px.png",
+      "sha256": "2856339c7e4b5b2ab0948b67246ad97290e8dd874e27a9f015d7963843c3a3c7",
+      "bytes": 290595,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-exception-approved-zh-desktop.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-019f4-ection-and-clean-completion/receiving-exception-approved-zh-desktop.json",
+      "sha256": "6461f15af73198375a8414312ec52dfb9abcebacad64a24f38905e2eafc3d77e",
+      "bytes": 1194,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-exception-approved-zh-desktop.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-019f4-ection-and-clean-completion/receiving-exception-approved-zh-desktop.png",
+      "sha256": "7cadbe99712eebe660dfd30dd6c382f3671e60878f6988cd2940442aab50b0d8",
+      "bytes": 327675,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-exception-entered-zh-390px.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-019f4-ection-and-clean-completion/receiving-exception-entered-zh-390px.json",
+      "sha256": "601b1b8829e3bb9d5abb544c7bf5c5811a7aa6ac3c90e8fc69a3ab2b4321db2c",
+      "bytes": 1203,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-exception-entered-zh-390px.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-019f4-ection-and-clean-completion/receiving-exception-entered-zh-390px.png",
+      "sha256": "9ab3d8c67fafb4d0646cf4f224482de565c19528da1f8d28ce7087acd80e7f99",
+      "bytes": 236682,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-exception-entered-zh-desktop.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-019f4-ection-and-clean-completion/receiving-exception-entered-zh-desktop.json",
+      "sha256": "8d325497f74341c1256466b0d37f117e370473c7b4a68b9ef8e1a41dcba9de75",
+      "bytes": 1209,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-exception-entered-zh-desktop.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-019f4-ection-and-clean-completion/receiving-exception-entered-zh-desktop.png",
+      "sha256": "e822cc9927ac28d70b83a06cb71bf4fad76eb852f386c7325d7280409856e9e6",
+      "bytes": 273879,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-exception-partial-zh-390px.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-019f4-ection-and-clean-completion/receiving-exception-partial-zh-390px.json",
+      "sha256": "cf9c2d1d7747c29e6682253d04b10f00922ef6446656be8690af14f273e616a3",
+      "bytes": 1203,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-exception-partial-zh-390px.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-019f4-ection-and-clean-completion/receiving-exception-partial-zh-390px.png",
+      "sha256": "c16eeb0335b71fa47d3890999582a38e960f4f6ccb07bb5003be08b990b48832",
+      "bytes": 258840,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-exception-partial-zh-desktop.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-019f4-ection-and-clean-completion/receiving-exception-partial-zh-desktop.json",
+      "sha256": "d1e4fbe42c3cd6b6a5ad31aed0f787c1c0533dc2af0df7761fbbc0bba01cac23",
+      "bytes": 1209,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-exception-partial-zh-desktop.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-019f4-ection-and-clean-completion/receiving-exception-partial-zh-desktop.png",
+      "sha256": "b804c3c9b7a0c3403eb4b7175ca0b889679273edc2a34d4943afa0a3bbd7e6cb",
+      "bytes": 294895,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-exception-rejected-zh-390px.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-019f4-ection-and-clean-completion/receiving-exception-rejected-zh-390px.json",
+      "sha256": "71263c9690d91bd0ab3fb5089b5d9ab75f2059637996b4cff4ed3f3b6558b662",
+      "bytes": 1188,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-exception-rejected-zh-390px.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-019f4-ection-and-clean-completion/receiving-exception-rejected-zh-390px.png",
+      "sha256": "8ded1b6b77048921f1d19e9f4cf1c5aeff38de4cd5475d95900ef4145c5cf6c7",
+      "bytes": 272540,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-exception-rejected-zh-desktop.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-019f4-ection-and-clean-completion/receiving-exception-rejected-zh-desktop.json",
+      "sha256": "96e7d3eb405a65357f9126c500035a7877340557018ddd80fcbf4e21e130a9b2",
+      "bytes": 1194,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-exception-rejected-zh-desktop.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-019f4-ection-and-clean-completion/receiving-exception-rejected-zh-desktop.png",
+      "sha256": "2c928960234a402e980c84c531dc23b3e592cae23770fc9f3052e54841915da4",
+      "bytes": 308504,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-procurement-review-zh-390px.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-019f4-ection-and-clean-completion/receiving-procurement-review-zh-390px.json",
+      "sha256": "468a82b53816445cf01b203ca0733009dc7565c8e8b58d108049bc6f9aa9f1af",
+      "bytes": 1203,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-procurement-review-zh-390px.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-019f4-ection-and-clean-completion/receiving-procurement-review-zh-390px.png",
+      "sha256": "c1dfa7009c191ed73f9c94a2b9eb1e4b90c8695ef1869277352147fc465b560b",
+      "bytes": 251472,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-procurement-review-zh-desktop.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-019f4-ection-and-clean-completion/receiving-procurement-review-zh-desktop.json",
+      "sha256": "948e5c91bcd9c4ecd941d46d6feab26c1c15fd8811f4f88013a62bfc67267653",
+      "bytes": 1209,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-procurement-review-zh-desktop.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-019f4-ection-and-clean-completion/receiving-procurement-review-zh-desktop.png",
+      "sha256": "6d4df198c35f33072180c7fda4e9ae686f3930329bc7345ef30763f1d47df3ea",
+      "bytes": 289479,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/routing-receipt.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-019f4-ection-and-clean-completion/routing-receipt.json",
+      "sha256": "3842949d14b58a1995e56405ea2a41b3a4d85fec14e7a2f9be835365dde7d8aa",
+      "bytes": 13669,
+      "kind": "receipt"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/en/contract-conditions-en-390px.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-2b717-al-votes-and-final-approval/contract-conditions-en-390px.json",
+      "sha256": "f88a973c93f07d3b23d145ceff0d9a8767ce64fbea645bac0646c11216c1b338",
+      "bytes": 1130,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/en/contract-conditions-en-390px.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-2b717-al-votes-and-final-approval/contract-conditions-en-390px.png",
+      "sha256": "dc8ccbb3ef07707e6c845d2d5849ade9fd9847b6ee1bd45336bdca4e68962c84",
+      "bytes": 154321,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/en/contract-conditions-en-desktop.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-2b717-al-votes-and-final-approval/contract-conditions-en-desktop.json",
+      "sha256": "7d6b4c29af145812d7ccab601d419894097b7ae95ffb78c324eba5df79c17fe7",
+      "bytes": 1136,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/en/contract-conditions-en-desktop.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-2b717-al-votes-and-final-approval/contract-conditions-en-desktop.png",
+      "sha256": "64b58bb10033dbe0d09b35182cc4aa8b52ef599ccfffe51161efce69898229c8",
+      "bytes": 240087,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/en/contract-nonstandard-approved-en-390px.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-2b717-al-votes-and-final-approval/contract-nonstandard-approved-en-390px.json",
+      "sha256": "d6a6ab8ec14cb527ea1f1ccf186f35c69ab01d91ae8d7562b566205503b9d745",
+      "bytes": 1187,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/en/contract-nonstandard-approved-en-390px.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-2b717-al-votes-and-final-approval/contract-nonstandard-approved-en-390px.png",
+      "sha256": "6172fbd07b1c9721d16ac0e89d9d550d222acd0f3a6eef0c369f20ac5489929d",
+      "bytes": 324653,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/en/contract-nonstandard-approved-en-desktop.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-2b717-al-votes-and-final-approval/contract-nonstandard-approved-en-desktop.json",
+      "sha256": "3148a4486bc806b424e603c2994253046900bfe259c9dd3c5daabc98f34df84d",
+      "bytes": 1193,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/en/contract-nonstandard-approved-en-desktop.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-2b717-al-votes-and-final-approval/contract-nonstandard-approved-en-desktop.png",
+      "sha256": "79de00f71b6d3fdfc9dd62890012c1e8945927890a03461d1c336ae2720f1cb5",
+      "bytes": 357075,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/en/contract-nonstandard-entered-en-390px.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-2b717-al-votes-and-final-approval/contract-nonstandard-entered-en-390px.json",
+      "sha256": "a5d0e92642909485804a3eb83a32717036ecd955935803566440a1787e7593ca",
+      "bytes": 1197,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/en/contract-nonstandard-entered-en-390px.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-2b717-al-votes-and-final-approval/contract-nonstandard-entered-en-390px.png",
+      "sha256": "f9d400468dab0655d1482df3b61d1ff10b8bf1022aaaa30a65733e2bffbd2f2e",
+      "bytes": 309059,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/en/contract-nonstandard-entered-en-desktop.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-2b717-al-votes-and-final-approval/contract-nonstandard-entered-en-desktop.json",
+      "sha256": "9ba7783a427f7ad04471baca9cc0be3670ab49d32a8dc7888c4e0ece217b51eb",
+      "bytes": 1203,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/en/contract-nonstandard-entered-en-desktop.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-2b717-al-votes-and-final-approval/contract-nonstandard-entered-en-desktop.png",
+      "sha256": "461eb5670388ac3b9f8e71bcb8def6f743a0c971454bf420cd17863ec3b07d81",
+      "bytes": 343469,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/en/contract-nonstandard-partial-en-390px.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-2b717-al-votes-and-final-approval/contract-nonstandard-partial-en-390px.json",
+      "sha256": "2787de3c6508d9689565199f191d4ae9be4f9cf709076131aa67ffae5a0f077f",
+      "bytes": 1197,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/en/contract-nonstandard-partial-en-390px.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-2b717-al-votes-and-final-approval/contract-nonstandard-partial-en-390px.png",
+      "sha256": "fd1d48bc0e3f7afdbaa7ba81f430c115c2d587646a1bd4e3d1f1d307925371dd",
+      "bytes": 307092,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/en/contract-nonstandard-partial-en-desktop.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-2b717-al-votes-and-final-approval/contract-nonstandard-partial-en-desktop.json",
+      "sha256": "c88f864cb46e10fcb833c17ec5d0b671410da5e552582e2bbc54cf818174e23d",
+      "bytes": 1203,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/en/contract-nonstandard-partial-en-desktop.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-2b717-al-votes-and-final-approval/contract-nonstandard-partial-en-desktop.png",
+      "sha256": "4fda25caa584bee46855194d96fe7f57c82f1cac6fa0e7ab0e2b7dde53a791cc",
+      "bytes": 339831,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/en/contract-standard-approved-en-390px.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-2b717-al-votes-and-final-approval/contract-standard-approved-en-390px.json",
+      "sha256": "ae87ffcf8d7ad83e98037f91deff6c07e41f79c310c1e910621827cc3eb29604",
+      "bytes": 1181,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/en/contract-standard-approved-en-390px.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-2b717-al-votes-and-final-approval/contract-standard-approved-en-390px.png",
+      "sha256": "13af85e4cea0db39e01f196f355252d068cbbadf5ab7f5843572f40151042727",
+      "bytes": 278550,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/en/contract-standard-approved-en-desktop.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-2b717-al-votes-and-final-approval/contract-standard-approved-en-desktop.json",
+      "sha256": "8c6322d8b14989b1e6ddcac58da261be700d508554ec826b8f312feb6b6e4d71",
+      "bytes": 1187,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/en/contract-standard-approved-en-desktop.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-2b717-al-votes-and-final-approval/contract-standard-approved-en-desktop.png",
+      "sha256": "caca0ff066a6b585903d1e759b2c9134944028766968d151795293161ed530dc",
+      "bytes": 313731,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/en/routing-receipt.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-2b717-al-votes-and-final-approval/routing-receipt.json",
+      "sha256": "0607f6a2c7b34ffe640c30a481815803384d40a50e35d1aa3c076320a5ce1ed5",
+      "bytes": 10053,
+      "kind": "receipt"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-clean-approved-en-390px.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-6ca04-ection-and-clean-completion/receiving-clean-approved-en-390px.json",
+      "sha256": "e417c1efa49b4d8c4f8bb4316c789df05e94905ec4f76a08ed7f50308a7244a9",
+      "bytes": 1177,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-clean-approved-en-390px.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-6ca04-ection-and-clean-completion/receiving-clean-approved-en-390px.png",
+      "sha256": "90fe84d8bf6756403dab78f7d088153af8a8393a1db5ecc85155a784f9c9447e",
+      "bytes": 242227,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-clean-approved-en-desktop.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-6ca04-ection-and-clean-completion/receiving-clean-approved-en-desktop.json",
+      "sha256": "8d345774172cfcf660d0172bb1e5fff07c4d7888c51b9e0f850e2e2f5b645dd1",
+      "bytes": 1183,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-clean-approved-en-desktop.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-6ca04-ection-and-clean-completion/receiving-clean-approved-en-desktop.png",
+      "sha256": "d31fb8c94b21c3bdd6f4e0c7bbcf81324e889e94c42d6bf5db48b448b175aa12",
+      "bytes": 281995,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-clean-frozen-en-390px.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-6ca04-ection-and-clean-completion/receiving-clean-frozen-en-390px.json",
+      "sha256": "dc2bf98396e7508487dfcbd0e148e35f41c59ab563d9e73e8093241d4116fbba",
+      "bytes": 1188,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-clean-frozen-en-390px.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-6ca04-ection-and-clean-completion/receiving-clean-frozen-en-390px.png",
+      "sha256": "384ed077497ddf8a698f297e9b4fbb024e3b8a1357d9faaac573ab7169f857a0",
+      "bytes": 228636,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-clean-frozen-en-desktop.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-6ca04-ection-and-clean-completion/receiving-clean-frozen-en-desktop.json",
+      "sha256": "5b2ae890b610c370a2e9369fd2fc0fae71b2a99d68d7a29db057138413ae6ff0",
+      "bytes": 1194,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-clean-frozen-en-desktop.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-6ca04-ection-and-clean-completion/receiving-clean-frozen-en-desktop.png",
+      "sha256": "aaaa6e538de3ae7afc20f05177da4686f827f27d6e1d9fe9a9be8063f73ed11f",
+      "bytes": 267395,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-conditions-en-390px.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-6ca04-ection-and-clean-completion/receiving-conditions-en-390px.json",
+      "sha256": "f61119955e7bb27d31659551cbe4fe5e326b71784f2ef5a26f4f9f73bb7509d0",
+      "bytes": 1132,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-conditions-en-390px.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-6ca04-ection-and-clean-completion/receiving-conditions-en-390px.png",
+      "sha256": "4c4f29091305f529a6176647cfafd567a8b65210581ebc2522bbfc3b9331b08f",
+      "bytes": 150781,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-conditions-en-desktop.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-6ca04-ection-and-clean-completion/receiving-conditions-en-desktop.json",
+      "sha256": "9207f08a5de9697b9b415053856a8fa751590dca4fbe077f294c1f98100db383",
+      "bytes": 1138,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-conditions-en-desktop.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-6ca04-ection-and-clean-completion/receiving-conditions-en-desktop.png",
+      "sha256": "740567dd022e942e9972660c97dfa03c88f17f59857c3020897f8c1de2e63632",
+      "bytes": 233859,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-exception-approved-en-390px.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-6ca04-ection-and-clean-completion/receiving-exception-approved-en-390px.json",
+      "sha256": "c14198273fdcc07fe600cfdd7a68315696cf3dd09b16eb402f0794663969b277",
+      "bytes": 1185,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-exception-approved-en-390px.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-6ca04-ection-and-clean-completion/receiving-exception-approved-en-390px.png",
+      "sha256": "7d8c9ba524c8c884c7471d582032d52b0188908facdae82857fac071796b6d4e",
+      "bytes": 260068,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-exception-approved-en-desktop.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-6ca04-ection-and-clean-completion/receiving-exception-approved-en-desktop.json",
+      "sha256": "8ae291f614e06fea86883a8ae8a1c6af3ceec226aaeade38b54dddef26699f6b",
+      "bytes": 1191,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-exception-approved-en-desktop.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-6ca04-ection-and-clean-completion/receiving-exception-approved-en-desktop.png",
+      "sha256": "a29504fa6f020d4ebf97709d8cf2ddb97ea31f6d1e9d667be6c15fb8eefce7e7",
+      "bytes": 297314,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-exception-entered-en-390px.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-6ca04-ection-and-clean-completion/receiving-exception-entered-en-390px.json",
+      "sha256": "df4da46cc84f8cfb6b9a3fc586f904ac1468a9498ca7ab16ccccd4d86b1169d6",
+      "bytes": 1200,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-exception-entered-en-390px.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-6ca04-ection-and-clean-completion/receiving-exception-entered-en-390px.png",
+      "sha256": "a8e85c8b8930e09fb105de9739d26a533d6d66fb87d37cd295f33e31101f6cd2",
+      "bytes": 237657,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-exception-entered-en-desktop.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-6ca04-ection-and-clean-completion/receiving-exception-entered-en-desktop.json",
+      "sha256": "c1312a0e5b9be4e33d89e2b1c00abd74abf37daacb0d2d8906059c13fb5e9d12",
+      "bytes": 1206,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-exception-entered-en-desktop.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-6ca04-ection-and-clean-completion/receiving-exception-entered-en-desktop.png",
+      "sha256": "d869185eb9a8f61bbf6e2ad89ad2c79db21c08713b60a3190ce529e612a29065",
+      "bytes": 275553,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-exception-partial-en-390px.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-6ca04-ection-and-clean-completion/receiving-exception-partial-en-390px.json",
+      "sha256": "ae787d900f1e6b61c5e2d7672382bd32ad25942fe3c72cf30bb14176115de62e",
+      "bytes": 1200,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-exception-partial-en-390px.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-6ca04-ection-and-clean-completion/receiving-exception-partial-en-390px.png",
+      "sha256": "68ea210570fbcc0a57567fcb34d9158ec09a4371c32d3ca2c562ee9de5e8ce63",
+      "bytes": 225238,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-exception-partial-en-desktop.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-6ca04-ection-and-clean-completion/receiving-exception-partial-en-desktop.json",
+      "sha256": "6f9e12883a7d1d06804b9dc7d884d9d8c3de11288cbf6f0a8fd6e5950bfccc03",
+      "bytes": 1206,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-exception-partial-en-desktop.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-6ca04-ection-and-clean-completion/receiving-exception-partial-en-desktop.png",
+      "sha256": "872bd8e82d7b96fe395e63d013765cdd778d6d5a48bd470b64eaa8f556dc88fb",
+      "bytes": 262036,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-exception-rejected-en-390px.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-6ca04-ection-and-clean-completion/receiving-exception-rejected-en-390px.json",
+      "sha256": "5ba79f3d6a87c6d748f59bb1c412824a32c30176af847ceff6baab64ea7051e5",
+      "bytes": 1185,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-exception-rejected-en-390px.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-6ca04-ection-and-clean-completion/receiving-exception-rejected-en-390px.png",
+      "sha256": "e3f938ce1c5ac2cabf92a9fe8c449cf1820149ac31ebd7981ea03ba78d6cf20c",
+      "bytes": 236476,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-exception-rejected-en-desktop.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-6ca04-ection-and-clean-completion/receiving-exception-rejected-en-desktop.json",
+      "sha256": "4591592db2412aee576f9bc7705ef70f265370afe15ed048f4089317f7c91e47",
+      "bytes": 1191,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-exception-rejected-en-desktop.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-6ca04-ection-and-clean-completion/receiving-exception-rejected-en-desktop.png",
+      "sha256": "73001d7258d9f5df3b8e14bdcb01f0a424ec95277d1500a032795726d240b883",
+      "bytes": 273703,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-procurement-review-en-390px.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-6ca04-ection-and-clean-completion/receiving-procurement-review-en-390px.json",
+      "sha256": "cd45de255ae7e3b360cc3bb3138d4b1b289defb5bcb6120cc437ffc03e8b8565",
+      "bytes": 1200,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-procurement-review-en-390px.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-6ca04-ection-and-clean-completion/receiving-procurement-review-en-390px.png",
+      "sha256": "eb0dd5f89738fb80cf6dbc3305a5f89da59bb3c3238557e358894530fa050311",
+      "bytes": 245687,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-procurement-review-en-desktop.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-6ca04-ection-and-clean-completion/receiving-procurement-review-en-desktop.json",
+      "sha256": "99135b028f3ab09fc623582fe61ecd986c2cffbb95542bd60dccf1a9bd80aff0",
+      "bytes": 1206,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-procurement-review-en-desktop.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-6ca04-ection-and-clean-completion/receiving-procurement-review-en-desktop.png",
+      "sha256": "835745a7c6e823e9e1531ac9285d867f7c24bd3062d5a5907b4748073d2b987b",
+      "bytes": 282288,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/routing-receipt.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-6ca04-ection-and-clean-completion/routing-receipt.json",
+      "sha256": "3cf4660d60866ca6b08f71fc20ed382dc5a2bec1ae6a84be9f26c1860ab5a673",
+      "bytes": 13920,
+      "kind": "receipt"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-conditions-zh-390px.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-98747-idual-ALL-and-ANY-decisions/payment-conditions-zh-390px.json",
+      "sha256": "6ec952e6b658644a5bac500b703597d7c5c92c43d54b5e17212833f382f5208f",
+      "bytes": 1131,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-conditions-zh-390px.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-98747-idual-ALL-and-ANY-decisions/payment-conditions-zh-390px.png",
+      "sha256": "a611109f78af65357f797ae7addaef830cfb330a6b36831b7a7b8ed597167881",
+      "bytes": 167227,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-conditions-zh-desktop.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-98747-idual-ALL-and-ANY-decisions/payment-conditions-zh-desktop.json",
+      "sha256": "bbd4519c9177fe0bc5c5132eb4ea134058304ee01433f19c0ff1c28be1c887ab",
+      "bytes": 1137,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-conditions-zh-desktop.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-98747-idual-ALL-and-ANY-decisions/payment-conditions-zh-desktop.png",
+      "sha256": "ae855032c1e7377ab525b3c5e4b1c8aece919e64265534962d2242f8664f38e0",
+      "bytes": 248483,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-high-complete-zh-390px.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-98747-idual-ALL-and-ANY-decisions/payment-high-complete-zh-390px.json",
+      "sha256": "50262271227dfb47ce76a8c707c3c94a710e75322330fe4c25827eb78c6fd1bc",
+      "bytes": 1174,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-high-complete-zh-390px.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-98747-idual-ALL-and-ANY-decisions/payment-high-complete-zh-390px.png",
+      "sha256": "a43ce80356a4a035d2916aa5dc47f7fad3824a4312714e21b44ca46c3007d24c",
+      "bytes": 278396,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-high-complete-zh-desktop.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-98747-idual-ALL-and-ANY-decisions/payment-high-complete-zh-desktop.json",
+      "sha256": "6684bf8c4e16d57ebf7002df820fce02aa22eceb3b237fa7c09f1e9715823e16",
+      "bytes": 1180,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-high-complete-zh-desktop.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-98747-idual-ALL-and-ANY-decisions/payment-high-complete-zh-desktop.png",
+      "sha256": "efecde8d0abbc1d4a2889ff4b102a0dbab897946e6f0a24b65d9f3372b212089",
+      "bytes": 314398,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-high-entered-zh-390px.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-98747-idual-ALL-and-ANY-decisions/payment-high-entered-zh-390px.json",
+      "sha256": "7f104884ff4896d5c261e02e65ac605c216fbffc52c79e4c07d14b17013c3c66",
+      "bytes": 1182,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-high-entered-zh-390px.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-98747-idual-ALL-and-ANY-decisions/payment-high-entered-zh-390px.png",
+      "sha256": "5db056354c0162718d4a85bef0db943bda7a5edb09a95d34ca31d1e5ef520c1f",
+      "bytes": 259678,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-high-entered-zh-desktop.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-98747-idual-ALL-and-ANY-decisions/payment-high-entered-zh-desktop.json",
+      "sha256": "b8b3488d1275dadb3eac470a1b3ad92104200827eac98e5000cfed50ab8315d6",
+      "bytes": 1188,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-high-entered-zh-desktop.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-98747-idual-ALL-and-ANY-decisions/payment-high-entered-zh-desktop.png",
+      "sha256": "6b654468f04d7fea35c319430ed359c8089ecb084227ede7e8fe27c94854a02e",
+      "bytes": 296139,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-high-final-review-zh-390px.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-98747-idual-ALL-and-ANY-decisions/payment-high-final-review-zh-390px.json",
+      "sha256": "bc52ccc2cbddb78c8cbf94105cddac220b987b56f5316393bc33e3c40bf8b499",
+      "bytes": 1192,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-high-final-review-zh-390px.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-98747-idual-ALL-and-ANY-decisions/payment-high-final-review-zh-390px.png",
+      "sha256": "8a6f323f818c1c172f3247cf3d3769ebc04e037d301fa3e5ef34615c9ad144f9",
+      "bytes": 292371,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-high-final-review-zh-desktop.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-98747-idual-ALL-and-ANY-decisions/payment-high-final-review-zh-desktop.json",
+      "sha256": "7c2d6cf8979a939ba1669b1b2cd4d4b9b8bccb7feb1487d4270c77915c348559",
+      "bytes": 1198,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-high-final-review-zh-desktop.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-98747-idual-ALL-and-ANY-decisions/payment-high-final-review-zh-desktop.png",
+      "sha256": "3561e4c3b7e99ff875a56e47ea6a2693b2fbb754cc5a5b0086ae2b4e9abf5c94",
+      "bytes": 329456,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-high-partial-zh-390px.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-98747-idual-ALL-and-ANY-decisions/payment-high-partial-zh-390px.json",
+      "sha256": "5165efee82e49dadd1a77dfcaba2c20bb71c781a2280846ffcc4a0744a8c0950",
+      "bytes": 1182,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-high-partial-zh-390px.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-98747-idual-ALL-and-ANY-decisions/payment-high-partial-zh-390px.png",
+      "sha256": "590ba44081e22db5914a2e4312d89a721be70ab9c3ab904c8260f24519ceb4f0",
+      "bytes": 260713,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-high-partial-zh-desktop.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-98747-idual-ALL-and-ANY-decisions/payment-high-partial-zh-desktop.json",
+      "sha256": "99e6a326c45737ad54d611a6e298ed6da43e6ad2b71ee16cb06081e5f8714263",
+      "bytes": 1188,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-high-partial-zh-desktop.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-98747-idual-ALL-and-ANY-decisions/payment-high-partial-zh-desktop.png",
+      "sha256": "4017ca474227570216d29b519626a96452604ae1aec806c0894342cb33b3e18d",
+      "bytes": 296695,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-low-complete-zh-390px.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-98747-idual-ALL-and-ANY-decisions/payment-low-complete-zh-390px.json",
+      "sha256": "b3d20f96d5671d85223ea76d3d6ce6e4cedc4ef2ecba3d7fe79fa42334884853",
+      "bytes": 1172,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-low-complete-zh-390px.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-98747-idual-ALL-and-ANY-decisions/payment-low-complete-zh-390px.png",
+      "sha256": "3edc01e102a2c7df66073cefd1df6e723d8377fed6b15ece49a10573170519a0",
+      "bytes": 271793,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-low-complete-zh-desktop.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-98747-idual-ALL-and-ANY-decisions/payment-low-complete-zh-desktop.json",
+      "sha256": "3d9e47dca18ffebd9905fd612e926bd00f3dd263a5ed556a49a10ec646b9e90a",
+      "bytes": 1178,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-low-complete-zh-desktop.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-98747-idual-ALL-and-ANY-decisions/payment-low-complete-zh-desktop.png",
+      "sha256": "6a8dc94a7695f6ead9953b7735a69fe09347be33f0f520502c0aeedf6a947040",
+      "bytes": 307785,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-low-frozen-zh-390px.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-98747-idual-ALL-and-ANY-decisions/payment-low-frozen-zh-390px.json",
+      "sha256": "4d891dea989e497d9ba08c4f3e6e9eefdc3b861a9651fced19dbd28ebc761393",
+      "bytes": 1178,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-low-frozen-zh-390px.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-98747-idual-ALL-and-ANY-decisions/payment-low-frozen-zh-390px.png",
+      "sha256": "6240c76d9d7c6b7dbe7e0ccdb9ea595f3d56966ccf52a0af58cbfd80c5fd78b1",
+      "bytes": 273009,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-low-frozen-zh-desktop.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-98747-idual-ALL-and-ANY-decisions/payment-low-frozen-zh-desktop.json",
+      "sha256": "eeb44383942522188b89ec4330f2b1f1603c6a1197c01d0447f2e6b6a0747630",
+      "bytes": 1184,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-low-frozen-zh-desktop.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-98747-idual-ALL-and-ANY-decisions/payment-low-frozen-zh-desktop.png",
+      "sha256": "8e83da2a8ae37b971bc3875642574113130171dfe9b37eb32b5996dbdda5e6a3",
+      "bytes": 308070,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/zh/routing-receipt.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-98747-idual-ALL-and-ANY-decisions/routing-receipt.json",
+      "sha256": "8fc77796737eb2bf083a8c3a41d3fc6e1432acb78882c9e8e425c4de5129003a",
+      "bytes": 13059,
+      "kind": "receipt"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/zh/contract-conditions-zh-390px.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-bd2b4-al-votes-and-final-approval/contract-conditions-zh-390px.json",
+      "sha256": "26419954563842f5f3f1bdf4be27755753dc27df4fdffaa6d7f9d0a420931f68",
+      "bytes": 1133,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/zh/contract-conditions-zh-390px.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-bd2b4-al-votes-and-final-approval/contract-conditions-zh-390px.png",
+      "sha256": "88a194c30dfea3176b597a56dcaee96692feae7dc95531349e29e082be543662",
+      "bytes": 155990,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/zh/contract-conditions-zh-desktop.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-bd2b4-al-votes-and-final-approval/contract-conditions-zh-desktop.json",
+      "sha256": "f27b37c7635ac6baaef12e35d53263bcc167412bccf87adc7b7ce3f2470ba3d0",
+      "bytes": 1139,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/zh/contract-conditions-zh-desktop.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-bd2b4-al-votes-and-final-approval/contract-conditions-zh-desktop.png",
+      "sha256": "d92ae21e411a18b3a19c53eb5ea7e6fb1e2b73633144f940430a40187dca156a",
+      "bytes": 234508,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/zh/contract-nonstandard-approved-zh-390px.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-bd2b4-al-votes-and-final-approval/contract-nonstandard-approved-zh-390px.json",
+      "sha256": "971a537e2e827a4d38f6483a0f6eefa4c683a00c6f57eb512b1ac8baf385806e",
+      "bytes": 1190,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/zh/contract-nonstandard-approved-zh-390px.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-bd2b4-al-votes-and-final-approval/contract-nonstandard-approved-zh-390px.png",
+      "sha256": "fb8e87ed79ae517b53d28b4291e8753e0b385d0be2976ff4c1c7668d9e50b3e7",
+      "bytes": 319560,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/zh/contract-nonstandard-approved-zh-desktop.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-bd2b4-al-votes-and-final-approval/contract-nonstandard-approved-zh-desktop.json",
+      "sha256": "c20175acab297fb4ed2a99d25405a569edabd9a8a635eb2c2ad0181e87294af4",
+      "bytes": 1196,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/zh/contract-nonstandard-approved-zh-desktop.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-bd2b4-al-votes-and-final-approval/contract-nonstandard-approved-zh-desktop.png",
+      "sha256": "c1024368aef1a4c0a54c2e2ee00295761da38aad347189cb77357ac5769cb2d8",
+      "bytes": 354019,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/zh/contract-nonstandard-entered-zh-390px.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-bd2b4-al-votes-and-final-approval/contract-nonstandard-entered-zh-390px.json",
+      "sha256": "f263304c37278d2fabeaa8460dbec3d1581a0d554db79882d65ca680a51e883a",
+      "bytes": 1200,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/zh/contract-nonstandard-entered-zh-390px.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-bd2b4-al-votes-and-final-approval/contract-nonstandard-entered-zh-390px.png",
+      "sha256": "08925a758e06bd4c8ac2690e687fb98b132297f82fcfb1815771aa0a13526636",
+      "bytes": 290855,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/zh/contract-nonstandard-entered-zh-desktop.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-bd2b4-al-votes-and-final-approval/contract-nonstandard-entered-zh-desktop.json",
+      "sha256": "1e2d4574511499e31eba4c418fe9ec50c7ab97942dad0516ea2037c58a0a02c2",
+      "bytes": 1206,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/zh/contract-nonstandard-entered-zh-desktop.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-bd2b4-al-votes-and-final-approval/contract-nonstandard-entered-zh-desktop.png",
+      "sha256": "73536dd429ea58780afa64513f4f4ce8712adedc5bfe99399d96329d39adaa6a",
+      "bytes": 324763,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/zh/contract-nonstandard-partial-zh-390px.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-bd2b4-al-votes-and-final-approval/contract-nonstandard-partial-zh-390px.json",
+      "sha256": "b0667f5ec21f7a3591664df3e05bef6f25d73f92c2d8ca06b524cc367d22bbd3",
+      "bytes": 1200,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/zh/contract-nonstandard-partial-zh-390px.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-bd2b4-al-votes-and-final-approval/contract-nonstandard-partial-zh-390px.png",
+      "sha256": "141a6afa8079d0a410e8875b7b789236cf710484567e4bc66c54ed34bf548c7a",
+      "bytes": 313342,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/zh/contract-nonstandard-partial-zh-desktop.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-bd2b4-al-votes-and-final-approval/contract-nonstandard-partial-zh-desktop.json",
+      "sha256": "f5a469eddc26785f189064ed1b425132fecf468381c9404f7d2347db4ebfc943",
+      "bytes": 1206,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/zh/contract-nonstandard-partial-zh-desktop.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-bd2b4-al-votes-and-final-approval/contract-nonstandard-partial-zh-desktop.png",
+      "sha256": "1e71e80311f9211b4218a957c860ab2755b55772fbb53aac209560024be5ce15",
+      "bytes": 346729,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/zh/contract-standard-approved-zh-390px.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-bd2b4-al-votes-and-final-approval/contract-standard-approved-zh-390px.json",
+      "sha256": "e02a51624729bbce28f4be6286b2a228a03321a156637b454ec216fc012ebfbd",
+      "bytes": 1184,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/zh/contract-standard-approved-zh-390px.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-bd2b4-al-votes-and-final-approval/contract-standard-approved-zh-390px.png",
+      "sha256": "dbe0635f23139dd5dc38bb840601e953b34021a7a4da0f07c7d20b987027fc61",
+      "bytes": 292448,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/zh/contract-standard-approved-zh-desktop.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-bd2b4-al-votes-and-final-approval/contract-standard-approved-zh-desktop.json",
+      "sha256": "a7c21e28609a8a24f5e246257b34461521620c6e9a7b4f1014cde5e8cabc4dda",
+      "bytes": 1190,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/zh/contract-standard-approved-zh-desktop.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-bd2b4-al-votes-and-final-approval/contract-standard-approved-zh-desktop.png",
+      "sha256": "97be84036b9d7e9b901b53fa1b5b80a29468debe85cd2e4149a56515a3eb8321",
+      "bytes": 326551,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/zh/routing-receipt.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-bd2b4-al-votes-and-final-approval/routing-receipt.json",
+      "sha256": "b34a72970413e4e3ce9df0b305f6a6279873196aae817187af8e1e4fe7ff5589",
+      "bytes": 9817,
+      "kind": "receipt"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/en/payment-conditions-en-390px.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-c5e58-idual-ALL-and-ANY-decisions/payment-conditions-en-390px.json",
+      "sha256": "1f2211776209e58b4b7176d26ab01d3b0c636f208492992be9b76fca9c3c1ab4",
+      "bytes": 1128,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/en/payment-conditions-en-390px.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-c5e58-idual-ALL-and-ANY-decisions/payment-conditions-en-390px.png",
+      "sha256": "3efef9714c7cb04bbac2b2d5f268b4418430f3bbddbeffdd06fd4dfb2f103555",
+      "bytes": 162323,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/en/payment-conditions-en-desktop.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-c5e58-idual-ALL-and-ANY-decisions/payment-conditions-en-desktop.json",
+      "sha256": "79430a4edb7ea29e174225bd338b4ac4ad43ebda710ce305134d9405617e5b49",
+      "bytes": 1134,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/en/payment-conditions-en-desktop.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-c5e58-idual-ALL-and-ANY-decisions/payment-conditions-en-desktop.png",
+      "sha256": "af27a93aabc026c9b27ebcd0c65eb9f865f4678ffd4e42d659d63bf570df3743",
+      "bytes": 250958,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/en/payment-high-complete-en-390px.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-c5e58-idual-ALL-and-ANY-decisions/payment-high-complete-en-390px.json",
+      "sha256": "71695347a0f08516586c1ca41e883cda8b2be0cbb4603bb97d9c0c40e54c1c42",
+      "bytes": 1171,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/en/payment-high-complete-en-390px.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-c5e58-idual-ALL-and-ANY-decisions/payment-high-complete-en-390px.png",
+      "sha256": "09a36db89540889efda696ff251d19059bf92317b7f478c6c11e574d67cc4c6d",
+      "bytes": 277679,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/en/payment-high-complete-en-desktop.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-c5e58-idual-ALL-and-ANY-decisions/payment-high-complete-en-desktop.json",
+      "sha256": "7591231b903b220fa8ec490ec1dc3d98f189e81ea71dc4d80e61751c8d6abbf9",
+      "bytes": 1177,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/en/payment-high-complete-en-desktop.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-c5e58-idual-ALL-and-ANY-decisions/payment-high-complete-en-desktop.png",
+      "sha256": "7b02fb2682fe7cb6ed8dc24fb5273726be4b70dcea2868ff0cc39de07bbb6847",
+      "bytes": 313425,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/en/payment-high-entered-en-390px.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-c5e58-idual-ALL-and-ANY-decisions/payment-high-entered-en-390px.json",
+      "sha256": "85f4e4fea24039d8c280111edc4b1cfdecdc9463c6ecc3b1b663d2ea2a71ceb2",
+      "bytes": 1179,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/en/payment-high-entered-en-390px.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-c5e58-idual-ALL-and-ANY-decisions/payment-high-entered-en-390px.png",
+      "sha256": "a552964a0239f75f782783f7c0d351f70d8e855851b024d746a3951a39b5fb40",
+      "bytes": 256843,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/en/payment-high-entered-en-desktop.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-c5e58-idual-ALL-and-ANY-decisions/payment-high-entered-en-desktop.json",
+      "sha256": "c043c9aad3d015304fe85b4bd2527c1f0e6b625dd2c605010f1c3f1ded518171",
+      "bytes": 1185,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/en/payment-high-entered-en-desktop.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-c5e58-idual-ALL-and-ANY-decisions/payment-high-entered-en-desktop.png",
+      "sha256": "7db00a9602e2cdc7cec75ed386d3af7750a6ae0b76f0a30814e1993eb6f59a83",
+      "bytes": 295170,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/en/payment-high-final-review-en-390px.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-c5e58-idual-ALL-and-ANY-decisions/payment-high-final-review-en-390px.json",
+      "sha256": "490fe5afb1fa57bbf4fbe26a075cdfd20d61779098455303028c444961fc9018",
+      "bytes": 1189,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/en/payment-high-final-review-en-390px.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-c5e58-idual-ALL-and-ANY-decisions/payment-high-final-review-en-390px.png",
+      "sha256": "adf05bdffa54f5b83fa2c4244e2d8211dcf589b6a05c3287417b1499b5c706bd",
+      "bytes": 290395,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/en/payment-high-final-review-en-desktop.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-c5e58-idual-ALL-and-ANY-decisions/payment-high-final-review-en-desktop.json",
+      "sha256": "7ef962581e370b54b69a166cc99264da476b4362a40dc7793ad34a485c928ec5",
+      "bytes": 1195,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/en/payment-high-final-review-en-desktop.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-c5e58-idual-ALL-and-ANY-decisions/payment-high-final-review-en-desktop.png",
+      "sha256": "9fc4c2e89683eb52dc3bfac3cd84a0c41d86bfc7b07630e815cb928b9118b582",
+      "bytes": 328688,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/en/payment-high-partial-en-390px.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-c5e58-idual-ALL-and-ANY-decisions/payment-high-partial-en-390px.json",
+      "sha256": "34cc0e7cead555869f932d97bcbe314315105a072b29508fdc73d5996baea80a",
+      "bytes": 1179,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/en/payment-high-partial-en-390px.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-c5e58-idual-ALL-and-ANY-decisions/payment-high-partial-en-390px.png",
+      "sha256": "27bace33ca871929fee99dc6be57a5e5bd0dc3887b5e97885c7c7a73e32e2c79",
+      "bytes": 246791,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/en/payment-high-partial-en-desktop.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-c5e58-idual-ALL-and-ANY-decisions/payment-high-partial-en-desktop.json",
+      "sha256": "420d749f981f9b2801d73e95f1ed23d265b14ff173a012400f1bd33fe9443ae9",
+      "bytes": 1185,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/en/payment-high-partial-en-desktop.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-c5e58-idual-ALL-and-ANY-decisions/payment-high-partial-en-desktop.png",
+      "sha256": "93b87612adeb7e681528951ad0caa51a673debf559d37c27df4f9d400025ef80",
+      "bytes": 283595,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/en/payment-low-complete-en-390px.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-c5e58-idual-ALL-and-ANY-decisions/payment-low-complete-en-390px.json",
+      "sha256": "f453b64122084410bc933f8da3f58d68063c494af3ca794ccaf7bac387c1f067",
+      "bytes": 1169,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/en/payment-low-complete-en-390px.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-c5e58-idual-ALL-and-ANY-decisions/payment-low-complete-en-390px.png",
+      "sha256": "31342eda5fdee21591f341399e30259a8f2ce7958b508b031401ffe3ec985b71",
+      "bytes": 263597,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/en/payment-low-complete-en-desktop.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-c5e58-idual-ALL-and-ANY-decisions/payment-low-complete-en-desktop.json",
+      "sha256": "00a351e4416f6c34d808fc311a5ac21b61fcdacf0267500ead634c738a0ee8bd",
+      "bytes": 1175,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/en/payment-low-complete-en-desktop.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-c5e58-idual-ALL-and-ANY-decisions/payment-low-complete-en-desktop.png",
+      "sha256": "b7d88d11832b29a319b39b57fd7aa6d6ea693e1c85d2dded8aabcc81b57ae318",
+      "bytes": 300204,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/en/payment-low-frozen-en-390px.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-c5e58-idual-ALL-and-ANY-decisions/payment-low-frozen-en-390px.json",
+      "sha256": "26af800f6449ce8b3b128b82b2f9dd2a559dd3838004e4a3015db6dd2a0232b2",
+      "bytes": 1175,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/en/payment-low-frozen-en-390px.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-c5e58-idual-ALL-and-ANY-decisions/payment-low-frozen-en-390px.png",
+      "sha256": "5ebda160acdb538b4edca9da5faf565c4d4982d26e09c7f5dcaa6375fb19c693",
+      "bytes": 250214,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/en/payment-low-frozen-en-desktop.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-c5e58-idual-ALL-and-ANY-decisions/payment-low-frozen-en-desktop.json",
+      "sha256": "65d33412b9506953820b9910178c03f1358dbdb0629412fe3a4fc33bcb6e28e9",
+      "bytes": 1181,
+      "kind": "sidecar"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/en/payment-low-frozen-en-desktop.png",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-c5e58-idual-ALL-and-ANY-decisions/payment-low-frozen-en-desktop.png",
+      "sha256": "c845fa88fbf7fb153a164068e5cd24d3bf6c68169157eb51b144d29de66e3aef",
+      "bytes": 289808,
+      "kind": "image"
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/en/routing-receipt.json",
+      "originalPath": "approval-ui/routing-visual-results/conditional-routing-condit-c5e58-idual-ALL-and-ANY-decisions/routing-receipt.json",
+      "sha256": "efe174a5d8f5e3c84ca0825ac33c52f285de65352b8c2b183488edf520318df0",
+      "bytes": 12551,
+      "kind": "receipt"
+    }
+  ],
+  "images": [
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-clean-approved-zh-390px.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-clean-approved-zh-390px.json",
+      "scenario": "receiving",
+      "state": "receiving-clean-approved",
+      "locale": "zh",
+      "viewport": "390px",
+      "width": 390,
+      "height": 4098,
+      "requestId": "86d0e760-2678-40bc-b1c6-144425ed73f5",
+      "status": "APPROVED",
+      "currentStepId": null,
+      "decisionCount": 1
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-clean-approved-zh-desktop.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-clean-approved-zh-desktop.json",
+      "scenario": "receiving",
+      "state": "receiving-clean-approved",
+      "locale": "zh",
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 2462,
+      "requestId": "86d0e760-2678-40bc-b1c6-144425ed73f5",
+      "status": "APPROVED",
+      "currentStepId": null,
+      "decisionCount": 1
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-clean-frozen-zh-390px.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-clean-frozen-zh-390px.json",
+      "scenario": "receiving",
+      "state": "receiving-clean-frozen",
+      "locale": "zh",
+      "viewport": "390px",
+      "width": 390,
+      "height": 3939,
+      "requestId": "86d0e760-2678-40bc-b1c6-144425ed73f5",
+      "status": "PENDING",
+      "currentStepId": "procurement-review",
+      "decisionCount": 0
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-clean-frozen-zh-desktop.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-clean-frozen-zh-desktop.json",
+      "scenario": "receiving",
+      "state": "receiving-clean-frozen",
+      "locale": "zh",
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 2306,
+      "requestId": "86d0e760-2678-40bc-b1c6-144425ed73f5",
+      "status": "PENDING",
+      "currentStepId": "procurement-review",
+      "decisionCount": 0
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-conditions-zh-390px.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-conditions-zh-390px.json",
+      "scenario": "receiving",
+      "state": "receiving-conditions",
+      "locale": "zh",
+      "viewport": "390px",
+      "width": 390,
+      "height": 2228,
+      "requestId": null,
+      "status": null,
+      "currentStepId": null,
+      "decisionCount": null
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-conditions-zh-desktop.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-conditions-zh-desktop.json",
+      "scenario": "receiving",
+      "state": "receiving-conditions",
+      "locale": "zh",
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 1941,
+      "requestId": null,
+      "status": null,
+      "currentStepId": null,
+      "decisionCount": null
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-exception-approved-zh-390px.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-exception-approved-zh-390px.json",
+      "scenario": "receiving",
+      "state": "receiving-exception-approved",
+      "locale": "zh",
+      "viewport": "390px",
+      "width": 390,
+      "height": 4121,
+      "requestId": "1993b53f-1f45-4e86-921b-91441dcf886e",
+      "status": "APPROVED",
+      "currentStepId": null,
+      "decisionCount": 3
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-exception-approved-zh-desktop.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-exception-approved-zh-desktop.json",
+      "scenario": "receiving",
+      "state": "receiving-exception-approved",
+      "locale": "zh",
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 2774,
+      "requestId": "1993b53f-1f45-4e86-921b-91441dcf886e",
+      "status": "APPROVED",
+      "currentStepId": null,
+      "decisionCount": 3
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-exception-entered-zh-390px.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-exception-entered-zh-390px.json",
+      "scenario": "receiving",
+      "state": "receiving-exception-entered",
+      "locale": "zh",
+      "viewport": "390px",
+      "width": 390,
+      "height": 3660,
+      "requestId": "1993b53f-1f45-4e86-921b-91441dcf886e",
+      "status": "PENDING",
+      "currentStepId": "receiving-inspection",
+      "decisionCount": 0
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-exception-entered-zh-desktop.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-exception-entered-zh-desktop.json",
+      "scenario": "receiving",
+      "state": "receiving-exception-entered",
+      "locale": "zh",
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 2527,
+      "requestId": "1993b53f-1f45-4e86-921b-91441dcf886e",
+      "status": "PENDING",
+      "currentStepId": "receiving-inspection",
+      "decisionCount": 0
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-exception-partial-zh-390px.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-exception-partial-zh-390px.json",
+      "scenario": "receiving",
+      "state": "receiving-exception-partial",
+      "locale": "zh",
+      "viewport": "390px",
+      "width": 390,
+      "height": 3764,
+      "requestId": "1993b53f-1f45-4e86-921b-91441dcf886e",
+      "status": "PENDING",
+      "currentStepId": "receiving-inspection",
+      "decisionCount": 1
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-exception-partial-zh-desktop.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-exception-partial-zh-desktop.json",
+      "scenario": "receiving",
+      "state": "receiving-exception-partial",
+      "locale": "zh",
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 2462,
+      "requestId": "1993b53f-1f45-4e86-921b-91441dcf886e",
+      "status": "PENDING",
+      "currentStepId": "receiving-inspection",
+      "decisionCount": 1
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-exception-rejected-zh-390px.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-exception-rejected-zh-390px.json",
+      "scenario": "receiving",
+      "state": "receiving-exception-rejected",
+      "locale": "zh",
+      "viewport": "390px",
+      "width": 390,
+      "height": 3940,
+      "requestId": "74f82be2-c638-40e7-ad31-b90f734ddfd6",
+      "status": "REJECTED",
+      "currentStepId": null,
+      "decisionCount": 1
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-exception-rejected-zh-desktop.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-exception-rejected-zh-desktop.json",
+      "scenario": "receiving",
+      "state": "receiving-exception-rejected",
+      "locale": "zh",
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 2462,
+      "requestId": "74f82be2-c638-40e7-ad31-b90f734ddfd6",
+      "status": "REJECTED",
+      "currentStepId": null,
+      "decisionCount": 1
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-procurement-review-zh-390px.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-procurement-review-zh-390px.json",
+      "scenario": "receiving",
+      "state": "receiving-procurement-review",
+      "locale": "zh",
+      "viewport": "390px",
+      "width": 390,
+      "height": 3632,
+      "requestId": "1993b53f-1f45-4e86-921b-91441dcf886e",
+      "status": "PENDING",
+      "currentStepId": "procurement-review",
+      "decisionCount": 2
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-procurement-review-zh-desktop.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/receiving/zh/receiving-procurement-review-zh-desktop.json",
+      "scenario": "receiving",
+      "state": "receiving-procurement-review",
+      "locale": "zh",
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 2618,
+      "requestId": "1993b53f-1f45-4e86-921b-91441dcf886e",
+      "status": "PENDING",
+      "currentStepId": "procurement-review",
+      "decisionCount": 2
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/en/contract-conditions-en-390px.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/contract/en/contract-conditions-en-390px.json",
+      "scenario": "contract",
+      "state": "contract-conditions",
+      "locale": "en",
+      "viewport": "390px",
+      "width": 390,
+      "height": 2524,
+      "requestId": null,
+      "status": null,
+      "currentStepId": null,
+      "decisionCount": null
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/en/contract-conditions-en-desktop.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/contract/en/contract-conditions-en-desktop.json",
+      "scenario": "contract",
+      "state": "contract-conditions",
+      "locale": "en",
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 2187,
+      "requestId": null,
+      "status": null,
+      "currentStepId": null,
+      "decisionCount": null
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/en/contract-nonstandard-approved-en-390px.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/contract/en/contract-nonstandard-approved-en-390px.json",
+      "scenario": "contract",
+      "state": "contract-nonstandard-approved",
+      "locale": "en",
+      "viewport": "390px",
+      "width": 390,
+      "height": 4582,
+      "requestId": "9c86f488-09a2-4277-ae2e-1eb18ba13763",
+      "status": "APPROVED",
+      "currentStepId": null,
+      "decisionCount": 3
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/en/contract-nonstandard-approved-en-desktop.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/contract/en/contract-nonstandard-approved-en-desktop.json",
+      "scenario": "contract",
+      "state": "contract-nonstandard-approved",
+      "locale": "en",
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 3333,
+      "requestId": "9c86f488-09a2-4277-ae2e-1eb18ba13763",
+      "status": "APPROVED",
+      "currentStepId": null,
+      "decisionCount": 3
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/en/contract-nonstandard-entered-en-390px.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/contract/en/contract-nonstandard-entered-en-390px.json",
+      "scenario": "contract",
+      "state": "contract-nonstandard-entered",
+      "locale": "en",
+      "viewport": "390px",
+      "width": 390,
+      "height": 4562,
+      "requestId": "9c86f488-09a2-4277-ae2e-1eb18ba13763",
+      "status": "PENDING",
+      "currentStepId": "contract-review",
+      "decisionCount": 1
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/en/contract-nonstandard-entered-en-desktop.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/contract/en/contract-nonstandard-entered-en-desktop.json",
+      "scenario": "contract",
+      "state": "contract-nonstandard-entered",
+      "locale": "en",
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 3243,
+      "requestId": "9c86f488-09a2-4277-ae2e-1eb18ba13763",
+      "status": "PENDING",
+      "currentStepId": "contract-review",
+      "decisionCount": 1
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/en/contract-nonstandard-partial-en-390px.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/contract/en/contract-nonstandard-partial-en-390px.json",
+      "scenario": "contract",
+      "state": "contract-nonstandard-partial",
+      "locale": "en",
+      "viewport": "390px",
+      "width": 390,
+      "height": 4384,
+      "requestId": "9c86f488-09a2-4277-ae2e-1eb18ba13763",
+      "status": "PENDING",
+      "currentStepId": "contract-review",
+      "decisionCount": 2
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/en/contract-nonstandard-partial-en-desktop.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/contract/en/contract-nonstandard-partial-en-desktop.json",
+      "scenario": "contract",
+      "state": "contract-nonstandard-partial",
+      "locale": "en",
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 3178,
+      "requestId": "9c86f488-09a2-4277-ae2e-1eb18ba13763",
+      "status": "PENDING",
+      "currentStepId": "contract-review",
+      "decisionCount": 2
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/en/contract-standard-approved-en-390px.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/contract/en/contract-standard-approved-en-390px.json",
+      "scenario": "contract",
+      "state": "contract-standard-approved",
+      "locale": "en",
+      "viewport": "390px",
+      "width": 390,
+      "height": 4273,
+      "requestId": "9db85cf6-b8ac-4f6e-8a54-0c9b5fd35c82",
+      "status": "APPROVED",
+      "currentStepId": null,
+      "decisionCount": 1
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/en/contract-standard-approved-en-desktop.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/contract/en/contract-standard-approved-en-desktop.json",
+      "scenario": "contract",
+      "state": "contract-standard-approved",
+      "locale": "en",
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 2930,
+      "requestId": "9db85cf6-b8ac-4f6e-8a54-0c9b5fd35c82",
+      "status": "APPROVED",
+      "currentStepId": null,
+      "decisionCount": 1
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-clean-approved-en-390px.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-clean-approved-en-390px.json",
+      "scenario": "receiving",
+      "state": "receiving-clean-approved",
+      "locale": "en",
+      "viewport": "390px",
+      "width": 390,
+      "height": 3806,
+      "requestId": "4b4fbe56-10fe-4a57-add0-48068aeb9064",
+      "status": "APPROVED",
+      "currentStepId": null,
+      "decisionCount": 1
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-clean-approved-en-desktop.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-clean-approved-en-desktop.json",
+      "scenario": "receiving",
+      "state": "receiving-clean-approved",
+      "locale": "en",
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 2562,
+      "requestId": "4b4fbe56-10fe-4a57-add0-48068aeb9064",
+      "status": "APPROVED",
+      "currentStepId": null,
+      "decisionCount": 1
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-clean-frozen-en-390px.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-clean-frozen-en-390px.json",
+      "scenario": "receiving",
+      "state": "receiving-clean-frozen",
+      "locale": "en",
+      "viewport": "390px",
+      "width": 390,
+      "height": 3608,
+      "requestId": "4b4fbe56-10fe-4a57-add0-48068aeb9064",
+      "status": "PENDING",
+      "currentStepId": "procurement-review",
+      "decisionCount": 0
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-clean-frozen-en-desktop.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-clean-frozen-en-desktop.json",
+      "scenario": "receiving",
+      "state": "receiving-clean-frozen",
+      "locale": "en",
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 2406,
+      "requestId": "4b4fbe56-10fe-4a57-add0-48068aeb9064",
+      "status": "PENDING",
+      "currentStepId": "procurement-review",
+      "decisionCount": 0
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-conditions-en-390px.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-conditions-en-390px.json",
+      "scenario": "receiving",
+      "state": "receiving-conditions",
+      "locale": "en",
+      "viewport": "390px",
+      "width": 390,
+      "height": 2321,
+      "requestId": null,
+      "status": null,
+      "currentStepId": null,
+      "decisionCount": null
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-conditions-en-desktop.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-conditions-en-desktop.json",
+      "scenario": "receiving",
+      "state": "receiving-conditions",
+      "locale": "en",
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 1982,
+      "requestId": null,
+      "status": null,
+      "currentStepId": null,
+      "decisionCount": null
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-exception-approved-en-390px.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-exception-approved-en-390px.json",
+      "scenario": "receiving",
+      "state": "receiving-exception-approved",
+      "locale": "en",
+      "viewport": "390px",
+      "width": 390,
+      "height": 3845,
+      "requestId": "0578220d-45cd-49aa-bd75-b35a56bb8f8b",
+      "status": "APPROVED",
+      "currentStepId": null,
+      "decisionCount": 3
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-exception-approved-en-desktop.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-exception-approved-en-desktop.json",
+      "scenario": "receiving",
+      "state": "receiving-exception-approved",
+      "locale": "en",
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 2874,
+      "requestId": "0578220d-45cd-49aa-bd75-b35a56bb8f8b",
+      "status": "APPROVED",
+      "currentStepId": null,
+      "decisionCount": 3
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-exception-entered-en-390px.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-exception-entered-en-390px.json",
+      "scenario": "receiving",
+      "state": "receiving-exception-entered",
+      "locale": "en",
+      "viewport": "390px",
+      "width": 390,
+      "height": 3822,
+      "requestId": "0578220d-45cd-49aa-bd75-b35a56bb8f8b",
+      "status": "PENDING",
+      "currentStepId": "receiving-inspection",
+      "decisionCount": 0
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-exception-entered-en-desktop.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-exception-entered-en-desktop.json",
+      "scenario": "receiving",
+      "state": "receiving-exception-entered",
+      "locale": "en",
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 2627,
+      "requestId": "0578220d-45cd-49aa-bd75-b35a56bb8f8b",
+      "status": "PENDING",
+      "currentStepId": "receiving-inspection",
+      "decisionCount": 0
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-exception-partial-en-390px.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-exception-partial-en-390px.json",
+      "scenario": "receiving",
+      "state": "receiving-exception-partial",
+      "locale": "en",
+      "viewport": "390px",
+      "width": 390,
+      "height": 3469,
+      "requestId": "0578220d-45cd-49aa-bd75-b35a56bb8f8b",
+      "status": "PENDING",
+      "currentStepId": "receiving-inspection",
+      "decisionCount": 1
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-exception-partial-en-desktop.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-exception-partial-en-desktop.json",
+      "scenario": "receiving",
+      "state": "receiving-exception-partial",
+      "locale": "en",
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 2562,
+      "requestId": "0578220d-45cd-49aa-bd75-b35a56bb8f8b",
+      "status": "PENDING",
+      "currentStepId": "receiving-inspection",
+      "decisionCount": 1
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-exception-rejected-en-390px.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-exception-rejected-en-390px.json",
+      "scenario": "receiving",
+      "state": "receiving-exception-rejected",
+      "locale": "en",
+      "viewport": "390px",
+      "width": 390,
+      "height": 3624,
+      "requestId": "1e90e589-998d-48f6-ae35-2379f72ad24f",
+      "status": "REJECTED",
+      "currentStepId": null,
+      "decisionCount": 1
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-exception-rejected-en-desktop.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-exception-rejected-en-desktop.json",
+      "scenario": "receiving",
+      "state": "receiving-exception-rejected",
+      "locale": "en",
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 2562,
+      "requestId": "1e90e589-998d-48f6-ae35-2379f72ad24f",
+      "status": "REJECTED",
+      "currentStepId": null,
+      "decisionCount": 1
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-procurement-review-en-390px.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-procurement-review-en-390px.json",
+      "scenario": "receiving",
+      "state": "receiving-procurement-review",
+      "locale": "en",
+      "viewport": "390px",
+      "width": 390,
+      "height": 3647,
+      "requestId": "0578220d-45cd-49aa-bd75-b35a56bb8f8b",
+      "status": "PENDING",
+      "currentStepId": "procurement-review",
+      "decisionCount": 2
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-procurement-review-en-desktop.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/receiving/en/receiving-procurement-review-en-desktop.json",
+      "scenario": "receiving",
+      "state": "receiving-procurement-review",
+      "locale": "en",
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 2718,
+      "requestId": "0578220d-45cd-49aa-bd75-b35a56bb8f8b",
+      "status": "PENDING",
+      "currentStepId": "procurement-review",
+      "decisionCount": 2
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-conditions-zh-390px.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-conditions-zh-390px.json",
+      "scenario": "payment",
+      "state": "payment-conditions",
+      "locale": "zh",
+      "viewport": "390px",
+      "width": 390,
+      "height": 2501,
+      "requestId": null,
+      "status": null,
+      "currentStepId": null,
+      "decisionCount": null
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-conditions-zh-desktop.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-conditions-zh-desktop.json",
+      "scenario": "payment",
+      "state": "payment-conditions",
+      "locale": "zh",
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 2112,
+      "requestId": null,
+      "status": null,
+      "currentStepId": null,
+      "decisionCount": null
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-high-complete-zh-390px.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-high-complete-zh-390px.json",
+      "scenario": "payment",
+      "state": "payment-high-complete",
+      "locale": "zh",
+      "viewport": "390px",
+      "width": 390,
+      "height": 3932,
+      "requestId": "de801bad-d59f-4f6d-8f7d-f9b17fa867fb",
+      "status": "APPROVED",
+      "currentStepId": null,
+      "decisionCount": 3
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-high-complete-zh-desktop.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-high-complete-zh-desktop.json",
+      "scenario": "payment",
+      "state": "payment-high-complete",
+      "locale": "zh",
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 2851,
+      "requestId": "de801bad-d59f-4f6d-8f7d-f9b17fa867fb",
+      "status": "APPROVED",
+      "currentStepId": null,
+      "decisionCount": 3
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-high-entered-zh-390px.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-high-entered-zh-390px.json",
+      "scenario": "payment",
+      "state": "payment-high-entered",
+      "locale": "zh",
+      "viewport": "390px",
+      "width": 390,
+      "height": 3996,
+      "requestId": "de801bad-d59f-4f6d-8f7d-f9b17fa867fb",
+      "status": "PENDING",
+      "currentStepId": "payment-check",
+      "decisionCount": 0
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-high-entered-zh-desktop.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-high-entered-zh-desktop.json",
+      "scenario": "payment",
+      "state": "payment-high-entered",
+      "locale": "zh",
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 2604,
+      "requestId": "de801bad-d59f-4f6d-8f7d-f9b17fa867fb",
+      "status": "PENDING",
+      "currentStepId": "payment-check",
+      "decisionCount": 0
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-high-final-review-zh-390px.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-high-final-review-zh-390px.json",
+      "scenario": "payment",
+      "state": "payment-high-final-review",
+      "locale": "zh",
+      "viewport": "390px",
+      "width": 390,
+      "height": 4313,
+      "requestId": "de801bad-d59f-4f6d-8f7d-f9b17fa867fb",
+      "status": "PENDING",
+      "currentStepId": "payment-final",
+      "decisionCount": 2
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-high-final-review-zh-desktop.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-high-final-review-zh-desktop.json",
+      "scenario": "payment",
+      "state": "payment-high-final-review",
+      "locale": "zh",
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 2916,
+      "requestId": "de801bad-d59f-4f6d-8f7d-f9b17fa867fb",
+      "status": "PENDING",
+      "currentStepId": "payment-final",
+      "decisionCount": 2
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-high-partial-zh-390px.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-high-partial-zh-390px.json",
+      "scenario": "payment",
+      "state": "payment-high-partial",
+      "locale": "zh",
+      "viewport": "390px",
+      "width": 390,
+      "height": 3770,
+      "requestId": "de801bad-d59f-4f6d-8f7d-f9b17fa867fb",
+      "status": "PENDING",
+      "currentStepId": "payment-check",
+      "decisionCount": 1
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-high-partial-zh-desktop.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-high-partial-zh-desktop.json",
+      "scenario": "payment",
+      "state": "payment-high-partial",
+      "locale": "zh",
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 2539,
+      "requestId": "de801bad-d59f-4f6d-8f7d-f9b17fa867fb",
+      "status": "PENDING",
+      "currentStepId": "payment-check",
+      "decisionCount": 1
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-low-complete-zh-390px.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-low-complete-zh-390px.json",
+      "scenario": "payment",
+      "state": "payment-low-complete",
+      "locale": "zh",
+      "viewport": "390px",
+      "width": 390,
+      "height": 3962,
+      "requestId": "53259fe4-00de-496c-8408-286f39101c56",
+      "status": "APPROVED",
+      "currentStepId": null,
+      "decisionCount": 1
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-low-complete-zh-desktop.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-low-complete-zh-desktop.json",
+      "scenario": "payment",
+      "state": "payment-low-complete",
+      "locale": "zh",
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 2539,
+      "requestId": "53259fe4-00de-496c-8408-286f39101c56",
+      "status": "APPROVED",
+      "currentStepId": null,
+      "decisionCount": 1
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-low-frozen-zh-390px.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-low-frozen-zh-390px.json",
+      "scenario": "payment",
+      "state": "payment-low-frozen",
+      "locale": "zh",
+      "viewport": "390px",
+      "width": 390,
+      "height": 3959,
+      "requestId": "53259fe4-00de-496c-8408-286f39101c56",
+      "status": "PENDING",
+      "currentStepId": "payment-final",
+      "decisionCount": 0
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-low-frozen-zh-desktop.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/payment/zh/payment-low-frozen-zh-desktop.json",
+      "scenario": "payment",
+      "state": "payment-low-frozen",
+      "locale": "zh",
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 2383,
+      "requestId": "53259fe4-00de-496c-8408-286f39101c56",
+      "status": "PENDING",
+      "currentStepId": "payment-final",
+      "decisionCount": 0
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/zh/contract-conditions-zh-390px.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/contract/zh/contract-conditions-zh-390px.json",
+      "scenario": "contract",
+      "state": "contract-conditions",
+      "locale": "zh",
+      "viewport": "390px",
+      "width": 390,
+      "height": 2431,
+      "requestId": null,
+      "status": null,
+      "currentStepId": null,
+      "decisionCount": null
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/zh/contract-conditions-zh-desktop.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/contract/zh/contract-conditions-zh-desktop.json",
+      "scenario": "contract",
+      "state": "contract-conditions",
+      "locale": "zh",
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 2146,
+      "requestId": null,
+      "status": null,
+      "currentStepId": null,
+      "decisionCount": null
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/zh/contract-nonstandard-approved-zh-390px.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/contract/zh/contract-nonstandard-approved-zh-390px.json",
+      "scenario": "contract",
+      "state": "contract-nonstandard-approved",
+      "locale": "zh",
+      "viewport": "390px",
+      "width": 390,
+      "height": 4185,
+      "requestId": "4048a98f-6b47-4ebb-bd40-2641091ecd1f",
+      "status": "APPROVED",
+      "currentStepId": null,
+      "decisionCount": 3
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/zh/contract-nonstandard-approved-zh-desktop.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/contract/zh/contract-nonstandard-approved-zh-desktop.json",
+      "scenario": "contract",
+      "state": "contract-nonstandard-approved",
+      "locale": "zh",
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 3078,
+      "requestId": "4048a98f-6b47-4ebb-bd40-2641091ecd1f",
+      "status": "APPROVED",
+      "currentStepId": null,
+      "decisionCount": 3
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/zh/contract-nonstandard-entered-zh-390px.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/contract/zh/contract-nonstandard-entered-zh-390px.json",
+      "scenario": "contract",
+      "state": "contract-nonstandard-entered",
+      "locale": "zh",
+      "viewport": "390px",
+      "width": 390,
+      "height": 4058,
+      "requestId": "4048a98f-6b47-4ebb-bd40-2641091ecd1f",
+      "status": "PENDING",
+      "currentStepId": "contract-review",
+      "decisionCount": 1
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/zh/contract-nonstandard-entered-zh-desktop.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/contract/zh/contract-nonstandard-entered-zh-desktop.json",
+      "scenario": "contract",
+      "state": "contract-nonstandard-entered",
+      "locale": "zh",
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 2987,
+      "requestId": "4048a98f-6b47-4ebb-bd40-2641091ecd1f",
+      "status": "PENDING",
+      "currentStepId": "contract-review",
+      "decisionCount": 1
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/zh/contract-nonstandard-partial-zh-390px.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/contract/zh/contract-nonstandard-partial-zh-390px.json",
+      "scenario": "contract",
+      "state": "contract-nonstandard-partial",
+      "locale": "zh",
+      "viewport": "390px",
+      "width": 390,
+      "height": 4162,
+      "requestId": "4048a98f-6b47-4ebb-bd40-2641091ecd1f",
+      "status": "PENDING",
+      "currentStepId": "contract-review",
+      "decisionCount": 2
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/zh/contract-nonstandard-partial-zh-desktop.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/contract/zh/contract-nonstandard-partial-zh-desktop.json",
+      "scenario": "contract",
+      "state": "contract-nonstandard-partial",
+      "locale": "zh",
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 2922,
+      "requestId": "4048a98f-6b47-4ebb-bd40-2641091ecd1f",
+      "status": "PENDING",
+      "currentStepId": "contract-review",
+      "decisionCount": 2
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/zh/contract-standard-approved-zh-390px.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/contract/zh/contract-standard-approved-zh-390px.json",
+      "scenario": "contract",
+      "state": "contract-standard-approved",
+      "locale": "zh",
+      "viewport": "390px",
+      "width": 390,
+      "height": 4068,
+      "requestId": "830ac8ee-966d-415c-a74d-c44b78c1bafa",
+      "status": "APPROVED",
+      "currentStepId": null,
+      "decisionCount": 1
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/contract/zh/contract-standard-approved-zh-desktop.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/contract/zh/contract-standard-approved-zh-desktop.json",
+      "scenario": "contract",
+      "state": "contract-standard-approved",
+      "locale": "zh",
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 2695,
+      "requestId": "830ac8ee-966d-415c-a74d-c44b78c1bafa",
+      "status": "APPROVED",
+      "currentStepId": null,
+      "decisionCount": 1
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/en/payment-conditions-en-390px.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/payment/en/payment-conditions-en-390px.json",
+      "scenario": "payment",
+      "state": "payment-conditions",
+      "locale": "en",
+      "viewport": "390px",
+      "width": 390,
+      "height": 2614,
+      "requestId": null,
+      "status": null,
+      "currentStepId": null,
+      "decisionCount": null
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/en/payment-conditions-en-desktop.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/payment/en/payment-conditions-en-desktop.json",
+      "scenario": "payment",
+      "state": "payment-conditions",
+      "locale": "en",
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 2172,
+      "requestId": null,
+      "status": null,
+      "currentStepId": null,
+      "decisionCount": null
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/en/payment-high-complete-en-390px.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/payment/en/payment-high-complete-en-390px.json",
+      "scenario": "payment",
+      "state": "payment-high-complete",
+      "locale": "en",
+      "viewport": "390px",
+      "width": 390,
+      "height": 4072,
+      "requestId": "62567754-d02f-4e02-90c8-b3e63167e0a5",
+      "status": "APPROVED",
+      "currentStepId": null,
+      "decisionCount": 3
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/en/payment-high-complete-en-desktop.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/payment/en/payment-high-complete-en-desktop.json",
+      "scenario": "payment",
+      "state": "payment-high-complete",
+      "locale": "en",
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 2983,
+      "requestId": "62567754-d02f-4e02-90c8-b3e63167e0a5",
+      "status": "APPROVED",
+      "currentStepId": null,
+      "decisionCount": 3
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/en/payment-high-entered-en-390px.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/payment/en/payment-high-entered-en-390px.json",
+      "scenario": "payment",
+      "state": "payment-high-entered",
+      "locale": "en",
+      "viewport": "390px",
+      "width": 390,
+      "height": 4009,
+      "requestId": "62567754-d02f-4e02-90c8-b3e63167e0a5",
+      "status": "PENDING",
+      "currentStepId": "payment-check",
+      "decisionCount": 0
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/en/payment-high-entered-en-desktop.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/payment/en/payment-high-entered-en-desktop.json",
+      "scenario": "payment",
+      "state": "payment-high-entered",
+      "locale": "en",
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 2736,
+      "requestId": "62567754-d02f-4e02-90c8-b3e63167e0a5",
+      "status": "PENDING",
+      "currentStepId": "payment-check",
+      "decisionCount": 0
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/en/payment-high-final-review-en-390px.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/payment/en/payment-high-final-review-en-390px.json",
+      "scenario": "payment",
+      "state": "payment-high-final-review",
+      "locale": "en",
+      "viewport": "390px",
+      "width": 390,
+      "height": 4405,
+      "requestId": "62567754-d02f-4e02-90c8-b3e63167e0a5",
+      "status": "PENDING",
+      "currentStepId": "payment-final",
+      "decisionCount": 2
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/en/payment-high-final-review-en-desktop.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/payment/en/payment-high-final-review-en-desktop.json",
+      "scenario": "payment",
+      "state": "payment-high-final-review",
+      "locale": "en",
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 3048,
+      "requestId": "62567754-d02f-4e02-90c8-b3e63167e0a5",
+      "status": "PENDING",
+      "currentStepId": "payment-final",
+      "decisionCount": 2
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/en/payment-high-partial-en-390px.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/payment/en/payment-high-partial-en-390px.json",
+      "scenario": "payment",
+      "state": "payment-high-partial",
+      "locale": "en",
+      "viewport": "390px",
+      "width": 390,
+      "height": 3676,
+      "requestId": "62567754-d02f-4e02-90c8-b3e63167e0a5",
+      "status": "PENDING",
+      "currentStepId": "payment-check",
+      "decisionCount": 1
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/en/payment-high-partial-en-desktop.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/payment/en/payment-high-partial-en-desktop.json",
+      "scenario": "payment",
+      "state": "payment-high-partial",
+      "locale": "en",
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 2671,
+      "requestId": "62567754-d02f-4e02-90c8-b3e63167e0a5",
+      "status": "PENDING",
+      "currentStepId": "payment-check",
+      "decisionCount": 1
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/en/payment-low-complete-en-390px.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/payment/en/payment-low-complete-en-390px.json",
+      "scenario": "payment",
+      "state": "payment-low-complete",
+      "locale": "en",
+      "viewport": "390px",
+      "width": 390,
+      "height": 3905,
+      "requestId": "186c147b-c22f-4267-b788-b551ba07b1db",
+      "status": "APPROVED",
+      "currentStepId": null,
+      "decisionCount": 1
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/en/payment-low-complete-en-desktop.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/payment/en/payment-low-complete-en-desktop.json",
+      "scenario": "payment",
+      "state": "payment-low-complete",
+      "locale": "en",
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 2671,
+      "requestId": "186c147b-c22f-4267-b788-b551ba07b1db",
+      "status": "APPROVED",
+      "currentStepId": null,
+      "decisionCount": 1
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/en/payment-low-frozen-en-390px.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/payment/en/payment-low-frozen-en-390px.json",
+      "scenario": "payment",
+      "state": "payment-low-frozen",
+      "locale": "en",
+      "viewport": "390px",
+      "width": 390,
+      "height": 3707,
+      "requestId": "186c147b-c22f-4267-b788-b551ba07b1db",
+      "status": "PENDING",
+      "currentStepId": "payment-final",
+      "decisionCount": 0
+    },
+    {
+      "file": "docs/images/conditional-routing/cb3f1077/payment/en/payment-low-frozen-en-desktop.png",
+      "sidecar": "docs/images/conditional-routing/cb3f1077/payment/en/payment-low-frozen-en-desktop.json",
+      "scenario": "payment",
+      "state": "payment-low-frozen",
+      "locale": "en",
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 2515,
+      "requestId": "186c147b-c22f-4267-b788-b551ba07b1db",
+      "status": "PENDING",
+      "currentStepId": "payment-final",
+      "decisionCount": 0
+    }
+  ]
+}

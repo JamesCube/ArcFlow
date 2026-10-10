@@ -6,6 +6,8 @@ Terms, dates, payment milestones and acceptance criteria form the synthetic cont
 
 Every image is an original capture at [`8c26d95`](https://github.com/JamesCube/ArcFlow/commit/8c26d953e53991d3e445aa69c530726f1d81daae) from [run 37918452685](https://github.com/JamesCube/ArcFlow/actions/runs/37918452685), not a new capture of current main. The UI and relevant application source are unchanged at documentation baseline [`199db754`](https://github.com/JamesCube/ArcFlow/commit/199db7548f6faba5dfef105eaaf7311972adb388); this is not a test pass for a later commit. Each image labels its actual language, viewport, PNG size and capture state. Click to open the original.
 
+[Newer complete conditional-routing capture (cb3f1077)](conditional-routing/contract.en.md)
+
 <!-- topic:scope-and-limits -->
 ## Scope and limits
 

@@ -71,6 +71,9 @@ for (const lang of ['zh','en']) {
     await expect(links.locator('a').nth(2)).toHaveAttribute('href',`https://github.com/JamesCube/ArcFlow/blob/main/docs/development/QUICKSTART${lang==='en'?'.en':''}.md`);
     await expect(links.locator('a').nth(3)).toHaveAttribute('href',`https://github.com/JamesCube/ArcFlow/blob/main/docs/api/README${lang==='en'?'.en':''}.md`);
     await expect(links.locator('a')).toHaveCount(4);
+    await expect(page.locator('.site-header nav a').last()).toHaveAttribute('href',`https://github.com/JamesCube/ArcFlow/blob/main/docs/README${lang==='en'?'.en':''}.md`);
+    await expect(page.locator('footer nav a').nth(4)).toHaveAttribute('href',`https://github.com/JamesCube/ArcFlow/blob/main/docs/README${lang==='en'?'.en':''}.md`);
+    await expect(page.locator('footer nav a').nth(5)).toHaveAttribute('href',`https://github.com/JamesCube/ArcFlow/blob/main/docs/api/API_REFERENCE${lang==='en'?'.en':''}.md`);
     const docs=await page.locator('a[href*="/blob/main/"]').evaluateAll(nodes=>nodes.map(n=>n.href));
     expect(docs.length).toBeGreaterThan(8);
     for(const href of docs) expect(new URL(href).pathname.endsWith(lang==='en'?'.en.md':'.md')).toBe(true);
@@ -81,15 +84,19 @@ for (const lang of ['zh','en']) {
   });
 }
 
-for (const lang of ['zh', 'en']) {
-  test(`${lang} five-case gallery entry stays visible on narrow screens`, async ({page}) => {
-    await page.setViewportSize({width:390,height:900});
+for (const lang of ['zh', 'en']) for (const width of [320, 390]) {
+  test(`${lang} five-case and conditional-routing gallery entries stay visible at ${width}px`, async ({page}) => {
+    await page.setViewportSize({width,height:900});
     await page.goto(lang === 'en' ? './en/' : './');
     const entry = page.locator('.scenario-gallery-entry');
     await entry.scrollIntoViewIfNeeded();
     await expect(entry).toBeVisible();
-    await expect(entry.locator('a')).toHaveAttribute('href', `https://github.com/JamesCube/ArcFlow/blob/main/docs/galleries/README${lang === 'en' ? '.en' : ''}.md`);
+    await expect(entry.locator('a')).toHaveCount(2);
+    await expect(entry.locator('a').nth(0)).toHaveAttribute('href', `https://github.com/JamesCube/ArcFlow/blob/main/docs/galleries/README${lang === 'en' ? '.en' : ''}.md`);
+    await expect(entry.locator('a').nth(1)).toHaveAttribute('href', `https://github.com/JamesCube/ArcFlow/blob/main/docs/galleries/conditional-routing/README${lang === 'en' ? '.en' : ''}.md`);
+    for (const link of await entry.locator('a').all()) await expect(link).toBeVisible();
     await expect(entry).toContainText('104');
-    await expect(page.locator('html')).toHaveJSProperty('scrollWidth', 390);
+    await expect(entry).toContainText(lang === 'en' ? '80 historical original screenshots across 20 capture states' : '80 张历史真实原图，来自 20 个采集状态');
+    await expect(page.locator('html')).toHaveJSProperty('scrollWidth', width);
   });
 }

@@ -1,0 +1,332 @@
+{
+  "sourceRevision": "cb3f1077fc725e0031620b1210a819917d8684a4",
+  "sourceWorkingTree": "clean-commit",
+  "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "uiSourceTreeSHA256": "238a4e4c2696b782a1cdbeb5046d1b08c509e51bad7d3951cf53a55f85267921",
+  "backendRuntime": "declared-Boot-4.1.1",
+  "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+  "captureSessionId": "ddfa82a5-9e18-4c91-a53a-ff56f621af3f",
+  "captureRunId": "38016643460",
+  "captureRunAttempt": "1",
+  "captureRepository": "JamesCube/ArcFlow",
+  "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/38016643460",
+  "result": "passed",
+  "browser": "Chromium",
+  "realBackend": true,
+  "locale": "zh",
+  "checkpoints": [
+    {
+      "state": "contract-nonstandard-entered",
+      "requestId": "4048a98f-6b47-4ebb-bd40-2641091ecd1f",
+      "status": "PENDING",
+      "currentStepId": "contract-review",
+      "history": [
+        {
+          "actorId": "alice",
+          "action": "SUBMIT",
+          "comment": "",
+          "at": "2026-10-10T02:34:30.147973926Z",
+          "stepId": null
+        },
+        {
+          "actorId": "bob",
+          "action": "APPROVE",
+          "comment": "交付范围、里程碑金额与验收责任已确认。",
+          "at": "2026-10-10T02:34:31.443116353Z",
+          "stepId": "commercial-review"
+        }
+      ]
+    },
+    {
+      "state": "contract-nonstandard-partial",
+      "requestId": "4048a98f-6b47-4ebb-bd40-2641091ecd1f",
+      "status": "PENDING",
+      "currentStepId": "contract-review",
+      "history": [
+        {
+          "actorId": "alice",
+          "action": "SUBMIT",
+          "comment": "",
+          "at": "2026-10-10T02:34:30.147973926Z",
+          "stepId": null
+        },
+        {
+          "actorId": "bob",
+          "action": "APPROVE",
+          "comment": "交付范围、里程碑金额与验收责任已确认。",
+          "at": "2026-10-10T02:34:31.443116353Z",
+          "stepId": "commercial-review"
+        },
+        {
+          "actorId": "bob",
+          "action": "APPROVE",
+          "comment": "项目毛利与交付计划可以覆盖调整后的责任上限。",
+          "at": "2026-10-10T02:34:32.000910216Z",
+          "stepId": "contract-review"
+        }
+      ]
+    },
+    {
+      "state": "contract-nonstandard-approved",
+      "requestId": "4048a98f-6b47-4ebb-bd40-2641091ecd1f",
+      "status": "APPROVED",
+      "currentStepId": null,
+      "history": [
+        {
+          "actorId": "alice",
+          "action": "SUBMIT",
+          "comment": "",
+          "at": "2026-10-10T02:34:30.147973926Z",
+          "stepId": null
+        },
+        {
+          "actorId": "bob",
+          "action": "APPROVE",
+          "comment": "交付范围、里程碑金额与验收责任已确认。",
+          "at": "2026-10-10T02:34:31.443116353Z",
+          "stepId": "commercial-review"
+        },
+        {
+          "actorId": "bob",
+          "action": "APPROVE",
+          "comment": "项目毛利与交付计划可以覆盖调整后的责任上限。",
+          "at": "2026-10-10T02:34:32.000910216Z",
+          "stepId": "contract-review"
+        },
+        {
+          "actorId": "carol",
+          "action": "APPROVE",
+          "comment": "结合已确认的范围与验收条款，同意本次非标约定。",
+          "at": "2026-10-10T02:34:33.176512419Z",
+          "stepId": "contract-review"
+        }
+      ]
+    },
+    {
+      "state": "contract-standard-approved",
+      "requestId": "830ac8ee-966d-415c-a74d-c44b78c1bafa",
+      "status": "APPROVED",
+      "currentStepId": null,
+      "history": [
+        {
+          "actorId": "alice",
+          "action": "SUBMIT",
+          "comment": "",
+          "at": "2026-10-10T02:34:30.788888256Z",
+          "stepId": null
+        },
+        {
+          "actorId": "bob",
+          "action": "APPROVE",
+          "comment": "交付范围、里程碑金额与验收责任已确认。",
+          "at": "2026-10-10T02:34:34.300435665Z",
+          "stepId": "commercial-review"
+        }
+      ]
+    }
+  ],
+  "backendSha256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+  "requests": [
+    {
+      "id": "4048a98f-6b47-4ebb-bd40-2641091ecd1f",
+      "processId": "crm-contract",
+      "processVersion": 3,
+      "title": "产线改造项目交付合同",
+      "businessId": "CONTRACT-NONSTANDARD-ZH-8a4be315",
+      "definition": {
+        "schemaVersion": 4,
+        "id": "crm-contract",
+        "version": 3,
+        "name": "合同审批",
+        "nodes": [
+          {
+            "id": "start",
+            "type": "start",
+            "name": "提交合同草案 / Submit contract draft",
+            "assigneeId": null
+          },
+          {
+            "id": "commercial-review",
+            "type": "approval",
+            "name": "商务初审",
+            "assigneeId": "bob"
+          },
+          {
+            "id": "contract-review",
+            "type": "parallelApproval",
+            "name": "商务与法务会签",
+            "assigneeId": null,
+            "assigneeIds": [
+              "bob",
+              "carol"
+            ],
+            "completionMode": "ALL",
+            "runIf": {
+              "mode": "ANY",
+              "predicates": [
+                {
+                  "field": "contract.termsKind",
+                  "operator": "IN",
+                  "values": [
+                    "NONSTANDARD"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "id": "end",
+            "type": "end",
+            "name": "合同内部审批完成 / Internal contract review complete",
+            "assigneeId": null
+          }
+        ]
+      },
+      "routing": {
+        "schemaVersion": 1,
+        "stepIds": [
+          "commercial-review",
+          "contract-review"
+        ],
+        "evaluations": [
+          {
+            "stepId": "contract-review",
+            "result": true,
+            "predicates": [
+              {
+                "field": "contract.termsKind",
+                "actualValue": "NONSTANDARD",
+                "result": true
+              }
+            ]
+          }
+        ]
+      },
+      "status": "APPROVED",
+      "currentStepId": null,
+      "history": [
+        {
+          "actorId": "alice",
+          "action": "SUBMIT",
+          "comment": "",
+          "at": "2026-10-10T02:34:30.147973926Z",
+          "stepId": null
+        },
+        {
+          "actorId": "bob",
+          "action": "APPROVE",
+          "comment": "交付范围、里程碑金额与验收责任已确认。",
+          "at": "2026-10-10T02:34:31.443116353Z",
+          "stepId": "commercial-review"
+        },
+        {
+          "actorId": "bob",
+          "action": "APPROVE",
+          "comment": "项目毛利与交付计划可以覆盖调整后的责任上限。",
+          "at": "2026-10-10T02:34:32.000910216Z",
+          "stepId": "contract-review"
+        },
+        {
+          "actorId": "carol",
+          "action": "APPROVE",
+          "comment": "结合已确认的范围与验收条款，同意本次非标约定。",
+          "at": "2026-10-10T02:34:33.176512419Z",
+          "stepId": "contract-review"
+        }
+      ]
+    },
+    {
+      "id": "830ac8ee-966d-415c-a74d-c44b78c1bafa",
+      "processId": "crm-contract",
+      "processVersion": 3,
+      "title": "设备巡检年度服务合同",
+      "businessId": "CONTRACT-STANDARD-ZH-8a4be315",
+      "definition": {
+        "schemaVersion": 4,
+        "id": "crm-contract",
+        "version": 3,
+        "name": "合同审批",
+        "nodes": [
+          {
+            "id": "start",
+            "type": "start",
+            "name": "提交合同草案 / Submit contract draft",
+            "assigneeId": null
+          },
+          {
+            "id": "commercial-review",
+            "type": "approval",
+            "name": "商务初审",
+            "assigneeId": "bob"
+          },
+          {
+            "id": "contract-review",
+            "type": "parallelApproval",
+            "name": "商务与法务会签",
+            "assigneeId": null,
+            "assigneeIds": [
+              "bob",
+              "carol"
+            ],
+            "completionMode": "ALL",
+            "runIf": {
+              "mode": "ANY",
+              "predicates": [
+                {
+                  "field": "contract.termsKind",
+                  "operator": "IN",
+                  "values": [
+                    "NONSTANDARD"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "id": "end",
+            "type": "end",
+            "name": "合同内部审批完成 / Internal contract review complete",
+            "assigneeId": null
+          }
+        ]
+      },
+      "routing": {
+        "schemaVersion": 1,
+        "stepIds": [
+          "commercial-review"
+        ],
+        "evaluations": [
+          {
+            "stepId": "contract-review",
+            "result": false,
+            "predicates": [
+              {
+                "field": "contract.termsKind",
+                "actualValue": "STANDARD",
+                "result": false
+              }
+            ]
+          }
+        ]
+      },
+      "status": "APPROVED",
+      "currentStepId": null,
+      "history": [
+        {
+          "actorId": "alice",
+          "action": "SUBMIT",
+          "comment": "",
+          "at": "2026-10-10T02:34:30.788888256Z",
+          "stepId": null
+        },
+        {
+          "actorId": "bob",
+          "action": "APPROVE",
+          "comment": "交付范围、里程碑金额与验收责任已确认。",
+          "at": "2026-10-10T02:34:34.300435665Z",
+          "stepId": "commercial-review"
+        }
+      ]
+    }
+  ]
+}

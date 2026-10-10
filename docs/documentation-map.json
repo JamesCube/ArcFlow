@@ -562,6 +562,60 @@
       ]
     },
     {
+      "path": "docs/galleries/conditional-routing/CAPTURE.md",
+      "category": "history",
+      "topics": [
+        "historical-identity",
+        "source-comparison",
+        "reading-limits",
+        "verify-public-copy",
+        "recapture-separately"
+      ]
+    },
+    {
+      "path": "docs/galleries/conditional-routing/README.md",
+      "category": "index",
+      "topics": [
+        "payment",
+        "receiving",
+        "contract",
+        "source-and-limits"
+      ]
+    },
+    {
+      "path": "docs/galleries/conditional-routing/contract.md",
+      "category": "history",
+      "topics": [
+        "scope-and-capture",
+        "designer-partial-and-final-preview",
+        "request-identities",
+        "complete-state-index",
+        "receipts-and-next-steps"
+      ]
+    },
+    {
+      "path": "docs/galleries/conditional-routing/payment.md",
+      "category": "history",
+      "topics": [
+        "scope-and-capture",
+        "designer-partial-and-final-preview",
+        "request-identities",
+        "complete-state-index",
+        "receipts-and-next-steps"
+      ]
+    },
+    {
+      "path": "docs/galleries/conditional-routing/receiving.md",
+      "category": "history",
+      "topics": [
+        "scope-and-capture",
+        "designer-partial-and-final-preview",
+        "request-identities",
+        "complete-state-index",
+        "receipts-and-next-steps"
+      ]
+    },
+    {
       "path": "docs/galleries/contract.md",
       "category": "tutorial",
       "topics": [

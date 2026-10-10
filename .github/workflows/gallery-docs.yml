@@ -15,3 +15,18 @@ jobs:
         run: python3 -m unittest discover -s scripts -p 'test_scenario_galleries.py' -v
       - name: Verify original screenshots, provenance and bilingual entry points
         run: python3 scripts/verify_scenario_galleries.py
+      - name: Reject mutations of the conditional-routing originals and gallery
+        run: python3 -m unittest discover -s scripts -p 'test_conditional_gallery.py' -v
+      - name: Verify byte-locked conditional-routing evidence and all four public variants
+        run: python3 scripts/verify_conditional_gallery.py
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify complete conditional PNGs and original browser journey receipts
+        env:
+          ARCFLOW_EXPECT_SOURCE_REVISION: cb3f1077fc725e0031620b1210a819917d8684a4
+          ARCFLOW_EXPECT_CAPTURE_RUN_ID: '38016643460'
+          ARCFLOW_EXPECT_CAPTURE_RUN_ATTEMPT: '1'
+          ARCFLOW_EXPECT_CAPTURE_REPOSITORY: JamesCube/ArcFlow
+          ARCFLOW_EXPECT_RUNTIME_REPORT: docs/images/conditional-routing/cb3f1077/runtime/routing-runtime.json
+        run: node examples/approval-ui/scripts/verify-routing-captures.mjs docs/images/conditional-routing/cb3f1077

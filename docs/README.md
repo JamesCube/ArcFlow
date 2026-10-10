@@ -24,6 +24,8 @@
 - [设计器图集](DESIGNER_GALLERY.md)：顺序、ALL/ANY、校验、发布和快照
 - [业务案例图集](CASE_GALLERY.md)：请假、采购、报价的真实状态流程
 
+- [条件路由完整图集](galleries/conditional-routing/README.md)：付款、收货、合同共 80 张历史原图，含设计器、部分票与终态。
+
 <!-- topic:how-to-guides-complete-a-task -->
 ## 操作指南：完成具体任务
 

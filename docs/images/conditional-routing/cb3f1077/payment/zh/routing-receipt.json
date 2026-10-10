@@ -1,0 +1,460 @@
+{
+  "sourceRevision": "cb3f1077fc725e0031620b1210a819917d8684a4",
+  "sourceWorkingTree": "clean-commit",
+  "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "uiSourceTreeSHA256": "238a4e4c2696b782a1cdbeb5046d1b08c509e51bad7d3951cf53a55f85267921",
+  "backendRuntime": "declared-Boot-4.1.1",
+  "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+  "captureSessionId": "ddfa82a5-9e18-4c91-a53a-ff56f621af3f",
+  "captureRunId": "38016643460",
+  "captureRunAttempt": "1",
+  "captureRepository": "JamesCube/ArcFlow",
+  "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/38016643460",
+  "result": "passed",
+  "browser": "Chromium",
+  "realBackend": true,
+  "locale": "zh",
+  "checkpoints": [
+    {
+      "state": "payment-low-frozen",
+      "requestId": "53259fe4-00de-496c-8408-286f39101c56",
+      "status": "PENDING",
+      "currentStepId": "payment-final",
+      "history": [
+        {
+          "actorId": "alice",
+          "action": "SUBMIT",
+          "comment": "",
+          "at": "2026-10-10T02:34:12.887058580Z",
+          "stepId": null
+        }
+      ]
+    },
+    {
+      "state": "payment-high-entered",
+      "requestId": "de801bad-d59f-4f6d-8f7d-f9b17fa867fb",
+      "status": "PENDING",
+      "currentStepId": "payment-check",
+      "history": [
+        {
+          "actorId": "alice",
+          "action": "SUBMIT",
+          "comment": "",
+          "at": "2026-10-10T02:34:14.210791511Z",
+          "stepId": null
+        }
+      ]
+    },
+    {
+      "state": "payment-high-partial",
+      "requestId": "de801bad-d59f-4f6d-8f7d-f9b17fa867fb",
+      "status": "PENDING",
+      "currentStepId": "payment-check",
+      "history": [
+        {
+          "actorId": "alice",
+          "action": "SUBMIT",
+          "comment": "",
+          "at": "2026-10-10T02:34:14.210791511Z",
+          "stepId": null
+        },
+        {
+          "actorId": "bob",
+          "action": "APPROVE",
+          "comment": "发票分配与已验收货物一致，无需追加扣款。",
+          "at": "2026-10-10T02:34:15.309392064Z",
+          "stepId": "payment-check"
+        }
+      ]
+    },
+    {
+      "state": "payment-high-final-review",
+      "requestId": "de801bad-d59f-4f6d-8f7d-f9b17fa867fb",
+      "status": "PENDING",
+      "currentStepId": "payment-final",
+      "history": [
+        {
+          "actorId": "alice",
+          "action": "SUBMIT",
+          "comment": "",
+          "at": "2026-10-10T02:34:14.210791511Z",
+          "stepId": null
+        },
+        {
+          "actorId": "bob",
+          "action": "APPROVE",
+          "comment": "发票分配与已验收货物一致，无需追加扣款。",
+          "at": "2026-10-10T02:34:15.309392064Z",
+          "stepId": "payment-check"
+        },
+        {
+          "actorId": "carol",
+          "action": "APPROVE",
+          "comment": "已核对供应商余额及发票剩余可分配金额。",
+          "at": "2026-10-10T02:34:16.436233114Z",
+          "stepId": "payment-check"
+        }
+      ]
+    },
+    {
+      "state": "payment-high-complete",
+      "requestId": "de801bad-d59f-4f6d-8f7d-f9b17fa867fb",
+      "status": "APPROVED",
+      "currentStepId": null,
+      "history": [
+        {
+          "actorId": "alice",
+          "action": "SUBMIT",
+          "comment": "",
+          "at": "2026-10-10T02:34:14.210791511Z",
+          "stepId": null
+        },
+        {
+          "actorId": "bob",
+          "action": "APPROVE",
+          "comment": "发票分配与已验收货物一致，无需追加扣款。",
+          "at": "2026-10-10T02:34:15.309392064Z",
+          "stepId": "payment-check"
+        },
+        {
+          "actorId": "carol",
+          "action": "APPROVE",
+          "comment": "已核对供应商余额及发票剩余可分配金额。",
+          "at": "2026-10-10T02:34:16.436233114Z",
+          "stepId": "payment-check"
+        },
+        {
+          "actorId": "carol",
+          "action": "APPROVE",
+          "comment": "本次申请结算金额在本月已批准预算内。",
+          "at": "2026-10-10T02:34:17.006385698Z",
+          "stepId": "payment-final"
+        }
+      ]
+    },
+    {
+      "state": "payment-low-complete",
+      "requestId": "53259fe4-00de-496c-8408-286f39101c56",
+      "status": "APPROVED",
+      "currentStepId": null,
+      "history": [
+        {
+          "actorId": "alice",
+          "action": "SUBMIT",
+          "comment": "",
+          "at": "2026-10-10T02:34:12.887058580Z",
+          "stepId": null
+        },
+        {
+          "actorId": "bob",
+          "action": "APPROVE",
+          "comment": "本次申请结算金额在本月已批准预算内。",
+          "at": "2026-10-10T02:34:18.140803773Z",
+          "stepId": "payment-final"
+        }
+      ]
+    }
+  ],
+  "backendSha256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+  "requests": [
+    {
+      "id": "70b5a8ea-1d49-49a0-a9f8-bdd197a501df",
+      "processId": "erp-payment",
+      "processVersion": 4,
+      "title": "包装材料补货款申请",
+      "businessId": "PAYMENT-OLD-ZH-7adea169",
+      "definition": {
+        "schemaVersion": 4,
+        "id": "erp-payment",
+        "version": 4,
+        "name": "Supplier payment review",
+        "nodes": [
+          {
+            "id": "start",
+            "type": "start",
+            "name": "提交付款申请 / Submit payment request",
+            "assigneeId": null
+          },
+          {
+            "id": "payment-check",
+            "type": "parallelApproval",
+            "name": "Joint payment check",
+            "assigneeId": null,
+            "assigneeIds": [
+              "bob",
+              "carol"
+            ],
+            "completionMode": "ALL",
+            "runIf": {
+              "mode": "ALL",
+              "predicates": [
+                {
+                  "field": "payment.netTotal",
+                  "operator": "GTE",
+                  "currency": "CNY",
+                  "threshold": 10000
+                }
+              ]
+            }
+          },
+          {
+            "id": "payment-final",
+            "type": "parallelApproval",
+            "name": "Final payment review",
+            "assigneeId": null,
+            "assigneeIds": [
+              "bob",
+              "carol"
+            ],
+            "completionMode": "ANY"
+          },
+          {
+            "id": "end",
+            "type": "end",
+            "name": "付款申请审批完成 / Payment request review complete",
+            "assigneeId": null
+          }
+        ]
+      },
+      "routing": {
+        "schemaVersion": 1,
+        "stepIds": [
+          "payment-final"
+        ],
+        "evaluations": [
+          {
+            "stepId": "payment-check",
+            "result": false,
+            "predicates": [
+              {
+                "field": "payment.netTotal",
+                "actualValue": "CNY 6500",
+                "result": false
+              }
+            ]
+          }
+        ]
+      },
+      "status": "PENDING",
+      "currentStepId": "payment-final",
+      "history": [
+        {
+          "actorId": "alice",
+          "action": "SUBMIT",
+          "comment": "",
+          "at": "2026-10-10T02:34:10.768976221Z",
+          "stepId": null
+        }
+      ]
+    },
+    {
+      "id": "53259fe4-00de-496c-8408-286f39101c56",
+      "processId": "erp-payment",
+      "processVersion": 5,
+      "title": "车间耗材结算申请",
+      "businessId": "PAYMENT-LOW-ZH-7adea169",
+      "definition": {
+        "schemaVersion": 4,
+        "id": "erp-payment",
+        "version": 5,
+        "name": "供应商付款审批",
+        "nodes": [
+          {
+            "id": "start",
+            "type": "start",
+            "name": "提交付款申请 / Submit payment request",
+            "assigneeId": null
+          },
+          {
+            "id": "payment-check",
+            "type": "parallelApproval",
+            "name": "财务与采购会签",
+            "assigneeId": null,
+            "assigneeIds": [
+              "bob",
+              "carol"
+            ],
+            "completionMode": "ALL",
+            "runIf": {
+              "mode": "ALL",
+              "predicates": [
+                {
+                  "field": "payment.netTotal",
+                  "operator": "GTE",
+                  "currency": "CNY",
+                  "threshold": 10000
+                }
+              ]
+            }
+          },
+          {
+            "id": "payment-final",
+            "type": "parallelApproval",
+            "name": "付款复核",
+            "assigneeId": null,
+            "assigneeIds": [
+              "bob",
+              "carol"
+            ],
+            "completionMode": "ANY"
+          },
+          {
+            "id": "end",
+            "type": "end",
+            "name": "付款申请审批完成 / Payment request review complete",
+            "assigneeId": null
+          }
+        ]
+      },
+      "routing": {
+        "schemaVersion": 1,
+        "stepIds": [
+          "payment-final"
+        ],
+        "evaluations": [
+          {
+            "stepId": "payment-check",
+            "result": false,
+            "predicates": [
+              {
+                "field": "payment.netTotal",
+                "actualValue": "CNY 6500",
+                "result": false
+              }
+            ]
+          }
+        ]
+      },
+      "status": "APPROVED",
+      "currentStepId": null,
+      "history": [
+        {
+          "actorId": "alice",
+          "action": "SUBMIT",
+          "comment": "",
+          "at": "2026-10-10T02:34:12.887058580Z",
+          "stepId": null
+        },
+        {
+          "actorId": "bob",
+          "action": "APPROVE",
+          "comment": "本次申请结算金额在本月已批准预算内。",
+          "at": "2026-10-10T02:34:18.140803773Z",
+          "stepId": "payment-final"
+        }
+      ]
+    },
+    {
+      "id": "de801bad-d59f-4f6d-8f7d-f9b17fa867fb",
+      "processId": "erp-payment",
+      "processVersion": 7,
+      "title": "装配线零部件尾款申请",
+      "businessId": "PAYMENT-HIGH-ZH-7adea169",
+      "definition": {
+        "schemaVersion": 4,
+        "id": "erp-payment",
+        "version": 7,
+        "name": "供应商付款审批",
+        "nodes": [
+          {
+            "id": "start",
+            "type": "start",
+            "name": "提交付款申请 / Submit payment request",
+            "assigneeId": null
+          },
+          {
+            "id": "payment-check",
+            "type": "parallelApproval",
+            "name": "财务与采购会签",
+            "assigneeId": null,
+            "assigneeIds": [
+              "bob",
+              "carol"
+            ],
+            "completionMode": "ALL",
+            "runIf": {
+              "mode": "ALL",
+              "predicates": [
+                {
+                  "field": "payment.netTotal",
+                  "operator": "GTE",
+                  "currency": "CNY",
+                  "threshold": 10000
+                }
+              ]
+            }
+          },
+          {
+            "id": "payment-final",
+            "type": "parallelApproval",
+            "name": "付款复核",
+            "assigneeId": null,
+            "assigneeIds": [
+              "bob",
+              "carol"
+            ],
+            "completionMode": "ANY"
+          },
+          {
+            "id": "end",
+            "type": "end",
+            "name": "付款申请审批完成 / Payment request review complete",
+            "assigneeId": null
+          }
+        ]
+      },
+      "routing": {
+        "schemaVersion": 1,
+        "stepIds": [
+          "payment-check",
+          "payment-final"
+        ],
+        "evaluations": [
+          {
+            "stepId": "payment-check",
+            "result": true,
+            "predicates": [
+              {
+                "field": "payment.netTotal",
+                "actualValue": "CNY 10000",
+                "result": true
+              }
+            ]
+          }
+        ]
+      },
+      "status": "APPROVED",
+      "currentStepId": null,
+      "history": [
+        {
+          "actorId": "alice",
+          "action": "SUBMIT",
+          "comment": "",
+          "at": "2026-10-10T02:34:14.210791511Z",
+          "stepId": null
+        },
+        {
+          "actorId": "bob",
+          "action": "APPROVE",
+          "comment": "发票分配与已验收货物一致，无需追加扣款。",
+          "at": "2026-10-10T02:34:15.309392064Z",
+          "stepId": "payment-check"
+        },
+        {
+          "actorId": "carol",
+          "action": "APPROVE",
+          "comment": "已核对供应商余额及发票剩余可分配金额。",
+          "at": "2026-10-10T02:34:16.436233114Z",
+          "stepId": "payment-check"
+        },
+        {
+          "actorId": "carol",
+          "action": "APPROVE",
+          "comment": "本次申请结算金额在本月已批准预算内。",
+          "at": "2026-10-10T02:34:17.006385698Z",
+          "stepId": "payment-final"
+        }
+      ]
+    }
+  ]
+}
