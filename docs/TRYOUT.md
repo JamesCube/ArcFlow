@@ -146,6 +146,16 @@ python3 scripts/package-tryout.py --output-dir /tmp/arcflow-rc-two
 
 ## Troubleshooting and boundaries
 
+### Safe failure diagnostics / 安全失败诊断
+
+If a service cannot start, exits early, or never becomes ready, the launcher prints the failing phase and each service's state/exit code. It distinguishes an unresponsive UI from an authenticated backend API that is not ready. It reads at most the last 64 KiB of each private service log and prints up to six fixed, recognized-cause hints per service (for example, occupied ports, a missing JAR or UI dependency, Java configuration, permissions or disk space). These are clues, not a complete root-cause analysis. Unknown text, exception details, credentials and request data are never copied into this summary; no diagnostic file is saved. The launcher stops its process groups and deletes the private runtime directory on failure as well as normal Ctrl-C shutdown.
+
+If no cause is recognized, rerun `python3 scripts/tryout.py --check`, then follow the [manual startup guide](GETTING_STARTED.md#english) to inspect the failure locally. Do not paste the private credentials file or unreviewed raw logs into a bug report. Forced kills and OS crashes still cannot guarantee cleanup; see the stopping instructions above.
+
+服务无法启动、提前退出或就绪超时时，启动器会输出失败阶段、各服务状态及退出码，并区分 UI 未响应与后端认证 API 未就绪。每个服务仅检查私有日志末尾最多 64 KiB，输出最多六条固定的已识别原因提示，例如端口冲突、JAR／UI 依赖缺失、Java 配置、权限或磁盘空间问题。这些提示用于排查，不保证覆盖完整根因。未知日志、异常详情、凭据和请求数据不会复制到诊断摘要，也不会另存诊断文件。失败及正常 Ctrl-C 停止时都会终止本次进程组并删除私有运行目录。
+
+若没有识别到原因，请先运行 `python3 scripts/tryout.py --check`，再按[手动启动指南](GETTING_STARTED.md#简体中文)在本机排查。不要将凭据文件或未经检查的原始日志粘贴到问题报告中。强制结束进程或系统崩溃仍可能阻止清理，请参阅上方停止说明。
+
 - **Tool check fails:** install or select the supported tool yourself, then rerun `--check`. Check `java -version`, `javac -version`, `mvn -version`, `node --version`, and `npm --version` in the same terminal. For a Maven installation outside `PATH`, use `--maven`.
 - **A port is already in use:** choose two unused ports using the launcher flags, or stop the process you own that uses the port. Do not change the server binding to a public interface.
 - **Dependency download/build fails:** inspect the reported error. Confirm access to your configured Maven/npm registries and correct proxy settings, then rerun. An extracted source bundle is not an offline installer. Never bypass TLS verification to fetch dependencies.
