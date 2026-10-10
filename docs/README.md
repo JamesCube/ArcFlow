@@ -29,6 +29,8 @@
 <!-- topic:how-to-guides-complete-a-task -->
 ## 操作指南：完成具体任务
 
+- [报销总额路由](EXPENSE_ROUTING.md)：配置必审/财务步骤，独立验证边界与权限，保留旧路径并规划恢复
+
 - [本地试用与源码打包](TRYOUT.md)：一次性启动、验证、清理及可复现源码包
 - [开发环境与验证](development/QUICKSTART.md)：构建顺序、测试和排错
 - [截图复现](GALLERY_CAPTURE.md)：真实采集、来源、hash 与视觉验收边界
@@ -52,7 +54,7 @@
 - 业务场景：[采购](PROCUREMENT_UI.md)、[报价折扣](CRM_QUOTE_CASE.md)、[费用报销](EXPENSE_SCENARIO.md)、[出差](TRAVEL_SCENARIO.md)、[用印](SEAL_USE_SCENARIO.md)、[收货](RECEIVING_SCENARIO.md)、[付款与合同](PAYMENT_CONTRACT_SCENARIOS.md)
 - 文档维护：[文档标准](DOCUMENTATION_STANDARD.md)、[本次审计](DOCUMENTATION_AUDIT.md)
 
-九种领域类型不等于通用端点接受九种类型。通用 `/api/documents` 只接受请假/采购，报价使用 `/api/crm`，六个专用场景使用各自宿主。条件仅用于付款/收货/合同，通过不执行付款、签约、盖章或入库。
+九种领域类型不等于通用端点接受九种类型。通用 `/api/documents` 只接受请假/采购，报价使用 `/api/crm`，六个专用场景使用各自宿主。条件仅用于报销/付款/收货/合同，通过不执行付款、签约、盖章或入库。
 
 <!-- topic:historical-evidence-follow-the-source -->
 ## 历史证据：按来源阅读

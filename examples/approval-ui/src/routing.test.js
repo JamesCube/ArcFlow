@@ -19,13 +19,13 @@ function request(condition = rule(payment('GT')), overrides = {}) {
 }
 
 describe('conditional definition schema compatibility', () => {
-  it.each(['erp-payment', 'erp-receiving', 'crm-contract'])('accepts schema 4 for the supported process %s, including all-unconditional routes', id => {
+  it.each(['oa-expense', 'erp-payment', 'erp-receiving', 'crm-contract'])('accepts schema 4 for the supported process %s, including all-unconditional routes', id => {
     expect(supportsRouting(id)).toBe(true)
     const d = processFixture({ id, schemaVersion: 4 })
     expect(valid(d)).toEqual([])
     expect(Object.hasOwn(d.nodes[1], 'runIf')).toBe(false)
   })
-  it.each(['leave-approval', 'oa-expense', 'oa-travel', 'oa-seal-use', 'crm-quote', 'generic', '__proto__', '', null])('rejects schema 4 for unsupported process %j', id => {
+  it.each(['leave-approval', 'oa-travel', 'oa-seal-use', 'crm-quote', 'generic', '__proto__', '', null])('rejects schema 4 for unsupported process %j', id => {
     expect(supportsRouting(id)).toBe(false)
     expect(valid(processFixture({ id, schemaVersion: 4 })).length).toBeGreaterThan(0)
   })

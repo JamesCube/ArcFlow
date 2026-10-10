@@ -15,7 +15,7 @@
 
 [简体中文](INTEGRATION_DESIGN.md) · [Documentation](README.en.md)
 
-This is a design proposal for general enterprise integration, not a published API. Current source includes standalone approval, a pinned official RuoYi reference, procurement forms, nine document types, six scenarios, and restricted conditions in three dedicated scenarios. See [Architecture](development/ARCHITECTURE.en.md) for exact scope. The resource paths and general DSL below are proposals, not substitutes for the [actual API reference](api/API_REFERENCE.en.md).
+This is a design proposal for general enterprise integration, not a published API. Current source includes standalone approval, a pinned official RuoYi reference, procurement forms, nine document types, six scenarios, and restricted conditions in four dedicated scenarios. See [Architecture](development/ARCHITECTURE.en.md) for exact scope. The resource paths and general DSL below are proposals, not substitutes for the [actual API reference](api/API_REFERENCE.en.md).
 
 <!-- topic:first-reference-integration -->
 ## First reference integration

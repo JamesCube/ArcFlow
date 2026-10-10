@@ -90,13 +90,15 @@ These flows produce internal review results only. They never pay, post stock, ap
 <!-- topic:routing -->
 ## Restricted conditional routes
 
-Only payment, receiving and contract expose When this step runs. Conditions are independent of group ALL/ANY voting:
+Only expense, payment, receiving and contract expose When this step runs. Conditions are independent of group ALL/ANY voting:
+
+- Expense total: exact sum of 1–20 saved lines, EQ/GT/GTE/LT/LTE, explicit matching CNY/USD/EUR/GBP/JPY, thresholds 0–20,000,000,000 with at most two decimals and whole JPY. A `GTE` threshold keeps mandatory review below it and adds finance at or above it. See the [independent expense case](../../docs/EXPENSE_ROUTING.en.md).
 
 - Payment net total: EQ/GT/GTE/LT/LTE in CNY, USD, EUR, GBP or JPY; thresholds 0–20,000,000,000, at most two decimals and whole JPY; one currency per process.
 - Receiving: whether any line has rejected goods, matching true or false.
 - Contract: STANDARD/NONSTANDARD with EQ or IN.
 
-A process permits at most eight flat predicates and needs an unconditional approval stage. No nesting or start/end conditions. Payment currency mismatch blocks submission; it never converts currency or silently skips a stage. Clearing every condition retains schema 4. Schema-2/3 wire shapes remain unchanged.
+A process permits at most eight flat predicates and needs an unconditional approval stage. No nesting or start/end conditions. Expense/payment currency mismatch blocks submission; it never converts currency or silently skips a stage. Clearing every condition retains schema 4. Schema-2/3 wire shapes remain unchanged.
 
 Preview uses the published or retry-pinned process. The server independently evaluates and freezes selected stages and evidence at submission; the client recomputes and rejects forged results. Excluded stages explicitly show a failed condition, never approval. Later publication cannot alter the saved route. See [conditional routing](../../docs/CONDITIONAL_ROUTING.en.md).
 

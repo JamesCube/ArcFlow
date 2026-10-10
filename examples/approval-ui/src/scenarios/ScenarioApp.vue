@@ -54,11 +54,11 @@ const sceneCopy = type => ({
     title: text('A clear account of every expense.', '一份清晰的报销申请。'),
     introduction: text('Add the expenses and their purpose. Reviewers see every line. All fields are required.', '填写费用与用途，审批人可以查看每一项。所有字段均为必填。'),
     submits: text('Submits the expense request', '提交报销申请'),
-    snapshot: text('This process and the expense lines are saved together at submission. Approval completes the demo; it does not issue a payment.', '提交时保存此流程与费用明细。通过审批仅结束演示流程，不发起付款。'),
+    snapshot: text('Expense lines, total-based conditions and the selected review path are frozen together at submission. Approval records a review result; it does not issue a payment.', '提交时一并冻结费用明细、总额条件与选中的审批路径。审批仅记录审核结果，不发起付款。'),
     localNote: text('Use synthetic data only. No receipt uploads, currency conversion or external integrations.', '仅填写合成数据。没有发票上传、汇率换算或外部集成。'),
     submitted: text('Expense request saved. Its approval process has started.', '报销申请已保存，审批流程已启动。'),
     placeholder: text('Every expense has a story.', '每一项费用，都有上下文。'),
-    tag: text('Itemized expenses', '多行费用'), limits: text('5 currencies · up to 20 expense lines', '5 个币种 · 最多 20 项费用'),
+    tag: text('Expense total conditions', '报销总额条件'), limits: text('5 currencies · up to 20 expense lines', '5 个币种 · 最多 20 项费用'),
   },
   travel: {
     newLabel: text('New travel request', '新建出差'), kicker: text('BUSINESS TRAVEL', '出差申请'),

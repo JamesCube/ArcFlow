@@ -1,4 +1,5 @@
 const names = {
+  'expense.totalAmount': ['Expense total', '报销总额'],
   'payment.netTotal': ['Payment net total', '付款净申请额'],
   'receiving.hasRejectedLines': ['Receipt has rejected lines', '收货单存在不合格明细'],
   'contract.termsKind': ['Contract terms kind', '合同条款类型'],
@@ -23,7 +24,7 @@ export function routingActualValueLabel(field, actualValue, locale = 'en') {
 }
 export function routingPredicateLabel(atom, locale = 'en') {
   const zh = locale === 'zh', name = routingFieldLabel(atom.field, locale)
-  if (atom.field === 'payment.netTotal') return `${name} ${{ EQ: '=', GT: '>', GTE: '≥', LT: '<', LTE: '≤' }[atom.operator]} ${atom.currency} ${atom.threshold}`
+  if (['expense.totalAmount', 'payment.netTotal'].includes(atom.field)) return `${name} ${{ EQ: '=', GT: '>', GTE: '≥', LT: '<', LTE: '≤' }[atom.operator]} ${atom.currency} ${atom.threshold}`
   if (atom.field === 'receiving.hasRejectedLines') return `${name} = ${atom.expected ? (zh ? '是' : 'Yes') : (zh ? '否' : 'No')}`
   return `${name} ${atom.operator === 'IN' ? (zh ? '属于' : 'is one of') : '='} ${atom.values.map(value => value === 'STANDARD' ? (zh ? '标准条款' : 'Standard') : (zh ? '非标准条款' : 'Nonstandard')).join(zh ? '、' : ', ')}`
 }

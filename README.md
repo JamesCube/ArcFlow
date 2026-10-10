@@ -79,7 +79,7 @@
 | [草稿撤销／重做](docs/DESIGNER_GALLERY.md#undo) | 🟡 | 独立设计器的标签页内撤销／重做；没有持久草稿 |
 | [发布与版本冲突](docs/DESIGNER_GALLERY.md#publish) | ✅ | 校验后发布新版本；期望版本冲突会被拒绝 |
 | [申请固定流程版本](docs/DESIGNER_GALLERY.md#versions) | ✅ | 旧申请固定提交时的规则、参与人和流程版本 |
-| [受限条件路由](docs/CONDITIONAL_ROUTING.md) | 🟡 | 付款净额／收货异常／合同条款选择额外人工步骤，提交即冻结；仅限三个独立场景 |
+| [受限条件路由](docs/CONDITIONAL_ROUTING.md) | 🟡 | 报销总额／付款净额／收货异常／合同条款选择额外人工步骤，提交即冻结；仅限四个独立场景 |
 
 [范围、缺失项和测试依据](docs/CAPABILITIES.md#zh-design)
 
@@ -191,7 +191,7 @@ python3 scripts/tryout.py
 | **智能 CRM** | 报价折扣：销售提交报价，经理核对折扣，财务复核金额 | [隔离的合成案例](docs/CRM_QUOTE_CASE.md)可运行，含独立中英文页面；尚未接入共享工作区或真实 CRM |
 | **OA** | 请假申请：填写天数和事由，由指定审批人逐步处理 | [可以运行](docs/GETTING_STARTED.md#简体中文)，也有若依示例 |
 | **ERP** | 采购申请：填写物品、数量和单价，审核采购需求与金额 | [接口与独立／若依表单](docs/PROCUREMENT_UI.md)均可运行，H5 可查看并审批采购单 |
-| **OA 费用报销** | 1–20 行费用明细、日期、类别、金额与合成票据引用，费用审核后由财务复核 | [已合并的独立场景](docs/EXPENSE_SCENARIO.md)，在 `/scenarios.html` 运行；不打款、不上传或验真发票 |
+| **OA 费用报销** | 1–20 行费用明细、日期、类别、金额与合成票据引用，费用审核后可按金额增加财务复核 | [已合并的独立场景](docs/EXPENSE_SCENARIO.md)，在 `/scenarios.html` 运行；不打款、不上传或验真发票 |
 | **OA 出差** | 目的地、起止日期、用途与精确预算，1–90 个自然日 | [独立出差场景](docs/TRAVEL_SCENARIO.md)，不订票、不报销或付款 |
 | **OA 用印** | 合成文件引用、印章类别、用途和份数 | [独立用印场景](docs/SEAL_USE_SCENARIO.md)，不盖章、不签署 |
 | **ERP 收货** | 1–20 行到货、合格、不合格数量及异常说明 | [独立收货场景](docs/RECEIVING_SCENARIO.md)，可配置条件复核；不查询真实采购余额或入库 |
@@ -200,9 +200,9 @@ python3 scripts/tryout.py
 
 报价案例使用合成客户和固定的销售经理 → 财务两步人工审批，通过专用 `/api/crm` 服务和 `/quote-discount.html` 页面运行。共享独立端、若依和 H5 工作区尚不支持报价；AI 功能、真实 CRM 连接、客户通知和业务回写均未实现。验收状态见 [CRM 兼容性与发布门槛](docs/CRM_COMPATIBILITY_READINESS.md)。
 
-费用报销使用编译期版本化 `ScenarioCatalog`、专用 `/api/scenarios/oa-expense` 路由和独立数据文件；表单字段固定，设计器可配置 1–8 个固定人员审批步骤。它不接入共享工作区、若依或 H5，也不连接真实财务系统。
+费用报销使用编译期版本化 `ScenarioCatalog`、专用 `/api/scenarios/oa-expense` 路由和独立数据文件；表单字段固定，设计器可配置 1–8 个固定人员审批步骤，并用[报销总额条件](docs/EXPENSE_ROUTING.md)控制是否增加财务复核。它不接入共享工作区、若依或 H5，也不连接真实财务系统。
 
-当前 main 的 `/scenarios.html` 目录包含报销、出差、用印、收货、付款和合同六项，收货另有 `/receiving.html` 入口。各自绑定业务类型、流程和文件；付款／收货／合同可选用[受限条件路由](docs/CONDITIONAL_ROUTING.md)。这些实现已合入源码，具体提交的浏览器、数据库及发布验收应另查。原始统一候选的图片下载 HTTP 403／1010 与未完成独立逐图核验记录保留为[历史证据](docs/UNIFIED_SCENARIO_INTEGRATION.md)，不能当作当前 CI 的通过或失败结论。
+当前 main 的 `/scenarios.html` 目录包含报销、出差、用印、收货、付款和合同六项，收货另有 `/receiving.html` 入口。各自绑定业务类型、流程和文件；报销／付款／收货／合同可选用[受限条件路由](docs/CONDITIONAL_ROUTING.md)。这里描述当前源码，具体提交的浏览器、数据库、合并及发布验收应另查。原始统一候选的图片下载 HTTP 403／1010 与未完成独立逐图核验记录保留为[历史证据](docs/UNIFIED_SCENARIO_INTEGRATION.md)，不能当作当前 CI 的通过或失败结论。
 
 <a id="看看实际页面"></a>
 
@@ -255,7 +255,7 @@ python3 scripts/tryout.py
 
 两个演示默认把审批数据写进本地 JSON，只支持单实例。若依的 MySQL 保存的是用户、角色和菜单，审批不会自动改用数据库。JDBC 需要显式接入和迁移；已提供成员待办／已办分页。租户隔离、业务表联合事务及 outbox 仍未实现。
 
-受限条件路由仅开放付款、收货、合同三个独立场景；动态角色解析、定时器、撤回和转办还没有实现。App、小程序和飞书／企微／钉钉接入尚未完成；目前没有生产就绪承诺或 BPMN 兼容性。后续工作见[路线图](docs/ROADMAP.md)。
+受限条件路由仅开放报销、付款、收货、合同四个独立场景；动态角色解析、定时器、撤回和转办还没有实现。App、小程序和飞书／企微／钉钉接入尚未完成；目前没有生产就绪承诺或 BPMN 兼容性。后续工作见[路线图](docs/ROADMAP.md)。
 
 ## 只运行 Java 内核
 
@@ -285,4 +285,4 @@ java -cp target/classes com.arcflow.example.QuickStart
 
 当前 `main` 的六场景目录包含 ERP 付款申请和 CRM 合同审批。付款支持多发票原额、已结、冲销、扣减与净申请额核对；合同支持条款差异、期限、多期付款与交付条件，并校验里程碑金额守恒。它们复用 SINGLE／ALL／ANY 和版本快照，拥有独立 API 与存储；不执行支付、签约或外部回写。详见[业务与流程契约](docs/PAYMENT_CONTRACT_SCENARIOS.md)。
 
-付款、收货、合同可使用定义 schema 4 的受限条件路由。服务端保存完整定义、保留版本与提交时冻结的实际路径，JSON wrapper 最高为 13；SQL revision 3 不变。旧 schema 2／3 申请保持原路径。详见[条件契约](docs/CONDITIONAL_ROUTING.md)及[迁移指南](docs/development/PERSISTENCE.md#zh)。专题文档中的本地候选与测试记录是历史检查点；应另查所用提交的 CI，不能视为当前提交或生产部署的保证。
+报销、付款、收货、合同可使用定义 schema 4 的受限条件路由。服务端保存完整定义、保留版本与提交时冻结的实际路径，JSON wrapper 最高为 13；SQL revision 3 不变。已懂 wrapper 13 但不识别 `expense.totalAmount` 的旧读取端仍须明确拒绝；发布前停止不兼容程序并备份。旧 schema 2／3 申请保持原路径。详见[条件契约](docs/CONDITIONAL_ROUTING.md)及[迁移指南](docs/development/PERSISTENCE.md#zh)。专题文档中的本地候选与测试记录是历史检查点；应另查所用提交的 CI，不能视为当前提交或生产部署的保证。

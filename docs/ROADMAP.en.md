@@ -32,7 +32,7 @@ This roadmap records completed milestones and possible next steps, without relea
 <!-- topic:experimental-local-approval-demo -->
 ## Experimental local approval demo
 
-The separate approval example edits/publishes 1–8 stages. Each request freezes its definition and progresses in order; rejecting a single-reviewer stage ends it. Decisions check permissions and support retries. A single-process JSON file saves definitions/requests across restart. Vue provides a designer, submission, inbox, read-only flow, and history. Repeated participants decide separately at each stage. The main workspace does not provide conditions, arbitrary graph deployment, or production storage; current payment/receiving/contract conditions belong to dedicated scenarios. [Run it](../examples/approval-demo/README.en.md)
+The separate approval example edits/publishes 1–8 stages. Each request freezes its definition and progresses in order; rejecting a single-reviewer stage ends it. Decisions check permissions and support retries. A single-process JSON file saves definitions/requests across restart. Vue provides a designer, submission, inbox, read-only flow, and history. Repeated participants decide separately at each stage. The main workspace does not provide conditions, arbitrary graph deployment, or production storage; current expense/payment/receiving/contract conditions belong to dedicated scenarios. [Run it](../examples/approval-demo/README.en.md)
 
 <!-- topic:implemented-optional-transactional-jdbc-storage -->
 ## Implemented: optional transactional JDBC storage
@@ -66,7 +66,7 @@ PENDING/HANDLED are scoped to the signed-in actor. ALL/ANY membership follows ea
 <!-- topic:implemented-nine-business-types-and-restricted-routing -->
 ## Implemented: nine business types and restricted routing
 
-Current main has nine domain types and six dedicated scenarios. Payment, receiving, and contract support definition-schema-4 conditions with frozen paths. JSON wrappers reach 13; JDBC remains SQL revision 3. These features are not arbitrary graphs, dynamic forms, or external business execution. [Architecture](development/ARCHITECTURE.en.md) · [Capability catalog](CAPABILITIES.en.md)
+Current main has nine domain types and six dedicated scenarios. Expense, payment, receiving, and contract support definition-schema-4 conditions with frozen paths. JSON wrappers reach 13; JDBC remains SQL revision 3. These features are not arbitrary graphs, dynamic forms, or external business execution. [Architecture](development/ARCHITECTURE.en.md) · [Capability catalog](CAPABILITIES.en.md)
 
 <!-- topic:next-a-sustainable-general-approval-model -->
 ## Next: a sustainable general approval model

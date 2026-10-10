@@ -4,6 +4,7 @@ import { MAX_APPROVALS, MAX_NAME_LENGTH, approvalNodes, isApproval, approvalMode
 import { validationText } from './locale'
 import UiIcon from './UiIcon.vue'
 import ConditionEditor from './ConditionEditor.vue'
+import { supportsRouting } from './routing.js'
 import './routing.css'
 import { createDraftHistory, insertApproval, moveApproval, removeApproval, updateApproval, setRunIf } from './designer-model'
 
@@ -24,7 +25,7 @@ const text = {
   zh: { title:'审批流程设计器', subtitle:'添加审批节点，并选择每一步由谁审批。', language:'中文', published:'已发布', draft:'草稿基于', clean:'与已发布版本一致', dirty:'有未发布修改', readOnly:'只读流程', editorOnly:'仅 Alice 可以编辑与发布流程。', local:'草稿仅保存在当前标签页内存中；刷新网页或退出登录会丢失未发布修改。', snapshots:'已发起的申请保留原流程快照。', stale:'检测到可能有更新版本。请点击页面右上角“更新数据”（不要刷新浏览器），然后重置为已发布流程并重新应用修改。点击“更新数据”会保留当前草稿。', processName:'流程名称', undo:'撤销', redo:'重做', add:'添加审批节点', reset:'重置为已发布', publish:'发布流程', publishing:'正在发布…', sequence:'审批顺序', count:'个审批节点', start:'发起', end:'结束', submit:'提交申请', complete:'流程完成', select:'选择节点，配置审批规则。', inspector:'节点设置', name:'节点名称', mode:'审批方式', single:'单人审批', all:'全员同意（ALL）', any:'任一同意（ANY）', assignee:'审批人', people:'参与人', selected:'已选', minimum:'请选择至少两位不同的参与人。', demo:'演示中可以选择 Bob 和 Carol 审批。同一个人如果出现在多个节点，需要分别审批。', singleRule:'由指定审批人决定；拒绝后流程驳回。', allRule:'全员同意（ALL）：全部同意才通过，任一拒绝即驳回。', anyRule:'任一同意（ANY）：任一同意即通过，全部拒绝才驳回。', up:'上移', down:'下移', remove:'删除节点', required:'流程至少保留一个审批节点。', limit:'已达到 8 个节点上限，请先删除一个节点。', inserted:'已插入新节点，请配置名称和审批人。', removed:'节点已删除，可使用撤销恢复。', reordered:'节点顺序已更新。', undone:'已撤销上一次草稿修改。', redone:'已恢复草稿修改。', resetDone:'已重置草稿，可撤销以恢复之前的修改。', keyboard:'Tab 选择节点，Enter 打开配置。Ctrl/Cmd+Z 撤销画布修改；输入框保留原生撤销。', issues:'发布前请检查', ready:'可以发布', missing:'待配置', fixed:'固定节点', preview:'查看草稿 JSON', version:'版本', stage:'节点', group:'位参与人', rule:'通过规则', modeHint:'切换为多人审批会预选两位示例用户，请在发布前确认参与人。' },
 }
 const t = computed(() => text[locale.value] || text.en)
-const routingSupported = computed(() => ['erp-payment', 'erp-receiving', 'crm-contract'].includes(props.expectedProcessId))
+const routingSupported = computed(() => supportsRouting(props.expectedProcessId))
 const conditionCount = computed(() => stages.value.reduce((count, node) => count + (node.runIf?.predicates?.length || 0), 0))
 const canCondition = computed(() => !!selected.value?.runIf || stages.value.filter(node => !node.runIf).length > 1)
 const stages = computed(() => approvalNodes(props.modelValue))
@@ -42,7 +43,7 @@ const personName = id => { const p = props.people.find(person => person.id === i
 const issueText = message => {
   if (locale.value !== 'zh') return message
   if (message === 'Keep at least one unconditional approval step.') return '至少保留一个始终纳入的无条件审批节点。'
-  if (message === 'Use the same currency for every payment condition in the process.') return '同一流程的所有金额条件必须使用相同币种。'
+  if (message === 'Use the same currency for every amount condition in the process.') return '同一流程的所有金额条件必须使用相同币种。'
   if (/at most 8 condition/.test(message)) return '整个流程最多使用 8 条条件。'
   if (/flat predicates/.test(message)) return '每个条件节点请选择 ALL 或 ANY，并配置 1–8 条平铺条件，不支持嵌套。'
   if (/supported condition fields/.test(message)) return '请检查条件值：金额为 0–20,000,000,000，最多两位小数（日元为整数）；条款类型至少选一项。'

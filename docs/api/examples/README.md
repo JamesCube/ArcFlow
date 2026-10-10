@@ -30,7 +30,7 @@ python3 scripts/verify_api_examples.py \
 
 离线检查用于发现控制器映射、静态契约及示例之间的漂移，不替代真实 HTTP 校验。
 
-HTTP 验证程序把每个样例文件的首次请求按原始 UTF-8 字节发送，保留数字词法规则。它自行启动回环服务器，在内存中生成密码，并使用临时数据目录。它提交九种业务文档，核对六项场景目录、发布冲突、SINGLE/ALL/ANY 决策、三种条件业务事实、权限、幂等头的必需／禁止规则、原样重试和重启恢复。结束时始终停止自己的服务器并删除临时数据，不连接现有实例、若依、MySQL、CRM 或付款服务。可用 `--java /absolute/path/to/java` 指定运行时。此检查不能替代完整 Maven／UI／JDBC 测试集。
+HTTP 验证程序把每个样例文件的首次请求按原始 UTF-8 字节发送，保留数字词法规则。它自行启动回环服务器，在内存中生成密码，并使用临时数据目录。它提交九种业务文档，核对六项场景目录、发布冲突、SINGLE/ALL/ANY 决策、四种条件业务事实、权限、幂等头的必需／禁止规则、原样重试和重启恢复。结束时始终停止自己的服务器并删除临时数据，不连接现有实例、若依、MySQL、CRM 或付款服务。可用 `--java /absolute/path/to/java` 指定运行时。此检查不能替代完整 Maven／UI／JDBC 测试集。
 
 <!-- topic:manual-requests -->
 
@@ -85,10 +85,23 @@ curl --fail-with-body --user bob \
 | [payment.json](payment.json) | `/api/scenarios/erp-payment/documents` | 必需 |
 | [contract.json](contract.json) | `/api/scenarios/crm-contract/documents` | 必需 |
 | [publish-all.json](publish-all.json) | `/api/process` | 不使用 |
+| [publish-expense-routing.json](publish-expense-routing.json) | `/api/scenarios/oa-expense/process` | 不使用 |
+| [expense-routing-below.json](expense-routing-below.json) | `/api/scenarios/oa-expense/documents` | 必需 |
+| [expense-routing-equal.json](expense-routing-equal.json) | `/api/scenarios/oa-expense/documents` | 必需 |
+| [expense-routing-above.json](expense-routing-above.json) | `/api/scenarios/oa-expense/documents` | 必需 |
 | [publish-payment-routing.json](publish-payment-routing.json) | `/api/scenarios/erp-payment/process` | 不使用 |
 
 例如，将上方 curl 命令的路径和 JSON 文件替换为表中值。报价必须删除整个 `Idempotency-Key` 头；先读取 `/api/crm/quotes` 并核对源快照。附带报价匹配合成预设 `Q-DEMO-001` 第 1 版。源版本字段是 `QuoteVersion.revision`，提交字段是 `business.quoteRevision`；报价提交响应视图没有独立的 `revision` 字段。
 
-发布者必须为 Alice；发布会递增版本，不能原样幂等重放。人员组发布使用流程结构版本 3，付款条件使用版本 4。其他条件谓词见[接口参考](../API_REFERENCE.md)和[路由契约](../../CONDITIONAL_ROUTING.md)。
+发布者必须为 Alice；发布会递增版本，不能原样幂等重放。人员组发布使用流程结构版本 3，费用与付款条件使用版本 4。其他条件谓词见[接口参考](../API_REFERENCE.md)和[路由契约](../../CONDITIONAL_ROUTING.md)。
 
 若依使用自己的令牌、权限、响应包装和 `/arcflow` 路径，不能直接套用以上 Basic 认证命令。见[原生宿主差异](../API_REFERENCE.md#ruoyi-native-host)。
+
+费用边界示例应先向全新费用流程发布 `publish-expense-routing.json`，再用各自独立幂等键提交 `expense-routing-below/equal/above.json`；其中 `processVersion: 2` 已填写。明细精确合计为 CNY 0.29/0.30/0.31，对比合成的 CNY 0.30 GTE 阈值。只有低于阈值的申请跳过 Carol 的额外复核，Bob 的必经人工阶段保留。
+
+费用专用真实 JAR 校验还核对：币种不匹配时不写入且幂等键可复用、重发布不改变旧单、仅分配到跳过步骤的 Carol 无读取或投票权限、同意/拒绝终态与重启恢复：
+
+```sh
+python3 examples/approval-demo/backend/scripts/verify-expense-routing-http.py \
+  --jar examples/approval-demo/backend/target/approval-demo-0.1.0-SNAPSHOT.jar
+```

@@ -30,7 +30,7 @@
 
 收货只记录数量、合成采购单引用和 1–20 条明细。`/api/scenarios/erp-receiving` 返回 `{request,total:null,summary}`，按单位汇总数量，通过不入库，见[收货契约](RECEIVING_SCENARIO.md)。报销和出差始终返回 `{request,total:string}`，没有收货 summary。
 
-共享目录提供六个编译期场景；业务类型、流程、固定 JSON 后缀和浏览器草稿/重试意图各自隔离，收货另保留 `/receiving.html`。登记类型不会使旧接口、通用接口或若依自动接受新类型。这些是固定版本表单与 1–8 阶段审批，不是任意字段引擎。付款/收货/合同可用[受限冻结路由](CONDITIONAL_ROUTING.md)，见[统一集成历史和验证门槛](UNIFIED_SCENARIO_INTEGRATION.md)。报价仅通过专用 `/api/crm` 及独立合成页面，不进入共享独立/若依/H5 工作区。
+共享目录提供六个编译期场景；业务类型、流程、固定 JSON 后缀和浏览器草稿/重试意图各自隔离，收货另保留 `/receiving.html`。登记类型不会使旧接口、通用接口或若依自动接受新类型。这些是固定版本表单与 1–8 阶段审批，不是任意字段引擎。报销/付款/收货/合同可用[受限冻结路由](CONDITIONAL_ROUTING.md)，见[统一集成历史和验证门槛](UNIFIED_SCENARIO_INTEGRATION.md)。报价仅通过专用 `/api/crm` 及独立合成页面，不进入共享独立/若依/H5 工作区。
 
 - `BusinessDocument.Leave(businessId, title, reason, days)` 保持 1–365 天规则。
 - `BusinessDocument.Procurement(businessId, title, reason, item, quantity, unitPrice, currency)`：物品非空且 ≤240 字符，数量 1–100,000，单价为正且 ≤1,000,000,000、最多两位小数，币种 CNY/USD/EUR/GBP/JPY；JPY 必须整数。这是示例业务规则，不是汇率或付款逻辑。
@@ -38,6 +38,8 @@
 - 所有类型需要稳定业务 ID：1–128 个 ASCII 字母/数字及 `._:/-`，首字符为字母/数字；标题 ≤120、原因 ≤2,000 字符，均必填。
 - 公共文本与物品 trim，价格按精确十进制规范化；不进行二进制浮点舍入、换汇、采购单发送或付款。
 - `businessId` 是宿主单据引用，不是通用领域的唯一约束或幂等键。报价宿主另加持久报价版本绑定，不改变通用契约。
+
+报销条件 `expense.totalAmount` 读取不可变明细的精确总额，阈值必须显式同币种且不换汇。它复用定义 schema 4、冻结 routing schema 1 和 wrapper 13，documentVersion 1 与 SQL revision 3 不变。[报销路由案例](EXPENSE_ROUTING.md)说明配置、权限、原版本重试与严格拒绝的上线边界；普通无条件报销单据仍最低 wrapper 7。
 
 <!-- topic:java-and-http -->
 ## Java 与 HTTP

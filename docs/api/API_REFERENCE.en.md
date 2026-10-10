@@ -143,7 +143,7 @@ Only these six scenario IDs are registered. An otherwise valid call for an unkno
 | `erp-payment` | `paymentRequest` | 3 | `payment-check` ALL Bob/Carol → `payment-final` ANY Bob/Carol |
 | `crm-contract` | `contractApproval` | 3 | `commercial-review` Bob → `contract-review` ALL Bob/Carol |
 
-These defaults initialize empty stores only. Fetch the current process; never assume version 1 or unchanged stages. All six scenarios support publishing schema 2/3. Only receiving, payment and contract support schema-4 conditional definitions.
+These defaults initialize empty stores only. Fetch the current process; never assume version 1 or unchanged stages. All six scenarios support publishing schema 2/3. Only expense, receiving, payment and contract support schema-4 conditional definitions.
 
 `ScenarioView` has this structure; the request placeholder represents the full model in §8:
 
@@ -288,7 +288,7 @@ Required `ProcessDefinition` fields: `schemaVersion,id,version,name,nodes`. Proc
 - Every node requires `id,type,name,assigneeId`. Node IDs match `[A-Za-z][A-Za-z0-9_-]{0,63}`, are unique within the definition, and reserve start/end for boundaries. Node names follow process-name rules.
 - Schema 2: interior nodes are `approval` with one non-null `assigneeId`. Do not supply `assigneeIds` or `completionMode`.
 - Schema 3: also permits `parallelApproval`, with `assigneeId:null`, 2–16 distinct active eligible `assigneeIds`, and `completionMode:ALL|ANY`.
-- Schema 4: permits optional `runIf` on approval nodes in the three supported typed scenarios. Omit the field for unconditional nodes; do not use null. Start/end nodes cannot have conditions.
+- Schema 4: permits optional `runIf` on approval nodes in the four supported typed scenarios. Omit the field for unconditional nodes; do not use null. Start/end nodes cannot have conditions.
 
 Sequential reviewers act in order. ALL requires every member to approve and rejects on one rejection. ANY completes the stage on one approval and rejects only when every member rejects. Partial votes keep the stage current. A person can belong to multiple stages and vote once in each.
 
@@ -296,11 +296,14 @@ Conditions select extra human review stages only at submission time. At least on
 
 | Scenario | Exact predicate fields | Constraints |
 | --- | --- | --- |
+| oa-expense | `field:"expense.totalAmount",operator,currency,threshold` | operator `EQ/GT/GTE/LT/LTE`; numeric threshold 0–20000000000, at most two decimals, whole JPY; exact sum of validated expense lines |
 | erp-payment | `field:"payment.netTotal",operator,currency,threshold` | operator `EQ/GT/GTE/LT/LTE`; numeric threshold 0–20000000000, at most two decimals, whole JPY |
 | erp-receiving | `field:"receiving.hasRejectedLines",operator:"EQ",expected` | expected is a JSON boolean; the fact is derived from rejected line quantities |
 | crm-contract | `field:"contract.termsKind",operator,values` | operator `EQ/IN`; unique `STANDARD/NONSTANDARD` values; exactly one for EQ, one or two for IN |
 
-Payment thresholds are decoded through Jackson JsonNode, which removes trailing decimal zeroes before the domain checks their scale: `threshold:1.000` is accepted. This differs from business-money DTOs, which preserve lexical scale. For those DTOs, scale is measured after applying the exponent; for example, `1.000e3` has scale 0.
+Expense and payment thresholds are decoded through Jackson JsonNode, which removes trailing decimal zeroes before the domain checks their scale: `threshold:1.000` is accepted. This differs from business-money DTOs, which preserve lexical scale. For those DTOs, scale is measured after applying the exponent; for example, `1.000e3` has scale 0.
+
+The server derives `expense.totalAmount` from the immutable validated line amounts using exact decimal arithmetic. It accepts no client-supplied total. For a CNY 0.30 GTE rule, 0.10 + 0.19 skips the extra stage, while 0.10 + 0.20 and 0.10 + 0.21 include it. These are synthetic precision examples, not a suggested expense policy. The existing expense document version 1, definition schema 4, route schema 1, and JSON wrapper 13 are unchanged. Expense routing is standalone-only; RuoYi and H5 do not support expense submissions or expense conditions.
 
 All money predicates in a definition must use the same currency. Submission currency must match **every** predicate, even inside an otherwise successful ANY rule. A mismatch rejects submission instead of silently removing review or converting currency. Unused predicate properties must be absent, not null.
 

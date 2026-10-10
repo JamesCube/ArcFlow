@@ -29,6 +29,8 @@ This task-oriented index describes current `0.1.0-SNAPSHOT` main. Historical alp
 <!-- topic:how-to-guides-complete-a-task -->
 ## How-to guides: complete a task
 
+- [Expense-total routing](EXPENSE_ROUTING.en.md): configure mandatory/finance stages, run independent boundary and permission cases, preserve old routes and plan recovery
+
 - [Local tryout and source packaging](TRYOUT.en.md): disposable startup, checks, cleanup, reproducible source bundles
 - [Development setup and verification](development/QUICKSTART.en.md): build order, tests, recovery
 - [Reproduce captures](GALLERY_CAPTURE.en.md): real UI, provenance, hashes, visual acceptance
@@ -52,7 +54,7 @@ This task-oriented index describes current `0.1.0-SNAPSHOT` main. Historical alp
 - Scenarios: [procurement](PROCUREMENT_UI.en.md), [quote discounts](CRM_QUOTE_CASE.en.md), [expenses](EXPENSE_SCENARIO.en.md), [travel](TRAVEL_SCENARIO.en.md), [seal-use](SEAL_USE_SCENARIO.en.md), [receiving](RECEIVING_SCENARIO.en.md), [payment and contracts](PAYMENT_CONTRACT_SCENARIOS.en.md)
 - Documentation: [standard](DOCUMENTATION_STANDARD.en.md), [this audit](DOCUMENTATION_AUDIT.en.md)
 
-Nine domain types do not mean nine types on generic endpoints. `/api/documents` accepts leave/procurement only; quotes use `/api/crm`, and six scenarios have dedicated hosts. Conditions are limited to payment/receiving/contract. Approval does not pay, sign, stamp, or post stock.
+Nine domain types do not mean nine types on generic endpoints. `/api/documents` accepts leave/procurement only; quotes use `/api/crm`, and six scenarios have dedicated hosts. Conditions are limited to expense/payment/receiving/contract. Approval does not pay, sign, stamp, or post stock.
 
 <!-- topic:historical-evidence-follow-the-source -->
 ## Historical evidence: follow the source

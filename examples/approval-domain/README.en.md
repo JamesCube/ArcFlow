@@ -29,7 +29,7 @@ mvn -f examples/approval-domain/pom.xml install
 
 For JSON, construct `ApprovalService(ObjectMapper, String filename, ActorDirectory, ProcessDefinition initialDefinition)` and call `close()` on shutdown; Spring hosts can use `@Bean(destroyMethod = "close")`. Database hosts use `ApprovalService(ApprovalStore, ActorDirectory)` with the optional [JDBC adapter](../approval-jdbc/README.en.md), which is never installed automatically.
 
-Each service binds to one stable process ID matching `[A-Za-z][A-Za-z0-9_-]{0,127}`. The initial definition applies only to a new store with no versioned snapshot. Publication cannot rename the process. Definitions contain start, 1–8 ordered approval stages and end: schema 2 has single reviewers, 3 adds ALL/ANY groups of 2–16 participants, and 4 adds restricted conditions only in payment, receiving and contract hosts. Generic and quote hosts reject schema 4.
+Each service binds to one stable process ID matching `[A-Za-z][A-Za-z0-9_-]{0,127}`. The initial definition applies only to a new store with no versioned snapshot. Publication cannot rename the process. Definitions contain start, 1–8 ordered approval stages and end: schema 2 has single reviewers, 3 adds ALL/ANY groups of 2–16 participants, and 4 adds restricted conditions only in expense, payment, receiving and contract hosts. Generic and quote hosts reject schema 4.
 
 The service owns the store; the host owns its `DataSource`. Stop accepting requests and drain work before closing the service and pool. JDBC closure prevents new operations but does not cancel transactions already in progress.
 

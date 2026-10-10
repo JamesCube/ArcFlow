@@ -45,10 +45,25 @@ jobs:
           python3 - <<'PY'
           import xml.etree.ElementTree as ET
           report = ET.parse('examples/approval-jdbc/target/surefire-reports/TEST-com.arcflow.approval.jdbc.PostgresqlApprovalStoreTest.xml').getroot()
-          assert int(report.attrib['tests']) >= 117, report.attrib
+          assert int(report.attrib['tests']) >= 131, report.attrib
           for key in ('skipped', 'errors', 'failures'):
               assert int(report.attrib[key]) == 0, report.attrib
           required_business_tests = {
+              'expenseRouteExactDecimalBoundarySelectsAllVotesAndIndependentFinalReview',
+              'expenseRouteSkippedActorHasNoReadVoteInboxOrMemberRights',
+              'expenseRouteAllRejectionIsTerminalAndDoesNotInventSkippedVotes',
+              'expenseRoutePublicationWithoutRequestsRetainsEveryDefinitionAcrossReopen',
+              'expenseRouteRepublishAndKeyReplayKeepOriginalPathVersionAndPayload',
+              'expenseRouteWrongCurrencyAndCrossFamilyAreRejectedBeforeAnyWrite',
+              'expenseRouteTamperedBusinessRouteAndEmbeddedDefinitionRejectWithoutRepair',
+              'expenseRouteTamperedRetainedDefinitionRejectsSavedRequestsWithoutRepair',
+              'expenseRouteMissingOrAlteredSelectedMemberFailsClosedWithoutRepair',
+              'expenseRouteAddingSkippedMemberDoesNotGrantReadOrVoteRightsOrRepairData',
+              'expenseRouteSchemaTwoAndThreeRequestsAndReadyProjectionRemainByteIdentical',
+              'expenseRouteConcurrentKeyRetryAndSelectedMemberVotesStayAtomic',
+              'expenseRouteAuditFailureRollsBackRequestKeyAndMembers',
+              'expenseRouteLostCommitAcknowledgementReplaysFrozenPathAfterPublication',
+
               'conditionalRouteLostCommitAcknowledgementReplaysOriginalPathAfterPublication',
               'conditionalRouteSkipsProjectionReadAndVoteRightsAndSurvivesReopen',
               'conditionalRouteKeepsRetainedDefinitionAndOriginalPathAfterRepublish',
@@ -152,10 +167,25 @@ jobs:
           python3 - <<'PY'
           import xml.etree.ElementTree as ET
           report = ET.parse('examples/approval-jdbc/target/surefire-reports/TEST-com.arcflow.approval.jdbc.MysqlApprovalStoreTest.xml').getroot()
-          assert int(report.attrib['tests']) >= 123, report.attrib
+          assert int(report.attrib['tests']) >= 137, report.attrib
           for key in ('skipped', 'errors', 'failures'):
               assert int(report.attrib[key]) == 0, report.attrib
           required_business_tests = {
+              'expenseRouteExactDecimalBoundarySelectsAllVotesAndIndependentFinalReview',
+              'expenseRouteSkippedActorHasNoReadVoteInboxOrMemberRights',
+              'expenseRouteAllRejectionIsTerminalAndDoesNotInventSkippedVotes',
+              'expenseRoutePublicationWithoutRequestsRetainsEveryDefinitionAcrossReopen',
+              'expenseRouteRepublishAndKeyReplayKeepOriginalPathVersionAndPayload',
+              'expenseRouteWrongCurrencyAndCrossFamilyAreRejectedBeforeAnyWrite',
+              'expenseRouteTamperedBusinessRouteAndEmbeddedDefinitionRejectWithoutRepair',
+              'expenseRouteTamperedRetainedDefinitionRejectsSavedRequestsWithoutRepair',
+              'expenseRouteMissingOrAlteredSelectedMemberFailsClosedWithoutRepair',
+              'expenseRouteAddingSkippedMemberDoesNotGrantReadOrVoteRightsOrRepairData',
+              'expenseRouteSchemaTwoAndThreeRequestsAndReadyProjectionRemainByteIdentical',
+              'expenseRouteConcurrentKeyRetryAndSelectedMemberVotesStayAtomic',
+              'expenseRouteAuditFailureRollsBackRequestKeyAndMembers',
+              'expenseRouteLostCommitAcknowledgementReplaysFrozenPathAfterPublication',
+
               'conditionalRouteLostCommitAcknowledgementReplaysOriginalPathAfterPublication',
               'conditionalRouteSkipsProjectionReadAndVoteRightsAndSurvivesReopen',
               'conditionalRouteKeepsRetainedDefinitionAndOriginalPathAfterRepublish',

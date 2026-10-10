@@ -49,11 +49,13 @@
 - UI 的 **SINGLE** 对应 `type: "approval"` 和单个 `assigneeId`，不是 JSON 的 `completionMode: "SINGLE"`。
 - **ALL**／**ANY** 对应 `type: "parallelApproval"`、`assigneeId: null`、2–16 个不同 `assigneeIds` 和 `completionMode`。独立演示只允许 Bob、Carol，因此其分组只能包含这两人。
 - ALL 全员同意才推进，任一拒绝即结束；ANY 任一同意即推进，全部拒绝才结束。同一人跨步骤需要逐步表决。内核依然串行；这里的“并行”描述同一步骤中可独立投票的成员。
-- 定义 schema 2 为单人顺序，3 增加分组，4 增加受限 `runIf`。仅付款、收货、合同场景允许 schema 4，其他场景及通用／报价宿主不能发布它。
-- 条件仅针对 `payment.netTotal`、`receiving.hasRejectedLines`、`contract.termsKind`；全定义至多八个条件原子，至少一个无条件人工步骤。规则组合的 ALL／ANY 与成员表决的 ALL／ANY 是两套含义。
+- 定义 schema 2 为单人顺序，3 增加分组，4 增加受限 `runIf`。仅报销、付款、收货、合同场景允许 schema 4，其他场景及通用／报价宿主不能发布它。
+- 条件仅针对 `expense.totalAmount`、`payment.netTotal`、`receiving.hasRejectedLines`、`contract.termsKind`；全定义至多八个条件原子，至少一个无条件人工步骤。规则组合的 ALL／ANY 与成员表决的 ALL／ANY 是两套含义。
 - 服务端按不可变业务和完整定义冻结路径与实际判定值。跳过的步骤不是已通过；只在跳过步骤中的人员不能据此读取或投票。禁止申请人出现在完整定义中，即使其步骤将被跳过。
 
-详见 [ProcessDefinition](../../examples/approval-domain/src/main/java/com/arcflow/approval/ProcessDefinition.java)、[ConditionalRouting](../../examples/approval-domain/src/main/java/com/arcflow/approval/ConditionalRouting.java)、[分组契约](../PARALLEL_APPROVAL.md)与[条件契约](../CONDITIONAL_ROUTING.md)。
+详报销路由对保存的全部费用明细精确求和，币种必须显式匹配且不换汇。即使跳过财务，完整定义仍保留；routing schema 1 记录选中路径及每个谓词事实。不增加新 schema、宿主端点、业务类型、动态角色或租户边界。见[报销操作案例](../EXPENSE_ROUTING.md)。
+
+见 [ProcessDefinition](../../examples/approval-domain/src/main/java/com/arcflow/approval/ProcessDefinition.java)、[ConditionalRouting](../../examples/approval-domain/src/main/java/com/arcflow/approval/ConditionalRouting.java)、[分组契约](../PARALLEL_APPROVAL.md)与[条件契约](../CONDITIONAL_ROUTING.md)。
 
 <!-- topic:nine-types-six-catalog-scenarios -->
 ## 九种业务类型与六场景目录

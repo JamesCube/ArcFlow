@@ -42,6 +42,8 @@ JSON 快照最低版本取决于实际内容：
 
 写入选择已有 wrapper、当前／保存定义、所有业务类型和提交键需求的最大值，绝不降级。发布 schema 4 时即需要 wrapper 13，即使还没有申请或定义已不含条件。schema 13 保存 `routingDefinitions`，包括尚无申请的已发布 schema-4 版本；当前定义与每笔条件申请必须和保留版本完全一致。
 
+`expense.totalAmount` 复用定义 schema 4、routing schema 1 与 wrapper 13；无条件报销单据仍最低 wrapper 7。保留完整发布定义、未使用的 schema 4 版本和每笔申请的完整原定义/路径。已能读 wrapper 13 但不认识此字段的程序，仍必须拒绝，包括仅发布而没有申请的存储。懂 wrapper 不等于懂新功能。
+
 依据：[BusinessDocumentSchema](../../examples/approval-domain/src/main/java/com/arcflow/approval/BusinessDocumentSchema.java)、[JsonApprovalStore](../../examples/approval-domain/src/main/java/com/arcflow/approval/JsonApprovalStore.java)、[ConditionalRouting](../../examples/approval-domain/src/main/java/com/arcflow/approval/ConditionalRouting.java)。未知版本、缺失／额外字段、非法类型组合、历史或派生状态不一致均拒绝读取，不静默修复。
 
 <!-- topic:default-json-one-local-writer -->
@@ -66,6 +68,8 @@ JSON 存储把发布、创建和决定串行化，先把完整快照写入同目
 3. 用兼容新版部署，先在备份副本上验证严格恢复、历史、幂等与未完成申请，再开放新业务／条件写入。
 4. 打开旧文件本身不会改写。成功变更需要更高 wrapper 时，先保存**紧接本次升级之前的原始字节**到 `.schemaN.bak`；同名备份存在时保留原文件并创建不同名称。schema-1 历史在内存中迁移，直到实际写入才落盘。
 5. 出错时保留原件、备份和日志，停止继续写入，核对版本与恢复计划。不要手改 schema、删除历史或移除锁文件来绕过活动写者。
+
+发布报销总额条件前，即使文件已是 wrapper 13 也要做操作备份；新字段本身不提高 wrapper 数字，因此不会触发自动升级备份。匹配的读写端一同部署，扩展前与识别报销条件的程序不能混跑。见[报销专用上线案例](../EXPENSE_ROUTING.md#rollout-and-recovery)。
 
 自动升级备份不能替代运营备份。恢复旧备份会丢失其后的申请与表决，既不是无损降级，也不是自动 JSON→JDBC 导入。金额、类型、路由或索引验证失败必须按故障处理。
 

@@ -42,6 +42,8 @@ Minimum JSON wrappers depend on saved content:
 
 Writes take the maximum required by the existing wrapper, current/saved definitions, all business types, and key bindings. They never downgrade. Publishing schema 4 requires wrapper 13 even without requests or remaining conditional nodes. Wrapper 13 retains `routingDefinitions`, including published schema-4 versions without requests. Current and request definitions must exactly match their retained versions.
 
+`expense.totalAmount` reuses definition schema 4, routing schema 1 and wrapper 13. Its unconditional expense document still has minimum wrapper 7. Retain complete published definitions, unused schema-4 versions and each request's full original definition/route. A binary that already reads wrapper 13 but lacks this field must reject it, including publication-only stores. Wrapper support alone is not feature compatibility.
+
 Sources: [BusinessDocumentSchema](../../examples/approval-domain/src/main/java/com/arcflow/approval/BusinessDocumentSchema.java), [JsonApprovalStore](../../examples/approval-domain/src/main/java/com/arcflow/approval/JsonApprovalStore.java), and [ConditionalRouting](../../examples/approval-domain/src/main/java/com/arcflow/approval/ConditionalRouting.java). Unknown versions, missing/extra fields, illegal type-wrapper combinations, and inconsistent history/derived state fail closed instead of being silently repaired.
 
 <!-- topic:default-json-one-local-writer -->
@@ -66,6 +68,8 @@ This is not clustering, network-filesystem support, multiple writers, high avail
 3. Deploy compatible binaries. On a backup copy, verify strict restore, history, retries, and pending requests before enabling new business/conditional writes.
 4. Opening an older file does not rewrite it. A successful mutation needing a higher wrapper first saves the **exact immediately preceding bytes** in `.schemaN.bak`; a collision preserves the existing backup and chooses another name. Schema-1 history migrates in memory until a real write occurs.
 5. On failure, preserve originals, backups, and logs, stop further writes, and reconcile the format/recovery plan. Never lower schema numbers, delete history, or remove a lock file to bypass an active writer.
+
+Before publishing an expense-total condition, take an operational backup even when the file is already wrapper 13. There is no wrapper-number increase to trigger an automatic upgrade backup for the new field alone. Deploy matching readers/writers together; do not mix pre-extension and expense-aware binaries. Follow the [expense-specific rollout case](../EXPENSE_ROUTING.en.md#rollout-and-recovery).
 
 Upgrade backups do not replace operational backups. Restoring an old backup loses later requests/votes. It is neither lossless downgrade nor automatic JSON-to-JDBC import. Invalid money, types, routes, or projections are failures to investigate.
 

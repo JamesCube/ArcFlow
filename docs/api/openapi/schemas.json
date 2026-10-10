@@ -1364,6 +1364,9 @@
     "RoutingPredicate": {
       "oneOf": [
         {
+          "$ref": "#/$defs/ExpensePredicate"
+        },
+        {
           "$ref": "#/$defs/PaymentPredicate"
         },
         {
@@ -1590,7 +1593,7 @@
         "synthetic": [],
         "optional": []
       },
-      "description": "Ordered nodes, unique IDs, start/end boundaries, 1–8 manual stages. Schema 2 permits only single approval, schema 3 adds ALL/ANY groups, schema 4 adds runIf. Schema 4 is limited to payment/receiving/contract, one predicate family, at most eight atoms overall, one payment currency and at least one unconditional approval. Names/actor IDs cannot contain ISO controls. Participants must be eligible, active and exclude the applicant in the full definition."
+      "description": "Ordered nodes, unique IDs, start/end boundaries, 1–8 manual stages. Schema 2 permits only single approval, schema 3 adds ALL/ANY groups, schema 4 adds runIf. Schema 4 is limited to expense/payment/receiving/contract, one predicate family, at most eight atoms overall, one explicit monetary currency and at least one unconditional approval. Names/actor IDs cannot contain ISO controls. Participants must be eligible, active and exclude the applicant in the full definition."
     },
     "GenericProcessDefinition": {
       "allOf": [
@@ -2557,6 +2560,42 @@
       ],
       "x-min-year": 1,
       "description": "Real calendar date in years 0001–9999 for registered scenarios."
+    },
+    "ExpensePredicate": {
+      "type": "object",
+      "properties": {
+        "field": {
+          "const": "expense.totalAmount"
+        },
+        "operator": {
+          "type": "string",
+          "enum": [
+            "EQ",
+            "GT",
+            "GTE",
+            "LT",
+            "LTE"
+          ]
+        },
+        "currency": {
+          "$ref": "#/$defs/Currency"
+        },
+        "threshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 20000000000,
+          "multipleOf": 0.01,
+          "description": "JSON number, normalized through Jackson JsonNode before validation. At most two significant fractional decimal places after trailing-zero normalization, up to 20000000000; JPY is numerically whole. Unlike business-money DTOs, 1.000 is accepted here."
+        }
+      },
+      "required": [
+        "field",
+        "operator",
+        "currency",
+        "threshold"
+      ],
+      "additionalProperties": false,
+      "description": "Server-derived exact sum of validated expense lines in the explicit document currency. The client cannot supply the total."
     }
   }
 }

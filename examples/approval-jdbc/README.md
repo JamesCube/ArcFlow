@@ -79,6 +79,8 @@ MySQL 使用 InnoDB、DYNAMIC、`utf8mb4_0900_bin` 的 NO PAD 精确比较和 LO
 
 构造器不自动回填，不隐藏地遍历历史。新安装脚本只因数据库为空而标记就绪。升级不改写历史 JSON、审计或幂等映射；恢复旧备份会丢失后来业务，不是无损降级。更高业务类型和 schema 4 即使不改 SQL 表，也要求全部应用理解新请求内容。
 
+报销 `expense.totalAmount` 条件复用 SQL revision 3，无新 DDL；保存完整保留定义与申请路径，按有效路径派生成员。旧程序可能已懂 schema 4/wrapper 13，却仍拒绝新字段；须一起部署兼容程序并在发布前备份。已就绪的 schema 2/3 投影保持原路径。见[报销上线步骤](../../docs/EXPENSE_ROUTING.md#rollout-and-recovery)。
+
 <!-- topic:integration -->
 ## 宿主接入和事务
 

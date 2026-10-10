@@ -79,6 +79,8 @@ MySQL uses InnoDB, DYNAMIC rows, exact NO PAD comparison through `utf8mb4_0900_b
 
 The constructor neither backfills nor secretly walks history. Fresh-install scripts mark readiness only for an empty database. Migration does not rewrite historical JSON, audit or key mappings. Restoring an old backup loses later activity; it is not a lossless downgrade. New business types and schema 4 still require compatible application readers even when SQL tables are unchanged.
 
+Expense `expense.totalAmount` conditions reuse SQL revision 3 without DDL. Store full retained definitions and request routes, and derive members from the effective path. An older binary may understand schema 4/wrapper 13 yet reject the new field; deploy compatible binaries together and back up before publication. Ready schema-2/3 projections retain their existing paths. See [expense rollout](../../docs/EXPENSE_ROUTING.en.md#rollout-and-recovery).
+
 <!-- topic:integration -->
 ## Wire the host and respect transaction boundaries
 

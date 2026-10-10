@@ -108,8 +108,8 @@ def main():
             elif uri.fragment and destination.suffix == '.md' and unquote(uri.fragment) not in anchors(destination):
                 errors.append(f'{path.relative_to(ROOT)}: missing Markdown anchor {ref}')
     examples = sorted((ROOT / 'docs/api/examples').glob('*.json'))
-    if len(examples) != 12:
-        errors.append(f'Expected 12 reviewed request examples, found {len(examples)}')
+    if len(examples) != 16:
+        errors.append(f'Expected 16 reviewed request examples, found {len(examples)}')
     for path in examples:
         body = unique_json(path)
         if not isinstance(body, dict):

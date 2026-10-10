@@ -7,7 +7,7 @@
 
 [简体中文](PARALLEL_APPROVAL.md) · [Documentation](README.en.md)
 
-The shared approval domain supports fixed-participant ALL and ANY groups. Participants are saved with the request; each vote and audit event commit together. Standalone Vue/Spring Boot and native RuoYi support group configuration, individual votes, and member worklists. This page covers schema 3; [restricted routing](CONDITIONAL_ROUTING.en.md) in three dedicated scenarios uses schema 4. Arbitrary graph joins, dynamic added reviewers, and delegation are unsupported. Production use has not been validated.
+The shared approval domain supports fixed-participant ALL and ANY groups. Participants are saved with the request; each vote and audit event commit together. Standalone Vue/Spring Boot and native RuoYi support group configuration, individual votes, and member worklists. This page covers schema 3; [restricted routing](CONDITIONAL_ROUTING.en.md) in four dedicated scenarios uses schema 4. Arbitrary graph joins, dynamic added reviewers, and delegation are unsupported. Production use has not been validated.
 
 <!-- topic:scope-and-definition -->
 ## Scope and definition

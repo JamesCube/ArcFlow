@@ -50,7 +50,7 @@ The shared catalog exposes all six compiled scenario entries. Their business typ
 processes, fixed JSON file suffixes and browser drafts/retry intents remain isolated;
 Receiving also keeps `/receiving.html`. Registration does not allow any new type through
 legacy/generic/native hosts. These are fixed versioned forms and 1–8-stage reviewer flows,
-with no arbitrary-field form engine. Payment/Receiving/Contract can use [restricted frozen routing](CONDITIONAL_ROUTING.en.md). See
+with no arbitrary-field form engine. Expense/Payment/Receiving/Contract can use [restricted frozen routing](CONDITIONAL_ROUTING.en.md). See
 [unified integration status and release gates](UNIFIED_SCENARIO_INTEGRATION.en.md).
 
 - `BusinessDocument.Leave(businessId, title, reason, days)` retains the 1–365 day rule.
@@ -72,6 +72,8 @@ with no arbitrary-field form engine. Payment/Receiving/Contract can use [restric
 - `businessId` is the host's document reference. It is not a uniqueness constraint or an
   idempotency key in the generic domain API. The quote host adds its own durable
   quote-revision binding without changing that generic contract.
+
+For Expense, `expense.totalAmount` conditions read the exact sum of the immutable lines, with explicit same-currency thresholds and no FX. They reuse definition schema 4, frozen routing schema 1 and wrapper 13 while leaving documentVersion 1 and SQL revision 3 unchanged. The [expense routing case](EXPENSE_ROUTING.en.md) covers configuration, permissions, original-version retries and fail-closed rollout; ordinary unconditional expense documents still need at least wrapper 7.
 
 <!-- topic:java-and-http -->
 ## Java and HTTP
