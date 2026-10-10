@@ -80,3 +80,16 @@ for (const lang of ['zh','en']) {
     await expect(page.locator('.versions')).not.toContainText('未合并');
   });
 }
+
+for (const lang of ['zh', 'en']) {
+  test(`${lang} five-case gallery entry stays visible on narrow screens`, async ({page}) => {
+    await page.setViewportSize({width:390,height:900});
+    await page.goto(lang === 'en' ? './en/' : './');
+    const entry = page.locator('.scenario-gallery-entry');
+    await entry.scrollIntoViewIfNeeded();
+    await expect(entry).toBeVisible();
+    await expect(entry.locator('a')).toHaveAttribute('href', `https://github.com/JamesCube/ArcFlow/blob/main/docs/galleries/README${lang === 'en' ? '.en' : ''}.md`);
+    await expect(entry).toContainText('104');
+    await expect(page.locator('html')).toHaveJSProperty('scrollWidth', 390);
+  });
+}

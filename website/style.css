@@ -11,3 +11,6 @@ dialog{padding:0 16px 16px}dialog form{position:sticky;top:0;left:0;height:auto;
 
 /* Developer entry points remain reachable when the compact header hides navigation. */
 .developer-links{display:flex;flex-wrap:wrap;gap:18px;margin-top:20px}.footer-top nav{flex-wrap:wrap}.site-header nav{gap:22px}
+
+/* Keep the five-case evidence entry visible independently of the scenario tabs. */
+.scenario-gallery-entry{margin-top:32px;padding-top:24px;border-top:1px solid #d9e2ce}.scenario-gallery-entry p{margin:12px 0 0;color:var(--muted)}

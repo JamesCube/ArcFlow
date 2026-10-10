@@ -17,6 +17,8 @@
 
 [简体中文](CASE_GALLERY.md) · [Documentation](README.en.md)
 
+Five additional case galleries: [travel, seal use, receiving, payment and contracts](galleries/README.en.md), including their designers, real states and conditional-routing supplements. The 104 original captures retain their historical provenance.
+
 Each case follows entry, submission, pending review, the next stage, and approval or rejection. Click for the original image. The three business journeys have English and Chinese versions; the RuoYi/H5 supplements are Chinese-only. All are real UI captures with synthetic data, without reusing a capture as a different state.
 
 <a id="oa"></a>

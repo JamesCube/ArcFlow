@@ -15,6 +15,8 @@
 
 [简体中文](DESIGNER_GALLERY.md) · [Documentation](README.en.md)
 
+Five additional case galleries: [travel, seal use, receiving, payment and contracts](galleries/README.en.md), including their designers, real states and conditional-routing supplements. The 104 original captures retain their historical provenance.
+
 Follow one editing journey from ordered stages to publication. These are real application captures with synthetic data, without generated or retouched UI. Click an image for full resolution. The Chinese page provides the same states in Chinese.
 
 This main-workspace designer supports 1–8 ordered stages between fixed start/end nodes, with Bob and Carol in its picker. The domain supports 2–16 fixed participants for host integrations. Arbitrary graphs, BPMN, dynamic departments, delegation, and withdrawal are unsupported. This workspace has no condition editor; see [the capability catalog](CAPABILITIES.en.md) for restricted conditions in three dedicated scenarios.

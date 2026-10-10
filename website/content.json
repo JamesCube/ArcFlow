@@ -235,7 +235,9 @@
     "developerLink": "分类文档索引",
     "apiLink": "HTTP 接口参考",
     "quickLink": "开发环境与验证",
-    "contractLink": "OpenAPI 与维护约定"
+    "contractLink": "OpenAPI 与维护约定",
+    "galleryLink": "继续看出差、用印、收货、付款与合同图集",
+    "galleryNote": "五类独立图集，104 张历史真实原图；每张标注语言、视口和采集来源。"
   },
   "en": {
     "lang": "en",
@@ -473,6 +475,8 @@
     "developerLink": "Documentation by task",
     "apiLink": "HTTP API reference",
     "quickLink": "Development setup",
-    "contractLink": "OpenAPI and contract maintenance"
+    "contractLink": "OpenAPI and contract maintenance",
+    "galleryLink": "Explore travel, seal-use, receiving, payment and contract galleries",
+    "galleryNote": "Five dedicated galleries, 104 historical original captures, each labeled by language, viewport and source."
   }
 }

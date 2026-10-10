@@ -41,6 +41,8 @@
 [![Approval demo CI](https://github.com/JamesCube/ArcFlow/actions/workflows/approval-demo.yml/badge.svg?branch=main)](https://github.com/JamesCube/ArcFlow/actions/workflows/approval-demo.yml)
 [![RuoYi integration](https://github.com/JamesCube/ArcFlow/actions/workflows/ruoyi-integration.yml/badge.svg?branch=main)](https://github.com/JamesCube/ArcFlow/actions/workflows/ruoyi-integration.yml)
 
+五类新图集：[出差](docs/galleries/travel.md) · [用印](docs/galleries/seal-use.md) · [收货](docs/galleries/receiving.md) · [付款](docs/galleries/payment.md) · [合同](docs/galleries/contract.md)。从各场景设计器开始，查看表单、校验、审批快照与条件路由；[104 张历史原图及来源](docs/galleries/README.md)。
+
 <a id="designer-preview"></a>
 
 ## 先看流程设计器

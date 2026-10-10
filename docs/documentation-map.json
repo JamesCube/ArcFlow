@@ -540,6 +540,76 @@
       ]
     },
     {
+      "path": "docs/galleries/CAPTURE.md",
+      "category": "how-to",
+      "topics": [
+        "historical-capture-identity",
+        "real-application-and-evidence-boundaries",
+        "capture-from-an-isolated-checkout",
+        "check-this-documentation-checkout"
+      ]
+    },
+    {
+      "path": "docs/galleries/README.md",
+      "category": "index",
+      "topics": [
+        "travel",
+        "seal-use",
+        "receiving",
+        "payment",
+        "contract",
+        "evidence-and-reading-notes"
+      ]
+    },
+    {
+      "path": "docs/galleries/contract.md",
+      "category": "tutorial",
+      "topics": [
+        "scope-and-limits",
+        "process-configuration-and-business-states",
+        "conditional-routing-supplement",
+        "sources-and-reproduction"
+      ]
+    },
+    {
+      "path": "docs/galleries/payment.md",
+      "category": "tutorial",
+      "topics": [
+        "scope-and-limits",
+        "process-configuration-and-business-states",
+        "conditional-routing-supplement",
+        "sources-and-reproduction"
+      ]
+    },
+    {
+      "path": "docs/galleries/receiving.md",
+      "category": "tutorial",
+      "topics": [
+        "scope-and-limits",
+        "process-configuration-and-business-states",
+        "conditional-routing-supplement",
+        "sources-and-reproduction"
+      ]
+    },
+    {
+      "path": "docs/galleries/seal-use.md",
+      "category": "tutorial",
+      "topics": [
+        "scope-and-limits",
+        "process-configuration-and-business-states",
+        "sources-and-reproduction"
+      ]
+    },
+    {
+      "path": "docs/galleries/travel.md",
+      "category": "tutorial",
+      "topics": [
+        "scope-and-limits",
+        "process-configuration-and-business-states",
+        "sources-and-reproduction"
+      ]
+    },
+    {
       "path": "docs/history/README.md",
       "category": "index",
       "topics": [
