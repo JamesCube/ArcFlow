@@ -164,7 +164,7 @@
 | `erp-payment` | `paymentRequest` | 3 | `payment-check` ALL Bob/Carol → `payment-final` ANY Bob/Carol |
 | `crm-contract` | `contractApproval` | 3 | `commercial-review` Bob → `contract-review` ALL Bob/Carol |
 
-上表仅用于新空存储初始化；客户端应先读取流程，不要假定版本永远为 1 或阶段从未变更。全部六场景可发布结构版本 2/3，只有收货/付款/合同场景可发布结构版本 4 条件流程。
+上表仅用于新空存储初始化；客户端应先读取流程，不要假定版本永远为 1 或阶段从未变更。全部六场景可发布结构版本 2/3，只有费用/收货/付款/合同场景可发布结构版本 4 条件流程。
 
 `ScenarioView`：
 
@@ -309,7 +309,7 @@
 - 每节点必需 `id,type,name,assigneeId`。ID 正则 `[A-Za-z][A-Za-z0-9_-]{0,63}`，全流程唯一；边界 ID 保留。`name` 规则与流程 `name` 相同。
 - 结构版本 2：中间节点只能是 `approval`，使用单个非 null `assigneeId`；不可带 `assigneeIds`/`completionMode`。
 - 结构版本 3：还可使用 `parallelApproval`，必须 `assigneeId:null`、`assigneeIds` 为 2–16 个唯一启用的合格身份、`completionMode` 为 `ALL` 或 `ANY`。
-- 结构版本 4：在受支持的三个类型化场景中为审批阶段增加可选 `runIf`；无条件节点应省略此字段，不能写 null。开始/结束不能有条件。
+- 结构版本 4：在受支持的四个类型化场景中为审批阶段增加可选 `runIf`；无条件节点应省略此字段，不能写 null。开始/结束不能有条件。
 
 单人依次审批。ALL 需全员同意，一个拒绝就终止为 REJECTED；ANY 一个同意就通过阶段，仅当所有成员拒绝才 REJECTED。部分票不会提前跳过阶段；同一人可以被不同阶段分配，并且每阶段投一次。
 
@@ -317,11 +317,14 @@
 
 | 场景 | 谓词的精确 JSON 字段 | 限制 |
 | --- | --- | --- |
+| oa-expense | `field:"expense.totalAmount", operator, currency, threshold` | `operator` `EQ/GT/GTE/LT/LTE`；数值阈值 0–20000000000，最多两位，JPY 整数；来源为已校验费用明细的精确合计 |
 | erp-payment | `field:"payment.netTotal", operator, currency, threshold` | `operator` `EQ/GT/GTE/LT/LTE`；`threshold` JSON 数值，0–20000000000，最多两位，JPY 整数 |
 | erp-receiving | `field:"receiving.hasRejectedLines", operator:"EQ", expected` | `expected` JSON 布尔值，来源为不合格行数量 |
 | crm-contract | `field:"contract.termsKind", operator, values` | `operator` `EQ/IN`；唯一 `STANDARD/NONSTANDARD` 数组，EQ 恰一项，IN 1–2 项 |
 
-付款阈值先经 Jackson JsonNode 解码，末尾小数零会在领域标度校验前归一化，因此 `threshold:1.000` 可以通过。这与保留词法标度的业务金额 DTO 不同。业务金额的标度按指数运算后的数值表示计算，例如 `1.000e3` 的标度为 0。
+费用与付款阈值先经 Jackson JsonNode 解码，末尾小数零会在领域标度校验前归一化，因此 `threshold:1.000` 可以通过。这与保留词法标度的业务金额 DTO 不同。业务金额的标度按指数运算后的数值表示计算，例如 `1.000e3` 的标度为 0。
+
+服务端以精确十进制运算，从已校验且不可变的费用行金额推导 `expense.totalAmount`，不接受客户端传入合计。对 CNY 0.30 的 GTE 规则，0.10 + 0.19 跳过额外阶段，0.10 + 0.20 与 0.10 + 0.21 都进入该阶段。这是合成精度示例，不是建议的报销制度。现有费用单据版本 1、流程结构版本 4、路线版本 1、JSON 包装版本 13 均不变。报销条件仅用于独立演示；若依与 H5 仍不支持报销发起或费用条件。
 
 所有金额谓词必须同币种，申请币种必须匹配**每个**谓词；不匹配会拒绝提交，即使 ANY 的其他项已满足，也不会静默跳过审核或换汇。不适用的谓词字段必须省略，不能填入 null。
 

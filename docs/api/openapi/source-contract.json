@@ -10,7 +10,7 @@
     "examples/approval-demo/backend/src/main/java/com/arcflow/demo/SecurityConfig.java": "41659b5679bae7377197892bda9bef6d25e9dd01777236e2b3af3b92ab5ee3ae",
     "examples/approval-domain/src/main/java/com/arcflow/approval/ApprovalService.java": "1f00b8256b730a07d8a83c7f19c51b27cfaad3735c60bf0154387a8666e62ae1",
     "examples/approval-domain/src/main/java/com/arcflow/approval/BusinessDocument.java": "54ef6f38b34df98d8b8fe12dd914b8e3dcacb15400e93e16c9fc5daf852ef029",
-    "examples/approval-domain/src/main/java/com/arcflow/approval/ConditionalRouting.java": "e7744fd20fbf4c069463ad79ac03d83a576d434a2b799d7eeb438f401d4fef26",
+    "examples/approval-domain/src/main/java/com/arcflow/approval/ConditionalRouting.java": "540cdd29ff62ea03ee86e471067dfcf814b262854d33a2e27caca8aa83f710a4",
     "examples/approval-domain/src/main/java/com/arcflow/approval/InboxQuery.java": "ea0476f5ecf5459445b71e43bb6ab0583aa379a1fe6332b02045f2f9736ce0a7",
     "examples/approval-domain/src/main/java/com/arcflow/approval/ProcessDefinition.java": "952b0972e3af7fe977773ef76acb5035a57715803f4611a0ed9e38ba849dbe8f",
     "examples/approval-domain/src/main/java/com/arcflow/approval/QuoteDiscountCase.java": "6e52c61b912fbb5dce1cd740d14f031c846e7c8e1795fb41fb81112096ca799d",

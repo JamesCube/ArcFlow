@@ -205,6 +205,38 @@ class ContractMutationTests(unittest.TestCase):
         self.mutate_json('docs/api/examples/publish-payment-routing.json', lambda b: b['definition']['nodes'][2]['runIf']['predicates'][0].__setitem__('threshold', 0.001))
         self.rejected('schema alternative')
 
+    def test_expense_predicate_cannot_be_removed_from_union(self):
+        self.schema(lambda s: s['RoutingPredicate']['oneOf'].remove({'$ref': '#/$defs/ExpensePredicate'}))
+        self.rejected('Routing predicate union')
+
+    def test_expense_field_schema_cannot_drift(self):
+        self.schema(lambda s: s['ExpensePredicate']['properties']['field'].__setitem__('const', 'expense.clientTotal'))
+        self.rejected('runIf predicate schema')
+
+    def test_expense_condition_requires_explicit_currency(self):
+        self.mutate_json('docs/api/examples/publish-expense-routing.json', lambda b: b['definition']['nodes'][2]['runIf']['predicates'][0].pop('currency'))
+        self.rejected('schema alternative')
+
+    def test_expense_condition_rejects_fractional_jpy(self):
+        self.mutate_json('docs/api/examples/publish-expense-routing.json', lambda b: b['definition']['nodes'][2]['runIf']['predicates'][0].__setitem__('currency', 'JPY'))
+        self.rejected('fractional JPY threshold')
+
+    def test_expense_condition_cannot_target_payment_host(self):
+        self.mutate_json('docs/api/examples/publish-expense-routing.json', lambda b: b['definition'].__setitem__('id', 'erp-payment'))
+        self.rejected('condition family does not belong')
+
+    def test_expense_submission_cannot_supply_authoritative_total(self):
+        self.mutate_json('docs/api/examples/expense-routing-equal.json', lambda b: b['business'].__setitem__('totalAmount', 0.29))
+        self.rejected('schema alternative')
+
+    def test_expense_threshold_is_a_number_not_an_expression(self):
+        self.mutate_json('docs/api/examples/publish-expense-routing.json', lambda b: b['definition']['nodes'][2]['runIf']['predicates'][0].__setitem__('threshold', 'sum(lines)'))
+        self.rejected('schema alternative')
+
+    def test_expense_condition_family_must_be_declared_in_openapi(self):
+        self.spec(lambda s: s['x-condition-families'].remove('expense.totalAmount'))
+        self.rejected('OpenAPI condition family')
+
     def test_business_decimal_scale_applies_after_exponent(self):
         path = self.root / 'docs/api/examples/expense.json'
         value = path.read_text()

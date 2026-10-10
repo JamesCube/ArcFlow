@@ -30,13 +30,13 @@ python3 scripts/verify_api_examples.py \
 
 The offline check detects drift between Controller mappings, static contracts and examples. It does not replace real-HTTP verification.
 
-The HTTP verifier sends the first request for each bundled file as its original UTF-8 bytes, preserving numeric lexical rules. It starts its own loopback server with generated, in-memory passwords and a temporary data directory. It submits all nine business types, checks the six-entry catalog, publication conflicts, SINGLE/ALL/ANY decisions, all three conditional business facts, authorization, required/forbidden idempotency headers, exact replay, and restart recovery. It always stops its server and removes its temporary data. It does not connect to a running instance, RuoYi, MySQL, a CRM, or a payment service. Use `--java /absolute/path/to/java` to choose the runtime. This check does not replace the full Maven/UI/JDBC test suites.
+The HTTP verifier sends the first request for each bundled file as its original UTF-8 bytes, preserving numeric lexical rules. It starts its own loopback server with generated, in-memory passwords and a temporary data directory. It submits all nine business types, checks the six-entry catalog, publication conflicts, SINGLE/ALL/ANY decisions, all four conditional business facts, authorization, required/forbidden idempotency headers, exact replay, and restart recovery. It always stops its server and removes its temporary data. It does not connect to a running instance, RuoYi, MySQL, a CRM, or a payment service. Use `--java /absolute/path/to/java` to choose the runtime. This check does not replace the full Maven/UI/JDBC test suites.
 
 <!-- topic:manual-requests -->
 
 ## Manual requests
 
-Start a disposable local backend using the [quickstart](../../development/QUICKSTART.en.md). The JSON files use `processVersion: 1` and the publication examples use `expectedVersion: 1`; they assume a fresh store. Read the live process before use. If you previously published, review the new definition and deliberately update both relevant version fields. Reusing an old submission key with a changed version or payload is a conflict, not a retry.
+Start a disposable local backend using the [quickstart](../../development/QUICKSTART.en.md). The basic submission JSON files use `processVersion: 1` and the publication examples use `expectedVersion: 1`; they assume a fresh store. Read the live process before use. If you previously published, review the new definition and deliberately update both relevant version fields. Reusing an old submission key with a changed version or payload is a conflict, not a retry.
 
 The commands below prompt for the locally configured Alice password. Do not put passwords in URLs, source files, shell history, or a committed HTTP client environment. Keep the original idempotency key and request file after an uncertain response. Headers are case-insensitive.
 
@@ -85,10 +85,23 @@ All rows use `POST`, JSON, authenticated Alice, and `X-Arcflow-Client: approval-
 | [payment.json](payment.json) | `/api/scenarios/erp-payment/documents` | Required |
 | [contract.json](contract.json) | `/api/scenarios/crm-contract/documents` | Required |
 | [publish-all.json](publish-all.json) | `/api/process` | Not used |
+| [publish-expense-routing.json](publish-expense-routing.json) | `/api/scenarios/oa-expense/process` | Not used |
+| [expense-routing-below.json](expense-routing-below.json) | `/api/scenarios/oa-expense/documents` | Required |
+| [expense-routing-equal.json](expense-routing-equal.json) | `/api/scenarios/oa-expense/documents` | Required |
+| [expense-routing-above.json](expense-routing-above.json) | `/api/scenarios/oa-expense/documents` | Required |
 | [publish-payment-routing.json](publish-payment-routing.json) | `/api/scenarios/erp-payment/process` | Not used |
 
 Substitute the path and JSON file in the curl command above. For quote submission, omit the entire `Idempotency-Key` header; first read `/api/crm/quotes` and verify the snapshot values. The bundled quote matches synthetic preset `Q-DEMO-001`, revision 1. The source field is `QuoteVersion.revision`, and the submission field is `business.quoteRevision`; the quote submission response view has no separate `revision` field.
 
-The publisher must be Alice; publication increments the version and is not retry-idempotent. Group publication uses process schema 3; the payment rule uses schema 4. Other conditional predicates are documented in the [API reference](../API_REFERENCE.en.md) and [routing contract](../../CONDITIONAL_ROUTING.en.md).
+The publisher must be Alice; publication increments the version and is not retry-idempotent. Group publication uses process schema 3; the expense and payment rules use schema 4. Other conditional predicates are documented in the [API reference](../API_REFERENCE.en.md) and [routing contract](../../CONDITIONAL_ROUTING.en.md).
+
+For the expense boundary examples, first publish `publish-expense-routing.json` to a fresh expense process. Then send each `expense-routing-below/equal/above.json` with a separate idempotency key and `processVersion: 2` as supplied. Their exact line totals are CNY 0.29/0.30/0.31 against a synthetic CNY 0.30 GTE threshold. Only the below case skips Carol’s extra review; Bob’s mandatory stages remain.
+
+The focused real-JAR check also proves a currency mismatch writes nothing and leaves its key reusable, republishing freezes old requests, skipped-only Carol cannot read or vote, approve/reject outcomes, and restart recovery:
+
+```sh
+python3 examples/approval-demo/backend/scripts/verify-expense-routing-http.py \
+  --jar examples/approval-demo/backend/target/approval-demo-0.1.0-SNAPSHOT.jar
+```
 
 RuoYi uses its own token, permissions, response envelope, and `/arcflow` paths. These Basic-auth commands must not be sent unchanged to RuoYi. See [native host differences](../API_REFERENCE.en.md#ruoyi-native-host).

@@ -292,7 +292,7 @@ class Checker:
         require({r['$ref'].split('/')[-1] for r in schemas['BusinessDocument']['oneOf']} == {name for name, _ in registered}, 'BusinessDocument union differs from Java registry')
         require(schemas['GenericBusinessDocument']['oneOf'] == [{'$ref': '#/$defs/Leave'}, {'$ref': '#/$defs/Procurement'}], 'Generic document union must remain leave/procurement')
         require({r['$ref'].split('/')[-1] for r in schemas['ScenarioBusinessDocument']['oneOf']} == {name for name, _ in registered} - {'Leave', 'Procurement', 'QuoteDiscount'}, 'Scenario document union drift')
-        require({r['$ref'].split('/')[-1] for r in schemas['RoutingPredicate']['oneOf']} == {'PaymentPredicate', 'ReceivingPredicate', 'ContractPredicate'}, 'Routing predicate union drift')
+        require({r['$ref'].split('/')[-1] for r in schemas['RoutingPredicate']['oneOf']} == {'ExpensePredicate', 'PaymentPredicate', 'ReceivingPredicate', 'ContractPredicate'}, 'Routing predicate union drift')
         for name, wire in registered:
             require(schemas[name]['properties']['type'] == {'const': wire}, f'{name}: discriminator drift')
         for name, schema in schemas.items():
@@ -325,8 +325,8 @@ class Checker:
         require(set(schemas['ScenarioId']['enum']) == set(catalog), 'ScenarioId schema drift')
         condition_text = java_code((self.root / DOMAIN / 'ConditionalRouting.java').read_text())
         families = set(re.findall(r'case "([^"]+)" -> BusinessDocument\.', condition_text))
-        require(len(families) == 3, 'Conditional routing family count changed')
-        require({schemas[n]['properties']['field']['const'] for n in ('PaymentPredicate', 'ReceivingPredicate', 'ContractPredicate')} == families, 'runIf predicate schema drift')
+        require(len(families) == 4, 'Conditional routing family count changed')
+        require({schemas[n]['properties']['field']['const'] for n in ('ExpensePredicate', 'PaymentPredicate', 'ReceivingPredicate', 'ContractPredicate')} == families, 'runIf predicate schema drift')
         operations = {}; ids = set()
         for host in ('standalone', 'ruoyi'):
             path = self.root / SPEC_DIR / (host + '.openapi.json'); spec = self.document(path)
@@ -380,13 +380,13 @@ class Checker:
             require(count == spec['x-controller-route-count'] == (21 if host == 'standalone' else 9), f'{host}: operation count drift')
         require(set(operations) == set(routes), 'OpenAPI omits actual controller handlers')
         files = {p.name for p in (self.root / 'docs/api/examples').glob('*.json')}
-        require(len(files) == 12 and self.examples == files, 'Every one of the 12 request examples must be referenced and schema checked')
+        require(len(files) == 16 and self.examples == files, 'Every one of the 16 request examples must be referenced and schema checked')
         manifest = load_json(self.root / SPEC_DIR / 'source-contract.json')
         require(manifest['formatVersion'] == 1, 'Unknown source review manifest format')
         require(set(manifest['sources']) == SOURCE_GUARDS, 'Source review guard inventory drift')
         for source, digest in manifest['sources'].items():
             require(source_digest(self.root / source) == digest, f'{source}: reviewed semantic source changed; review HTTP contract, schemas and tests before updating its digest')
-        return f'PASS: 30 controller handlers; 2 OpenAPI 3.1 contracts; {len(schemas)} shared models; 9 types; 6 scenarios; 3 condition families; 12 schema-checked examples; {len(manifest["sources"])} source review guards.'
+        return f'PASS: 30 controller handlers; 2 OpenAPI 3.1 contracts; {len(schemas)} shared models; 9 types; 6 scenarios; 4 condition families; 16 schema-checked examples; {len(manifest["sources"])} source review guards.'
 
     def operation_contract(self, host, key, op, parameters, path):
         method, endpoint = key
@@ -468,6 +468,8 @@ class Checker:
                 require(d['schemaVersion'] == 4 and len(rules) < len(interior), f'{where}: schema 4 and unconditional stage required')
                 predicates = [p for rule in rules for p in rule['predicates']]
                 require(len(predicates) <= 8 and len({p['field'] for p in predicates}) == 1, f'{where}: bounded single condition family required')
+                family_hosts = {'expense.totalAmount': 'oa-expense', 'payment.netTotal': 'erp-payment', 'receiving.hasRejectedLines': 'erp-receiving', 'contract.termsKind': 'crm-contract'}
+                require(all(family_hosts[p['field']] == d['id'] for p in predicates), f'{where}: condition family does not belong to scenario')
                 require(len({p['currency'] for p in predicates if 'currency' in p}) <= 1, f'{where}: inconsistent condition currencies')
                 require(all(p['threshold'] == int(p['threshold']) for p in predicates if p.get('currency') == 'JPY'), f'{where}: fractional JPY threshold')
 

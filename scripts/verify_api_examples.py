@@ -242,6 +242,24 @@ def main():
                 selected = ['base', 'final'] if name == 'payment' else ['base', 'risk', 'final']
                 assert v['request']['routing']['stepIds'] == selected
                 conditional.append((route, body, 'conditional-' + name, finish(route, v)))
+            # Expense is a fourth finite fact using the existing immutable multi-line document.
+            expense_route = '/api/scenarios/oa-expense'
+            expense_pub = sample('publish-expense-routing')
+            assert call('alice', 'POST', expense_route + '/process', expense_pub,
+                        raw=raw_sample('publish-expense-routing'))['version'] == 2
+            for boundary, total, steps in [('below', '0.29', ['base', 'final']),
+                                           ('equal', '0.30', ['base', 'risk', 'final']),
+                                           ('above', '0.31', ['base', 'risk', 'final'])]:
+                name = 'expense-routing-' + boundary
+                body = sample(name)
+                view = call('alice', 'POST', expense_route + '/documents', body, 201, name, raw=raw_sample(name))
+                assert view['total'] == total
+                assert view['request']['routing']['stepIds'] == steps
+                if boundary == 'below':
+                    assert not any(v['request']['id'] == view['request']['id'] for v in call('carol', 'GET', expense_route + '/requests'))
+                    call('carol', 'POST', expense_route + '/requests/' + view['request']['id'] + '/decisions',
+                         {'stepId': 'risk', 'decision': 'APPROVE'}, 404)
+                conditional.append((expense_route, body, name, finish(expense_route, view)))
             payment_route = '/api/scenarios/erp-payment'
             high = sample('payment')
             high['processVersion'] = 2
@@ -260,7 +278,7 @@ def main():
             print(json.dumps({'status': 'PASS', 'backend': 'real packaged standalone Spring Boot 4.1.1',
                               'http_checks': count, 'json_example_files': len(list(EXAMPLES.glob('*.json'))),
                               'business_types': 9, 'scenario_catalog_entries': 6,
-                              'conditional_business_types': 3, 'restart': True,
+                              'conditional_business_types': 4, 'restart': True,
                               'synthetic_only': True, 'browser': 'not run by this script',
                               'native_ruoyi': 'not run by this standalone script'}, indent=2))
         finally:

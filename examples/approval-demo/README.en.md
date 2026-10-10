@@ -49,7 +49,7 @@ The backend listens on `127.0.0.1:8080`; Vite proxies `/api` to it. Keep both se
 ## Identity, process and persistence
 
 - Alice can publish. Bob and Carol can read requests where they participate in the selected route, including future or handled stages; voting is limited to an eligible current stage. Submission is rejected if the applicant appears anywhere in the definition.
-- The generic workspace supports ordered SINGLE/ALL/ANY stages. Restricted conditions are available only in the dedicated [payment, receiving and contract scenarios](../../docs/CONDITIONAL_ROUTING.en.md). Arbitrary graphs and BPMN are unsupported.
+- The generic workspace supports ordered SINGLE/ALL/ANY stages. Restricted conditions are available only in the dedicated [expense, payment, receiving and contract scenarios](../../docs/CONDITIONAL_ROUTING.en.md). Arbitrary graphs and BPMN are unsupported.
 - The ArcFlow core runs a synchronous validation DAG; the shared approval domain owns human-review state.
 - Publication checks an expected version. Later publication never edits existing requests. Browser drafts are memory-only and disappear on reload or sign-out.
 - After an uncertain submission response, keep its key, payload and original process version. Inspect saved requests or follow the [idempotency contract](../../docs/SUBMISSION_IDEMPOTENCY.en.md) before creating another submission.

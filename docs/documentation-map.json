@@ -193,11 +193,25 @@
       ]
     },
     {
+      "path": "docs/EXPENSE_ROUTING.md",
+      "category": "how-to",
+      "topics": [
+        "scope-and-prerequisites",
+        "configure-the-finance-threshold",
+        "exact-total-and-currency",
+        "independent-case-matrix",
+        "frozen-state-and-permissions",
+        "rollout-and-recovery",
+        "verification-and-evidence"
+      ]
+    },
+    {
       "path": "docs/EXPENSE_SCENARIO.md",
       "category": "reference",
       "topics": [
         "start",
         "fields-and-rules",
+        "amount-based-routing",
         "http-and-authorization",
         "retry-and-storage",
         "verification",

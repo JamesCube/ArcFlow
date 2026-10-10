@@ -56,7 +56,7 @@ mvn -f examples/approval-demo/backend/pom.xml spring-boot:run
 | `/api/crm` | 独立报价折扣、固定 Bob → Carol，以及源报价版本／归属校验 |
 | `/api/scenarios/{scenarioId}/...` | 六个准确类型场景；提交必须带 `Idempotency-Key`，各自独立流程与存储 |
 
-领域共有九种业务类型，但通用 `/api/documents` 只接收 `leave`／`procurement`。六场景是 `oa-expense`、`oa-travel`、`oa-seal-use`、`erp-receiving`、`erp-payment`、`crm-contract`；只有收货、付款、合同允许条件定义 schema 4。完整映射与 SINGLE／ALL／ANY 边界见[架构说明](../../../docs/development/ARCHITECTURE.md#zh)。
+领域共有九种业务类型，但通用 `/api/documents` 只接收 `leave`／`procurement`。六场景是 `oa-expense`、`oa-travel`、`oa-seal-use`、`erp-receiving`、`erp-payment`、`crm-contract`；只有报销、收货、付款、合同允许条件定义 schema 4。完整映射与 SINGLE／ALL／ANY 边界见[架构说明](../../../docs/development/ARCHITECTURE.md#zh)。
 
 <!-- topic:persistence -->
 ## 存储和验证

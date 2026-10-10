@@ -49,6 +49,15 @@
 
 专用独立页面与共享请假/采购、若依、H5 分离，不增加跨场景待办或外部连接器。
 
+<!-- topic:amount-based-routing -->
+## 按总额选择财务复核
+
+独立端设计器可使用 schema 4 的 `runIf`，字段 `expense.totalAmount` 为保存的 1–20 行明细精确求和。至少保留一个无条件人工阶段；例如 Bob 必审、Carol 仅在 `GTE CNY 10000` 时参与，低于阈值跳过财务，达到或超过时纳入。发布前默认流程仍为无条件。
+
+运算符为 EQ/GT/GTE/LT/LTE；阈值为 0 至 20,000,000,000（含端点）的 JSON 数字，最多两位小数，JPY 整数。每个谓词须明确 CNY/USD/EUR/GBP/JPY 并与单据币种一致，包括 ANY 内的全部原子；不换汇，也不允许币种不符时静默跳过。客户端不能提交派生总额。
+
+完整定义、业务快照与 routing schema 1 一同冻结；新发布不会改变旧申请或其重试路径。仅出现在跳过步骤的人不能查看或投票，完整定义任意位置仍禁止申请人自审。没有新增若依/H5、动态角色、租户或真实付款能力。配置、边界、通过/驳回、权限及上线步骤见[独立路由案例](EXPENSE_ROUTING.md)。下方原图早于按总额路由，继续作为历史证据保留。
+
 <!-- topic:http-and-authorization -->
 ## HTTP 与授权
 
@@ -69,11 +78,13 @@
 
 宿主流程 `oa-expense`，文件 `approval.data-file + ".scenario-oa-expense.json"`；编译期注册表映射运行时，不可信路径不能选文件。
 
-- JSON 1–6 保持严格只读兼容，首次报销最低 7。
+- JSON 1–6 保持严格只读兼容，无条件报销单据最低 wrapper 7；schema 4 发布或冻结路由要求 wrapper 13，即使尚无申请。
 - 报销在 5/6 拒绝，升到 7 后旧接口不降级。
 - 升级保存紧邻之前原始字节，原子替换失败不发布申请/键，重试保留备份。
 - JDBC 保持 SQL revision 3，沿用 request_json 与成员投影；原停写迁移/回填要求不变，不增加 DDL。
 - 先升级全部 reader 并停不兼容 writer，schema 6 reader 不懂报销/7；备份是历史恢复而非无损降级。当前更高版本见[迁移指南](development/PERSISTENCE.md)。
+
+wrapper 13 的 `routingDefinitions` 保留全部已发布 schema 4 定义，包括旧版与未使用版本；申请保存完整原定义及路径。已懂 wrapper 13 却不懂 `expense.totalAmount` 的扩展前读取端仍须严格拒绝。发布前停止不兼容程序并备份；向已是 wrapper 13 的文件增加字段不会单独触发升级备份。恢复旧备份可能丢失后来申请、票与键。见[报销上线步骤](EXPENSE_ROUTING.md#rollout-and-recovery)。
 
 <!-- topic:verification -->
 ## 验证

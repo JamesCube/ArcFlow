@@ -5,8 +5,10 @@ const emit = defineEmits(['update:modelValue', 'end-merge'])
 const zh = computed(() => props.locale === 'zh')
 const text = (en, cn) => zh.value ? cn : en
 const payment = computed(() => props.processId === 'erp-payment')
+const expense = computed(() => props.processId === 'oa-expense')
+const monetary = computed(() => payment.value || expense.value)
 const receiving = computed(() => props.processId === 'erp-receiving')
-const defaultAtom = () => payment.value ? { field: 'payment.netTotal', operator: 'GTE', currency: 'CNY', threshold: 10000 } : receiving.value ? { field: 'receiving.hasRejectedLines', operator: 'EQ', expected: true } : { field: 'contract.termsKind', operator: 'EQ', values: ['NONSTANDARD'] }
+const defaultAtom = () => monetary.value ? { field: expense.value ? 'expense.totalAmount' : 'payment.netTotal', operator: 'GTE', currency: 'CNY', threshold: 10000 } : receiving.value ? { field: 'receiving.hasRejectedLines', operator: 'EQ', expected: true } : { field: 'contract.termsKind', operator: 'EQ', values: ['NONSTANDARD'] }
 function update(value) { if (props.editable && !props.busy) emit('update:modelValue', value) }
 function toggle(value) { if (!value || props.canCondition && props.totalPredicates < 8) update(value ? { mode: 'ALL', predicates: [defaultAtom()] } : undefined) }
 function edit(index, changes) { const next = JSON.parse(JSON.stringify(props.modelValue)); next.predicates[index] = { ...next.predicates[index], ...changes }; update(next) }
@@ -26,11 +28,12 @@ const label = (name, index) => `${text('Condition', '条件')} ${index + 1} ${na
     <p class="routing-help">{{ text('Evaluated once from the saved document on submission. Keep at least one unconditional step. At most 8 conditions across the process.', '提交时依据保存的业务单据一次性计算。至少保留一个无条件节点；整个流程最多 8 条条件。') }}</p>
     <template v-if="modelValue">
       <label>{{ text('Match rule', '匹配规则') }}<select :value="modelValue.mode" data-testid="condition-mode" :disabled="busy || !editable" @change="update({ ...modelValue, mode: $event.target.value })"><option value="ALL">{{ text('All conditions (ALL)', '全部满足（ALL）') }}</option><option value="ANY">{{ text('Any condition (ANY)', '任一满足（ANY）') }}</option></select></label>
-      <fieldset v-for="(atom, index) in modelValue.predicates" :key="index" class="routing-atom" :disabled="busy || !editable"><legend>{{ text('Condition', '条件') }} {{ index + 1 }}</legend><p class="routing-field">{{ payment ? text('Payment net total', '付款净申请额') : receiving ? text('Receipt has rejected lines', '收货单存在不合格明细') : text('Contract terms kind', '合同条款类型') }}</p>
-        <template v-if="payment">
+      <fieldset v-for="(atom, index) in modelValue.predicates" :key="index" class="routing-atom" :disabled="busy || !editable"><legend>{{ text('Condition', '条件') }} {{ index + 1 }}</legend><p class="routing-field">{{ expense ? text('Expense total', '报销总额') : payment ? text('Payment net total', '付款净申请额') : receiving ? text('Receipt has rejected lines', '收货单存在不合格明细') : text('Contract terms kind', '合同条款类型') }}</p>
+        <template v-if="monetary">
           <label>{{ text('Comparison', '比较方式') }}<select :value="atom.operator" :aria-label="label(text('comparison', '比较方式'), index)" @change="edit(index, { operator: $event.target.value })"><option value="EQ">{{ text('Equals', '等于') }} (=)</option><option value="GT">{{ text('Greater than', '大于') }} (&gt;)</option><option value="GTE">{{ text('At least', '大于等于') }} (≥)</option><option value="LT">{{ text('Less than', '小于') }} (&lt;)</option><option value="LTE">{{ text('At most', '小于等于') }} (≤)</option></select></label>
           <div class="routing-money"><label>{{ text('Currency', '币种') }}<select :value="atom.currency" :aria-label="label(text('currency', '币种'), index)" @change="edit(index, { currency: $event.target.value })"><option v-for="currency in ['CNY', 'USD', 'EUR', 'GBP', 'JPY']" :key="currency">{{ currency }}</option></select></label><label>{{ text('Threshold', '金额阈值') }}<input :value="atom.threshold" type="number" min="0" max="20000000000" :step="atom.currency === 'JPY' ? '1' : '0.01'" :aria-label="label(text('threshold', '金额阈值'), index)" @input="edit(index, { threshold: thresholdValue($event.target.value) })" @blur="emit('end-merge')"></label></div>
           <p class="routing-help">{{ text('0–20,000,000,000; up to 2 decimals (JPY: whole numbers). The document must use the same currency as every amount condition. No currency conversion.', '0–20,000,000,000；最多两位小数（日元必须为整数）。单据币种必须与每条金额条件一致，不进行汇率换算。') }}</p>
+          <p v-if="expense" class="routing-help">{{ text('Calculated exactly from every saved expense line. The total is derived, never entered separately.', '依据已保存的全部费用明细精确合计。报销总额由系统计算，无需另行填写。') }}</p>
         </template>
         <label v-else-if="receiving">{{ text('Expected value', '预期值') }}<select :value="String(atom.expected)" :aria-label="label(text('expected value', '预期值'), index)" @change="edit(index, { expected: $event.target.value === 'true' })"><option value="true">{{ text('Yes, rejected lines exist', '是，存在不合格明细') }}</option><option value="false">{{ text('No rejected lines', '否，无不合格明细') }}</option></select></label>
         <template v-else>

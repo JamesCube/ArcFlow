@@ -46,3 +46,6 @@ examples/approval-ui/complex-visual-results/
 
 # Conditional-routing real-backend screenshots and provenance
 examples/approval-ui/routing-visual-results/
+
+# Expense amount routing evidence from the real-backend browser suite
+examples/approval-ui/expense-routing-visual-results/

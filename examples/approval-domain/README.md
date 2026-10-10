@@ -29,7 +29,7 @@ mvn -f examples/approval-domain/pom.xml install
 
 JSON 宿主构造 `ApprovalService(ObjectMapper, String filename, ActorDirectory, ProcessDefinition initialDefinition)`，关闭时调用 `close()`；Spring 可用 `@Bean(destroyMethod = "close")`。数据库宿主使用 `ApprovalService(ApprovalStore, ActorDirectory)`；[JDBC 适配器](../approval-jdbc/README.md)不会自动安装。
 
-每个服务绑定一个稳定流程 ID，格式为 `[A-Za-z][A-Za-z0-9_-]{0,127}`。初始定义只用于没有版本快照的新存储，不能通过发布改名。流程有开始、1–8 个顺序审批步骤和结束；定义 schema 2 为单人、3 增加 2–16 人 ALL/ANY 分组、4 仅在付款/收货/合同宿主增加受限条件。通用与报价宿主不接受 schema 4。
+每个服务绑定一个稳定流程 ID，格式为 `[A-Za-z][A-Za-z0-9_-]{0,127}`。初始定义只用于没有版本快照的新存储，不能通过发布改名。流程有开始、1–8 个顺序审批步骤和结束；定义 schema 2 为单人、3 增加 2–16 人 ALL/ANY 分组、4 仅在报销/付款/收货/合同宿主增加受限条件。通用与报价宿主不接受 schema 4。
 
 服务拥有存储生命周期，宿主拥有 `DataSource`。先停止接收请求并排空工作，再关闭服务和连接池；关闭 JDBC 存储阻止新操作，但不取消已经开始的事务。
 

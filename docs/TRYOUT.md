@@ -180,6 +180,6 @@ python3 scripts/package-tryout.py --output-dir /tmp/arcflow-rc-two
 - 下载/构建失败：检查错误、配置 registry 和代理后重试；源码包不是离线安装器，不绕过 TLS。
 - 认证失败：用当前运行密码及精确 URL，旧密码无效。
 - 断网后结果不确定：原表单/键重试；重载/退出会丢键，先查列表，见[持久重试](SUBMISSION_IDEMPOTENCY.md)。
-- 生产需求：演示身份、单写者 JSON 未验证生产安全或集群持久性。[宿主迁移](SUPPORTED_HOST_MIGRATION.md)说明 Boot 4 与临时 Jackson 2 兼容层。启动器不含若依；支持顺序/ALL/ANY，条件仅限付款/收货/合同，不是通用路由，定时器/BPMN 不支持。
+- 生产需求：演示身份、单写者 JSON 未验证生产安全或集群持久性。[宿主迁移](SUPPORTED_HOST_MIGRATION.md)说明 Boot 4 与临时 Jackson 2 兼容层。启动器不含若依；支持顺序/ALL/ANY，条件仅限报销/付款/收货/合同，不是通用路由，定时器/BPMN 不支持。
 
 报告问题时提供完整提交、OS、Python/Java/Maven/Node 版本、命令、错误和预期；先移除凭据和真实个人信息。

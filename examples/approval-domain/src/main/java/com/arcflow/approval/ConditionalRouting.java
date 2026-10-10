@@ -43,6 +43,10 @@ public final class ConditionalRouting {
         public static Predicate money(String operator, String currency, BigDecimal threshold) {
             return new Predicate("payment.netTotal", operator, currency, threshold, null, null);
         }
+        /** Exact sum of the immutable expense lines in their explicitly declared currency. */
+        public static Predicate expenseMoney(String operator, String currency, BigDecimal threshold) {
+            return new Predicate("expense.totalAmount", operator, currency, threshold, null, null);
+        }
         public static Predicate flag(boolean expected) {
             return new Predicate("receiving.hasRejectedLines", "EQ", null, null, expected, null);
         }
@@ -54,10 +58,10 @@ public final class ConditionalRouting {
             String field = text(node, "field"), operator = text(node, "operator");
             Predicate atom;
             switch (field) {
-                case "payment.netTotal" -> {
+                case "payment.netTotal", "expense.totalAmount" -> {
                     exact(node, "field", "operator", "currency", "threshold");
                     if (!node.get("threshold").isNumber()) throw invalid("A monetary threshold must be a JSON number");
-                    atom = money(operator, text(node, "currency"), node.get("threshold").decimalValue());
+                    atom = new Predicate(field, operator, text(node, "currency"), node.get("threshold").decimalValue(), null, null);
                 }
                 case "receiving.hasRejectedLines" -> {
                     exact(node, "field", "operator", "expected");
@@ -100,7 +104,7 @@ public final class ConditionalRouting {
     private static void validate(Predicate atom) {
         if (atom == null || atom.field() == null || atom.operator() == null) throw invalid("Invalid routing predicate");
         switch (atom.field()) {
-            case "payment.netTotal" -> {
+            case "payment.netTotal", "expense.totalAmount" -> {
                 if (!MONEY_OPERATORS.contains(atom.operator()) || atom.currency() == null || !CURRENCIES.contains(atom.currency()) ||
                     atom.threshold() == null || atom.threshold().signum() < 0 || atom.threshold().scale() > 2 ||
                     atom.threshold().compareTo(new BigDecimal("20000000000")) > 0 ||
@@ -135,17 +139,17 @@ public final class ConditionalRouting {
         if (count > 8) throw invalid("A definition permits at most eight routing predicates");
         if (definition.approvals().stream().noneMatch(node -> node.runIf() == null))
             throw invalid("At least one unconditional manual approval is required");
-        // A single payment request has one currency, so contradictory currency rules are unusable.
+        // Monetary documents have one currency, so contradictory currency rules are unusable.
         var currencies = new HashSet<String>();
         definition.approvals().stream().filter(node -> node.runIf() != null).flatMap(node -> node.runIf().predicates().stream())
             .filter(atom -> atom.currency() != null).forEach(atom -> currencies.add(atom.currency()));
-        if (currencies.size() > 1) throw invalid("All payment routing predicates must use the same currency");
+        if (currencies.size() > 1) throw invalid("All monetary routing predicates must use the same currency");
     }
     public static void validateForDocument(ProcessDefinition definition, Class<? extends BusinessDocument> type) {
         ProcessDefinition.validate(definition);
         if (definition.schemaVersion() != 4) return;
-        if (type != BusinessDocument.PaymentRequest.class && type != BusinessDocument.Receiving.class && type != BusinessDocument.ContractApproval.class)
-            throw invalid("Conditional routing is available only for payment, receiving and contract scenarios");
+        if (type != BusinessDocument.Expense.class && type != BusinessDocument.PaymentRequest.class && type != BusinessDocument.Receiving.class && type != BusinessDocument.ContractApproval.class)
+            throw invalid("Conditional routing is available only for expense, payment, receiving and contract scenarios");
         for (var node : definition.approvals()) if (node.runIf() != null)
             for (Predicate atom : node.runIf().predicates())
                 if (documentClass(atom.field()) != type) throw invalid("Routing fields do not belong to this scenario document type");
@@ -180,16 +184,10 @@ public final class ConditionalRouting {
     }
     private static Fact evaluate(Predicate atom, BusinessDocument business) {
         if (documentClass(atom.field()) != business.getClass()) throw invalid("Routing predicate document type mismatch");
-        if (business instanceof BusinessDocument.PaymentRequest payment) {
-            if (!payment.currency().equals(atom.currency()))
-                throw invalid("Payment currency must match routing currency " + atom.currency() + "; no automatic conversion is supported");
-            BigDecimal value = payment.netTotal(); int comparison = value.compareTo(atom.threshold());
-            boolean matches = switch (atom.operator()) {
-                case "EQ" -> comparison == 0; case "GT" -> comparison > 0; case "GTE" -> comparison >= 0;
-                case "LT" -> comparison < 0; case "LTE" -> comparison <= 0; default -> throw invalid("Unknown money operator");
-            };
-            return new Fact(atom.field(), payment.currency() + " " + value.stripTrailingZeros().toPlainString(), matches);
-        }
+        if (business instanceof BusinessDocument.Expense expense)
+            return evaluateMoney(atom, expense.currency(), expense.total());
+        if (business instanceof BusinessDocument.PaymentRequest payment)
+            return evaluateMoney(atom, payment.currency(), payment.netTotal());
         if (business instanceof BusinessDocument.Receiving receiving) {
             boolean value = receiving.lines().stream().anyMatch(line -> line.rejected() > 0);
             return new Fact(atom.field(), Boolean.toString(value), value == atom.expected());
@@ -197,8 +195,19 @@ public final class ConditionalRouting {
         var contract = (BusinessDocument.ContractApproval) business;
         return new Fact(atom.field(), contract.termsKind(), atom.values().contains(contract.termsKind()));
     }
+    private static Fact evaluateMoney(Predicate atom, String currency, BigDecimal value) {
+        if (!currency.equals(atom.currency()))
+            throw invalid("Document currency must match routing currency " + atom.currency() + "; no automatic conversion is supported");
+        int comparison = value.compareTo(atom.threshold());
+        boolean matches = switch (atom.operator()) {
+            case "EQ" -> comparison == 0; case "GT" -> comparison > 0; case "GTE" -> comparison >= 0;
+            case "LT" -> comparison < 0; case "LTE" -> comparison <= 0; default -> throw invalid("Unknown money operator");
+        };
+        return new Fact(atom.field(), currency + " " + value.stripTrailingZeros().toPlainString(), matches);
+    }
     private static Class<? extends BusinessDocument> documentClass(String field) {
         return switch (field) {
+            case "expense.totalAmount" -> BusinessDocument.Expense.class;
             case "payment.netTotal" -> BusinessDocument.PaymentRequest.class;
             case "receiving.hasRejectedLines" -> BusinessDocument.Receiving.class;
             case "contract.termsKind" -> BusinessDocument.ContractApproval.class;

@@ -20,7 +20,7 @@
 <!-- topic:current-main-scope -->
 ## 当前主线范围
 
-当前 main 已合入独立端付款、收货、合同的定义 schema 4 路由，JSON wrapper 13，SQL revision 3 不变。以下基线和本地验证为历史记录，失败、跳过与未取得渲染证据的事实保留；当前提交 CI 另查。[架构](development/ARCHITECTURE.md) · [迁移](development/PERSISTENCE.md)
+当前源码在独立端报销、付款、收货、合同提供定义 schema 4 路由，JSON wrapper 13，SQL revision 3 不变。[报销总额操作案例](EXPENSE_ROUTING.md)扩展现有 `runIf` 契约，不改上述版本号或原三场景证据。以下基线和本地验证为历史记录，失败、跳过与未取得渲染证据的事实保留；当前提交 CI 另查。[架构](development/ARCHITECTURE.md) · [迁移](development/PERSISTENCE.md)
 
 <!-- topic:historical-implementation-checkpoint -->
 ## 历史实现检查点
@@ -33,6 +33,8 @@
 schema 4 为审批节点增加可选 `runIf`，开始/结束不能有。仍是 1–8 个有序固定成员阶段，至少一个无条件人工阶段。规则只选择额外审核，不决定业务通过/拒绝；SINGLE/ALL/ANY 表决不变。不执行脚本、嵌套表达式、反射、JSONPath、时间、网络、循环、任意跳转或动态指派。
 
 规则为 `{mode: "ALL" | "ANY", predicates: [...]}`，每条 1–8 个原子，全定义最多八个；同一定义全部规则针对同一业务类型。原子字段严格为：
+
+- 报销：`{field:"expense.totalAmount", operator:"EQ"|"GT"|"GTE"|"LT"|"LTE", currency, threshold}`。事实为 1–20 行不可变 `Expense` 明细的精确总额，不接受客户端提交总额。阈值为 0–20000000000（含端点）的精确 JSON 数字，最多两位小数，JPY 整数；币种为 CNY/USD/EUR/GBP/JPY，必须匹配每个金额谓词，包括 ANY 内全部原子。不符则拒绝提交，不换汇也不静默 false。以 `GTE CNY 10000` 为例，低于阈值仍需必审，达到或超过时再加财务复核。
 
 - 付款：`{field:"payment.netTotal", operator:"EQ"|"GT"|"GTE"|"LT"|"LTE", currency, threshold}`。阈值为 0–20000000000 的精确 JSON 数字，最多两位，JPY 整数；币种 CNY/USD/EUR/GBP/JPY。业务币种必须匹配**每个**金额谓词，即使 ANY 中另一项已满足；不匹配明确拒绝提交，不换汇或暗中判 false 以绕过大额审核。
 - 收货：`{field:"receiving.hasRejectedLines", operator:"EQ", expected:boolean}`。事实由不合格数量计算，不能由客户端另行提供。
@@ -58,14 +60,14 @@ schema 4 为审批节点增加可选 `runIf`，开始/结束不能有。仍是 1
 
 JSON 13 要求 `routingDefinitions` 数组保存全部已发布 schema 4 定义，包括没有申请的版本；每笔 4 申请和当前定义都须精确匹配保留版本。重复、缺失、冲突、未来版本全部拒绝。这校验冗余快照一致性，不认证恶意重写整个未签名文件后的真实性。
 
-每个 4 定义（包括无申请发布）及 route 都要求 wrapper 13。reader 保留 1–12 严格行为，拒绝低 wrapper 中 routing/定义 4，以及未知未来版本/类型/字段，不修改文件。升级原样备份紧邻之前字节，再原子替换；写者单调不降、读取不升级。旧 reader 不能读 13，启用前停旧写者并升级全部读取端。旧备份恢复会丢失后续申请/票，不是无损降级。
+每个 4 定义（包括无申请发布）及 route 都要求 wrapper 13。reader 保留 1–12 严格行为，拒绝低 wrapper 中 routing/定义 4，以及未知未来版本/类型/字段，不修改文件。升级原样备份紧邻之前字节，再原子替换；写者单调不降、读取不升级。13 之前的 reader 不能读 13；已懂 13 但早于 `expense.totalAmount` 的 reader 也必须拒绝未知字段，包括没有申请的已发布定义。启用前停旧写者并升级全部读取端，即使存储已经是 13 也要在发布前备份：新字段本身不改变 wrapper 数字，不会触发自动升级备份。旧备份恢复会丢失后续申请/票，不是无损降级。
 
 SQL revision 3 已保存完整定义/申请 JSON 与成员投影，无新 DDL。新投影构建/校验均用 effectiveApprovals；必须测试旧 schema 2/3 路径及就绪成员行不变。SQL 未变不允许新旧程序混跑；保持原迁移/回填、保留版本身份、事务、全局申请人/键及审计检查。H2、PostgreSQL、MySQL 分开报告，跳过不得算通过。
 
 <!-- topic:required-evidence -->
 ## 必需证据
 
-领域规则/边界，有效路径投票/拒绝/重试，成员读写隔离，ALL/ANY/SINGLE 组合，发布后定义/路径冻结，CAS 与带键竞争，JSON 1–13/紧邻备份/篡改拒绝，JDBC 投影/回滚，严格 HTTP/跨场景，设计器模型/DOM，以及真实后端低/高付款、正常/异常收货、标准/非标合同浏览器路径、中英说明和 390px。应分开说明本地、浏览器、CI、远端发布和部署。
+领域规则/边界，有效路径投票/拒绝/重试，成员读写隔离，ALL/ANY/SINGLE 组合，发布后定义/路径冻结，CAS 与带键竞争，JSON 1–13/紧邻备份/篡改拒绝，JDBC 投影/回滚，严格 HTTP/跨场景，设计器模型/DOM，以及真实后端低额/临界/高额报销、低/高付款、正常/异常收货、标准/非标合同浏览器路径、中英说明和 390px。应分开说明本地、浏览器、CI、远端发布和部署。
 
 <!-- topic:local-verification-checkpoint-2026-10-09 -->
 ## 历史本地验证（2026-10-09）

@@ -17,10 +17,10 @@ function setup(id = 'erp-payment', options = {}) {
 async function enable(wrapper) { await wrapper.get('[data-testid=condition-enabled]').setValue('conditional'); await flushPromises() }
 const button = (wrapper, id) => wrapper.get(`[data-testid=${id}]`)
 describe('restricted conditional designer', () => {
-  it.each(['leave-approval', 'oa-expense', 'oa-travel', 'oa-seal-use', 'crm-quote'])('does not expose routing in %s', id => { expect(setup(id).wrapper.find('[data-testid=routing-editor]').exists()).toBe(false) })
-  it('configures a money condition without losing it across SINGLE/ALL/ANY and undo/redo', async () => {
-    const { wrapper, state } = setup(); await enable(wrapper)
-    expect(state.value.schemaVersion).toBe(4); expect(state.value.nodes[1].runIf).toEqual({ mode: 'ALL', predicates: [atom] })
+  it.each(['leave-approval', 'oa-travel', 'oa-seal-use', 'crm-quote'])('does not expose routing in %s', id => { expect(setup(id).wrapper.find('[data-testid=routing-editor]').exists()).toBe(false) })
+  it.each(['oa-expense', 'erp-payment'])('configures %s money conditions across SINGLE/ALL/ANY and undo/redo', async id => {
+    const { wrapper, state } = setup(id); await enable(wrapper)
+    expect(state.value.schemaVersion).toBe(4); expect(state.value.nodes[1].runIf).toEqual({ mode: 'ALL', predicates: [{ ...atom, field: id === 'oa-expense' ? 'expense.totalAmount' : atom.field }] })
     await wrapper.get('[aria-label="Condition 1 threshold"]').setValue('100.01')
     await wrapper.get('[aria-label="Step 1 review mode"]').setValue('ANY')
     expect(state.value.nodes[1].runIf.predicates[0].threshold).toBe(100.01)
@@ -32,11 +32,11 @@ describe('restricted conditional designer', () => {
     expect(state.value.schemaVersion).toBe(4); expect(Object.hasOwn(state.value.nodes[1], 'runIf')).toBe(false)
     await button(wrapper, 'undo').trigger('click'); expect(state.value.nodes[1].runIf.predicates[0].threshold).toBe(100.01)
   })
-  it('blocks invalid precision, JPY fractions, and cross-condition mixed currencies with bilingual guidance', async () => {
-    const { wrapper, state } = setup(); await enable(wrapper)
+  it.each(['oa-expense', 'erp-payment'])('blocks %s invalid precision, JPY fractions, and mixed currencies with bilingual guidance', async id => {
+    const { wrapper, state } = setup(id); await enable(wrapper)
     await wrapper.get('[aria-label="Condition 1 threshold"]').setValue('1.0000000000000001'); expect(state.value.nodes[1].runIf.predicates[0].threshold).toBe('1.0000000000000001'); expect(button(wrapper, 'publish').attributes('disabled')).toBeDefined()
     await wrapper.get('[aria-label="Condition 1 threshold"]').setValue('1.001'); expect(button(wrapper, 'publish').attributes('disabled')).toBeDefined()
-    await wrapper.get('[aria-label="Condition 1 threshold"]').setValue('1.01'); expect(validateDefinition(state.value, 'erp-payment')).toEqual([])
+    await wrapper.get('[aria-label="Condition 1 threshold"]').setValue('1.01'); expect(validateDefinition(state.value, id)).toEqual([])
     await wrapper.get('[aria-label="Condition 1 currency"]').setValue('JPY'); expect(button(wrapper, 'publish').attributes('disabled')).toBeDefined()
     await wrapper.get('[aria-label="Condition 1 threshold"]').setValue('1')
     await button(wrapper, 'add-condition').trigger('click'); expect(wrapper.text()).toContain('same currency')

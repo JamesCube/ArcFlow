@@ -15,7 +15,7 @@
 
 [English](PARALLEL_APPROVAL.en.md) · [文档目录](README.md)
 
-共享审批领域库支持会签 `ALL` 和或签 `ANY`。参与人随申请保存，每人的决定与审计事件在同一次提交中写入。独立 Vue / Spring Boot 示例可配置分组、逐人投票并查看结果；若依原生界面和接口也可从真实用户中选择成员并显示待办。本文讨论 schema 3；当前三个专用场景的 schema 4 条件见[条件路由](CONDITIONAL_ROUTING.md)。任意图汇聚、动态加签和转办仍不支持，生产使用未经验证。
+共享审批领域库支持会签 `ALL` 和或签 `ANY`。参与人随申请保存，每人的决定与审计事件在同一次提交中写入。独立 Vue / Spring Boot 示例可配置分组、逐人投票并查看结果；若依原生界面和接口也可从真实用户中选择成员并显示待办。本文讨论 schema 3；当前四个专用场景的 schema 4 条件见[条件路由](CONDITIONAL_ROUTING.md)。任意图汇聚、动态加签和转办仍不支持，生产使用未经验证。
 
 <!-- topic:scope-and-definition -->
 ## 范围与定义

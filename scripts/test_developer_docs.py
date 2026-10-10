@@ -50,7 +50,7 @@ class DeveloperDocsChecks(unittest.TestCase):
     def test_examples_have_expected_business_types(self):
         directory = docs.ROOT / 'docs/api/examples'
         bodies = [docs.unique_json(p) for p in directory.glob('*.json')]
-        self.assertEqual(12, len(bodies))
+        self.assertEqual(16, len(bodies))
         self.assertEqual({'leave', 'procurement', 'quoteDiscount', 'expense', 'travel', 'sealUse',
                           'receiving', 'paymentRequest', 'contractApproval'},
                          {body['business']['type'] for body in bodies if 'business' in body})

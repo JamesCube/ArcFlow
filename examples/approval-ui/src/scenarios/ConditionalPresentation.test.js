@@ -69,3 +69,28 @@ describe('localized saved routing facts', () => {
     wrapper.unmount()
   })
 })
+
+describe('expense conditional route presentation', () => {
+  it('shows exact expense facts and route selection in both languages and restores preview after currency correction', async () => {
+    const { expenseFixture, processFixture, viewFixture, catalogFixture } = await import('./scenario-fixtures.js')
+    const process = processFixture({ schemaVersion: 4 })
+    process.nodes[1].runIf = { mode: 'ALL', predicates: [{ field: 'expense.totalAmount', operator: 'GTE', currency: 'CNY', threshold: 150.01 }] }
+    const business = expenseFixture(), view = viewFixture({ definition: process, routing: evaluateRouting(process, business), currentStepId: 'finance', approverId: 'carol' })
+    const preview = mount(RouteSteps, { props: { definition: process, business, people, locale: 'en' } })
+    const detail = mount(ScenarioDetail, { props: { view, template: catalogFixture()[0], people, locale: 'en' } })
+    expect(preview.text()).toContain('1 approval stage included')
+    expect(detail.get('[data-routing-evaluation=manager]').text()).toContain('Expense total ≥ CNY 150.01')
+    expect(detail.get('.routing-fact').text()).toContain('Actual value: CNY 150')
+    expect(detail.get('.conditional-skipped').text()).not.toContain('Approved')
+    await detail.setProps({ locale: 'zh' }); await preview.setProps({ locale: 'zh' })
+    expect(detail.get('[data-routing-evaluation=manager]').text()).toContain('报销总额 ≥ CNY 150.01')
+    expect(preview.text()).toContain('条件未满足，未纳入')
+    await preview.setProps({ business: expenseFixture({ currency: 'USD' }) })
+    expect(preview.text()).toContain('单据币种与已发布金额条件不一致')
+    expect(preview.find('.conditional-skipped').exists()).toBe(false)
+    const high = expenseFixture(); high.lines[1].amount = '26.56'
+    await preview.setProps({ business: high })
+    expect(preview.text()).toContain('纳入 2 个审批节点'); expect(preview.find('.conditional-skipped').exists()).toBe(false)
+    preview.unmount(); detail.unmount()
+  })
+})

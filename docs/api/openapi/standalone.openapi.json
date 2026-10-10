@@ -1538,6 +1538,18 @@
                 "contract": {
                   "summary": "Synthetic executable request; see examples guide for version/key preconditions.",
                   "externalValue": "../examples/contract.json"
+                },
+                "expense-routing-below": {
+                  "summary": "Synthetic expense routing boundary; publish schema 4 first, then submit with processVersion 2.",
+                  "externalValue": "../examples/expense-routing-below.json"
+                },
+                "expense-routing-equal": {
+                  "summary": "Synthetic expense routing boundary; publish schema 4 first, then submit with processVersion 2.",
+                  "externalValue": "../examples/expense-routing-equal.json"
+                },
+                "expense-routing-above": {
+                  "summary": "Synthetic expense routing boundary; publish schema 4 first, then submit with processVersion 2.",
+                  "externalValue": "../examples/expense-routing-above.json"
                 }
               }
             }
@@ -1734,6 +1746,10 @@
                 "publish-payment-routing": {
                   "summary": "Synthetic executable request; see examples guide for version/key preconditions.",
                   "externalValue": "../examples/publish-payment-routing.json"
+                },
+                "publish-expense-routing": {
+                  "summary": "Synthetic expense routing boundary; publish schema 4 first, then submit with processVersion 2.",
+                  "externalValue": "../examples/publish-expense-routing.json"
                 }
               }
             }
@@ -2204,6 +2220,7 @@
     "crm-contract": "contractApproval"
   },
   "x-condition-families": [
+    "expense.totalAmount",
     "payment.netTotal",
     "receiving.hasRejectedLines",
     "contract.termsKind"

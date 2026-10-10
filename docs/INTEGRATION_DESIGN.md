@@ -10,7 +10,7 @@
 
 [English](INTEGRATION_DESIGN.en.md) · [文档目录](README.md)
 
-本文是通用企业集成的设计说明，不是已发布 API。当前源码已实现独立审批、固定官方若依、采购表单、九类单据、六项场景和三个专用场景的受限条件；精确范围见[架构](development/ARCHITECTURE.md)。下文资源路径与通用 DSL 仍为提议，不能用来替代[实际接口参考](api/API_REFERENCE.md)。
+本文是通用企业集成的设计说明，不是已发布 API。当前源码已实现独立审批、固定官方若依、采购表单、九类单据、六项场景和四个专用场景的受限条件；精确范围见[架构](development/ARCHITECTURE.md)。下文资源路径与通用 DSL 仍为提议，不能用来替代[实际接口参考](api/API_REFERENCE.md)。
 
 <!-- topic:first-reference-integration -->
 ## 首个参考接入方向

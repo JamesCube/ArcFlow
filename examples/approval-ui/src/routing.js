@@ -1,10 +1,11 @@
-import { CURRENCIES, exactKeys, isRecord, same } from './scenarios/expense-document.js'
+import { CURRENCIES, amountCents, expenseErrors, exactKeys, isRecord, same } from './scenarios/expense-document.js'
 import { paymentErrors, paymentAmountCents } from './scenarios/payment-document.js'
 import { receivingErrors, quantity } from './scenarios/receiving-document.js'
 import { contractErrors } from './scenarios/contract-document.js'
 
 export const MAX_ROUTING_PREDICATES = 8
 export const ROUTING_FIELDS = Object.freeze({
+  'oa-expense': 'expense.totalAmount',
   'erp-payment': 'payment.netTotal',
   'erp-receiving': 'receiving.hasRejectedLines',
   'crm-contract': 'contract.termsKind',
@@ -13,6 +14,7 @@ export const supportsRouting = processId => typeof processId === 'string' && Obj
 const approval = node => ['approval', 'parallelApproval'].includes(node?.type)
 const nodesFor = definition => Array.isArray(definition?.nodes) ? definition.nodes.filter(approval) : []
 const hasCondition = node => isRecord(node) && Object.hasOwn(node, 'runIf')
+const moneyField = field => ['expense.totalAmount', 'payment.netTotal'].includes(field)
 
 // Parse the decimal spelling rather than multiply a floating-point value by 100.
 // Thresholds are numeric on the wire; document amounts remain decimal strings.
@@ -27,7 +29,7 @@ export function routingThresholdCents(value, currency) {
 
 function validPredicate(predicate, processId) {
   if (!isRecord(predicate) || predicate.field !== ROUTING_FIELDS[processId]) return false
-  if (predicate.field === 'payment.netTotal') return exactKeys(predicate, ['field', 'operator', 'currency', 'threshold']) &&
+  if (moneyField(predicate.field)) return exactKeys(predicate, ['field', 'operator', 'currency', 'threshold']) &&
     ['EQ', 'GT', 'GTE', 'LT', 'LTE'].includes(predicate.operator) && routingThresholdCents(predicate.threshold, predicate.currency) !== null
   if (predicate.field === 'receiving.hasRejectedLines') return exactKeys(predicate, ['field', 'operator', 'expected']) &&
     predicate.operator === 'EQ' && typeof predicate.expected === 'boolean'
@@ -44,7 +46,7 @@ export function validateRoutingDefinition(definition) {
   if (!isRecord(definition) || !Array.isArray(definition.nodes)) return ['The conditional process must contain an ordered sequence of nodes.']
   const errors = [], conditional = definition.nodes.filter(hasCondition)
   if (definition.schemaVersion !== 4) return conditional.length ? ['Conditions require process schema 4.'] : []
-  if (!supportsRouting(definition.id)) errors.push('Conditional routing is supported only for ERP payment, ERP receiving, and CRM contract processes.')
+  if (!supportsRouting(definition.id)) errors.push('Conditional routing is supported only for OA expense, ERP payment, ERP receiving, and CRM contract processes.')
   if (!nodesFor(definition).some(node => !hasCondition(node))) errors.push('Keep at least one unconditional approval step.')
   let count = 0
   const currencies = new Set()
@@ -57,10 +59,10 @@ export function validateRoutingDefinition(definition) {
       continue
     }
     count += rule.predicates.length
-    for (const predicate of rule.predicates) if (predicate?.field === 'payment.netTotal') currencies.add(predicate.currency)
+    for (const predicate of rule.predicates) if (moneyField(predicate?.field)) currencies.add(predicate.currency)
     if (Array.from(rule.predicates).some(predicate => !validPredicate(predicate, definition.id))) errors.push(`Use supported condition fields and values for the ${definition.id} process on step ${node.id}.`)
   }
-  if (currencies.size > 1) errors.push('Use the same currency for every payment condition in the process.')
+  if (currencies.size > 1) errors.push('Use the same currency for every amount condition in the process.')
   if (count > MAX_ROUTING_PREDICATES) errors.push(`Use at most ${MAX_ROUTING_PREDICATES} condition predicates across the process.`)
   return errors
 }
@@ -83,22 +85,25 @@ const compareMoney = (actual, expected, operator) => ({ EQ: actual === expected,
 export function evaluateRouting(definition, business) {
   if (definition?.schemaVersion !== 4) return null
   if (validateRoutingDefinition(definition).length) fail('INVALID_ROUTING_DEFINITION', 'The conditional process definition is invalid.')
-  const errors = { 'erp-payment': paymentErrors, 'erp-receiving': receivingErrors, 'crm-contract': contractErrors }[definition.id]
+  const errors = { 'oa-expense': expenseErrors, 'erp-payment': paymentErrors, 'erp-receiving': receivingErrors, 'crm-contract': contractErrors }[definition.id]
   if (!errors || errors(business).length) fail('INVALID_ROUTING_BUSINESS', 'Complete a valid document before evaluating its conditions.')
   const steps = nodesFor(definition), evaluations = [], stepIds = []
   // Derive facts only from this request's business snapshot, never a UI total,
   // mutable catalog, latest process, or server-supplied routing evaluation.
   const paymentNet = definition.id === 'erp-payment' ? business.lines.reduce((sum, line) =>
     sum + paymentAmountCents(line.allocationAmount, business.currency) - paymentAmountCents(line.deductionAmount, business.currency, true), 0n) : null
+  const expenseTotal = definition.id === 'oa-expense' ? business.lines.reduce((sum, line) =>
+    sum + amountCents(line.amount, business.currency), 0n) : null
   const rejected = definition.id === 'erp-receiving' ? business.lines.some(line => quantity(line.rejected) > 0) : null
   for (const step of steps) {
     if (!hasCondition(step)) { stepIds.push(step.id); continue }
     const predicates = step.runIf.predicates.map(predicate => {
       let actualValue, result
-      if (predicate.field === 'payment.netTotal') {
-        if (predicate.currency !== business.currency) fail('CURRENCY_MISMATCH', 'The payment currency must match every condition currency. Currency conversion is not supported.', { stepId: step.id, expectedCurrency: predicate.currency, actualCurrency: business.currency })
-        actualValue = `${business.currency} ${decimalText(paymentNet)}`
-        result = compareMoney(paymentNet, routingThresholdCents(predicate.threshold, predicate.currency), predicate.operator)
+      if (moneyField(predicate.field)) {
+        if (predicate.currency !== business.currency) fail('CURRENCY_MISMATCH', 'The document currency must match every condition currency. Currency conversion is not supported.', { stepId: step.id, expectedCurrency: predicate.currency, actualCurrency: business.currency })
+        const total = predicate.field === 'expense.totalAmount' ? expenseTotal : paymentNet
+        actualValue = `${business.currency} ${decimalText(total)}`
+        result = compareMoney(total, routingThresholdCents(predicate.threshold, predicate.currency), predicate.operator)
       } else if (predicate.field === 'receiving.hasRejectedLines') {
         actualValue = String(rejected)
         result = rejected === predicate.expected

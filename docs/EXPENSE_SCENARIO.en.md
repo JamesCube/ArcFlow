@@ -54,6 +54,15 @@ By default Bob reviews expenses and Carol checks finance. Alice can publish 1–
 The dedicated standalone page is separate from shared leave/procurement lists, native RuoYi and
 the H5 application. It does not introduce a cross-scenario inbox or external business connector.
 
+<!-- topic:amount-based-routing -->
+## Optional amount-based finance review
+
+The standalone designer can use schema-4 `runIf` with `expense.totalAmount`, the exact sum of the saved 1–20 lines. Keep at least one unconditional human stage. For example, leave Bob mandatory and add Carol only for `GTE CNY 10000`: below the threshold finance is skipped; at or above it finance is selected. The default process stays unconditional until publication.
+
+Operators are EQ/GT/GTE/LT/LTE. Thresholds are JSON numbers from 0 through 20,000,000,000 inclusive, at most two decimals; JPY uses whole units. Each predicate explicitly names CNY/USD/EUR/GBP/JPY and must match the document currency, including every ANY atom. No FX or silent skip on mismatch is allowed. Clients cannot submit a derived total.
+
+The full definition, business snapshot and routing schema 1 are frozen together. New publication never changes old requests or their retry path. Skipped-only reviewers cannot read or vote; self-assignment remains forbidden anywhere in the full definition. This does not add native RuoYi/H5, dynamic roles, tenancy or real payments. Use the [independent routing case](EXPENSE_ROUTING.en.md) for configuration, boundaries, approvals/rejections, permissions and rollout. The original gallery below predates amount-based routing and remains historical evidence.
+
 <!-- topic:http-and-authorization -->
 ## HTTP and authorization
 
@@ -83,7 +92,7 @@ scope remains global `(applicant_id,submission_key)` across processes.
 The host uses process `oa-expense` and `approval.data-file + ".scenario-oa-expense.json"`.
 A compiled registry maps ids to runtimes; untrusted paths never select filenames.
 
-- JSON schemas 1–6 remain readable without rewriting. First Expense write uses schema 7.
+- JSON schemas 1–6 remain readable without rewriting. An unconditional Expense document requires at least wrapper 7; schema-4 publication or a frozen route requires wrapper 13, even before a request exists.
 - Expense inside schema 5/6 is rejected. Schema7 never downgrades after later legacy writes.
 - Preserve exact bytes immediately before upgrade. Failed atomic replacement publishes neither
   request nor retry binding; retry preserves the pre-upgrade backup.
@@ -91,6 +100,8 @@ A compiled registry maps ids to runtimes; untrusted paths never select filenames
   Existing stopped-writer revision 3/backfill requirements still apply; no new DDL is introduced.
 - Upgrade all readers and stop incompatible writers before Expense writes. Schema 6 readers do
   not understand Expense/schema 7. See the [migration guide](development/PERSISTENCE.en.md) for higher current versions. Backups are historical recovery, not a lossless downgrade.
+
+Wrapper 13 retains all published schema-4 definitions in `routingDefinitions`, including old and unused versions. Requests preserve their complete original definition and route. A pre-extension reader that understands wrapper 13 but not `expense.totalAmount` must still fail closed. Stop incompatible binaries and back up before publication; adding the field to an already-wrapper-13 file does not itself trigger an upgrade backup. Restoring a prior backup can lose later requests, votes and keys. See [the expense rollout procedure](EXPENSE_ROUTING.en.md#rollout-and-recovery).
 
 <!-- topic:verification -->
 ## Verification

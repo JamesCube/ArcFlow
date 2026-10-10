@@ -1,0 +1,52 @@
+{
+  "expectedVersion": 1,
+  "definition": {
+    "schemaVersion": 4,
+    "id": "oa-expense",
+    "version": 1,
+    "name": "Synthetic conditional expense review",
+    "nodes": [
+      {
+        "id": "start",
+        "type": "start",
+        "name": "Submit",
+        "assigneeId": null
+      },
+      {
+        "id": "base",
+        "type": "approval",
+        "name": "Mandatory review",
+        "assigneeId": "bob"
+      },
+      {
+        "id": "risk",
+        "type": "approval",
+        "name": "High amount review",
+        "assigneeId": "carol",
+        "runIf": {
+          "mode": "ALL",
+          "predicates": [
+            {
+              "field": "expense.totalAmount",
+              "operator": "GTE",
+              "currency": "CNY",
+              "threshold": 0.3
+            }
+          ]
+        }
+      },
+      {
+        "id": "final",
+        "type": "approval",
+        "name": "Final review",
+        "assigneeId": "bob"
+      },
+      {
+        "id": "end",
+        "type": "end",
+        "name": "Complete",
+        "assigneeId": null
+      }
+    ]
+  }
+}

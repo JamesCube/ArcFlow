@@ -49,9 +49,11 @@ Read [ApprovalService](../../examples/approval-domain/src/main/java/com/arcflow/
 - UI **SINGLE** means `type: "approval"` with one `assigneeId`. It is not the JSON value `completionMode: "SINGLE"`.
 - **ALL**/**ANY** use `type: "parallelApproval"`, null `assigneeId`, 2–16 distinct `assigneeIds`, and `completionMode`. The standalone demo can assign only Bob/Carol, so its groups contain both.
 - ALL advances after every approval and rejects on any rejection. ANY advances on one approval and rejects only after all reject. A person assigned across stages votes separately at each. The core still runs serially; “parallel” means independent members eligible within one stage.
-- Definition schema 2 is sequential, 3 adds groups, and 4 adds restricted `runIf`. Only payment, receiving, and contract scenarios can use schema 4; generic/quote hosts and other scenarios cannot publish it.
-- Conditions use only `payment.netTotal`, `receiving.hasRejectedLines`, and `contract.termsKind`. A definition permits at most eight atoms and requires at least one unconditional human review. Predicate ALL/ANY is independent of participant ALL/ANY voting.
+- Definition schema 2 is sequential, 3 adds groups, and 4 adds restricted `runIf`. Only expense, payment, receiving, and contract scenarios can use schema 4; generic/quote hosts and other scenarios cannot publish it.
+- Conditions use only `expense.totalAmount`, `payment.netTotal`, `receiving.hasRejectedLines`, and `contract.termsKind`. A definition permits at most eight atoms and requires at least one unconditional human review. Predicate ALL/ANY is independent of participant ALL/ANY voting.
 - The server freezes selected stages and actual condition facts from the immutable document and full definition. Skipped stages are not approvals. Skipped-only participants cannot read or vote through that assignment. Applicant self-assignment is forbidden anywhere in the full definition, including skipped stages.
+
+Expense routing sums all saved expense lines exactly, with an explicit matching currency and no FX. The full definition remains intact even when finance is skipped; routing schema 1 records the selected path and every predicate fact. No new schema, host endpoint, business type, dynamic role or tenant boundary is introduced. See the [expense operational case](../EXPENSE_ROUTING.en.md).
 
 See [ProcessDefinition](../../examples/approval-domain/src/main/java/com/arcflow/approval/ProcessDefinition.java), [ConditionalRouting](../../examples/approval-domain/src/main/java/com/arcflow/approval/ConditionalRouting.java), [group semantics](../PARALLEL_APPROVAL.en.md), and [routing semantics](../CONDITIONAL_ROUTING.en.md).
 

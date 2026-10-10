@@ -56,7 +56,7 @@ The [API reference](../../../docs/api/API_REFERENCE.en.md) is the consolidated c
 | `/api/crm` | Isolated quotes, fixed Bob → Carol, with source-version/ownership checks |
 | `/api/scenarios/{scenarioId}/...` | Six exact-type scenarios; submissions require `Idempotency-Key`, with separate processes/stores |
 
-The domain has nine types, but generic `/api/documents` accepts only `leave`/`procurement`. The six catalog IDs are `oa-expense`, `oa-travel`, `oa-seal-use`, `erp-receiving`, `erp-payment`, and `crm-contract`. Only receiving, payment, and contract permit conditional definition schema 4. See [architecture](../../../docs/development/ARCHITECTURE.en.md#en) for the full map and SINGLE/ALL/ANY semantics.
+The domain has nine types, but generic `/api/documents` accepts only `leave`/`procurement`. The six catalog IDs are `oa-expense`, `oa-travel`, `oa-seal-use`, `erp-receiving`, `erp-payment`, and `crm-contract`. Only expense, receiving, payment, and contract permit conditional definition schema 4. See [architecture](../../../docs/development/ARCHITECTURE.en.md#en) for the full map and SINGLE/ALL/ANY semantics.
 
 <!-- topic:persistence -->
 ## Persistence and verification

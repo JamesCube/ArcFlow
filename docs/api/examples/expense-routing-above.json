@@ -1,0 +1,30 @@
+{
+  "business": {
+    "type": "expense",
+    "documentVersion": 1,
+    "businessId": "EXP-ROUTING-ABOVE",
+    "title": "Synthetic developer example",
+    "reason": "Synthetic data for a disposable local test only",
+    "costCenter": "ENGINEERING",
+    "currency": "CNY",
+    "lines": [
+      {
+        "lineId": "line-1",
+        "spentOn": "2026-10-01",
+        "category": "OFFICE",
+        "description": "Synthetic supplies",
+        "amount": 0.1,
+        "receiptRef": "RECEIPT-DEMO-1"
+      },
+      {
+        "lineId": "line-2",
+        "spentOn": "2026-10-02",
+        "category": "TRAVEL",
+        "description": "Synthetic transit",
+        "amount": 0.21,
+        "receiptRef": "RECEIPT-DEMO-2"
+      }
+    ]
+  },
+  "processVersion": 2
+}

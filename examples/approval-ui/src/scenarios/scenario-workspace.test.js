@@ -236,3 +236,34 @@ describe('scenario decision race and recovery', () => {
     expect(c.state.selectedId).toBe('expense-2'); expect(c.state.comment).toBe('Second request note')
   })
 })
+
+describe('expense conditional submission workspace', () => {
+  const conditional = (threshold = 150.01, version = 1) => {
+    const process = processFixture({ schemaVersion: 4, version })
+    process.nodes[1].runIf = { mode: 'ALL', predicates: [{ field: 'expense.totalAmount', operator: 'GTE', currency: 'CNY', threshold }] }
+    return process
+  }
+  it('blocks a mismatched currency before POST and permits correction without losing the form', async () => {
+    const c = setup({ process: conditional() }); await c.login(); prepare(c)
+    c.workspace.setForm({ ...c.state.form, currency: 'USD' }); await c.workspace.submit()
+    expect(c.posts()).toHaveLength(0); expect(c.state.error.operation).toBe('routing')
+    expect(c.state.error.cause.code).toBe('CURRENCY_MISMATCH'); expect(c.state.form.currency).toBe('USD')
+    c.workspace.setForm({ ...c.state.form, currency: 'CNY' })
+    c.server.onPost = async () => { throw new TypeError('Submission transport interrupted') }
+    await c.workspace.submit(); expect(c.posts()).toHaveLength(1)
+    expect(c.state.uncertainSubmission).toBe(true)
+  })
+  it('retains the original total condition and retry key across a newer publication', async () => {
+    const process = conditional(), c = setup({ process }); await c.login(); prepare(c)
+    const saved = viewFixture({ definition: clone(process), currentStepId: 'finance', approverId: 'carol', routing: { schemaVersion: 1, stepIds: ['finance'], evaluations: [{ stepId: 'manager', result: false, predicates: [{ field: 'expense.totalAmount', actualValue: 'CNY 150', result: false }] }] } })
+    c.server.onPost = async () => { throw new TypeError('Response lost after save') }
+    await c.workspace.submit(); const first = c.posts()[0][1]
+    c.server.process = conditional(0, 2); await c.workspace.refresh()
+    expect(c.state.process.version).toBe(2); expect(c.workspace.submissionDefinition()).toEqual(process)
+    c.server.onPost = async () => clone(saved)
+    await c.workspace.submit(); const retry = c.posts()[1][1]
+    expect(retry.headers['Idempotency-Key']).toBe(first.headers['Idempotency-Key']); expect(retry.body).toBe(first.body)
+    expect(c.state.items[0]).toEqual(saved); expect(c.state.uncertainSubmission).toBe(false)
+    expect(c.workspace.submissionDefinition().version).toBe(2)
+  })
+})

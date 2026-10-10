@@ -22,7 +22,7 @@
 <!-- topic:experimental-local-approval-demo -->
 ## 实验性本地审批演示
 
-审批示例独立于核心，支持编辑和发布 1–8 个审批步骤。每笔申请保存自己的流程快照，按顺序推进；单人步骤拒绝后，申请结束。审批操作检查权限并支持幂等重试，单进程 JSON 文件保存流程和申请，供重启后恢复。Vue 页面包含设计器、申请、待办、只读流程和历史。一个人可以出现在不同步骤，但每一步都要分别审批。主工作区不提供条件分支、任意图形部署或生产级持久化；当前付款/收货/合同的受限条件是专用场景能力。见 [运行说明](../examples/approval-demo/README.md)。
+审批示例独立于核心，支持编辑和发布 1–8 个审批步骤。每笔申请保存自己的流程快照，按顺序推进；单人步骤拒绝后，申请结束。审批操作检查权限并支持幂等重试，单进程 JSON 文件保存流程和申请，供重启后恢复。Vue 页面包含设计器、申请、待办、只读流程和历史。一个人可以出现在不同步骤，但每一步都要分别审批。主工作区不提供条件分支、任意图形部署或生产级持久化；当前报销/付款/收货/合同的受限条件是专用场景能力。见 [运行说明](../examples/approval-demo/README.md)。
 
 <!-- topic:implemented-optional-transactional-jdbc-storage -->
 ## 已实现：可选 JDBC 事务存储
@@ -56,7 +56,7 @@
 <!-- topic:implemented-nine-business-types-and-restricted-routing -->
 ## 已实现：九种业务类型与受限场景路由
 
-当前 main 包含九种领域业务类型和六项独立场景；付款、收货、合同支持定义 schema 4 的受限条件与冻结路径。JSON wrapper 最高 13，JDBC SQL revision 3。它们不代表通用任意图、动态表单或外部业务执行，见[架构](development/ARCHITECTURE.md)和[能力目录](CAPABILITIES.md)。
+当前 main 包含九种领域业务类型和六项独立场景；报销、付款、收货、合同支持定义 schema 4 的受限条件与冻结路径。JSON wrapper 最高 13，JDBC SQL revision 3。它们不代表通用任意图、动态表单或外部业务执行，见[架构](development/ARCHITECTURE.md)和[能力目录](CAPABILITIES.md)。
 
 <!-- topic:next-a-sustainable-general-approval-model -->
 ## 下一阶段：可持续的业务审批模型

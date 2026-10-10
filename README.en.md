@@ -80,7 +80,7 @@ Go straight to a case: [OA leave](docs/CASE_GALLERY.en.md#oa) · [Expense reimbu
 | [Draft undo/redo](docs/DESIGNER_GALLERY.en.md#undo) | 🟡 | Standalone tab-local undo/redo; no durable drafts |
 | [Publication conflicts](docs/DESIGNER_GALLERY.en.md#publish) | ✅ | Validate and publish a new version; stale expected versions are rejected |
 | [Pinned process version](docs/DESIGNER_GALLERY.en.md#versions) | ✅ | Existing requests keep the rules, people and version saved at submission |
-| [Restricted conditional routing](docs/CONDITIONAL_ROUTING.en.md) | 🟡 | Payment net total, receipt exceptions, and contract terms select additional human reviews; frozen at submission, limited to three standalone scenarios |
+| [Restricted conditional routing](docs/CONDITIONAL_ROUTING.en.md) | 🟡 | Expense total, payment net total, receipt exceptions, and contract terms select additional human reviews; frozen at submission, limited to four standalone scenarios |
 
 [Limits, missing features and test evidence](docs/CAPABILITIES.en.md#en-design)
 
@@ -191,7 +191,7 @@ The leave demo is the starting point for applying approvals to other business ta
 | **Smart CRM** | Quote discounts: sales submits a quote, a manager checks the discount, and finance reviews the amount | [Runnable isolated synthetic case](docs/CRM_QUOTE_CASE.en.md) with its own Chinese/English page; shared workspaces and a real CRM are not connected |
 | **Office automation (OA)** | Leave requests: an employee enters the duration and reason; assigned reviewers decide in order | [Runnable](docs/GETTING_STARTED.en.md#english), including the RuoYi example |
 | **ERP** | Purchase requests: enter the item, quantity and unit price, then review the need and cost | [Runnable API and standalone/RuoYi forms](docs/PROCUREMENT_UI.en.md), with procurement review on H5 |
-| **OA expenses** | 1–20 expense lines with dates, categories, amounts and synthetic receipt references; expense review followed by finance | [Merged standalone scenario](docs/EXPENSE_SCENARIO.en.md) on `/scenarios.html`; no payments, uploads or invoice verification |
+| **OA expenses** | 1–20 expense lines with dates, categories, amounts and synthetic receipt references; expense review with optional amount-based finance review | [Merged standalone scenario](docs/EXPENSE_SCENARIO.en.md) on `/scenarios.html`; no payments, uploads or invoice verification |
 | **OA travel** | Destination, dates, purpose, and exact budget for 1–90 calendar days | [Dedicated travel scenario](docs/TRAVEL_SCENARIO.en.md); no booking, reimbursement, or payment |
 | **OA seal use** | Synthetic document references, seal category, purpose, and copy count | [Dedicated seal-use scenario](docs/SEAL_USE_SCENARIO.en.md); no stamping or signing |
 | **ERP receiving** | 1–20 lines of received, accepted, and rejected quantities with exception notes | [Dedicated receiving scenario](docs/RECEIVING_SCENARIO.en.md), with optional conditions; no live PO balances or stock posting |
@@ -200,9 +200,9 @@ The leave demo is the starting point for applying approvals to other business ta
 
 The quote case uses synthetic customer data and fixed sales-manager → finance human review through a separate `/api/crm` service and `/quote-discount.html` page. The shared standalone, RuoYi and H5 workspaces do not support quotes yet. AI features, a real CRM connection, customer notifications and business writeback aren't implemented. See [CRM compatibility and release gates](docs/CRM_COMPATIBILITY_READINESS.en.md) for verification status.
 
-Expense uses compiled, versioned `ScenarioCatalog` metadata, dedicated `/api/scenarios/oa-expense` routes and its own data file. The form fields are fixed; the designer configures 1–8 fixed-reviewer stages. Shared workspaces, RuoYi, H5 and real finance systems are not connected to this case.
+Expense uses compiled, versioned `ScenarioCatalog` metadata, dedicated `/api/scenarios/oa-expense` routes and its own data file. The form fields are fixed; the designer configures 1–8 fixed-reviewer stages, including [expense-total conditions](docs/EXPENSE_ROUTING.en.md) for optional finance review. Shared workspaces, RuoYi, H5 and real finance systems are not connected to this case.
 
-Current main has six `/scenarios.html` entries: Expense, Travel, Seal-use, Receiving, Payment and Contract; Receiving also has `/receiving.html`. Each binds its own type, process and file. Payment/Receiving/Contract may use [restricted conditions](docs/CONDITIONAL_ROUTING.en.md). These implementations are merged in source; check browser, database and release acceptance for the exact commit separately. The original unified candidate's HTTP 403/1010 image-download failures and missing independent pixel review remain [historical evidence](docs/UNIFIED_SCENARIO_INTEGRATION.en.md), not a pass/fail conclusion about current CI.
+Current main has six `/scenarios.html` entries: Expense, Travel, Seal-use, Receiving, Payment and Contract; Receiving also has `/receiving.html`. Each binds its own type, process and file. Expense/Payment/Receiving/Contract may use [restricted conditions](docs/CONDITIONAL_ROUTING.en.md). This describes current source; check browser, database, merge and release acceptance for the exact commit separately. The original unified candidate's HTTP 403/1010 image-download failures and missing independent pixel review remain [historical evidence](docs/UNIFIED_SCENARIO_INTEGRATION.en.md), not a pass/fail conclusion about current CI.
 
 ### Follow each business case through the workflow
 
@@ -255,7 +255,7 @@ The current reader strictly accepts JSON wrappers 1–13. Definition schemas 2/3
 
 Both demos store approval data in local JSON and support one instance. RuoYi's MySQL database holds users, roles and menus; it doesn't automatically store approvals. JDBC needs explicit setup and migrations. Actor-scoped pending/handled pagination is available. Tenant isolation, transactions spanning business tables, and an outbox aren't implemented yet.
 
-Restricted conditions are limited to the standalone payment, receiving, and contract scenarios. Dynamic role resolution, timers, withdrawal and delegation are still missing. Native apps, mini-programs, Feishu, WeCom and DingTalk integrations are unfinished. There's no production-readiness guarantee or BPMN compatibility. See the [roadmap](docs/ROADMAP.en.md) for planned work.
+Restricted conditions are limited to the standalone expense, payment, receiving, and contract scenarios. Dynamic role resolution, timers, withdrawal and delegation are still missing. Native apps, mini-programs, Feishu, WeCom and DingTalk integrations are unfinished. There's no production-readiness guarantee or BPMN compatibility. See the [roadmap](docs/ROADMAP.en.md) for planned work.
 
 ## Run just the Java core
 
@@ -285,4 +285,4 @@ The earlier [`v0.1.0-alpha.2`](https://github.com/JamesCube/ArcFlow/releases/tag
 
 Current `main` includes ERP payment requests and CRM contract approval in the six-scenario catalog. Payments reconcile invoice amounts, previously settled amounts, allocations, deductions, and net requested totals. Contracts capture term deviations, dates, payment milestones, and acceptance criteria, with exact milestone-total validation. Both reuse SINGLE/ALL/ANY and immutable process versions through isolated APIs/stores. They do not make payments, sign contracts, or write to external systems. See the [business and workflow contract](docs/PAYMENT_CONTRACT_SCENARIOS.en.md).
 
-Payment, receiving, and contract scenarios support restricted definition-schema-4 conditions. The server retains full definitions, published versions, and the route frozen at submission. JSON wrappers support 13; SQL revision 3 is unchanged. Older schema-2/3 requests retain their original paths. See [routing semantics](docs/CONDITIONAL_ROUTING.en.md) and [migration guidance](docs/development/PERSISTENCE.en.md#en). Local-candidate notes and test counts in focused guides are historical checkpoints; check CI for the source revision you use rather than treating them as current-commit or production-deployment guarantees.
+Expense, payment, receiving, and contract scenarios support restricted definition-schema-4 conditions. The server retains full definitions, published versions, and the route frozen at submission. JSON wrappers support 13; SQL revision 3 is unchanged. A wrapper-13 reader that does not recognize `expense.totalAmount` must reject it; stop incompatible binaries and back up before publication. Older schema-2/3 requests retain their original paths. See [routing semantics](docs/CONDITIONAL_ROUTING.en.md) and [migration guidance](docs/development/PERSISTENCE.en.md#en). Local-candidate notes and test counts in focused guides are historical checkpoints; check CI for the source revision you use rather than treating them as current-commit or production-deployment guarantees.
