@@ -1,129 +1,55 @@
-# Official RuoYi integration smoke
+# 若依集成测试
 
-`smoke.py` runs a packaged official RuoYi backend with **MySQL and Redis**.
-It signs in through upstream `/login` and checks `/getInfo`, `/getRouters` and
-`/logout` alongside the ArcFlow endpoints. Authentication is not mocked.
+<!-- Legacy fragments remain entry points after the language split. -->
+<a id="local-native-inbox-ui-checks-no-browser"></a>
+<a id="native-procurement-ui-regression"></a>
+<a id="official-ruoyi-integration-smoke"></a>
 
-Use a new disposable database for every run. Before running, import the pinned upstream
-`sql/ry_20260417.sql`, `sql/quartz.sql`, then this overlay's `sql/menu.sql`.
-The fixture creates five test users and two roles, disables the captcha in the
-fixture database, and replaces upstream demo passwords with a freshly generated
-random password and BCrypt hash. No test password or JWT signing secret is stored
-in the repository. The smoke process generates both in memory on each run.
+[English](README.en.md)
 
-The fixture gives ordinary participants read/submit/decide permission, without
-publish permission. A fifth account has no ArcFlow permissions. Admin may publish but cannot
-approve a request on behalf of its assigned user.
 
-The submission tests send the optional `Idempotency-Key` header through the native
-endpoint and check responses in RuoYi’s existing `AjaxResult` envelope:
+<!-- topic:scope -->
+适用范围：当前源码。`smoke.py` 启动已打包的官方若依后端，连接真实 MySQL/Redis，经过上游 `/login`、`/getInfo`、`/getRouters`、`/logout` 和 ArcFlow 路由；认证不模拟。这些上游端点不属于 ArcFlow 自己的 30 个 controller handler。
 
-- Identical and whitespace-normalized retries return the same request with one
-  `SUBMIT` event; changed title, reason, days or process version return conflict.
-- Missing keys retain create-on-every-call behavior. Blank, malformed, oversized,
-  comma-joined and repeated header values are rejected without creating requests.
-  Repeated fields are sent as separate HTTP header lines, including mixed casing.
-- The same key used by different authenticated applicants creates separate
-  requests without exposing either applicant's state to the other. Body-supplied
-  identity or key fields remain invalid. Invalid bodies do not reserve keys.
-- A cached session cannot replay while its applicant is disabled or deleted.
-  After a fixture role change and re-login, an applicant who lost submission
-  permission cannot replay a key they previously used either.
-- Replays after later publication and decisions return the current saved request
-  with its original definition. Exact replay and conflict handling survive the
-  existing server restart, even with a historical reviewer deleted, without
-  adding history or another request.
+<!-- topic:prepare -->
+## 隔离环境
 
-Typed-document API checks also cover `POST /arcflow/documents`: procurement and typed leave, strict fields and numeric validation, submission permissions, changed-intent conflicts, and mixed legacy/typed requests surviving restart with later decisions. These API checks do not establish a procurement form; the current browser journey uses the leave form.
+使用新的可丢弃 `ry-vue` 数据库，依次导入固定上游的 `ry_20260417.sql`、`quartz.sql` 和 overlay `sql/menu.sql`。fixture 创建五名用户、两角色，仅在此测试库关闭验证码，并用运行时随机密码和 BCrypt 替换样例密码；密码和 JWT secret 不保存到仓库。普通参与人无发布权限，第五账号无 ArcFlow 权限，管理员也不能代指定人员审批。
 
-The API smoke tests schema-2 two-step approvals and schema-3 groups through the
-same native `/arcflow` endpoints:
-
-- Publish both `ALL` and `ANY` definitions with official admin authentication;
-  reject unauthorized publishers and stale versions.
-- Reject duplicate, unknown, blank, non-string, missing, too few or too many group
-  members; non-array member fields; invalid modes; extra/missing node fields;
-  conflicting single/group assignment fields; duplicate JSON keys; and groups
-  mislabeled as schema 2. Failed publications leave the active definition intact.
-- `ALL`: retain partial approval, require every member before the next sequential
-  step, and terminate on either an immediate rejection or rejection after another
-  member approved. A participant assigned to the following stage votes separately
-  there, checking that retries are scoped to both actor and step.
-- `ANY`: retain an individual rejection until another member approves or every
-  member rejects; one immediate approval closes the group without recording
-  votes for members who have not voted.
-- Read and decide as a non-first participant, whose membership comes from the
-  request's pinned definition even when `approverId` names someone else. After a
-  vote, the request remains visible but drops out of that actor's pending worklist.
-  Outsiders and admins have no assignment bypass, permissionless actors cannot
-  decide, and either group member is rejected when submitting to their own group.
-- Replay identical actor/step decisions without extra history; reject opposite
-  decisions, early future-step decisions, and new votes on terminal requests.
-- Publish a later policy before deciding an earlier request and verify its group
-  mode, stages and version remain pinned. Pending group requests also remain
-  actionable after publication of a later schema-2 sequential definition.
-- Disable, then soft-delete the non-first group member in the disposable fixture.
-  Existing Redis sessions cannot read or decide as that actor, including retries;
-  publication and new submission reject the inactive assignment. Saved completed
-  and partial histories remain readable by other participants and survive restart
-  exactly, while the group definition still references the deleted member.
-
-`approverId` names the first pending member for compatibility with older clients. The HTTP smoke
-derives pending membership from each real response's current step and history,
-and checks the corresponding participant's actual read/decision endpoints. The
-native Chromium test also checks the rendered worklist and controls.
-After the API group checks, the original two-step definition and both active
-fixture approvers are restored for that browser journey.
+本地 MySQL 3306、Redis 6379、后端 8080 必须可用。构建与接线见[宿主指南](../README.md)。
 
 ```sh
 python3 -m pip install -r examples/ruoyi-vue3/tests/requirements.txt
-# MYSQL_PASSWORD must match the disposable database instance.
 python3 examples/ruoyi-vue3/tests/smoke.py \
   --jar /absolute/path/to/backend/ruoyi-admin/target/ruoyi-admin.jar \
   --state-directory /absolute/path/to/new-empty-test-state
 ```
 
-Use local MySQL on port 3306 (`ry-vue` database), Redis on port 6379, and an unused
-backend port 8080. The smoke starts the backend, performs the test, stops it,
-restarts with the same state file and Redis after the sequential checks and again
-after the group checks, and verifies exact history persistence. It also checks that deleting a historical actor does not make the saved history
-unreadable. Processes
-are terminated in `finally`; logs remain in the state directory for diagnosis.
+MYSQL_PASSWORD 必须匹配测试库。smoke 启动、停止并在相同 JSON/Redis 状态重启，核对顺序和分组历史。finally 清理自身进程，状态目录保留诊断日志。不能指向真实账号或生产库。
 
-The GitHub workflow `.github/workflows/ruoyi-integration.yml` provisions disposable
-MySQL 8.4.4 / Redis 7.4.2 services, builds both official upstream applications, and
-runs this smoke. Python syntax checks cannot verify this runtime behavior. Check the workflow
-result for the commit you are testing.
+<!-- topic:coverage -->
+## HTTP 与浏览器检查
 
-## Native procurement UI regression
+HTTP 覆盖权限、schema 2/3、SINGLE/ALL/ANY、非首位成员、部分票、提前/相反/重复决策、重复参与人、终态、快照固定及账号禁用/删除后重授权。历史账号删除不应使已保存历史不可读。
 
-The Chromium journey in `browser.py` keeps the existing leave and SINGLE/ALL/ANY coverage and adds real typed procurement authoring and review:
+提交检查原键及标准化意图重放、变更冲突、无键独立创建、重复/非法 header、申请人隔离、正文伪造身份拒绝、无效请求不占键，以及失去权限后不能重放。类型化请假/采购检查严格字段和原始数字、权限、重启后的混合旧新数据与继续决策。分组 malformed/duplicate/missing 字段或错误 schema 不得改变活跃定义。
 
-- Quantity and price-precision errors stay local; native keyboard controls and quantity-to-price Tab focus work.
-- Draft values survive type switches, language changes and native workspace tab navigation.
-- A synthetic `3 × USD 0.10` request displays exactly `USD 0.30`, sends one normalized body to `/arcflow/documents`, and retains the same business snapshot through ALL → ANY votes and reloads.
-- Eight new screenshots cover authoring/detail in Chinese/English at 1440px and 390px. Together with the existing six workspace screenshots, the successful job emits fourteen PNG files. No login screenshots, auth state, traces or credentials are saved.
-- Native API tests also verify raw-token parsing on list/submit/decision responses: hidden fractional quantities and over-limit decimal prices are rejected before JavaScript can round them; valid canonical scientific prices are accepted.
-- The native view's Vue tests live in `examples/approval-ui/src/NativeSubmission.test.js`; they mount the actual overlay component with transport-only mocks. They cover malformed/wrong-type responses, exact retry keys/versions, business/identity edits, strict immutable detail, malformed lifecycle fail-closed handling, and native permission directives. These are separate from the real-server RBAC checks.
+浏览器使用实际构建的官方 Vue 3 前端、原生登录和 `/prod-api`，覆盖菜单、发布、只读参与人、逐步与分组审批、采购表单、语言/类型/标签切换、精确 `USD 0.30`、重载、退出、权限及中断恢复。它消费前序 HTTP 建立的账号/两步流程；通过 smoke 的 `--frontend-directory /path/to/frontend/dist` 运行，不单独调用 browser.py。
 
-Run helper/parity/API tests with `node --test examples/ruoyi-vue3/frontend/src/views/arcflow/approval/*.test.mjs` and component tests with `cd examples/approval-ui && npm test`. Browser runs require the real disposable services and built official frontend described above. Syntax or unit checks alone do not establish a browser pass.
+```sh
+python3 -m playwright install --with-deps chromium
+```
 
-## Local native inbox UI checks (no browser)
+成功截图为登录后的工作区，不保留登录图、认证会话、trace 或 HAR，CI 保留七天。`.github/workflows/ruoyi-integration.yml` 提供真实服务任务，但配置存在不代表通过，必须查看精确提交的运行。
 
-The native view now reads bounded pending and handled pages through RuoYi's
-existing authenticated request client. The following tests need no server,
-database, browser, registry access or native-login fixture at execution time.
-They do not replace the real upstream smoke above.
-
-Run the dependency-free state/API tests from the repository root:
+<!-- topic:local -->
+## 本地模型与 DOM 回归
 
 ```sh
 node --test examples/ruoyi-vue3/frontend/src/views/arcflow/approval/*.test.mjs
 ```
 
-The mounted DOM tests reuse the Vue/Vitest/jsdom dependencies already installed
-for `examples/approval-ui`; the overlay is not a standalone upstream package.
-On a POSIX checkout, make the local, ignored dependency link if it is absent:
+复用独立 UI 已安装的 Vue/Vitest/jsdom；overlay 不是完整上游包。在 POSIX 工作区：
 
 ```sh
 test -e examples/ruoyi-vue3/frontend/node_modules || \
@@ -132,17 +58,11 @@ cd examples/ruoyi-vue3/frontend
 ./node_modules/.bin/vitest run --config vitest.config.mjs
 ```
 
-Install missing dependencies separately using the standalone UI's documented
-setup before these commands; this runner does not install them. The native
-session stub is only a module-resolution target for tests and is never copied
-into the upstream application by bootstrap.
+缺依赖先按 UI 指南安装。测试 session stub 只用于模块解析，不经 bootstrap 复制到上游。另从 approval-ui 运行 `npm test`，其 NativeSubmission.test.js 挂载真实 overlay，传输层模拟不代表真实 RBAC 通过。
 
-Coverage includes separate pending/handled cursors, empty and exhausted lists,
-opaque cursor forwarding, optional status/process-version filters, retryable
-page failures, invalid-cursor restart, duplicate-click suppression, cancellation,
-late response rejection after filter/session changes or unmount, non-first group
-participants, partial votes, repeated-stage overlap, and preservation of the
-legacy applicant/history tabs. A shared actor-scoped snapshot cache ensures that
-a shorter, older history from a slower list read cannot undo a confirmed vote.
-The existing standalone `NativeSubmission.test.js` also mounts this exact view
-and retains the durable submission-retry compatibility checks.
+回归包括待办/已办独立游标、空/耗尽页、过滤、失败重试、非法游标重置、重复点击、取消/迟到响应、会话/过滤切换、卸载、非首位/重复阶段成员、旧发起/历史标签和快照缓存；旧短历史不得覆盖已确认决策。
+
+<!-- topic:limits -->
+## 结果如何解读
+
+语法、模型、DOM 不替代服务器/浏览器；旧截图和数量不作为本次验收。真实服务不可用时标明未运行，不把跳过写成通过。原始历史说明保存在[文档历史索引](../../../docs/history/README.md)，当前行为以测试源码、接口规范和同提交 CI 相互核对。

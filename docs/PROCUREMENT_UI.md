@@ -1,70 +1,52 @@
-# 采购审批体验 / Procurement approval experience
+# 采购审批体验
 
-## 入口与边界 / Entry points and scope
+<!-- Legacy fragments remain entry points after the language split. -->
+<a id="入口与边界--entry-points-and-scope"></a>
+<a id="只读快照与重试--saved-snapshots-and-retries"></a>
+<a id="采购审批体验--procurement-approval-experience"></a>
+<a id="金额与数量--exact-amounts-and-quantities"></a>
+<a id="验证方法--verification-method"></a>
 
-独立 Vue 工作区和原生若依工作区均可在请假与采购之间切换。采购表单提交到
-`/api/documents` 或 `/arcflow/documents`，沿用已经发布的审批流程、权限、流程快照、
-逐步骤表决与操作记录。原请假表单继续使用旧 `/requests` 入口，不迁移已有申请。
+<a id="zh"></a>
+<a id="en"></a>
+<a id="简体中文"></a>
+<a id="english"></a>
 
-The standalone Vue workspace and the official RuoYi integration provide explicit leave /
-procurement choices. Procurement uses the typed document endpoint; legacy leave submissions
-retain their existing endpoint and wire shape. Lists can contain legacy leave, typed leave,
-and typed procurement. Detail views use the saved business type and immutable document
-snapshot, never infer leave from the compatibility `days` projection.
+[English](PROCUREMENT_UI.en.md) · [文档目录](README.md)
 
-H5 是待办、详情、审批意见和历史客户端，只能查看并审批已有单据；本轮不提供移动端新建采购。
+<!-- topic:entry-points-and-scope -->
+## 入口与边界
 
-H5 remains a review-only client. Synthetic documents for its acceptance journey are created
-through the backend test fixture; there is no mobile authoring endpoint or authoring form.
+独立 Vue 与官方若依可在请假/采购之间选择。采购使用 `/api/documents` 或 `/arcflow/documents`，共用已发布流程、权限、定义快照、逐步骤投票与历史。旧请假仍用 `/requests` 和原载荷，不迁移旧申请。列表可混合旧请假、类型化请假/采购，详情按保存业务类型和不可变快照显示，不能从兼容 days 字段推断请假。
 
-This is a local synthetic demonstration. Submitting or approving does not place a purchase
-order, send information to a supplier, reserve funds, perform payment, convert currency, or
-write back to another business system. A workflow approval is not proof that any of those
-business operations occurred. The default demo still uses one configured `leave-approval`
-process for both document types; hosts must define their own routing and eligibility policy.
+H5 仅查看/审批已有单据，没有发起入口或表单；验收数据由后端测试夹具创建。
 
-## 金额与数量 / Exact amounts and quantities
+这是本地合成演示。提交/通过不向供应商下单或传信息、不预留资金、付款、换汇或回写，也不证明这些操作已发生。默认请假/采购共用 `leave-approval`；宿主需自行定义路由和资格。
 
-- 数量 / quantity: integer 1–100,000.
-- 单价 / unit price: positive decimal, at most 1,000,000,000; up to two decimal places.
-- 币种 / currency: CNY, USD, EUR, GBP or JPY. JPY must use whole amounts.
-- 单据编号 / business ID: 1–128 ASCII letters/digits and `._:/-`, beginning with a letter/digit.
-- 品名 / item: nonblank, up to 240 characters; title and reason retain the backend limits.
+<!-- topic:exact-amounts-and-quantities -->
+## 精确金额与数量
 
-Client form validation rejects zero, negative numbers, exponent notation, grouping separators,
-excess precision and malformed amounts rather than rounding them or silently treating them
-as zero. The backend remains authoritative. Amount calculations use exact decimal arithmetic;
-no JavaScript floating-point multiplication is used for totals. Currency codes are shown
-explicitly. JPY is formatted without minor units; the other supported currencies use two.
-The maximum calculated total is 100,000,000,000,000.00, which must not be rounded through
-unsafe integer cents. There is no tax, exchange-rate, freight or discount calculation.
+- 数量：整数 1–100,000。
+- 单价：正十进制，≤1,000,000,000，最多两位小数。
+- 币种：CNY/USD/EUR/GBP/JPY，JPY 整数。
+- 业务 ID：1–128 ASCII 字母/数字及 `._:/-`，字母/数字开头。
+- 品名：非空且 ≤240 字符，标题/原因沿用后端限制。
 
-## 只读快照与重试 / Saved snapshots and retries
+客户端拒绝零、负数、指数、分组分隔符、超精度及畸形金额，不舍入或静默作零；后端仍为权威。总额使用精确十进制，不做 JavaScript 浮点乘法。显式显示币种，JPY 无小数，其余两位。最大总额 100,000,000,000,000.00，不能通过不安全整数分币舍入。不计算税、汇率、运费或折扣。
 
-Submitted business fields cannot be changed in the review view. Typed responses are checked
-for the supported schema, exact fields, valid values and consistent compatibility projections.
-Unsupported or malformed business documents fail closed instead of appearing as a zero-day
-leave request. Approval permissions and audit remain the shared backend's responsibility.
+<!-- topic:saved-snapshots-and-retries -->
+## 保存快照与重试
 
-Each desktop document type retains its own draft and one unresolved submission key in memory. A retry after a lost or
-malformed acknowledgement uses the original endpoint, normalized business intent and frozen
-process version. A matching durable replay returns the existing request. Switching document
-types preserves both intents; returning to an unchanged form reuses its original key and
-process snapshot. Editing a normalized payload invalidates only that form's intent. A successful
-submission clears only its own form; signing out clears both drafts and keys. A page reload
-loses the keys; refresh and inspect existing requests before resubmitting after reload. See
-[the submission contract](SUBMISSION_IDEMPOTENCY.md).
+审批页不能改已提交业务字段；类型化响应检查支持的 schema、精确字段、有效值及兼容投影一致性。未知/畸形单据明确失败，不显示成零天请假。权限和审计由共享后端负责。
 
-## 验证方法 / Verification method
+桌面每种单据独立保存内存草稿及一个未确认键。响应丢失/畸形时，保留原端点、规范化意图和冻结流程版本重试，匹配映射返回旧申请。切换类型保留两种意图，返回未变表单复用原键/版本。修改规范化内容只取消该表单意图，成功只清该表单；退出清两份草稿/键。重载会丢键，应先刷新并查看已有申请，见[提交契约](SUBMISSION_IDEMPOTENCY.md)。
 
-The change adds exact-decimal, schema, mixed-document, bilingual and retry tests to both
-Vue test suites, together with synthetic real-backend Chromium journeys for standalone,
-native RuoYi and H5. The browser journeys include narrow Chinese/English layouts, read-only
-procurement details, keyboard or repeated navigation, current-reviewer decisions and audit.
-Screenshots are captured only after authentication and real backend operations. No auth
-traces, videos, storage state or password screenshots are retained.
+<!-- topic:verification-method -->
+## 验证方法
 
-Run the repository's existing unit/build commands plus:
+两套 Vue 测试覆盖精确小数、schema、混合单据、中英文与重试；独立端/若依/H5 使用合成真实后端 Chromium 流程，含中英窄屏、只读采购、键盘/重复导航、当前成员决定与审计。截图仅在认证和真实操作后采集，不保存认证 trace、视频、storage state 或密码图。
+
+除现有单元/构建命令外，运行：
 
 ```bash
 cd examples/approval-ui
@@ -73,7 +55,4 @@ npm run test:e2e -- --grep 'procurement:'
 # H5: follow examples/approval-mobile/README.md and run npm run test:e2e.
 ```
 
-See the exact commit's GitHub Actions checks and packaged verification manifest for results.
-This document describes implemented coverage; it does not independently assert that any
-particular commit's CI has passed. True-device App / mini-program testing and production
-purchasing integration remain outside this change.
+结果以精确提交 GitHub Actions 与打包验证清单为准；本文描述覆盖，不独立声称某提交通过。真机 App/小程序和生产采购集成仍在范围之外。

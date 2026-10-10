@@ -1,5 +1,36 @@
 # ArcFlow｜弧流
 
+<!-- Legacy fragments remain entry points after the language split. -->
+<a id="approval-capabilities-at-a-glance"></a>
+<a id="approval-rules-and-voting"></a>
+<a id="arcflow"></a>
+<a id="business-examples"></a>
+<a id="business-forms-and-scenarios"></a>
+<a id="connect-an-application"></a>
+<a id="crm--quote-discounts"></a>
+<a id="design-and-review"></a>
+<a id="docs-and-source"></a>
+<a id="erp--procurement"></a>
+<a id="fast-local-tryout-one-terminal"></a>
+<a id="flow-design-and-versions"></a>
+<a id="follow-each-business-case-through-the-workflow"></a>
+<a id="integration-clients-and-core"></a>
+<a id="oa--expenses"></a>
+<a id="oa--leave"></a>
+<a id="payment-contract-and-conditional-review"></a>
+<a id="people-identity-and-permissions"></a>
+<a id="quick-start"></a>
+<a id="reliability-storage-and-recovery"></a>
+<a id="run-just-the-java-core"></a>
+<a id="see-the-cases"></a>
+<a id="start-with-the-flow-designer"></a>
+<a id="task-handling-and-history"></a>
+<a id="try-one-leave-approval"></a>
+
+<!-- topic:overview -->
+
+[分类文档索引](docs/README.md) · [文档规范](docs/DOCUMENTATION_STANDARD.md) · [OpenAPI 契约](docs/api/README.md)
+
 给 Java 业务系统加审批流程。在 Vue 设计器里配置步骤和审批人，申请按顺序处理，提交时的流程版本和每次审批记录都会保存。
 
 先从仓库里的请假示例跑起：发起申请、切换账号审批，再查看结果。需要接到现有系统时，可以参考若依集成。

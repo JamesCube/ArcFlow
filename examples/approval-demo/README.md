@@ -1,20 +1,25 @@
-# Local human-approval demo
+# 本地审批演示
 
-Try human approvals with ArcFlow: publish an ordered process, submit a sample leave request, approve or reject its steps, and see the saved result and history. Steps can have one approver or an ALL/ANY group.
+<!-- Legacy fragments remain entry points after the language split. -->
+<a id="architecture-and-limits"></a>
+<a id="local-human-approval-demo"></a>
+<a id="run"></a>
+<a id="verify"></a>
 
-**Run this on localhost with synthetic data only.** The standalone backend uses Spring Boot 4.1.1 with a temporary Jackson 2 bridge; see [migration scope and remaining support limits](../../docs/SUPPORTED_HOST_MIGRATION.md). Keep it off the public internet and do not enter real leave or health information. It is not ready for production use.
+[English](README.en.md)
 
-## Run
 
-You need a full JDK 17+, Maven 3.9+, Node 22.22.2+ and npm. Start these commands at the repository root.
+<!-- topic:scope -->
+适用范围：当前源码，Java 工件版本 `0.1.0-SNAPSHOT`。此示例使用独立 Spring Boot 后端和 Vue 界面，演示发起、逐步审批、分组表决和不可变历史。仅在 localhost 使用合成数据，不适合直接公开部署。
 
-```bash
-# Install the small, dependency-free-at-runtime Java core locally.
+<!-- topic:run -->
+## 启动并完成一次审批
+
+需要完整 JDK 17+、Maven 3.9+、符合前端 package.json 的 Node.js 和 npm。推荐先照[开发环境](../../docs/development/QUICKSTART.md)启动；下面命令从仓库根目录运行。
+
+```sh
 mvn install
 mvn -f examples/approval-domain/pom.xml install
-
-# Use three different demo-only passwords, at least 12 characters each.
-# Read them without echo or shell-history storage; these are not real accounts.
 read -rs -p 'Alice demo password: ' APPROVAL_ALICE_PASSWORD; echo
 read -rs -p 'Bob demo password: ' APPROVAL_BOB_PASSWORD; echo
 read -rs -p 'Carol demo password: ' APPROVAL_CAROL_PASSWORD; echo
@@ -22,46 +27,45 @@ export APPROVAL_ALICE_PASSWORD APPROVAL_BOB_PASSWORD APPROVAL_CAROL_PASSWORD
 mvn -f examples/approval-demo/backend/pom.xml spring-boot:run
 ```
 
-In another terminal:
+三个本地演示密码必须不同，每个至少 12 个字符、至多 72 个 UTF-8 字节。另开终端：
 
-```bash
+```sh
 cd examples/approval-ui
 npm ci
 npm run dev
 ```
 
-Open **http://localhost:5173** and sign in as `alice` with Alice's demo password.
+打开 `http://localhost:5173`：
 
-1. Open the process designer. Name the first approval step and assign Bob.
-2. Add a second approval step assigned to Carol. Use Move up/down to reorder steps, then publish the intended Bob → Carol order.
-3. Submit a synthetic request against that published version.
-4. Sign out and sign in as Bob. Approve the first step: the request stays pending and advances to Carol.
-5. Sign in as Carol to approve the final step or reject. Return as Alice to inspect the outcome and per-step history.
-6. Publish a different order and compare an existing request's read-only definition snapshot. Existing requests keep the original sequence even across restart.
+1. Alice 登录，创建 Bob → Carol 的两个审批步骤并发布。
+2. Alice 提交合成请假或采购申请。
+3. Bob 登录并同意。预期申请仍为待审批，当前步骤转到 Carol。
+4. Carol 同意或驳回。Alice 重新查看，预期看到最终结果与逐人记录。
+5. 发布不同流程，查看已有申请。预期它保留提交时的流程与业务快照。
 
-Alice is the only process editor. Bob and Carol can view the published process but cannot publish changes. A request is visible to its applicant and everyone assigned in its saved definition. Only an eligible participant in the current step can make a new decision. You can assign the same person to several steps, but each step needs a separate decision. Submission is rejected if the applicant is assigned anywhere in the process.
+后端监听 `127.0.0.1:8080`。前端通过 Vite 将 `/api` 代理到后端；不要把演示服务改为公网监听。
 
-The API listens on `127.0.0.1:8080`; Vite proxies `/api` from its local origin. Do not change bindings to public interfaces. See [backend instructions](backend/README.md) for the data path, API, validation and security details, and [UI instructions](../approval-ui/README.md) for browser behavior.
+<!-- topic:boundaries -->
+## 身份、流程与存储
 
-## Architecture and limits
+- Alice 可发布流程；Bob、Carol 可读取自己参与的已选路线上的申请（包括未来和已处理步骤），但只能在当前合格步骤表决。申请人出现在流程任一步骤时，提交会被拒绝。
+- 通用工作区支持顺序 SINGLE/ALL/ANY；条件路由只在[付款、收货、合同专用场景](../../docs/CONDITIONAL_ROUTING.md)提供。流程不支持任意图或 BPMN。
+- ArcFlow 内核同步执行校验 DAG，不等待人工；人工审批状态由共享领域层负责。
+- 发布带预期版本。已有申请不受后来发布影响；浏览器草稿仅在内存中，刷新整页或退出会丢失。
+- 提交响应不确定时保留原键、原内容和流程版本。不要直接新建另一个申请；先查列表或按[幂等契约](../../docs/SUBMISSION_IDEMPOTENCY.md)重试。
+- 默认 JSON 为本地单写者存储。使用稳定私有数据路径才能正常重启恢复；版本升级和回退以[存储迁移](../../docs/development/PERSISTENCE.md)为准。此机制不提供多租户、分布式事务或备份运维。
 
-- `SubmissionWorkflow` uses the actual ArcFlow synchronous DAG to validate and normalize a submission. The core never blocks waiting for a person.
-- The approval application handles `PENDING → APPROVED | REJECTED`, identity checks and JSON persistence through the shared approval domain. The core does not persist or resume a DAG while waiting for a person.
-- Process JSON supports one shape: start, 1–8 ordered approval stages, end. Schema 2 supports single approvers; schema 3 also supports ALL/ANY groups. Array order determines execution, and the backend validates the full definition and allowed assignees. Layout coordinates have no effect. BPMN XML and arbitrary graphs are not supported.
-- Snapshot writes are serialized and atomically replaced, with an exclusive local file lock. Successful mutations survive a normal restart at the same data path. This is not a distributed store, database transaction system, power-loss guarantee, tamper-evident audit, tenant boundary or backup strategy.
-- Decisions include a stable step ID. Repeating the same authorized decision for that step returns the current request without another event or advancing a later step; the opposite decision conflicts. A changed comment on a repeat is ignored. Submission accepts the optional `Idempotency-Key` header. Keep the same key, normalized intent and original process version after an uncertain response; replay returns the current original request. Missing keys retain legacy behavior. See [durable submission semantics](../../docs/SUBMISSION_IDEMPOTENCY.md).
-- Publishing uses an expected version to prevent lost edits. Drafts live only in the current browser session; publish to persist. Schema-1 single-approver saved data is validated and migrated without discarding requests; legacy unkeyed writes use snapshot schema 2/3 according to the definitions, while the first legacy keyed creation upgrades to snapshot schema 4 with a byte-exact backup. Typed leave or procurement through `POST /api/documents` uses snapshot schema 5 and preserves a byte-exact backup of the preceding schema. Once upgraded, later writes never lower the snapshot version. Definition schemas stay 2/3. Back up data and upgrade all hosts before enabling the keyed clients; older binaries cannot read later snapshot formats. Enable typed writes only after all readers support schema 5; mixed-version writers are unsupported. The current form still submits legacy leave requests. See the [business-document API and compatibility rules](../../docs/BUSINESS_DOCUMENTS.md). See the [upgrade contract](../../docs/SUBMISSION_IDEMPOTENCY.md#upgrade-and-rollback--升级与回退).
-- This standalone demo has no RuoYi or role/department directory integration, general drag-and-drop graph editor, delegation, reassignment, timers or conditional routes. ALL/ANY groups are supported within the ordered process. See the [separate RuoYi example](../ruoyi-vue3/README.md) for directory-backed users.
+<!-- topic:verify -->
+## 验证与排错
 
-## Verify
-
-```bash
+```sh
 mvn verify
 bash scripts/test.sh
-mvn install
 mvn -f examples/approval-domain/pom.xml install
 mvn -f examples/approval-demo/backend/pom.xml verify
 (cd examples/approval-ui && npm ci && npm test && npm run build)
 ```
 
-Root CI tests the Java core on Java 17/21. The approval-demo workflow tests the backend on Java 17/21 and the UI on Node 22. Check the results for the commit you plan to use.
+认证失败先检查密码环境变量；写入被拒绝时检查允许的 Origin 和 `X-Arcflow-Client`；发布冲突先刷新，保留草稿后重新应用。目录缺少写权限、数据损坏或不兼容版本时，应停止并按迁移说明恢复，不能以空数据覆盖。
+
+代码构建通过不代表浏览器或真实数据库通过。检查目标提交的 CI，再看[后端](backend/README.md)、[界面](../approval-ui/README.md)和[接口参考](../../docs/api/API_REFERENCE.md)。

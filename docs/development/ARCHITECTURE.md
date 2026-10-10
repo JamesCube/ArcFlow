@@ -1,11 +1,22 @@
-# 架构与扩展 / Architecture and extension
+# 架构与扩展
 
-[开发文档 / Developer guide](README.md) · [简体中文](#zh) · [English](#en)
+<!-- Legacy fragments remain entry points after the language split. -->
+<a id="module-boundaries"></a>
+<a id="nine-types-six-catalog-scenarios"></a>
+<a id="the-lifecycle-of-a-request"></a>
+<a id="voting-and-conditional-paths"></a>
+<a id="where-to-extend"></a>
+<a id="架构与扩展--architecture-and-extension"></a>
 
 <a id="zh"></a>
-## 简体中文
+<a id="en"></a>
+<a id="简体中文"></a>
+<a id="english"></a>
 
-### 模块边界
+[English](ARCHITECTURE.en.md) · [文档目录](../README.md)
+
+<!-- topic:module-boundaries -->
+## 模块边界
 
 | 层 | 源码入口 | 职责与边界 |
 | --- | --- | --- |
@@ -19,7 +30,8 @@
 
 根 POM 不聚合示例。运行依赖通常为宿主 → 领域 → 内核；JDBC 适配器依赖领域，不反向进入内核。领域有 Jackson 2 和 Spring Web 依赖（用于状态异常），不是“零依赖”模块；只有内核没有第三方运行时依赖。
 
-### 一笔申请怎样流转
+<!-- topic:the-lifecycle-of-a-request -->
+## 一笔申请怎样流转
 
 1. 宿主认证请求，从服务端 Principal／会话取得 actor；不能接收客户端指定的申请人或投票人。
 2. 控制器限制端点对应的业务类型、解码严格 JSON，将命令交给 `ApprovalService`、`QuoteDiscountCase` 或 `ScenarioCase`。
@@ -30,7 +42,8 @@
 
 阅读顺序：[ApprovalService](../../examples/approval-domain/src/main/java/com/arcflow/approval/ApprovalService.java) → [SubmissionWorkflow](../../examples/approval-domain/src/main/java/com/arcflow/approval/SubmissionWorkflow.java) → [ApprovalStore](../../examples/approval-domain/src/main/java/com/arcflow/approval/ApprovalStore.java)；HTTP 细节见[接口参考](../api/API_REFERENCE.md)。
 
-### 审批节点与条件路径
+<!-- topic:voting-and-conditional-paths -->
+## 审批节点与条件路径
 
 - 定义为固定 `start` → **1–8 个有序人工步骤** → 固定 `end`。这不是任意连线、循环或 BPMN 执行器。
 - UI 的 **SINGLE** 对应 `type: "approval"` 和单个 `assigneeId`，不是 JSON 的 `completionMode: "SINGLE"`。
@@ -42,7 +55,8 @@
 
 详见 [ProcessDefinition](../../examples/approval-domain/src/main/java/com/arcflow/approval/ProcessDefinition.java)、[ConditionalRouting](../../examples/approval-domain/src/main/java/com/arcflow/approval/ConditionalRouting.java)、[分组契约](../PARALLEL_APPROVAL.md)与[条件契约](../CONDITIONAL_ROUTING.md)。
 
-### 九种业务类型与六场景目录
+<!-- topic:nine-types-six-catalog-scenarios -->
+## 九种业务类型与六场景目录
 
 领域的[显式注册表](../../examples/approval-domain/src/main/java/com/arcflow/approval/BusinessDocumentSchema.java)不等同于 HTTP 开放范围：
 
@@ -61,7 +75,8 @@
 
 所有场景都只保存合成业务审批状态。引用不是附件上传；通过不会付款、签约、盖章、入库或回写 CRM／ERP。
 
-### 接入或扩展时改哪里
+<!-- topic:where-to-extend -->
+## 接入或扩展时改哪里
 
 - **接入企业身份：**实现 [ActorDirectory](../../examples/approval-domain/src/main/java/com/arcflow/approval/ActorDirectory.java)，使用不可变 ID、活动／删除状态及实时发布／指派权限；在宿主认证后调用领域。显示名不是身份键。
 - **接入存储：**实现 `ApprovalStore` 的原子发布、创建、追加决定、持久提交键和有界成员查询。不能用内存缓存冒充持久幂等，也不能用全列表扫描静默替代有界 inbox。服务关闭存储；DataSource 生命周期仍归宿主。
@@ -70,72 +85,3 @@
 - **增加外部副作用：**当前没有业务表联合事务、outbox 或可靠通知。必须另行设计失败恢复和幂等，不能把“审批通过”当成已执行外部操作。
 
 测试入口包括 [ParallelApprovalTest](../../examples/approval-domain/src/test/java/com/arcflow/approval/ParallelApprovalTest.java)、[ConditionalRoutingStoreTest](../../examples/approval-domain/src/test/java/com/arcflow/approval/ConditionalRoutingStoreTest.java)、[UnifiedScenarioApiTest](../../examples/approval-demo/backend/src/test/java/com/arcflow/demo/UnifiedScenarioApiTest.java) 与[前端 E2E](../../examples/approval-ui/e2e/)。运行顺序见[开发环境](QUICKSTART.md#zh)。
-
-<a id="en"></a>
-## English
-
-### Module boundaries
-
-| Layer | Source entry | Responsibility and limits |
-| --- | --- | --- |
-| Java core | [`src/main/java/com/arcflow`](../../src/main/java/com/arcflow/) | Validates DAGs, runs handlers synchronously in topological order, emits events; no persisted execution or human waiting |
-| Approval domain | [`examples/approval-domain`](../../examples/approval-domain/src/main/java/com/arcflow/approval/) | Identity SPI, immutable documents, process versions, voting, retries, frozen routing, and persistence SPI |
-| Default storage | [`JsonApprovalStore`](../../examples/approval-domain/src/main/java/com/arcflow/approval/JsonApprovalStore.java) | Exclusive local writer, atomic snapshots, strict restoration, and pre-upgrade backups |
-| Optional storage | [`examples/approval-jdbc`](../../examples/approval-jdbc/README.md) | JDBC transactions, retained definitions, audit, and member projection; host owns DataSource, drivers, and migrations |
-| Standalone host | [`examples/approval-demo/backend`](../../examples/approval-demo/backend/src/main/java/com/arcflow/demo/) | Boot 4.1.1, Basic auth, fixed demo identities, strict JSON, and three endpoint families with separate stores |
-| Standalone UI | [`examples/approval-ui`](../../examples/approval-ui/README.md) | Vue workspace, designer, quote page, and scenarios; never the final authority for permissions or money |
-| Other hosts/clients | [RuoYi](../../examples/ruoyi-vue3/README.md), [H5](../../examples/approval-mobile/README.md) | RuoYi reuses native authentication/permissions; H5 reads/reviews leave and procurement only |
-
-The root POM does not aggregate examples. Dependencies normally run host → domain → core; JDBC depends on the domain, not the reverse. The domain uses Jackson 2 and Spring Web for status-bearing exceptions. Only the core has no third-party runtime dependencies.
-
-### The lifecycle of a request
-
-1. The host authenticates and resolves the actor from its Principal/session. Client JSON cannot choose the applicant or voter.
-2. Controllers enforce the endpoint's business-type boundary, decode strict JSON, and call `ApprovalService`, `QuoteDiscountCase`, or `ScenarioCase`.
-3. The domain checks active identity, permissions, process version, and document validity. A core DAG validates/normalizes submission data; human review never leaves that DAG thread suspended.
-4. Submission saves the full business document, process definition, and initial `SUBMIT` event. Conditional flows also save the server-evaluated frozen route. Request, key binding, and derived projection are committed atomically.
-5. Decisions authorize against the saved current stage and participants, append one event, and protect concurrent updates with a revision check. New publications affect new requests only.
-6. Replay/restoration validates history and derived state. An idempotent retry returns the current request without another vote; it need not return the original response bytes.
-
-Read [ApprovalService](../../examples/approval-domain/src/main/java/com/arcflow/approval/ApprovalService.java), then [SubmissionWorkflow](../../examples/approval-domain/src/main/java/com/arcflow/approval/SubmissionWorkflow.java) and [ApprovalStore](../../examples/approval-domain/src/main/java/com/arcflow/approval/ApprovalStore.java). Wire contracts belong in the [API reference](../api/API_REFERENCE.en.md).
-
-### Voting and conditional paths
-
-- A definition is fixed `start` → **1–8 ordered human stages** → fixed `end`. It is not arbitrary graph editing, loops, or BPMN execution.
-- UI **SINGLE** means `type: "approval"` with one `assigneeId`. It is not the JSON value `completionMode: "SINGLE"`.
-- **ALL**/**ANY** use `type: "parallelApproval"`, null `assigneeId`, 2–16 distinct `assigneeIds`, and `completionMode`. The standalone demo can assign only Bob/Carol, so its groups contain both.
-- ALL advances after every approval and rejects on any rejection. ANY advances on one approval and rejects only after all reject. A person assigned across stages votes separately at each. The core still runs serially; “parallel” means independent members eligible within one stage.
-- Definition schema 2 is sequential, 3 adds groups, and 4 adds restricted `runIf`. Only payment, receiving, and contract scenarios can use schema 4; generic/quote hosts and other scenarios cannot publish it.
-- Conditions use only `payment.netTotal`, `receiving.hasRejectedLines`, and `contract.termsKind`. A definition permits at most eight atoms and requires at least one unconditional human review. Predicate ALL/ANY is independent of participant ALL/ANY voting.
-- The server freezes selected stages and actual condition facts from the immutable document and full definition. Skipped stages are not approvals. Skipped-only participants cannot read or vote through that assignment. Applicant self-assignment is forbidden anywhere in the full definition, including skipped stages.
-
-See [ProcessDefinition](../../examples/approval-domain/src/main/java/com/arcflow/approval/ProcessDefinition.java), [ConditionalRouting](../../examples/approval-domain/src/main/java/com/arcflow/approval/ConditionalRouting.java), [group semantics](../PARALLEL_APPROVAL.md), and [routing semantics](../CONDITIONAL_ROUTING.md).
-
-### Nine types, six catalog scenarios
-
-The domain's [explicit registry](../../examples/approval-domain/src/main/java/com/arcflow/approval/BusinessDocumentSchema.java) is not the HTTP allowlist:
-
-| Business type | Standalone entry/host |
-| --- | --- |
-| `leave`, `procurement` | `/` workspace; generic `/api/documents`, plus legacy leave `/api/requests` |
-| `quoteDiscount` | `/quote-discount.html`; dedicated `/api/crm`, fixed manager → finance |
-| `expense` | Scenario `oa-expense` |
-| `travel` | Scenario `oa-travel` |
-| `sealUse` | Scenario `oa-seal-use` |
-| `receiving` | Scenario `erp-receiving`, also available through `/receiving.html` |
-| `paymentRequest` | Scenario `erp-payment` |
-| `contractApproval` | Scenario `crm-contract` |
-
-The six scenarios share the `/scenarios.html` catalog and `/api/scenarios/{scenarioId}/...` route pattern, with separate exact types, process IDs, and files. [ScenarioCatalog](../../examples/approval-domain/src/main/java/com/arcflow/approval/ScenarioCatalog.java) contains compiled form metadata, not arbitrary JSON Schema execution, drag-and-drop form publication, or dynamic plugins. Quotes separately check source revision, ownership, and visibility. Dedicated records do not join the main workspace inbox.
-
-All scenarios store synthetic review state only. References do not upload attachments. Approval does not pay, sign, apply a seal, post stock, or update CRM/ERP.
-
-### Where to extend
-
-- **Enterprise identity:** implement [ActorDirectory](../../examples/approval-domain/src/main/java/com/arcflow/approval/ActorDirectory.java) with stable IDs, current active/deleted state, and live publishing/assignment policy. Authenticate in the host; display names are not identity keys.
-- **Storage:** implement atomic publication, creation, append-one decisions, durable submission keys, and bounded member queries in `ApprovalStore`. An in-memory cache cannot replace durable idempotency, and full-list replay cannot silently replace bounded inbox queries. The service closes the store; the host still owns its DataSource.
-- **Business types:** add a strict model/validator, explicit wire-type/minimum-wrapper registration, host allowlist, relevant form metadata, response handling, and isolated storage. Plan migration first; registration alone does not open generic endpoints.
-- **Routing/voting:** test full definitions versus effective paths, participant authorization, indexes, replay, restoration, and frontend response validation together. A designer-only change is insufficient.
-- **External effects:** business-table transaction joining, outbox, and reliable notifications do not exist. Design failure recovery and external idempotency separately; approved is not proof that an external action occurred.
-
-Start with [ParallelApprovalTest](../../examples/approval-domain/src/test/java/com/arcflow/approval/ParallelApprovalTest.java), [ConditionalRoutingStoreTest](../../examples/approval-domain/src/test/java/com/arcflow/approval/ConditionalRoutingStoreTest.java), [UnifiedScenarioApiTest](../../examples/approval-demo/backend/src/test/java/com/arcflow/demo/UnifiedScenarioApiTest.java), and [frontend E2E](../../examples/approval-ui/e2e/). Use the [development checklist](QUICKSTART.md#en) to run them in context.

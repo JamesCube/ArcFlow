@@ -1,135 +1,110 @@
-# CRM 兼容性与发布门槛 / CRM compatibility and release gates
+# CRM 兼容性与发布门槛
 
-独立 CRM 报价案例已通过 [PR #20](https://github.com/JamesCube/ArcFlow/pull/20) 合入 main。
-本文件记录已接受提交的证据、接口边界，以及后续修改仍须满足的验收门槛。采购／成员待办基线的通过结果不替代 CRM 验收。
+<!-- Legacy fragments remain entry points after the language split. -->
+<a id="1-keep-the-host-authorization-boundary"></a>
+<a id="2-extend-lexical-money-decoding-with-type-dispatch"></a>
+<a id="3-distinguish-json-schema-from-sql-revision"></a>
+<a id="4-preserve-global-key-and-process-isolation"></a>
+<a id="5-scope-future-cursor-caches-by-process"></a>
+<a id="critical-interfaces"></a>
+<a id="crm-兼容性与发布门槛--crm-compatibility-and-release-gates"></a>
+<a id="历史基线与范围--historical-baseline-and-scope"></a>
+<a id="后续修改与发布门槛--gates-for-subsequent-changes"></a>
+<a id="已接受提交--accepted-crm-checkpoint--2026-10-08"></a>
+<a id="覆盖范围与证据边界--coverage-and-evidence-boundaries"></a>
 
-The isolated CRM case is merged through PR #20. This document records the accepted
-checkpoint, its scope and the gates for future changes. A passing base, merge or build is
-not a deployment or production-readiness claim.
+<a id="zh"></a>
+<a id="en"></a>
+<a id="简体中文"></a>
+<a id="english"></a>
+
+[English](CRM_COMPATIBILITY_READINESS.en.md) · [文档目录](README.md)
+
+独立 CRM 通过 [PR #20](https://github.com/JamesCube/ArcFlow/pull/20) 合入。本文保留已接受检查点、范围和后续门槛；采购/待办基线、合并或构建通过都不能代替 CRM 验收，也不是部署/生产就绪。
 
 <a id="accepted-crm-checkpoint"></a>
 
-## 已接受提交 / Accepted CRM checkpoint — 2026-10-08
+<!-- topic:accepted-crm-checkpoint-2026-10-08 -->
+## 已接受提交（2026-10-08）
 
-- Tested PR head: [`878a5659220aaf546d9d7f77abfa31f42b054938`](https://github.com/JamesCube/ArcFlow/commit/878a5659220aaf546d9d7f77abfa31f42b054938).
-- Merged main: [`66ec531270a513f884125065f19fe4e78762992f`](https://github.com/JamesCube/ArcFlow/commit/66ec531270a513f884125065f19fe4e78762992f).
-  Both have source tree `12b173536f69b093fd2c9d4ecdd51ceb8e7f5071`. The PR workflows, test counts and screenshot archive below belong to the tested PR head. Post-merge runs are listed separately; tree equality does not turn a PR run into a post-merge run.
-- All six PR workflows passed: [Java](https://github.com/JamesCube/ArcFlow/actions/runs/37723133834),
-  [approval demo](https://github.com/JamesCube/ArcFlow/actions/runs/37723133831),
-  [JDBC](https://github.com/JamesCube/ArcFlow/actions/runs/37723133862),
-  [H5](https://github.com/JamesCube/ArcFlow/actions/runs/37723133830),
-  [launcher](https://github.com/JamesCube/ArcFlow/actions/runs/37723133848),
-  [RuoYi](https://github.com/JamesCube/ArcFlow/actions/runs/37723133896).
-- Real server-database reports: PostgreSQL **77 tests per JDK** (17/21); MySQL **83 per version/JDK** (8.0/8.4 × 17/21), **486 total**, zero skips, errors or failures. All 18 new quote-case executions passed.
-- The approval-demo run produced eight CRM screenshots covering Chinese/English desktop and 390px views. All eight were independently inspected and their hashes verified. Artifact `11526836399`, archive SHA-256 `b19c735e9df2a924b8db5ef49d77fafd02f23e7f534d528b076f5ac38cd4f0c5`. GitHub artifacts are retained for a limited period.
-- A separate same-head [push browser run](https://github.com/JamesCube/ArcFlow/actions/runs/37723130422) failed before tests at a CDN location-based HTTP 403. It was not retried or bypassed. The successful PR browser run is separate evidence; this is not a claim that every push and PR run passed.
-- The merge commit also completed all six workflows: [Java](https://github.com/JamesCube/ArcFlow/actions/runs/37723815007),
-  [approval demo](https://github.com/JamesCube/ArcFlow/actions/runs/37723815076),
-  [JDBC](https://github.com/JamesCube/ArcFlow/actions/runs/37723815753),
-  [H5](https://github.com/JamesCube/ArcFlow/actions/runs/37723814962),
-  [launcher](https://github.com/JamesCube/ArcFlow/actions/runs/37723815211),
-  [RuoYi](https://github.com/JamesCube/ArcFlow/actions/runs/37723815056).
-  Java passed on attempt 2 after a Maven resolution failure; the other five passed on attempt 1.
+- 已测 head：[`878a5659220aaf546d9d7f77abfa31f42b054938`](https://github.com/JamesCube/ArcFlow/commit/878a5659220aaf546d9d7f77abfa31f42b054938)；合并 main：[`66ec531270a513f884125065f19fe4e78762992f`](https://github.com/JamesCube/ArcFlow/commit/66ec531270a513f884125065f19fe4e78762992f)。两者 tree `12b173536f69b093fd2c9d4ecdd51ceb8e7f5071`，但 PR 运行/数量/图包归测试 head，树相同不把 PR 运行变为合并后运行。
+- 六项 PR 工作流通过：[Java](https://github.com/JamesCube/ArcFlow/actions/runs/37723133834)、[审批](https://github.com/JamesCube/ArcFlow/actions/runs/37723133831)、[JDBC](https://github.com/JamesCube/ArcFlow/actions/runs/37723133862)、[H5](https://github.com/JamesCube/ArcFlow/actions/runs/37723133830)、[启动器](https://github.com/JamesCube/ArcFlow/actions/runs/37723133848)、[若依](https://github.com/JamesCube/ArcFlow/actions/runs/37723133896)。
+- 真实数据库：PostgreSQL 每 JDK17/21 **77**；MySQL 每版本 8.0/8.4×JDK17/21 **83**，合计 **486**，零跳过/错误/失败，18 次新增报价用例执行全通过。
+- 审批运行产出八张中英桌面/390px CRM 图，全部独立检查并核 hash。artifact `11526836399`，包 SHA-256 `b19c735e9df2a924b8db5ef49d77fafd02f23e7f534d528b076f5ac38cd4f0c5`，GitHub 产物有保留期。
+- 同 head 的[另一次 push 浏览器运行](https://github.com/JamesCube/ArcFlow/actions/runs/37723130422)在测试前遇 CDN 地域 HTTP403，未重试/绕过。成功 PR 运行是另份证据，不声称每条 push/PR 都成功。
+- 合并提交六项也通过：[Java](https://github.com/JamesCube/ArcFlow/actions/runs/37723815007)、[审批](https://github.com/JamesCube/ArcFlow/actions/runs/37723815076)、[JDBC](https://github.com/JamesCube/ArcFlow/actions/runs/37723815753)、[H5](https://github.com/JamesCube/ArcFlow/actions/runs/37723814962)、[启动器](https://github.com/JamesCube/ArcFlow/actions/runs/37723815211)、[若依](https://github.com/JamesCube/ArcFlow/actions/runs/37723815056)。Java 在 Maven 解析失败后第 2 次通过，其他第 1 次通过。
 
-以上验收对应隔离报价页与专用 `/api/crm`，包含真实数据库和双语浏览器证据。后续提交需重新核对受影响检查。
-尚未实现共享工作区、原生若依／H5 报价页、外部 CRM 或 AI 连接、客户通知及业务回写。
+范围是隔离报价页和 `/api/crm`。后续提交须重查受影响结果，不包括共享工作区、若依/H5 报价、外部 CRM/AI、通知或回写。
 
-## 历史基线与范围 / Historical baseline and scope
+<!-- topic:historical-baseline-and-scope -->
+## 历史基线与范围
 
-- Accepted main commit: `caece22fb52e645f303c6adec73f19a027d38e66`.
-- Accepted main tree: `1d3332659bc59f3c70f2ffb5954aed6aa383f522`, matching the final PR #19
-  head `b6faef486db71d4bdda28a8c7f8b8d9038c14e58` and retaining its two desktop selector fixes.
-- The prior local CRM preflight commit `2bccc99b0aa885bcf657cd69683365db5bae0e0d`, tree
-  `ffd6baf376283716a26d3baf1b20627585143020`, is retained as a comparison point, not a
-  replacement for the accepted main baseline or proof of final-candidate checks.
-- This release scope is the isolated `/api/crm` host and Chinese/English
-  `/quote-discount.html` synthetic page. Shared standalone, RuoYi and H5 quote views,
-  real CRM connections, AI calls, payments, notifications and writeback remain outside it.
-- Real-browser and PostgreSQL/MySQL CRM test definitions are included. The accepted results
-  are recorded above; later commits need their own actual CI reports and screenshot artifacts.
+- 基线 main `caece22fb52e645f303c6adec73f19a027d38e66`，tree `1d3332659bc59f3c70f2ffb5954aed6aa383f522`，与最终 PR19 head `b6faef486db71d4bdda28a8c7f8b8d9038c14e58` 相同，含两处桌面选择器修复。
+- 早期本地 CRM 预检 `2bccc99b0aa885bcf657cd69683365db5bae0e0d`，tree `ffd6baf376283716a26d3baf1b20627585143020` 只是比较点，不替代基线或最终候选检查。
+- 范围是 `/api/crm` 与中英 `/quote-discount.html` 合成页，不含共享独立/若依/H5、真实 CRM、AI、付款、通知、回写。
+- 浏览器/真实 PostgreSQL/MySQL 定义已纳入，上方为实际结果；新提交要自己的报告和图包。
 
-## Critical interfaces
+<!-- topic:critical-interfaces -->
+## 关键接口
 
-### 1. Keep the host authorization boundary
+### 1. 保持宿主授权边界
 
-The generic `ApprovalService.inbox` checks current account eligibility and snapshotted membership. It does not query a CRM record's current business read permission. `QuoteDiscountCase` does enforce source-record access and quote ownership.
+通用 `ApprovalService.inbox` 只查活动身份和快照成员，不查 CRM 当前业务读权；`QuoteDiscountCase` 检查源访问和归属。因此服务仅用于 `/api/crm`，不接入 `/api/requests/inbox`，两个通用提交端点均拒绝 quoteDiscount。组合真实 HTTP 在重启前后校验隔离。
 
-Therefore the bounded CRM service remains private to `/api/crm`. Its records are not added to the generic `/api/requests/inbox`; both generic document submission endpoints reject `quoteDiscount`. The combined real-HTTP smoke checks this separation before and after restart.
+未来共享工作区必须在释放载荷前检查 CRM 权限，不能把通用 inbox 指向报价库，或返回浏览器后才过滤。业务感知分页和源权限变化需单独设计/验收。
 
-A future shared workspace must enforce CRM access before releasing any quote payload. Simply pointing a generic inbox at the quote store, or filtering rows only after returning them to the browser, is unacceptable. Business-aware pagination and source-permission changes need their own design and acceptance tests.
+### 2. 按类型扩展金额词法解码
 
-### 2. Extend lexical money decoding with type dispatch
+独立/若依 `business-document.js` 只显式允许 leave/procurement；`parseApprovalJson` 仅把 unitPrice 当精确金额，listUnitPrice/requestedUnitPrice 按整数 token 处理，会拒绝小数/科学计数法。H5 联合类型和 parser 也仅两类，days=0 目前只接受采购；共享报价渲染必须一起扩展。
 
-The current standalone and RuoYi `business-document.js` files have explicit `leave`/`procurement` field allowlists. Their `parseApprovalJson` treats only `unitPrice` as exact-decimal money; `listUnitPrice` and `requestedUnitPrice` are currently interpreted through integer-token rules and rejected for decimal/scientific wire spellings.
+相关文件：
+- `examples/approval-ui/src/business-document.js`、`App.vue`、`locale.js`
+- `examples/ruoyi-vue3/frontend/src/views/arcflow/approval/business-document.js`、`index.vue`、`locale.js`
+- `examples/approval-mobile/src/domain/types.ts`、`business.ts`、`model.ts`、`workspace.ts`、`components/Workspace.vue`、`copy.ts`
 
-H5's `BusinessDocument` union and parser also know only `leave`/`procurement`. Its days projection currently accepts zero only for procurement. All these points must change together when shared quote rendering is implemented.
+验收要涵盖小数/科学记数 token、两个价格、JPY、最大总额、严格未知/缺字段、真实日期、报价版本边界、保存文本规范化、非请假 days=0，以及不可变客户/引用/版本/有效期显示。只读报价不能静默开放通用报价提交或 H5 新建。独立 CRM 有自身已验证模型/后端 view，此限制不破坏隔离案例，但不能声称三端共享支持。
 
-Required files include:
-- `examples/approval-ui/src/business-document.js`, `App.vue`, `locale.js`
-- `examples/ruoyi-vue3/frontend/src/views/arcflow/approval/business-document.js`, `index.vue`, `locale.js`
-- `examples/approval-mobile/src/domain/types.ts`, `business.ts`, `model.ts`, `workspace.ts`, `components/Workspace.vue`, `copy.ts`
+### 3. 区分 JSON 与 SQL 版本
 
-Acceptance must cover decimal/scientific JSON lexemes, both quote prices, JPY, maximum totals, strict unknown/missing fields, real dates, quote version bounds, saved text normalization, days=0 for non-leave types, and display of immutable customer/reference/revision/validity fields. Read-only quote support must not silently enable a generic quote submission path or an H5 creation form.
+成员基线 SQL revision 3，CRM 不改变它，新增文件最低 schema 6。读取端须先认识报价，才能写入或回填；既有 revision3 回填停全部写者。JSON5→6 保存紧邻升级前原字节，覆盖同会话修改/原子失败情况。
 
-The current isolated CRM page has its own validated model and backend view, so this limitation does not break the bounded example. It blocks claiming that the three shared clients support CRM.
+### 4. 保持全局键与流程隔离
 
-### 3. Distinguish JSON schema from SQL revision
+JDBC 键跨流程按申请人隔离；宿主确定性版本键将不可变报价版本绑定单申请，不是通用 businessId 唯一约束。报价/请假/采购仍按流程 list/inbox/decide，同时协调全局键冲突。
 
-The compatible integration baseline uses SQL revision3 for member projections. CRM retains that SQL revision; its new JSON file format is snapshot schema6. These version numbers describe different contracts.
+组合测试覆盖独立实例抢同键、唯一申请/映射、两名固定成员投影、真实票改变待办/已办、未来成员不提前待办及混合流程可恢复回填。
 
-A compatible reader must understand quote payloads before quote writes or member backfill can inspect them. Stop all writers during the existing SQL revision3 backfill. Schema5→6 JSON upgrades preserve exact pre-upgrade bytes, including same-session mutations and failed atomic writes.
+### 5. 未来游标缓存按流程隔离
 
-### 4. Preserve global key and process isolation
+当前游标绑定 actor、bucket、status、processVersion，但不含 processId，适合一端点一服务。未来多流程选择器不得因其他筛选相同就复用别流程游标；宣称统一分页前，应增加版本化流程绑定游标或明确端点/缓存隔离。
 
-JDBC keys remain applicant-scoped across processes. The host's deterministic quote-revision key binds one immutable business revision to one request; it is not a generic businessId uniqueness rule. The quote, leave and procurement stores must retain process-scoped list/inbox/decision queries while reconciling global key collisions.
+<!-- topic:coverage-and-evidence-boundaries -->
+## 覆盖与证据边界
 
-The combined tests cover independent JDBC instances racing on one quote key, one committed request/binding, both fixed reviewers projected, real votes moving pending/handled flags, future reviewers staying out of pending, and a mixed-process resumable backfill.
+`QuoteDiscountInboxCompatibilityTest` 六项 JSON/领域检查：
+1. 固定步骤待办/已办与重启保留快照。
+2. 5→6 保留混合请假/采购/报价，键冲突不重复 inbox。
+3. 原子失败不暴露报价绑定/待办，重试保留备份。
+4. 分页精确保留总额并拒绝他人/bucket 游标。
+5. 并发重试仅一个待办。
+6. 拒绝不虚构未来财务的已办投票。
 
-### 5. Scope future cursor caches by process
+`QuoteDiscountMemberProjectionTest` 五项 JDBC/H2：
+1. 三流程 inbox 隔离且全局键冲突。
+2. revision3 每批一行回填恢复三流程和实际票状态。
+3. 独立实例收敛一申请、一键、两成员行。
+4. 损坏投影不能生成报价操作，通过他流程选中也拒绝。
+5. 非法持久金额在返回 inbox 前拒绝。
 
-The current cursor binds actor, bucket, status and processVersion, but does not encode processId. That is compatible with the current one-service-per-endpoint design. A future multi-process selector must not reuse a cursor from another process merely because its other filters match. Add a versioned process-bound cursor or explicit endpoint/cache isolation before claiming unified multi-process paging.
+`examples/crm-quote/http_smoke.py --inbox` 使用真实 `/api/requests/inbox`，分别在 Bob 待办、Bob 已办/Carol 待办、终审和重启后检查隔离，不模拟浏览器。审批 CI 将烟测接入两个 Java 作业，模型/DOM 接入前端；定义本身不是远端结果，需真实精确 head 证据。
 
-## 覆盖范围与证据边界 / Coverage and evidence boundaries
+旧领域/宿主、JSON/H2、DOM、HTTP 只对应原提交。H2 不是真实服务器，DOM 不是浏览器，采购/待办基线不覆盖 CRM。上方验收已单查实际浏览器/服务器/CI，不能转用到新提交；每个候选要实际报告、无跳过契约和图包。
 
-`QuoteDiscountInboxCompatibilityTest` adds six JSON/domain checks:
-1. Fixed-step pending/handled membership and restart preserve the quote snapshot.
-2. Schema5→6 keeps mixed leave/procurement/quote payloads and rejects key conflicts without duplicate inbox rows.
-3. A failed schema6 atomic write exposes neither a quote binding nor an extra work item; retry preserves the migration backup.
-4. Quote paging preserves exact totals and rejects foreign actor/bucket cursors.
-5. Concurrent retries produce one work item.
-6. Rejection does not invent a handled vote for a future finance reviewer.
+<!-- topic:gates-for-subsequent-changes -->
+## 后续修改与发布门槛
 
-`QuoteDiscountMemberProjectionTest` adds five JDBC/H2 checks:
-1. Quote/leave/procurement inboxes remain process-scoped while global keys conflict.
-2. A revision3 batch-size-one backfill restores all three processes and actual quote-vote state.
-3. Independent service instances converge on one request, one key and two reviewer rows.
-4. A corrupt process projection yields no quote action and is rejected when selected through the foreign process.
-5. Invalid persisted quote amounts fail snapshot verification before an inbox response is returned.
-
-The optional `--inbox` flag in `examples/crm-quote/http_smoke.py` adds real-HTTP isolation checks using the actual `/api/requests/inbox` route. It does not simulate a browser. Isolation is checked while Bob is pending, after Bob has voted and Carol is pending, after terminal approval, and after restart. The local Approval demo CI definition wires this smoke into both Java matrix jobs and the CRM model/DOM tests into the frontend job. These are test definitions, not remote execution results. The CRM browser and real-server-database contracts require actual exact-head execution evidence before acceptance.
-
-Earlier local domain/host, JSON/JDBC-H2, model/DOM and live HTTP results apply to the
-revisions on which they ran. H2 is not a PostgreSQL/MySQL pass, DOM tests are not browser
-journeys, and historical procurement/member-inbox baseline CI does not cover CRM. For
-each new candidate, check its actual test reports, non-skipped server contracts and
-screenshot artifacts before closing these gates.
-
-此前本地结果仅对应当时的源码。上述已接受提交的真实浏览器、真实数据库和 exact-head CI 已单独核验；
-未配置数据库导致的跳过、DOM 测试通过或基线 CI 通过，都不能替代这些结果或后续提交的验收。
-
-## 后续修改与发布门槛 / Gates for subsequent changes
-
-1. CRM owner: start subsequent work from current main, inspect the new delta, and repeat
-   affected domain/MVC/JDBC/client builds and live HTTP checks. Preserve the recorded
-   checkpoint instead of applying its test results to a new commit.
-2. Independent reviewer: review the new delta and any conflict resolutions, including
-   authorization, immutable source binding, storage, precision and the generic endpoint guards.
-3. QA owner: for a new release, execute its PostgreSQL/MySQL CRM contracts and real-browser CN/EN
-   desktop/390px, cross-role, refresh, logout and recovery journeys. Retain exact-commit
-   reports and screenshots; do not treat optional or skipped database tests as passes.
-4. Release owner: prepare a draft PR for subsequent changes and verify its exact-head remote CI.
-   Report any unrun or failed stage. PR #20 is merged; that does not establish deployment
-   or production readiness, nor authorize a later release.
-5. Future shared-workspace integration: extend business-aware authorization/pagination and
-   all type/money/projection dispatch points together, with component/browser coverage.
-   Keep H5 review-only. Until then, retain the isolated-page scope explicitly.
+1. CRM 维护者从当前 main 开始，检查增量，重跑受影响领域/MVC/JDBC/客户端构建与 HTTP，保留历史而不复用旧测试结论。
+2. 独立审查增量/冲突解决，覆盖授权、不可变源绑定、存储、精度和通用端点防护。
+3. 新发布执行真实数据库和中英桌面/390px、跨角色、刷新、退出、恢复，保存精确报告/截图；可选或跳过不算通过。
+4. 发布者准备新 draft PR、核验 exact-head CI，报告未跑/失败。PR20 已合并不证明部署或生产，也不授权后续发布。
+5. 未来共享接入须一起扩展业务授权/分页、全部类型/金额/投影分派和组件/浏览器覆盖，H5 保持只审；此前继续明确隔离页范围。

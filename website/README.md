@@ -1,10 +1,21 @@
-# ArcFlow project website
+# 项目官网
 
-A bilingual, static GitHub Pages website. Chinese is served at `/ArcFlow/`, English at `/ArcFlow/en/`. No backend, tracking scripts, external fonts, data-collection forms, or runtime package dependencies.
+<!-- Legacy fragments remain entry points after the language split. -->
+<a id="arcflow-project-website"></a>
+<a id="build-and-check"></a>
+<a id="content-and-assets"></a>
+<a id="publication"></a>
 
-## Build and check
+[English](README.en.md)
 
-Python 3.9+ and Node.js 22 are used for development checks. The build itself uses Python's standard library.
+
+<!-- topic:scope -->
+中英文静态 GitHub Pages 网站，中文 `/ArcFlow/`，英文 `/ArcFlow/en/`。不包含审批后端、追踪脚本、外部字体、数据收集表单或运行时包依赖。
+
+<!-- topic:build -->
+## 构建与检查
+
+开发检查使用 Python 3.9+、Node 22，构建本身只依赖 Python 标准库：
 
 ```sh
 cd website
@@ -15,21 +26,20 @@ npx playwright install --with-deps chromium
 npm test
 ```
 
-`dist/` is the deployable output. CSS and JavaScript filenames include content hashes so returning visitors never mix new HTML with old cached code. The test server intentionally serves the real `/ArcFlow/` project prefix. Playwright covers both languages at 320, 390, 768, and 1440 pixels; scenario tabs; keyboard navigation; repeated image-dialog opening and dismissal; language navigation with Back/Forward; reduced motion; JavaScript-disabled content; image loading; overflow; console exceptions; and unexpected third-party requests.
+`dist/` 为可部署输出，CSS/JS 文件名含内容哈希，避免新旧缓存混用。测试服务器使用真实 `/ArcFlow/` 前缀；浏览器检查双语 320/390/768/1440px、标签与键盘、图片反复开关、语言前进后退、减弱动态、无 JS、图片加载、溢出、控制台及异常第三方请求。
 
-## Content and assets
+<!-- topic:content -->
+## 内容与素材
 
-- Edit bilingual copy in `content.json`, page structure in `scripts/build.py`, presentation in `style.css`, and progressive enhancement in `app.js`.
-- Feature baseline: main `666ff64b280157e44a86f07a15fcb42f859ec11a`.
-- The published `v0.1.0-alpha.3` is older than that baseline. PRs #39, #41, #42 and #40 are merged; this does not make them part of alpha.3.
-- Developer and API links target current `main`; other feature links and launch commands remain pinned to the verified baseline. Publish this navigation only after its linked documentation is merged.
-- `assets/provenance.json` preserves original screenshot paths, capture commits, workflow URLs, and SHA-256 hashes. All 10 screenshots are original bytes from the public repository and contain synthetic demo data. They do not prove production readiness or current CI.
-- `assets/social-card.svg` is the editable source for the committed 1200 × 630 PNG. It contains original vector artwork and text, without a fabricated product interface. Regenerate with Inkscape when changing it.
+- 文案在 `content.json`，结构 `scripts/build.py`，样式 `style.css`，渐进增强 `app.js`。
+- 展示功能与启动命令固定在 `666ff64b280157e44a86f07a15fcb42f859ec11a`，所有文档入口指向当前 main 的对应语言。PR #39/#40/#41/#42 已合并，不代表老标签 alpha.3 含这些能力。
+- 文档导航统一进入分类索引、HTTP 参考与 OpenAPI；须在目标文档合并后再发布更新导航。
+- `assets/provenance.json` 保留截图原路径、来源提交、CI 和 SHA-256。十张原图仅含合成数据，不证明当前 CI 或生产就绪。
+- `assets/social-card.svg` 是已提交 1200×630 PNG 的可编辑原创矢量来源；修改后用 Inkscape 重建，不伪造产品界面。
 
-## Publication
+<!-- topic:publication -->
+## 发布边界
 
-GitHub Pages was verified disabled before this work: Deploy from a branch, source None. The intended publication uses an independent `gh-pages` branch, root directory `/`, with only the contents of `dist/`. This follows GitHub's branch-publishing route and requires no custom `pages: write` or `id-token: write` workflow grant. No credentials, custom domain, paid service, application PR merge, or security-policy change is required.
+源码在 main，源码修改不等于发布。只将已构建验证的 dist 内容更新到独立 gh-pages 分支根目录。仓库源码、日志、依赖、私有数据和本地证据不得进入公开产物。发布需单独授权，不要求新增 Pages/身份令牌权限、付费服务或自定义域名。
 
-Website source is maintained on `main`. A source change does not by itself publish the static site. Future publication should always build and check the intended source commit, then update only the separate Pages branch. Do not copy source files, local evidence, logs, node_modules, or private data into the public deployment.
-
-Official guidance: https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site
+历史初次建站时 Pages 关闭；那是旧检查点，不是当前状态。实际发布设置应实时确认。官方步骤见 [GitHub Pages 分支发布](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site)。

@@ -1,0 +1,2211 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "ArcFlow standalone approval / scenario / quote HTTP API",
+    "version": "0.1.0-SNAPSHOT",
+    "description": "Checked-in contract, not a deployed Swagger endpoint. No login or single-request GET route is implemented. Stateless HTTP Basic. Every unsafe request requires X-Arcflow-Client: approval-demo. Supplied Origin must match the configured UI origin; cross-site Fetch Metadata is rejected. Credentials are configured by the operator. Request-domain operations enforce live identity, effective-route visibility, stage assignment and applicable business ACLs. Generic people/process GET handlers are authenticated metadata reads."
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:8080",
+      "description": "Disposable local demo; use HTTPS outside loopback."
+    }
+  ],
+  "security": [
+    {
+      "basicAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "approval"
+    },
+    {
+      "name": "scenarios"
+    },
+    {
+      "name": "quote"
+    }
+  ],
+  "paths": {
+    "/api/crm/documents": {
+      "post": {
+        "operationId": "standalone_quote_submit",
+        "tags": [
+          "quote"
+        ],
+        "summary": "Submit or replay a business approval intent",
+        "description": "Authenticated active identity; domain checks exact effective-route visibility and live stage assignment. Quote owner is required to submit; readable revision ACL is additionally enforced. Quote process is fixed. Presence of Idempotency-Key is rejected, including a blank header. Revision is supplied only as business.quoteRevision; returned QuoteView has no revision field.",
+        "x-source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/QuoteDiscountController.java",
+        "x-handler": "submit",
+        "x-java-return": "QuoteDiscountCase.View",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ClientHeader"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Saved current result, including successful replay.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuoteView"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required; no login endpoint in this application.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin/client header, live identity, publication permission or exact participant authorization denied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unhandled exceptions/framework security dispatch have no uniform envelope guarantee. Not every storage failure is a controlled 503."
+          },
+          "400": {
+            "description": "Invalid JSON, fields, query, type, key, lexical number or domain constraints.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, idempotent intent, stage/decision or source snapshot conflict. Reconcile current state before retrying.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Caught checked storage IOException; refresh before retrying. A change may already have committed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown scenario or missing/invisible request/quote revision.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported Content-Type; seal requires application/json.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuoteSubmission"
+              },
+              "examples": {
+                "quote-discount": {
+                  "summary": "Synthetic executable request; see examples guide for version/key preconditions.",
+                  "externalValue": "../examples/quote-discount.json"
+                }
+              }
+            }
+          }
+        },
+        "x-idempotency": "forbidden-header-quote-revision"
+      }
+    },
+    "/api/crm/process": {
+      "get": {
+        "operationId": "standalone_quote_process",
+        "tags": [
+          "quote"
+        ],
+        "summary": "Read current process definition",
+        "description": "Authenticated active identity; domain checks exact effective-route visibility and live stage assignment. Quote owner is required to submit; readable revision ACL is additionally enforced. Quote process is fixed.",
+        "x-source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/QuoteDiscountController.java",
+        "x-handler": "process",
+        "x-java-return": "ProcessDefinition",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericProcessDefinition"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required; no login endpoint in this application.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin/client header, live identity, publication permission or exact participant authorization denied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unhandled exceptions/framework security dispatch have no uniform envelope guarantee. Not every storage failure is a controlled 503."
+          }
+        }
+      }
+    },
+    "/api/crm/quotes": {
+      "get": {
+        "operationId": "standalone_quote_quotes",
+        "tags": [
+          "quote"
+        ],
+        "summary": "List current readable synthetic quote revisions",
+        "description": "Authenticated active identity; domain checks exact effective-route visibility and live stage assignment. Quote owner is required to submit; readable revision ACL is additionally enforced. Quote process is fixed.",
+        "x-source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/QuoteDiscountController.java",
+        "x-handler": "quotes",
+        "x-java-return": "List<QuoteDiscountCase.QuoteVersion>",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/QuoteVersion"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required; no login endpoint in this application.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin/client header, live identity, publication permission or exact participant authorization denied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unhandled exceptions/framework security dispatch have no uniform envelope guarantee. Not every storage failure is a controlled 503."
+          }
+        }
+      }
+    },
+    "/api/crm/requests": {
+      "get": {
+        "operationId": "standalone_quote_requests",
+        "tags": [
+          "quote"
+        ],
+        "summary": "List visible complete request snapshots",
+        "description": "Authenticated active identity; domain checks exact effective-route visibility and live stage assignment. Quote owner is required to submit; readable revision ACL is additionally enforced. Quote process is fixed.",
+        "x-source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/QuoteDiscountController.java",
+        "x-handler": "requests",
+        "x-java-return": "List<QuoteDiscountCase.View>",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/QuoteView"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required; no login endpoint in this application.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin/client header, live identity, publication permission or exact participant authorization denied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unhandled exceptions/framework security dispatch have no uniform envelope guarantee. Not every storage failure is a controlled 503."
+          }
+        }
+      }
+    },
+    "/api/crm/requests/{id}/decisions": {
+      "post": {
+        "operationId": "standalone_quote_decide",
+        "tags": [
+          "quote"
+        ],
+        "summary": "Record or replay an assigned participant decision",
+        "description": "Authenticated active identity; domain checks exact effective-route visibility and live stage assignment. Quote owner is required to submit; readable revision ACL is additionally enforced. Quote process is fixed.",
+        "x-source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/QuoteDiscountController.java",
+        "x-handler": "decide",
+        "x-java-return": "QuoteDiscountCase.View",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Server-returned request ID in this exact host/store."
+          },
+          {
+            "$ref": "#/components/parameters/ClientHeader"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuoteView"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required; no login endpoint in this application.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin/client header, live identity, publication permission or exact participant authorization denied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unhandled exceptions/framework security dispatch have no uniform envelope guarantee. Not every storage failure is a controlled 503."
+          },
+          "400": {
+            "description": "Invalid JSON, fields, query, type, key, lexical number or domain constraints.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, idempotent intent, stage/decision or source snapshot conflict. Reconcile current state before retrying.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Caught checked storage IOException; refresh before retrying. A change may already have committed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown scenario or missing/invisible request/quote revision.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported Content-Type; seal requires application/json.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Decision"
+              }
+            }
+          }
+        },
+        "x-idempotency": "decision-replay"
+      }
+    },
+    "/api/documents": {
+      "post": {
+        "operationId": "standalone_submitDocument",
+        "tags": [
+          "approval"
+        ],
+        "summary": "Submit or replay a business approval intent",
+        "description": "Authenticated active identity; domain checks exact effective-route visibility and live stage assignment.",
+        "x-source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/ApprovalController.java",
+        "x-handler": "submitDocument",
+        "x-java-return": "ApprovalService.Request",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ClientHeader"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Saved current result, including successful replay.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Request"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required; no login endpoint in this application.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin/client header, live identity, publication permission or exact participant authorization denied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unhandled exceptions/framework security dispatch have no uniform envelope guarantee. Not every storage failure is a controlled 503."
+          },
+          "400": {
+            "description": "Invalid JSON, fields, query, type, key, lexical number or domain constraints.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, idempotent intent, stage/decision or source snapshot conflict. Reconcile current state before retrying.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Caught checked storage IOException; refresh before retrying. A change may already have committed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported Content-Type; seal requires application/json.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenericSubmission"
+              },
+              "examples": {
+                "leave": {
+                  "summary": "Synthetic executable request; see examples guide for version/key preconditions.",
+                  "externalValue": "../examples/leave.json"
+                },
+                "procurement": {
+                  "summary": "Synthetic executable request; see examples guide for version/key preconditions.",
+                  "externalValue": "../examples/procurement.json"
+                }
+              }
+            }
+          }
+        },
+        "x-idempotency": "optional-header"
+      }
+    },
+    "/api/me": {
+      "get": {
+        "operationId": "standalone_me",
+        "tags": [
+          "approval"
+        ],
+        "summary": "Read authenticated identity",
+        "description": "Authenticated active identity; domain checks exact effective-route visibility and live stage assignment.",
+        "x-source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/ApprovalController.java",
+        "x-handler": "me",
+        "x-java-return": "ApprovalService.Person",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Person"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required; no login endpoint in this application.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin/client header, live identity, publication permission or exact participant authorization denied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unhandled exceptions/framework security dispatch have no uniform envelope guarantee. Not every storage failure is a controlled 503."
+          }
+        }
+      }
+    },
+    "/api/people": {
+      "get": {
+        "operationId": "standalone_people",
+        "tags": [
+          "approval"
+        ],
+        "summary": "List active directory summaries",
+        "description": "Authenticated metadata read. This handler does not invoke an actor-directory or effective-route check; request-list visibility and decision assignment are enforced by their own domain operations.",
+        "x-source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/ApprovalController.java",
+        "x-handler": "people",
+        "x-java-return": "List<ApprovalService.Person>",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Person"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required; no login endpoint in this application.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin/client header, live identity, publication permission or exact participant authorization denied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unhandled exceptions/framework security dispatch have no uniform envelope guarantee. Not every storage failure is a controlled 503."
+          }
+        }
+      }
+    },
+    "/api/process": {
+      "get": {
+        "operationId": "standalone_process",
+        "tags": [
+          "approval"
+        ],
+        "summary": "Read current process definition",
+        "description": "Authenticated metadata read. This handler does not invoke an actor-directory or effective-route check; request-list visibility and decision assignment are enforced by their own domain operations.",
+        "x-source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/ApprovalController.java",
+        "x-handler": "process",
+        "x-java-return": "ProcessDefinition",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericProcessDefinition"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required; no login endpoint in this application.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin/client header, live identity, publication permission or exact participant authorization denied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unhandled exceptions/framework security dispatch have no uniform envelope guarantee. Not every storage failure is a controlled 503."
+          }
+        }
+      },
+      "post": {
+        "operationId": "standalone_publish",
+        "tags": [
+          "approval"
+        ],
+        "summary": "Publish next process version",
+        "description": "Directory publication permission; standalone generic publication also requires EDITOR (Alice in demo).",
+        "x-source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/ApprovalController.java",
+        "x-handler": "publish",
+        "x-java-return": "ProcessDefinition",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ClientHeader"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericProcessDefinition"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required; no login endpoint in this application.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin/client header, live identity, publication permission or exact participant authorization denied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unhandled exceptions/framework security dispatch have no uniform envelope guarantee. Not every storage failure is a controlled 503."
+          },
+          "400": {
+            "description": "Invalid JSON, fields, query, type, key, lexical number or domain constraints.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, idempotent intent, stage/decision or source snapshot conflict. Reconcile current state before retrying.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Caught checked storage IOException; refresh before retrying. A change may already have committed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported Content-Type; seal requires application/json.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenericPublication"
+              },
+              "examples": {
+                "publish-all": {
+                  "summary": "Synthetic executable request; see examples guide for version/key preconditions.",
+                  "externalValue": "../examples/publish-all.json"
+                }
+              }
+            }
+          }
+        },
+        "x-idempotency": "none"
+      }
+    },
+    "/api/requests": {
+      "get": {
+        "operationId": "standalone_requests",
+        "tags": [
+          "approval"
+        ],
+        "summary": "List visible complete request snapshots",
+        "description": "Authenticated active identity; domain checks exact effective-route visibility and live stage assignment.",
+        "x-source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/ApprovalController.java",
+        "x-handler": "requests",
+        "x-java-return": "List<ApprovalService.Request>",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Request"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required; no login endpoint in this application.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin/client header, live identity, publication permission or exact participant authorization denied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unhandled exceptions/framework security dispatch have no uniform envelope guarantee. Not every storage failure is a controlled 503."
+          }
+        }
+      },
+      "post": {
+        "operationId": "standalone_submit",
+        "tags": [
+          "approval"
+        ],
+        "summary": "Submit or replay a business approval intent",
+        "description": "Authenticated active identity; domain checks exact effective-route visibility and live stage assignment.",
+        "x-source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/ApprovalController.java",
+        "x-handler": "submit",
+        "x-java-return": "ApprovalService.Request",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ClientHeader"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Saved current result, including successful replay.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Request"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required; no login endpoint in this application.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin/client header, live identity, publication permission or exact participant authorization denied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unhandled exceptions/framework security dispatch have no uniform envelope guarantee. Not every storage failure is a controlled 503."
+          },
+          "400": {
+            "description": "Invalid JSON, fields, query, type, key, lexical number or domain constraints.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, idempotent intent, stage/decision or source snapshot conflict. Reconcile current state before retrying.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Caught checked storage IOException; refresh before retrying. A change may already have committed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported Content-Type; seal requires application/json.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LegacySubmission"
+              },
+              "examples": {
+                "legacy-leave": {
+                  "summary": "Synthetic executable request; see examples guide for version/key preconditions.",
+                  "externalValue": "../examples/legacy-leave.json"
+                }
+              }
+            }
+          }
+        },
+        "x-idempotency": "optional-header"
+      }
+    },
+    "/api/requests/inbox": {
+      "get": {
+        "operationId": "standalone_inbox",
+        "tags": [
+          "approval"
+        ],
+        "summary": "Read actor-scoped pending or handled work",
+        "description": "Authenticated active identity; domain checks exact effective-route visibility and live stage assignment.",
+        "x-source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/ApprovalController.java",
+        "x-handler": "inbox",
+        "x-java-return": "ApprovalService.InboxPage",
+        "parameters": [
+          {
+            "name": "box",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "HANDLED"
+              ],
+              "default": "PENDING"
+            },
+            "description": ""
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "x-json-integer": true,
+              "default": 25
+            },
+            "description": "Single decimal-digit parameter, at most ten digits; no sign, exponent or fractional form."
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "APPROVED",
+                "REJECTED"
+              ]
+            },
+            "description": ""
+          },
+          {
+            "name": "processVersion",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2147483647,
+              "x-json-integer": true
+            },
+            "description": "Single decimal-digit parameter, at most ten digits."
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 1024,
+              "pattern": "^[A-Za-z0-9_-]+(?![\\s\\S])"
+            },
+            "description": "Opaque actor/filter-bound ordering cursor; changing filters requires a fresh first page."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InboxPage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required; no login endpoint in this application.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin/client header, live identity, publication permission or exact participant authorization denied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unhandled exceptions/framework security dispatch have no uniform envelope guarantee. Not every storage failure is a controlled 503."
+          },
+          "400": {
+            "description": "Invalid JSON, fields, query, type, key, lexical number or domain constraints.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Caught checked inbox IOException; refresh before retrying.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "x-reject-unknown-query-parameters": true,
+        "x-reject-repeated-query-parameters": true
+      }
+    },
+    "/api/requests/{id}/decisions": {
+      "post": {
+        "operationId": "standalone_decide",
+        "tags": [
+          "approval"
+        ],
+        "summary": "Record or replay an assigned participant decision",
+        "description": "Authenticated active identity; domain checks exact effective-route visibility and live stage assignment.",
+        "x-source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/ApprovalController.java",
+        "x-handler": "decide",
+        "x-java-return": "ApprovalService.Request",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Server-returned request ID in this exact host/store."
+          },
+          {
+            "$ref": "#/components/parameters/ClientHeader"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Request"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required; no login endpoint in this application.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin/client header, live identity, publication permission or exact participant authorization denied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unhandled exceptions/framework security dispatch have no uniform envelope guarantee. Not every storage failure is a controlled 503."
+          },
+          "400": {
+            "description": "Invalid JSON, fields, query, type, key, lexical number or domain constraints.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, idempotent intent, stage/decision or source snapshot conflict. Reconcile current state before retrying.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Caught checked storage IOException; refresh before retrying. A change may already have committed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown scenario or missing/invisible request/quote revision.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported Content-Type; seal requires application/json.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Decision"
+              }
+            }
+          }
+        },
+        "x-idempotency": "decision-replay"
+      }
+    },
+    "/api/scenarios": {
+      "get": {
+        "operationId": "standalone_scenario_catalog",
+        "tags": [
+          "scenarios"
+        ],
+        "summary": "List compiled scenario form templates",
+        "description": "Authenticated active identity; domain checks exact effective-route visibility and live stage assignment.",
+        "x-source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/ScenarioController.java",
+        "x-handler": "catalog",
+        "x-java-return": "List<ScenarioCatalog.Template>",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ScenarioTemplate"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required; no login endpoint in this application.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin/client header, live identity, publication permission or exact participant authorization denied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unhandled exceptions/framework security dispatch have no uniform envelope guarantee. Not every storage failure is a controlled 503."
+          }
+        }
+      }
+    },
+    "/api/scenarios/oa-seal-use/documents": {
+      "post": {
+        "operationId": "standalone_scenario_submitSeal",
+        "tags": [
+          "scenarios"
+        ],
+        "summary": "Submit or replay a business approval intent",
+        "description": "Authenticated active identity; domain checks exact effective-route visibility and live stage assignment. Literal mapping takes precedence over scenario template; strict UTF-8, application/json only.",
+        "x-source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/ScenarioController.java",
+        "x-handler": "submitSeal",
+        "x-java-return": "ScenarioCase.View",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ClientHeader"
+          },
+          {
+            "$ref": "#/components/parameters/RequiredIdempotencyKey"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Saved current result, including successful replay.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScenarioView"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required; no login endpoint in this application.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin/client header, live identity, publication permission or exact participant authorization denied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unhandled exceptions/framework security dispatch have no uniform envelope guarantee. Not every storage failure is a controlled 503."
+          },
+          "400": {
+            "description": "Invalid JSON, fields, query, type, key, lexical number or domain constraints.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, idempotent intent, stage/decision or source snapshot conflict. Reconcile current state before retrying.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Caught checked storage IOException; refresh before retrying. A change may already have committed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown scenario or missing/invisible request/quote revision.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported Content-Type; seal requires application/json.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SealSubmission"
+              },
+              "examples": {
+                "seal-use": {
+                  "summary": "Synthetic executable request; see examples guide for version/key preconditions.",
+                  "externalValue": "../examples/seal-use.json"
+                }
+              }
+            }
+          }
+        },
+        "x-idempotency": "required-header",
+        "x-raw-utf16-limit": 8000000,
+        "x-raw-byte-precheck-limit": 24000000
+      }
+    },
+    "/api/scenarios/{scenarioId}/documents": {
+      "post": {
+        "operationId": "standalone_scenario_submit",
+        "tags": [
+          "scenarios"
+        ],
+        "summary": "Submit or replay a business approval intent",
+        "description": "Authenticated active identity; domain checks exact effective-route visibility and live stage assignment. For oa-seal-use, application/json is handled by the literal mapping; other JSON media types return 415 rather than falling through.",
+        "x-source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/ScenarioController.java",
+        "x-handler": "submit",
+        "x-java-return": "ScenarioCase.View",
+        "parameters": [
+          {
+            "name": "scenarioId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ScenarioId"
+            },
+            "description": "Registered scenario; unknown IDs return 404. Business type must match x-scenario-catalog."
+          },
+          {
+            "$ref": "#/components/parameters/ClientHeader"
+          },
+          {
+            "$ref": "#/components/parameters/RequiredIdempotencyKey"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Saved current result, including successful replay.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScenarioView"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required; no login endpoint in this application.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin/client header, live identity, publication permission or exact participant authorization denied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unhandled exceptions/framework security dispatch have no uniform envelope guarantee. Not every storage failure is a controlled 503."
+          },
+          "400": {
+            "description": "Invalid JSON, fields, query, type, key, lexical number or domain constraints.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, idempotent intent, stage/decision or source snapshot conflict. Reconcile current state before retrying.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Caught checked storage IOException; refresh before retrying. A change may already have committed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown scenario or missing/invisible request/quote revision.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported Content-Type; seal requires application/json.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScenarioSubmission"
+              },
+              "examples": {
+                "expense": {
+                  "summary": "Synthetic executable request; see examples guide for version/key preconditions.",
+                  "externalValue": "../examples/expense.json"
+                },
+                "travel": {
+                  "summary": "Synthetic executable request; see examples guide for version/key preconditions.",
+                  "externalValue": "../examples/travel.json"
+                },
+                "receiving": {
+                  "summary": "Synthetic executable request; see examples guide for version/key preconditions.",
+                  "externalValue": "../examples/receiving.json"
+                },
+                "payment": {
+                  "summary": "Synthetic executable request; see examples guide for version/key preconditions.",
+                  "externalValue": "../examples/payment.json"
+                },
+                "contract": {
+                  "summary": "Synthetic executable request; see examples guide for version/key preconditions.",
+                  "externalValue": "../examples/contract.json"
+                }
+              }
+            }
+          }
+        },
+        "x-idempotency": "required-header"
+      }
+    },
+    "/api/scenarios/{scenarioId}/process": {
+      "get": {
+        "operationId": "standalone_scenario_process",
+        "tags": [
+          "scenarios"
+        ],
+        "summary": "Read current process definition",
+        "description": "Authenticated active identity; domain checks exact effective-route visibility and live stage assignment.",
+        "x-source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/ScenarioController.java",
+        "x-handler": "process",
+        "x-java-return": "ProcessDefinition",
+        "parameters": [
+          {
+            "name": "scenarioId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ScenarioId"
+            },
+            "description": "Registered scenario; unknown IDs return 404. Business type must match x-scenario-catalog."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProcessDefinition"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required; no login endpoint in this application.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin/client header, live identity, publication permission or exact participant authorization denied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unhandled exceptions/framework security dispatch have no uniform envelope guarantee. Not every storage failure is a controlled 503."
+          },
+          "404": {
+            "description": "Unknown scenario or missing/invisible request/quote revision.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "standalone_scenario_publish",
+        "tags": [
+          "scenarios"
+        ],
+        "summary": "Publish next process version",
+        "description": "Directory publication permission; standalone generic publication also requires EDITOR (Alice in demo).",
+        "x-source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/ScenarioController.java",
+        "x-handler": "publish",
+        "x-java-return": "ProcessDefinition",
+        "parameters": [
+          {
+            "name": "scenarioId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ScenarioId"
+            },
+            "description": "Registered scenario; unknown IDs return 404. Business type must match x-scenario-catalog."
+          },
+          {
+            "$ref": "#/components/parameters/ClientHeader"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProcessDefinition"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required; no login endpoint in this application.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin/client header, live identity, publication permission or exact participant authorization denied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unhandled exceptions/framework security dispatch have no uniform envelope guarantee. Not every storage failure is a controlled 503."
+          },
+          "400": {
+            "description": "Invalid JSON, fields, query, type, key, lexical number or domain constraints.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, idempotent intent, stage/decision or source snapshot conflict. Reconcile current state before retrying.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Caught checked storage IOException; refresh before retrying. A change may already have committed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown scenario or missing/invisible request/quote revision.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported Content-Type; seal requires application/json.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Publication"
+              },
+              "examples": {
+                "publish-payment-routing": {
+                  "summary": "Synthetic executable request; see examples guide for version/key preconditions.",
+                  "externalValue": "../examples/publish-payment-routing.json"
+                }
+              }
+            }
+          }
+        },
+        "x-idempotency": "none"
+      }
+    },
+    "/api/scenarios/{scenarioId}/requests": {
+      "get": {
+        "operationId": "standalone_scenario_requests",
+        "tags": [
+          "scenarios"
+        ],
+        "summary": "List visible complete request snapshots",
+        "description": "Authenticated active identity; domain checks exact effective-route visibility and live stage assignment.",
+        "x-source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/ScenarioController.java",
+        "x-handler": "requests",
+        "x-java-return": "List<ScenarioCase.View>",
+        "parameters": [
+          {
+            "name": "scenarioId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ScenarioId"
+            },
+            "description": "Registered scenario; unknown IDs return 404. Business type must match x-scenario-catalog."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ScenarioView"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required; no login endpoint in this application.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin/client header, live identity, publication permission or exact participant authorization denied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unhandled exceptions/framework security dispatch have no uniform envelope guarantee. Not every storage failure is a controlled 503."
+          },
+          "404": {
+            "description": "Unknown scenario or missing/invisible request/quote revision.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/scenarios/{scenarioId}/requests/{id}/decisions": {
+      "post": {
+        "operationId": "standalone_scenario_decide",
+        "tags": [
+          "scenarios"
+        ],
+        "summary": "Record or replay an assigned participant decision",
+        "description": "Authenticated active identity; domain checks exact effective-route visibility and live stage assignment.",
+        "x-source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/ScenarioController.java",
+        "x-handler": "decide",
+        "x-java-return": "ScenarioCase.View",
+        "parameters": [
+          {
+            "name": "scenarioId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ScenarioId"
+            },
+            "description": "Registered scenario; unknown IDs return 404. Business type must match x-scenario-catalog."
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Server-returned request ID in this exact host/store."
+          },
+          {
+            "$ref": "#/components/parameters/ClientHeader"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScenarioView"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required; no login endpoint in this application.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin/client header, live identity, publication permission or exact participant authorization denied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unhandled exceptions/framework security dispatch have no uniform envelope guarantee. Not every storage failure is a controlled 503."
+          },
+          "400": {
+            "description": "Invalid JSON, fields, query, type, key, lexical number or domain constraints.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, idempotent intent, stage/decision or source snapshot conflict. Reconcile current state before retrying.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Caught checked storage IOException; refresh before retrying. A change may already have committed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown scenario or missing/invisible request/quote revision.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported Content-Type; seal requires application/json.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Decision"
+              }
+            }
+          }
+        },
+        "x-idempotency": "decision-replay"
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Reference": {
+        "$ref": "./schemas.json#/$defs/Reference"
+      },
+      "ActorId": {
+        "$ref": "./schemas.json#/$defs/ActorId"
+      },
+      "Currency": {
+        "$ref": "./schemas.json#/$defs/Currency"
+      },
+      "Date": {
+        "$ref": "./schemas.json#/$defs/Date"
+      },
+      "Money": {
+        "$ref": "./schemas.json#/$defs/Money"
+      },
+      "NonnegativeMoney": {
+        "$ref": "./schemas.json#/$defs/NonnegativeMoney"
+      },
+      "DisplayMoney": {
+        "$ref": "./schemas.json#/$defs/DisplayMoney"
+      },
+      "DocumentType": {
+        "$ref": "./schemas.json#/$defs/DocumentType"
+      },
+      "Leave": {
+        "$ref": "./schemas.json#/$defs/Leave"
+      },
+      "Procurement": {
+        "$ref": "./schemas.json#/$defs/Procurement"
+      },
+      "QuoteDiscount": {
+        "$ref": "./schemas.json#/$defs/QuoteDiscount"
+      },
+      "ExpenseLine": {
+        "$ref": "./schemas.json#/$defs/ExpenseLine"
+      },
+      "Expense": {
+        "$ref": "./schemas.json#/$defs/Expense"
+      },
+      "Travel": {
+        "$ref": "./schemas.json#/$defs/Travel"
+      },
+      "SealUse": {
+        "$ref": "./schemas.json#/$defs/SealUse"
+      },
+      "ReceivingLine": {
+        "$ref": "./schemas.json#/$defs/ReceivingLine"
+      },
+      "Receiving": {
+        "$ref": "./schemas.json#/$defs/Receiving"
+      },
+      "PaymentLine": {
+        "$ref": "./schemas.json#/$defs/PaymentLine"
+      },
+      "PaymentRequest": {
+        "$ref": "./schemas.json#/$defs/PaymentRequest"
+      },
+      "ContractMilestone": {
+        "$ref": "./schemas.json#/$defs/ContractMilestone"
+      },
+      "ContractApproval": {
+        "$ref": "./schemas.json#/$defs/ContractApproval"
+      },
+      "BusinessDocument": {
+        "$ref": "./schemas.json#/$defs/BusinessDocument"
+      },
+      "GenericBusinessDocument": {
+        "$ref": "./schemas.json#/$defs/GenericBusinessDocument"
+      },
+      "ScenarioBusinessDocument": {
+        "$ref": "./schemas.json#/$defs/ScenarioBusinessDocument"
+      },
+      "LegacySubmission": {
+        "$ref": "./schemas.json#/$defs/LegacySubmission"
+      },
+      "GenericSubmission": {
+        "$ref": "./schemas.json#/$defs/GenericSubmission"
+      },
+      "QuoteSubmission": {
+        "$ref": "./schemas.json#/$defs/QuoteSubmission"
+      },
+      "ScenarioSubmission": {
+        "$ref": "./schemas.json#/$defs/ScenarioSubmission"
+      },
+      "SealSubmission": {
+        "$ref": "./schemas.json#/$defs/SealSubmission"
+      },
+      "Decision": {
+        "$ref": "./schemas.json#/$defs/Decision"
+      },
+      "NativeDecision": {
+        "$ref": "./schemas.json#/$defs/NativeDecision"
+      },
+      "PaymentPredicate": {
+        "$ref": "./schemas.json#/$defs/PaymentPredicate"
+      },
+      "ReceivingPredicate": {
+        "$ref": "./schemas.json#/$defs/ReceivingPredicate"
+      },
+      "ContractPredicate": {
+        "$ref": "./schemas.json#/$defs/ContractPredicate"
+      },
+      "RoutingPredicate": {
+        "$ref": "./schemas.json#/$defs/RoutingPredicate"
+      },
+      "RunIf": {
+        "$ref": "./schemas.json#/$defs/RunIf"
+      },
+      "BoundaryNode": {
+        "$ref": "./schemas.json#/$defs/BoundaryNode"
+      },
+      "ApprovalNode": {
+        "$ref": "./schemas.json#/$defs/ApprovalNode"
+      },
+      "ParallelNode": {
+        "$ref": "./schemas.json#/$defs/ParallelNode"
+      },
+      "ProcessNode": {
+        "$ref": "./schemas.json#/$defs/ProcessNode"
+      },
+      "ProcessDefinition": {
+        "$ref": "./schemas.json#/$defs/ProcessDefinition"
+      },
+      "GenericProcessDefinition": {
+        "$ref": "./schemas.json#/$defs/GenericProcessDefinition"
+      },
+      "Publication": {
+        "$ref": "./schemas.json#/$defs/Publication"
+      },
+      "GenericPublication": {
+        "$ref": "./schemas.json#/$defs/GenericPublication"
+      },
+      "Person": {
+        "$ref": "./schemas.json#/$defs/Person"
+      },
+      "NativePerson": {
+        "$ref": "./schemas.json#/$defs/NativePerson"
+      },
+      "Event": {
+        "$ref": "./schemas.json#/$defs/Event"
+      },
+      "RoutingFact": {
+        "$ref": "./schemas.json#/$defs/RoutingFact"
+      },
+      "RoutingEvaluation": {
+        "$ref": "./schemas.json#/$defs/RoutingEvaluation"
+      },
+      "FrozenRoute": {
+        "$ref": "./schemas.json#/$defs/FrozenRoute"
+      },
+      "Request": {
+        "$ref": "./schemas.json#/$defs/Request"
+      },
+      "InboxPage": {
+        "$ref": "./schemas.json#/$defs/InboxPage"
+      },
+      "ReceivingQuantities": {
+        "$ref": "./schemas.json#/$defs/ReceivingQuantities"
+      },
+      "ReceivingSummary": {
+        "$ref": "./schemas.json#/$defs/ReceivingSummary"
+      },
+      "PaymentSummary": {
+        "$ref": "./schemas.json#/$defs/PaymentSummary"
+      },
+      "ScenarioView": {
+        "$ref": "./schemas.json#/$defs/ScenarioView"
+      },
+      "QuoteView": {
+        "$ref": "./schemas.json#/$defs/QuoteView"
+      },
+      "QuoteVersion": {
+        "$ref": "./schemas.json#/$defs/QuoteVersion"
+      },
+      "LocalizedText": {
+        "$ref": "./schemas.json#/$defs/LocalizedText"
+      },
+      "FieldOption": {
+        "$ref": "./schemas.json#/$defs/FieldOption"
+      },
+      "FormField": {
+        "$ref": "./schemas.json#/$defs/FormField"
+      },
+      "FormSection": {
+        "$ref": "./schemas.json#/$defs/FormSection"
+      },
+      "LineItems": {
+        "$ref": "./schemas.json#/$defs/LineItems"
+      },
+      "ScenarioId": {
+        "$ref": "./schemas.json#/$defs/ScenarioId"
+      },
+      "ScenarioTemplate": {
+        "$ref": "./schemas.json#/$defs/ScenarioTemplate"
+      },
+      "Error": {
+        "$ref": "./schemas.json#/$defs/Error"
+      },
+      "NativeError": {
+        "$ref": "./schemas.json#/$defs/NativeError"
+      },
+      "ScenarioDate": {
+        "$ref": "./schemas.json#/$defs/ScenarioDate"
+      }
+    },
+    "securitySchemes": {
+      "basicAuth": {
+        "type": "http",
+        "scheme": "basic"
+      }
+    },
+    "parameters": {
+      "IdempotencyKey": {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}(?![\\s\\S])"
+        },
+        "description": "Exactly one value when present; case-sensitive, no comma-combined value. Same actor/key/normalized intent replays current state; changed intent conflicts."
+      },
+      "RequiredIdempotencyKey": {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}(?![\\s\\S])"
+        },
+        "description": "Exactly one value when present; case-sensitive, no comma-combined value. Same actor/key/normalized intent replays current state; changed intent conflicts."
+      },
+      "ClientHeader": {
+        "name": "X-Arcflow-Client",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "const": "approval-demo"
+        },
+        "description": "Required for every unsafe method by SecurityConfig."
+      }
+    },
+    "responses": {}
+  },
+  "x-controller-route-count": 21,
+  "x-host": "standalone",
+  "x-scenario-catalog": {
+    "oa-expense": "expense",
+    "oa-travel": "travel",
+    "oa-seal-use": "sealUse",
+    "erp-receiving": "receiving",
+    "erp-payment": "paymentRequest",
+    "crm-contract": "contractApproval"
+  },
+  "x-condition-families": [
+    "payment.netTotal",
+    "receiving.hasRejectedLines",
+    "contract.termsKind"
+  ]
+}
