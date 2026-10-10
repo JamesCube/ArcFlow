@@ -1,0 +1,31 @@
+{
+  "sourceRevision": "cb3f1077fc725e0031620b1210a819917d8684a4",
+  "sourceWorkingTree": "clean-commit",
+  "trackedDiffSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "uiSourceTreeSHA256": "238a4e4c2696b782a1cdbeb5046d1b08c509e51bad7d3951cf53a55f85267921",
+  "backendRuntime": "declared-Boot-4.1.1",
+  "backendJarSHA256": "746006781e407bef377f8125d36e29a5995d486347bb57bb32c929572b1cc89c",
+  "captureSessionId": "ddfa82a5-9e18-4c91-a53a-ff56f621af3f",
+  "captureRunId": "38016643460",
+  "captureRunAttempt": "1",
+  "captureRepository": "JamesCube/ArcFlow",
+  "captureRunUrl": "https://github.com/JamesCube/ArcFlow/actions/runs/38016643460",
+  "state": "payment-low-frozen-en-390px",
+  "image": "payment-low-frozen-en-390px.png",
+  "imageSHA256": "5ebda160acdb538b4edca9da5faf565c4d4982d26e09c7f5dcaa6375fb19c693",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "scrollOrigin": {
+    "x": 0,
+    "y": 0
+  },
+  "locale": "en",
+  "fullPage": true,
+  "capturedAt": "2026-10-10T02:33:49.201Z",
+  "requestId": "186c147b-c22f-4267-b788-b551ba07b1db",
+  "requestStatus": "PENDING",
+  "currentStepId": "payment-final",
+  "decisionCount": 0
+}

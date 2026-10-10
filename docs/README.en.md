@@ -24,6 +24,8 @@ This task-oriented index describes current `0.1.0-SNAPSHOT` main. Historical alp
 - [Designer gallery](DESIGNER_GALLERY.en.md): sequential stages, ALL/ANY, validation, publication, snapshots
 - [Business journeys](CASE_GALLERY.en.md): real leave, procurement, and quote states
 
+- [Conditional-routing gallery](galleries/conditional-routing/README.en.md)：80 historical originals across payment, receiving and contract; designers, partial decisions and terminal states.
+
 <!-- topic:how-to-guides-complete-a-task -->
 ## How-to guides: complete a task
 

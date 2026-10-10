@@ -4,6 +4,8 @@
 
 Start with process configuration, then inspect complete forms, validation, snapshots, individual decisions and approval/rejection. Each case has independently readable Chinese and English pages; payment, contract and receiving also include conditional routing.
 
+[Complete conditional-routing gallery: 80 original captures of designer, partial and terminal states](conditional-routing/README.en.md)
+
 <!-- topic:travel -->
 ## [OA travel](travel.en.md)
 

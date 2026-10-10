@@ -43,6 +43,8 @@
 
 五类新图集：[出差](docs/galleries/travel.md) · [用印](docs/galleries/seal-use.md) · [收货](docs/galleries/receiving.md) · [付款](docs/galleries/payment.md) · [合同](docs/galleries/contract.md)。从各场景设计器开始，查看表单、校验、审批快照与条件路由；[104 张历史原图及来源](docs/galleries/README.md)。
 
+[完整条件路由图集：80 张原图，含设计器、部分票与终态](docs/galleries/conditional-routing/README.md)。
+
 <a id="designer-preview"></a>
 
 ## 先看流程设计器

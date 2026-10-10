@@ -44,6 +44,8 @@ Start with the leave-request demo: submit a request, switch accounts to approve 
 
 Five more galleries: [Travel](docs/galleries/travel.en.md) · [Seal use](docs/galleries/seal-use.en.md) · [Receiving](docs/galleries/receiving.en.md) · [Payment](docs/galleries/payment.en.md) · [Contracts](docs/galleries/contract.en.md). Start with each designer, then inspect forms, validation, saved approvals and conditional routes; [104 historical originals and sources](docs/galleries/README.en.md).
 
+[Complete conditional-routing gallery: 80 originals, including designers, partial votes and terminal states](docs/galleries/conditional-routing/README.en.md).
+
 <a id="designer-preview"></a>
 
 ## Start with the flow designer
