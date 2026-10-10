@@ -165,6 +165,13 @@ python3 scripts/package-tryout.py --output-dir /tmp/arcflow-rc-two
 <!-- topic:troubleshooting-and-boundaries -->
 ## Troubleshooting and boundaries
 
+<!-- topic:safe-failure-diagnostics -->
+### Safe failure diagnostics
+
+If a service cannot start, exits early, or never becomes ready, the launcher prints the failing phase and each service's state/exit code. It distinguishes an unresponsive UI from an authenticated backend API that is not ready. It reads at most the last 64 KiB of each private service log and prints up to six fixed, recognized-cause hints per service (for example, occupied ports, a missing JAR or UI dependency, Java configuration, permissions or disk space). These are clues, not a complete root-cause analysis. Unknown text, exception details, credentials and request data are never copied into this summary; no diagnostic file is saved. The launcher stops its process groups and deletes the private runtime directory on failure as well as normal Ctrl-C shutdown.
+
+If no cause is recognized, rerun `python3 scripts/tryout.py --check`, then follow the [manual startup guide](GETTING_STARTED.en.md#english) to inspect the failure locally. Do not paste the private credentials file or unreviewed raw logs into a bug report. Forced kills and OS crashes still cannot guarantee cleanup; see the stopping instructions above.
+
 - **Tool check fails:** install or select the supported tool yourself, then rerun `--check`. Check `java -version`, `javac -version`, `mvn -version`, `node --version`, and `npm --version` in the same terminal. For a Maven installation outside `PATH`, use `--maven`.
 - **A port is already in use:** choose two unused ports using the launcher flags, or stop the process you own that uses the port. Do not change the server binding to a public interface.
 - **Dependency download/build fails:** inspect the reported error. Confirm access to your configured Maven/npm registries and correct proxy settings, then rerun. An extracted source bundle is not an offline installer. Never bypass TLS verification to fetch dependencies.

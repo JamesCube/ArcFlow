@@ -2,6 +2,8 @@
 """Build and run the local-only standalone demo. No third-party Python packages."""
 import argparse
 import base64
+import errno
+import http.client
 import json
 import os
 from pathlib import Path
@@ -19,6 +21,76 @@ import urllib.request
 ROOT = Path(__file__).resolve().parents[1]
 UI = ROOT / 'examples/approval-ui'
 BACKEND = ROOT / 'examples/approval-demo/backend'
+
+# Never copy log text into diagnostics: even a line without a password/token
+# label may contain credentials or business data. Only these fixed hints leave
+# the private runtime directory. Reading and output are both bounded.
+DIAGNOSTIC_BYTES = 64 * 1024
+DIAGNOSTIC_HINTS = (
+    (r'EADDRINUSE|address already in use|Port \d+ (?:was already|is already) in use',
+     'Port conflict: choose unused --backend-port and --ui-port values.'),
+    (r'EACCES|permission denied|AccessDeniedException',
+     'Permission denied: check checkout, temporary-directory and executable permissions.'),
+    (r'ENOSPC|no space left on device',
+     'Disk full: free space in the checkout and temporary filesystem, then retry.'),
+    (r'unable to access jarfile|invalid or corrupt jarfile|ZipException',
+     'Backend JAR missing or unreadable: rerun the launcher to rebuild it.'),
+    (r'UnsupportedClassVersionError|unrecognized VM option|could not create the Java Virtual Machine',
+     'Java startup rejected: check java/javac versions and JAVA_TOOL_OPTIONS/JDK_JAVA_OPTIONS.'),
+    (r'ERR_MODULE_NOT_FOUND|Cannot find module|vite: (?:not found|command not found)',
+     'UI dependency missing: rerun npm ci in examples/approval-ui, then retry.'),
+    (r'ECONNREFUSED|connection refused',
+     'Connection refused: check the backend state and that both configured ports are free.'),
+    (r'Set APPROVAL_(?:ALICE|BOB|CAROL)_PASSWORD to',
+     'Demo credentials rejected: rerun for fresh generated accounts; do not share credentials.'),
+    (r'APPLICATION FAILED TO START|BeanCreationException|BindException',
+     'Backend configuration failed: check local Java/Spring overrides using the manual startup guide.'),
+)
+FAILURE_MESSAGES = {
+    'early-exit': 'A demo service exited before readiness.',
+    'timeout-ui': 'Demo readiness timed out: the UI did not return HTTP 200. Check the UI state and port.',
+    'timeout-api': 'Demo readiness timed out: the UI responded, but its authenticated API did not become ready. Check the backend and proxy configuration.',
+    'service-exit': 'A demo service stopped unexpectedly; stopping the other service.',
+}
+
+
+class DemoFailure(RuntimeError):
+    def __init__(self, reason):
+        super().__init__(FAILURE_MESSAGES[reason])
+        self.reason = reason
+
+
+def log_hints(path):
+    """Classify a bounded log tail; return only constant, allowlisted text."""
+    try:
+        with path.open('rb') as log:
+            log.seek(0, os.SEEK_END)
+            log.seek(max(0, log.tell() - DIAGNOSTIC_BYTES))
+            tail = log.read(DIAGNOSTIC_BYTES).decode('utf-8', errors='replace')
+    except OSError:
+        return ['Log unavailable; check the service state and local toolchain.']
+    hints = [hint for pattern, hint in DIAGNOSTIC_HINTS if re.search(pattern, tail, re.IGNORECASE)]
+    return hints[:6] or ['No recognized cause in the last 64 KiB of log. Use the manual startup guide to inspect the failure locally.']
+
+
+def service_states(services):
+    states = {}
+    for name, child in services.items():
+        code = child.poll() if child is not None else None
+        states[name] = ('not started' if child is None else
+                        'still running at failure' if code is None else
+                        'exited with code ' + str(code))
+    return states
+
+
+def report_failure(runtime, states):
+    print('TRYOUT: Safe diagnostic summary (raw logs and exception text are withheld).', file=sys.stderr)
+    for name, state in states.items():
+        print('  ' + name + ': ' + state, file=sys.stderr)
+        for hint in log_hints(runtime / (name + '.log')):
+            print('    ' + hint, file=sys.stderr)
+    print('  Next: python3 scripts/tryout.py --check; manual startup: docs/GETTING_STARTED.md.', file=sys.stderr)
+    print('  No diagnostic file is retained. Keep any manually inspected logs private.', file=sys.stderr)
 
 
 def version(command, pattern):
@@ -113,19 +185,21 @@ def wait_ready(children, url, password, timeout=90):
     opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
     auth = base64.b64encode(('alice:' + password).encode()).decode()
     deadline = time.monotonic() + timeout
+    ui_responded = False
     while time.monotonic() < deadline:
         if any(p.poll() is not None for p in children):
-            raise RuntimeError('A demo service exited before readiness. Check ports and Java configuration; use the manual startup guide for diagnostics.')
+            raise DemoFailure('early-exit')
         try:
             with opener.open(url, timeout=1) as response:
                 assert response.status == 200
+            ui_responded = True
             req = urllib.request.Request(url + '/api/me', headers={'Authorization': 'Basic ' + auth})
             with opener.open(req, timeout=1) as response:
                 if json.load(response)['id'] == 'alice':
                     return
-        except (OSError, ValueError, KeyError, AssertionError):
+        except (OSError, http.client.HTTPException, ValueError, KeyError, TypeError, AssertionError):
             time.sleep(0.25)
-    raise RuntimeError('Demo readiness timed out after ' + str(timeout) + ' seconds.')
+    raise DemoFailure('timeout-api' if ui_responded else 'timeout-ui')
 
 
 def main():
@@ -137,6 +211,9 @@ def main():
     args = parser.parse_args()
     processes = Processes()
     runtime = None
+    services = {'backend': None, 'ui': None}
+    failed_states = None
+    stage = 'preparing the private runtime'
     def interrupt(signum, frame):
         raise KeyboardInterrupt
     signal.signal(signal.SIGTERM, interrupt)
@@ -167,10 +244,16 @@ def main():
                    SERVER_ADDRESS='127.0.0.1', SERVER_PORT=str(args.backend_port))
         print('Private runtime directory: ' + str(runtime), flush=True)
         with (runtime / 'backend.log').open('w') as backend_log, (runtime / 'ui.log').open('w') as ui_log:
+            stage = 'starting the backend'
             backend = processes.start(['java', '-jar', str(BACKEND / 'target/approval-demo-0.1.0-SNAPSHOT.jar')], env=env, stdout=backend_log, stderr=subprocess.STDOUT)
+            services['backend'] = backend
             ui_env = dict(os.environ, ARCFLOW_BACKEND_PORT=str(args.backend_port))
+            stage = 'starting the UI'
             ui = processes.start(['npm', 'run', 'dev', '--', '--port', str(args.ui_port), '--strictPort'], UI, env=ui_env, stdout=ui_log, stderr=subprocess.STDOUT)
+            services['ui'] = ui
+            stage = 'waiting for readiness'
             wait_ready([backend, ui], url, passwords['alice'])
+            stage = 'running the demo'
             print('\nREADY: ' + url
                   + '\nOA leave / ERP procurement: ' + url
                   + '\nCRM quote discount (separate page): ' + url + '/quote-discount.html'
@@ -181,20 +264,39 @@ def main():
                   + '\nCtrl-C stops both services and deletes this run\'s credentials, logs and demo data.', flush=True)
             while True:
                 if backend.poll() is not None or ui.poll() is not None:
-                    raise RuntimeError('A demo service stopped unexpectedly; stopping the other service.')
+                    raise DemoFailure('service-exit')
                 time.sleep(0.5)
     except KeyboardInterrupt:
         print('\nStopping the demo and deleting its temporary files.', flush=True)
         return 130
     except (RuntimeError, OSError, subprocess.SubprocessError) as error:
-        print('TRYOUT: ' + str(error), file=sys.stderr)
+        if runtime:
+            # Exception messages can contain filenames, environment values or
+            # subprocess arguments. Only launcher-owned reasons/errno hints are safe.
+            detail = FAILURE_MESSAGES[error.reason] if isinstance(error, DemoFailure) else {
+                errno.ENOENT: 'Required executable or file is missing; check the local toolchain.',
+                errno.EACCES: 'Permission denied; check local file and executable permissions.',
+                errno.ENOSPC: 'No space left on device; free temporary and checkout disk space.',
+            }.get(getattr(error, 'errno', None), 'Check the service states and hints below.')
+            print('TRYOUT: Failure while ' + stage + '. ' + detail, file=sys.stderr)
+            failed_states = service_states(services)
+        else:
+            print('TRYOUT: ' + str(error), file=sys.stderr)
         return 1
     finally:
         signal.signal(signal.SIGTERM, signal.SIG_IGN)
         signal.signal(signal.SIGINT, signal.SIG_IGN)
-        processes.stop()
-        if runtime:
-            shutil.rmtree(runtime)
+        try:
+            processes.stop()
+        finally:
+            try:
+                if runtime and failed_states is not None:
+                    report_failure(runtime, failed_states)
+            finally:
+                if runtime:
+                    shutil.rmtree(runtime)
+                    if failed_states is not None:
+                        print('TRYOUT: Temporary credentials, raw logs and demo data deleted.', file=sys.stderr)
 
 
 if __name__ == '__main__':
