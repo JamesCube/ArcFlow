@@ -2,7 +2,7 @@
   "zh": {
     "lang": "zh-CN",
     "title": "ArcFlow · 把审批，接进你的业务",
-    "description": "面向 Java 业务系统的开源审批项目。可视化顺序审批、九种业务文档、六个独立场景与受限条件路由，附开发文档和真实 HTTP 接口参考。",
+    "description": "面向 Java 业务系统的开源审批项目。真实图流程设计器、条件分支与并行汇合，附可本地运行的付款审批示例、九种业务文档和 HTTP 接口参考。",
     "nav": [
       "流程设计",
       "业务场景",
@@ -18,8 +18,8 @@
     "primary": "本地跑起来",
     "secondary": "探索真实界面",
     "heroNote": "Apache-2.0 · 源码预览 · 自托管示例",
-    "screenTitle": "顺序清晰，规则可见。",
-    "screenSub": "选择节点，配置人员与审批方式。每一笔申请，保留提交时的流程。",
+    "screenTitle": "分支看得见，汇合有依据。",
+    "screenSub": "配置金额条件与独立审批路径，保存草稿、预览路线，再发布。这里展示已验收的真实界面原图。",
     "screenLabel": "真实界面 / 合成演示数据",
     "expand": "查看完整截图",
     "close": "关闭截图",
@@ -28,7 +28,7 @@
       [
         "01",
         "设计流程",
-        "安排步骤，设置 SINGLE / ALL / ANY"
+        "配置条件、并行路径与审批人员"
       ],
       [
         "02",
@@ -42,23 +42,23 @@
       ]
     ],
     "designerKicker": "DESIGN THE PROCESS",
-    "designerTitle": "让规则，<br>一眼说清楚。",
-    "designerIntro": "给审批步骤命名，选好参与人，再发布。流程变了，新申请用新版本；已提交的申请保留原样。",
+    "designerTitle": "画出路径，<br>跑通每一次汇合。",
+    "designerIntro": "在独立 Vue 工作区中，插入成对的条件或并行区域，配置人员与优先级。提交后冻结定义和所选路径；每条任务分别推进。",
     "designerFeatures": [
       [
-        "1–8 个顺序步骤",
-        "插入、删除、上下调整，保持每一步的先后关系。"
+        "FIRST_MATCH 条件选择",
+        "按分支顺序选择首个命中条件，最后保留默认分支。当前只使用付款净额 payment.netTotal。"
       ],
       [
-        "三种审批方式",
-        "单人处理、全员同意（ALL），或任一人同意（ANY）。"
+        "并行分流与 ALL 汇合",
+        "各分支独立审批，全部到达后才继续；与人员组内的 ALL / ANY 表决规则分开。"
       ],
       [
-        "版本与只读快照",
-        "发布检查期望版本，提交保存步骤、人员与规则。"
+        "发布与任务快照",
+        "保存草稿、检查、预览和发布；并发决定受版本检查保护，终态驳回会取消其他活动任务。"
       ]
     ],
-    "designerLink": "查看设计器完整图集",
+    "designerLink": "图设计器契约与操作指南",
     "flowLabels": [
       "申请提交",
       "主管审批",
@@ -75,7 +75,7 @@
     "scenariosIntro": "这里展示四组真实界面。当前主线共有九种业务文档：请假、采购与报价使用各自入口，另有六个独立场景工作区。",
     "tabLabel": "选择业务场景",
     "scenarioLink": "阅读场景说明",
-    "screenNote": "真实产品截图，使用合成数据；点击查看完整画面。",
+    "screenNote": "9bb7a84a 真实验收原图 · 合成数据 · 点击放大；本页是静态展示，不运行 Java 审批服务。",
     "scenarios": [
       {
         "id": "expense",
@@ -155,7 +155,7 @@
       [
         "02 / DOMAIN",
         "审批领域与存储",
-        "人员权限、顺序步骤、快照与审批记录。默认 JSON，可选 JDBC 适配器。",
+        "人员权限、顺序与结构化图流程、任务快照和审批记录。默认 JSON，可选 JDBC 适配器。",
         "审批模块有自身依赖；JDBC 需要显式接线与迁移。"
       ],
       [
@@ -173,14 +173,14 @@
       [
         "ready",
         "已实现",
-        "顺序审批与固定人员组",
-        "SINGLE、ALL、ANY；流程版本、申请快照、审批历史。"
+        "顺序审批与结构化付款图",
+        "SINGLE / ALL / ANY 表决；条件选择、并行分流与配对汇合，保留版本与任务记录。"
       ],
       [
         "partial",
         "有限支持",
-        "三类业务的条件路由",
-        "付款净额、收货异常与合同条款，可决定是否进入固定审批步骤；不执行脚本或通用表达式。"
+        "宿主与业务范围有边界",
+        "图流程仅独立付款工作区；原固定步骤的条件路由仍用于付款、收货与合同。若依和 H5 不自动获得图能力。"
       ],
       [
         "planned",
@@ -191,7 +191,7 @@
     ],
     "startKicker": "FROM SOURCE TO YOUR SCREEN",
     "startTitle": "下一步，<br>跑一笔自己的申请。",
-    "startIntro": "在本地启动示例，用 Alice 发起、Bob 审批，再由 Carol 复核。先把整个过程走一遍。",
+    "startIntro": "把图设计器在本地跑起来：编辑、发布，再发起付款申请，观察独立任务如何汇合。",
     "requirements": "Linux / macOS / WSL · Git · Python 3.9+ · 完整 JDK 17+ · Maven 3.9+ · Node 22.22.2+（22.x，含 npm）",
     "terminalLabel": "终端 / 固定到本页功能基线",
     "copy": "复制命令",
@@ -203,18 +203,18 @@
     "versions": [
       [
         "本页功能基线",
-        "main · 666ff64b",
-        "已合入六场景、付款与合同、受限条件路由；截图保留各自拍摄版本。核对于 2026-10-09。"
+        "main · 8f7e37ce",
+        "已合入结构化付款图流程；图原图采自已验收提交 9bb7a84a，其他原图保留各自来源。核对于 2026-10-12。"
       ],
       [
         "已发布源码预览",
         "v0.1.0-alpha.3",
-        "较早版本，提交 ab428327；不含报销等后续主线更新。"
+        "较早版本，提交 ab428327；不含图流程与其他后续主线更新。"
       ],
       [
         "开发者入口",
         "当前主线开发文档",
-        "启动、架构、存储迁移、实际 HTTP 接口与可执行合成示例。"
+        "启动、图流程边界、存储接线、实际 HTTP 接口与可执行合成示例。"
       ]
     ],
     "closing": "把下一条流程，<br>交给你来定义。",
@@ -239,12 +239,19 @@
     "galleryLink": "继续看出差、用印、收货、付款与合同图集",
     "galleryNote": "五类独立图集，104 张历史真实原图；每张标注语言、视口和采集来源。",
     "conditionalGalleryLink": "查看付款、收货与合同的条件路由图集",
-    "conditionalGalleryNote": "80 张历史真实原图，来自 20 个采集状态；覆盖设计器、部分审批决定与最终状态。"
+    "conditionalGalleryNote": "80 张历史真实原图，来自 20 个采集状态；覆盖设计器、部分审批决定与最终状态。",
+    "screenAlt": "ArcFlow 图流程设计器：FIRST_MATCH 金额条件、两条并行审批路径与配对 ALL 汇合",
+    "graphStartLink": "本地启动与进入图工作区",
+    "legacyDesignerLink": "查看原顺序设计器图集",
+    "graphBoundary": "当前范围：独立 Spring Boot 后端 + Vue，付款图流程。最多 32 节点、48 连接、2 层嵌套、每区 2–4 分支。非通用 BPMN；未自动接入若依或 H5，不执行付款。",
+    "graphRuntimeAlt": "付款图运行时：业务分支已完成，财务仍待审批，ALL 汇合显示 1/2 已到达",
+    "graphRuntimeCaption": "真实运行状态：一条分支已到达，另一条仍在处理，汇合不会提前放行。",
+    "graphLaunchNote": "启动后以 Alice 登录，在“流程设计器”选择“图流程”；从“图流程申请”发起合成付款。这里的截图不是在线交互演示。"
   },
   "en": {
     "lang": "en",
     "title": "ArcFlow · Bring approvals into your business",
-    "description": "An open-source approval project for Java applications: ordered approval design, nine business document types, six standalone scenarios, bounded conditional routing, developer docs and HTTP API reference.",
+    "description": "An open-source approval project for Java: a real graph designer, conditional branches and parallel joins, a local payment workflow example, nine business document types and HTTP API docs.",
     "nav": [
       "Designer",
       "Scenarios",
@@ -260,8 +267,8 @@
     "primary": "Run it locally",
     "secondary": "Explore the interface",
     "heroNote": "Apache-2.0 · Source preview · Self-hosted examples",
-    "screenTitle": "Clear steps. Visible rules.",
-    "screenSub": "Choose a node, its reviewers, and an approval mode. Every request keeps the workflow it started with.",
+    "screenTitle": "See every branch. Understand every join.",
+    "screenSub": "Set amount conditions and independent review paths. Save, preview and publish. These are original screenshots from the accepted implementation.",
     "screenLabel": "REAL INTERFACE / SYNTHETIC DEMO DATA",
     "expand": "View full screenshot",
     "close": "Close screenshot",
@@ -270,7 +277,7 @@
       [
         "01",
         "Design the process",
-        "Set steps and SINGLE / ALL / ANY rules"
+        "Set conditions, parallel paths and reviewers"
       ],
       [
         "02",
@@ -284,23 +291,23 @@
       ]
     ],
     "designerKicker": "DESIGN THE PROCESS",
-    "designerTitle": "Make the rules<br>easy to follow.",
-    "designerIntro": "Name the steps, choose the people, and publish. New requests use the new version. Existing requests keep the original.",
+    "designerTitle": "Design the paths.<br>Follow them to the join.",
+    "designerIntro": "Insert paired conditional or parallel regions in the standalone Vue workspace. Set people and branch priority. Each submitted request freezes its definition and selected paths while tasks progress independently.",
     "designerFeatures": [
       [
-        "1–8 sequential steps",
-        "Insert, remove, and move steps while keeping a clear sequence."
+        "FIRST_MATCH routing",
+        "The first matching branch wins; the final branch is the default. Conditions currently use payment.netTotal only."
       ],
       [
-        "Three approval modes",
-        "One reviewer, everyone agrees (ALL), or anyone agrees (ANY)."
+        "Parallel fork and ALL join",
+        "Branches progress independently. The join waits for every branch, separately from ALL / ANY voting within a reviewer group."
       ],
       [
-        "Versions and snapshots",
-        "Publishing checks the expected version; requests preserve their steps, people, and rules."
+        "Published versions and task snapshots",
+        "Save drafts, validate, preview and publish. Version checks protect concurrent decisions; terminal rejection cancels other active tasks."
       ]
     ],
-    "designerLink": "Explore the designer gallery",
+    "designerLink": "Graph designer contract and guide",
     "flowLabels": [
       "Request submitted",
       "Manager review",
@@ -317,7 +324,7 @@
     "scenariosIntro": "Explore four real interface examples here. Current main has nine business document types: leave, procurement and quotes use their own entry points, alongside six standalone scenario workspaces.",
     "tabLabel": "Choose a business scenario",
     "scenarioLink": "Read the scenario guide",
-    "screenNote": "Real product screenshots with synthetic data. Open an image to see it in full.",
+    "screenNote": "Original acceptance capture at 9bb7a84a · Synthetic data · Click to enlarge. This static page does not run the Java approval service.",
     "scenarios": [
       {
         "id": "expense",
@@ -397,7 +404,7 @@
       [
         "02 / DOMAIN",
         "Approvals and storage",
-        "Identity checks, sequential steps, snapshots, and history. JSON by default, with an optional JDBC adapter.",
+        "Identity checks, sequential and structured graph workflows, task snapshots and history. JSON by default, with optional JDBC adapters.",
         "Has its own dependencies. JDBC needs explicit wiring and migrations."
       ],
       [
@@ -415,14 +422,14 @@
       [
         "ready",
         "Implemented",
-        "Sequential reviews and fixed groups",
-        "SINGLE, ALL, ANY; workflow versions, request snapshots, and approval history."
+        "Sequential reviews and structured payment graphs",
+        "SINGLE / ALL / ANY votes; conditional choice, parallel fork and paired join, with versions and task records."
       ],
       [
         "partial",
         "Bounded support",
-        "Conditions for three business types",
-        "Payment net totals, receiving exceptions and contract terms can select fixed approval steps. No scripts or general expression language."
+        "Explicit host and business boundaries",
+        "Graphs are limited to standalone payment. Existing fixed-step routing covers payment, receiving and contracts. RuoYi and H5 do not gain graph support automatically."
       ],
       [
         "planned",
@@ -433,7 +440,7 @@
     ],
     "startKicker": "FROM SOURCE TO YOUR SCREEN",
     "startTitle": "Next, run a request<br>of your own.",
-    "startIntro": "Start locally. Submit as Alice, approve as Bob, then review as Carol. Walk through the whole process first.",
+    "startIntro": "Run the graph designer locally: edit, publish, submit a payment request, and watch independent tasks reach their join.",
     "requirements": "Linux / macOS / WSL · Git · Python 3.9+ · Full JDK 17+ · Maven 3.9+ · Node 22.22.2+ (22.x, with npm)",
     "terminalLabel": "TERMINAL / PINNED CONTENT BASELINE",
     "copy": "Copy commands",
@@ -445,18 +452,18 @@
     "versions": [
       [
         "This page’s feature baseline",
-        "main · 666ff64b",
-        "Six scenarios, payment and contract cases, and bounded routing are merged. Screenshots retain their capture versions. Checked on 2026-10-09."
+        "main · 8f7e37ce",
+        "Structured payment graphs are merged. Graph images come from accepted commit 9bb7a84a; older images retain their sources. Checked on 2026-10-12."
       ],
       [
         "Published source preview",
         "v0.1.0-alpha.3",
-        "Earlier commit ab428327. Excludes expenses and later main-branch updates."
+        "Earlier commit ab428327. Excludes graphs and other later main-branch updates."
       ],
       [
         "For developers",
         "Current main developer docs",
-        "Setup, architecture, storage migration, actual HTTP endpoints and executable synthetic examples."
+        "Setup, graph boundaries, storage wiring, actual HTTP endpoints and executable synthetic examples."
       ]
     ],
     "closing": "Your next process.<br>Your next contribution.",
@@ -481,6 +488,13 @@
     "galleryLink": "Explore travel, seal-use, receiving, payment and contract galleries",
     "galleryNote": "Five dedicated galleries, 104 historical original captures, each labeled by language, viewport and source.",
     "conditionalGalleryLink": "Explore conditional routing for payment, receiving and contracts",
-    "conditionalGalleryNote": "80 historical original screenshots across 20 capture states, covering the designer, partial approval decisions and final states."
+    "conditionalGalleryNote": "80 historical original screenshots across 20 capture states, covering the designer, partial approval decisions and final states.",
+    "screenAlt": "ArcFlow graph designer with FIRST_MATCH amount routing, two independent review paths and a paired ALL join",
+    "graphStartLink": "Start locally and open the graph workspace",
+    "legacyDesignerLink": "Explore the earlier sequential designer",
+    "graphBoundary": "Current scope: standalone Spring Boot + Vue, payment graphs. Up to 32 nodes, 48 edges, 2 nested regions and 2–4 branches per region. No general BPMN, automatic RuoYi/H5 adoption or money movement.",
+    "graphRuntimeAlt": "Payment runtime: business review completed, finance review still pending, and the ALL join shows 1 of 2 branches arrived",
+    "graphRuntimeCaption": "A real running request: one branch has arrived, another is still working. The join cannot release early.",
+    "graphLaunchNote": "After startup, sign in as Alice, open Process designer and choose Graph. Use Graph requests to submit synthetic payments. The screenshots here are not an interactive online demo."
   }
 }

@@ -78,7 +78,7 @@ for (const lang of ['zh','en']) {
     expect(docs.length).toBeGreaterThan(8);
     for(const href of docs) expect(new URL(href).pathname.endsWith(lang==='en'?'.en.md':'.md')).toBe(true);
     if(lang==='zh') for(const href of docs) expect(new URL(href).pathname.endsWith('.en.md')).toBe(false);
-    await expect(page.locator('#command')).toContainText('666ff64b280157e44a86f07a15fcb42f859ec11a');
+    await expect(page.locator('#command')).toContainText('8f7e37ce9bea6a4f04f357fab280a04cb5c885c3');
     await expect(page.locator('.versions')).not.toContainText('Not merged');
     await expect(page.locator('.versions')).not.toContainText('未合并');
   });
@@ -98,5 +98,48 @@ for (const lang of ['zh', 'en']) for (const width of [320, 390]) {
     await expect(entry).toContainText('104');
     await expect(entry).toContainText(lang === 'en' ? '80 historical original screenshots across 20 capture states' : '80 张历史真实原图，来自 20 个采集状态');
     await expect(page.locator('html')).toHaveJSProperty('scrollWidth', width);
+  });
+}
+
+for (const lang of ['zh', 'en']) for (const width of [320, 390]) {
+  test(`${lang} graph showcase, boundaries and original-image dialogs at ${width}px`, async ({page}) => {
+    await page.setViewportSize({width,height:900});
+    await page.goto(lang === 'en' ? './en/' : './');
+    const graph=page.locator('#designer');
+    const suffix=lang==='en'?'.en':'';
+    await expect(graph).toContainText('FIRST_MATCH');
+    await expect(graph).toContainText('ALL / ANY');
+    await expect(graph).toContainText('payment.netTotal');
+    await expect(graph.locator('.graph-boundary')).toContainText(lang==='en'?'standalone Spring Boot + Vue, payment':'独立 Spring Boot 后端 + Vue，付款');
+    await expect(graph.locator('.graph-links a').nth(0)).toHaveAttribute('href',`https://github.com/JamesCube/ArcFlow/blob/main/docs/GRAPH_DESIGNER${suffix}.md`);
+    await expect(graph.locator('.graph-links a').nth(1)).toHaveAttribute('href',`https://github.com/JamesCube/ArcFlow/blob/main/docs/development/QUICKSTART${suffix}.md`);
+    await expect(graph.locator('.graph-links a').nth(2)).toHaveAttribute('href',`https://github.com/JamesCube/ArcFlow/blob/main/docs/DESIGNER_GALLERY${suffix}.md`);
+    await expect(page.locator('.screen-caption')).toContainText('9bb7a84a');
+    await expect(page.locator('.screen-caption')).toContainText(lang==='en'?'does not run the Java':'不运行 Java');
+    await expect(page.locator('.graph-launch-note')).toContainText(lang==='en'?'Process designer and choose Graph':'流程设计器');
+    for (const [selector, filename] of [['.graph-hero',`graph-designer-${lang}-desktop.png`],['.graph-runtime',`graph-waiting-join-${lang}-desktop.png`]]) {
+      const holder=page.locator(selector);const opener=holder.locator('[data-zoom]');const img=holder.locator('img');
+      await opener.scrollIntoViewIfNeeded();
+      await expect(img).toHaveAttribute('src',new RegExp(filename.replaceAll('.','\\.')+'$'));
+      await expect.poll(()=>img.evaluate(i=>i.complete&&i.naturalWidth===1440)).toBe(true);
+      for(let repeat=0;repeat<2;repeat++){
+        await opener.focus();await page.keyboard.press('Enter');
+        await expect(page.getByRole('dialog')).toBeVisible();
+        await expect(page.locator('#dialog-image')).toHaveAttribute('src',new RegExp(filename.replaceAll('.','\\.')+'$'));
+        await expect.poll(()=>page.locator('#dialog-image').evaluate(i=>i.complete&&i.naturalWidth===1440)).toBe(true);
+        await page.keyboard.press('Escape');await expect(page.getByRole('dialog')).not.toBeVisible();await expect(opener).toBeFocused();
+      }
+    }
+    await graph.scrollIntoViewIfNeeded();
+    await expect(page.locator('html')).toHaveJSProperty('scrollWidth',width);
+    // Finish lazy loading the visible page, then capture from the document top.
+    // A full-page screenshot taken mid-scroll can misplace fixed offscreen UI.
+    for (const img of await page.locator('.hero-screen img, .graph-runtime img, .scenario-panel:not([hidden]) img').all()) {
+      await img.scrollIntoViewIfNeeded();
+      await expect.poll(()=>img.evaluate(i=>i.complete&&i.naturalWidth>0)).toBe(true);
+    }
+    await page.evaluate(()=>window.scrollTo({top:0,left:0,behavior:'instant'}));
+    await expect.poll(()=>page.evaluate(()=>window.scrollY)).toBe(0);
+    await page.screenshot({path:`test-results/graph-${lang}-${width}.png`,fullPage:true});
   });
 }

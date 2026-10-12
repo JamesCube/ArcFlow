@@ -44,7 +44,7 @@ for file in DIST.rglob('*.html'):
   if not dest.is_relative_to(DIST.resolve()) or not dest.exists():errors.append(f'{file}: missing {ref}')
  if file.name=='index.html':
   suffix='.en.md' if p.lang=='en' else '.md'
-  for document in ['docs/README','docs/api/API_REFERENCE','docs/development/QUICKSTART','docs/api/README','docs/galleries/README','docs/galleries/conditional-routing/README']:
+  for document in ['docs/README','docs/api/API_REFERENCE','docs/development/QUICKSTART','docs/api/README','docs/galleries/README','docs/galleries/conditional-routing/README','docs/GRAPH_DESIGNER']:
    ref='https://github.com/JamesCube/ArcFlow/blob/main/'+document+suffix
    if ref not in p.refs:errors.append(f'{file}: missing navigation entry {ref}')
   for meta in ['description','og:title','og:description','og:url','og:image','twitter:card']:
@@ -61,4 +61,4 @@ for required in ['.nojekyll','sitemap.xml','robots.txt','assets/social-card.png'
  if not (DIST/required).exists():errors.append('Missing '+required)
 if b'\x89PNG\r\n\x1a\n'!=(DIST/'assets/social-card.png').read_bytes()[:8]:errors.append('Invalid OG PNG')
 if errors:print('\n'.join(errors));sys.exit(1)
-print(f'PASS: {len(files)} HTML pages; internal links; SEO; 10 original screenshot hashes; no external scripts.')
+print(f"PASS: {len(files)} HTML pages; internal links; SEO; {len(manifest['images'])} original screenshot hashes; no external scripts.")
