@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test'
 import { randomUUID, createHash } from 'node:crypto'
 import { writeFileSync } from 'node:fs'
 import { sourceProvenance } from './complex-evidence.mjs'
+import { restartBackend, readPersistedRequest, restartRequestState } from './backend-restart.mjs'
 import { readRenderedGraphState, assertRenderedGraphState, renderedStatusLabel, readGraphCanvasState, readDesignerProperties, assertDesignerProperties } from './graph-rendered-state.mjs'
 const BASE='/graphs/payment', DESKTOP={width:1440,height:1000}, MOBILE={width:390,height:844}
 test.use({locale:'en-GB',timezoneId:'UTC',reducedMotion:'reduce',actionTimeout:15000})
@@ -197,8 +198,41 @@ test('graph workflow: author, persist, preview, execute independent paths, freez
  // Publishing ANY changes only future requests; old request stays frozen ALL.
  await designer(page);await page.getByTestId('graph-node-final').click();await page.getByTestId('graph-vote-mode').selectOption('ANY');await save(page);const next=await publish(page);expect(next.version).toBe(published.version+1)
  const bobContext=await browser.newContext({baseURL:'http://localhost:5173',viewport:DESKTOP,locale:'en-GB'}),carolContext=await browser.newContext({baseURL:'http://localhost:5173',viewport:DESKTOP,locale:'en-GB'});const bob=await bobContext.newPage(),carol=await carolContext.newPage();bob.on('pageerror',e=>errors.push(e.message));carol.on('pageerror',e=>errors.push(e.message));await Promise.all([login(bob,'bob'),login(carol,'carol')]);await select(bob,high.id)
- await expect(bob.getByTestId('graph-approve-finance')).toBeVisible();await expect(bob.getByTestId('graph-approve-businessReview')).toBeVisible();let current=await vote(bob,high,'businessReview');expect(current.forks[0].arrivedBranchIds).toHaveLength(1);expect(current.forks[0].fired).toBe(false);await expect(bob.getByTestId('graph-join-reviewJoin')).toContainText('1 / 2');await capture(bob,info,'waiting-join',current)
- current=await vote(bob,current,'finance');expect(current.tasks.find(t=>t.nodeId==='financeFinal').status).toBe('ACTIVE');expect(current.tasks.some(t=>t.nodeId==='final')).toBe(false);current=await vote(bob,current,'financeFinal');expect(current.forks[0].fired).toBe(true);expect(current.tasks.filter(t=>t.nodeId==='final')).toHaveLength(1);expect(current.tasks.find(t=>t.nodeId==='final').completionMode).toBe('ALL');current=await vote(bob,current,'final');expect(current.status).toBe('PENDING');await select(carol,high.id);current=await vote(carol,current,'final');expect(current.status).toBe('APPROVED');expect(current.definition).toEqual(high.definition);checkpoints.push('same-actor-multiple-tasks-independent-progress-join-once-frozen-ALL')
+ await expect(bob.getByTestId('graph-approve-finance')).toBeVisible();await expect(bob.getByTestId('graph-approve-businessReview')).toBeVisible();let current=await vote(bob,high,'businessReview');expect(current.forks[0].arrivedBranchIds).toHaveLength(1);expect(current.forks[0].fired).toBe(false);await expect(bob.getByTestId('graph-join-reviewJoin')).toContainText('1 / 2')
+ // Stop the actual Java child, retain its frozen store, then use normal auth/UI.
+ const beforeRestart=current, restartWitness=await restartBackend(beforeRestart,await sourceProvenance())
+ expect(restartWitness.backendJarSHA256).toBe((await sourceProvenance()).backendJarSHA256)
+ const unauthorized=await request.get(`http://127.0.0.1:8080/api${BASE}/requests/${high.id}`)
+ expect(unauthorized.status()).toBe(401)
+ await bob.reload()
+ const[identityResponse]=await Promise.all([bob.waitForResponse(response=>response.url().endsWith('/api/me')&&response.request().method()==='GET'),login(bob,'bob')])
+ expect(identityResponse.status()).toBe(200);const authenticatedIdentity=await identityResponse.json();expect(authenticatedIdentity.id).toBe('bob')
+ await select(bob,high.id)
+ const restored=await api(request,'bob',`${BASE}/requests/${high.id}`)
+ expect(restored).toEqual(beforeRestart)
+ expect(restored.definition).toEqual(high.definition)
+ expect(restored.tasks.filter(task=>task.status==='ACTIVE').map(task=>task.nodeId)).toEqual(['finance'])
+ expect(restored.forks[0].arrivedBranchIds).toHaveLength(1);expect(restored.forks[0].expectedBranchIds).toHaveLength(2);expect(restored.forks[0].fired).toBe(false)
+ await expect(bob.getByTestId('graph-join-reviewJoin')).toContainText('1 / 2')
+ restartWitness.unauthenticatedReadStatus=unauthorized.status();restartWitness.authenticatedUser=authenticatedIdentity.id
+ restartWitness.requestBefore=restartRequestState(beforeRestart);restartWitness.requestAfterReady=restartRequestState(restored)
+ restartWitness.renderedAfterReload=assertRenderedGraphState(await bob.getByTestId('graph-runtime').evaluate(readRenderedGraphState),restored)
+ restartWitness.requestAfterAuthenticatedRead=restartRequestState(restored)
+ restartWitness.persistedAfterAuthenticatedRead=await readPersistedRequest(restored)
+ restartWitness.graphFileSHA256AfterAuthenticatedRead=restartWitness.persistedAfterAuthenticatedRead.graphFileSHA256
+ expect(restartWitness.graphFileSHA256AfterAuthenticatedRead).toBe(restartWitness.graphFileSHA256Before)
+ current=restored;await capture(bob,info,'waiting-join',current)
+ checkpoints.push('child-JVM-restart-at-partial-join-unchanged-store-frozen-runtime-normal-auth')
+ current=await vote(bob,current,'finance')
+ restartWitness.persistedAfterDecision=await readPersistedRequest(current)
+ restartWitness.graphFileSHA256AfterDecision=restartWitness.persistedAfterDecision.graphFileSHA256;restartWitness.requestAfterDecision=restartRequestState(current)
+ expect(restartWitness.graphFileSHA256AfterDecision).not.toBe(restartWitness.graphFileSHA256Before)
+ expect(current.commandRevision).toBe(beforeRestart.commandRevision+1)
+ expect(current.commands).toHaveLength(beforeRestart.commands.length+1)
+ expect(current.definition).toEqual(beforeRestart.definition);expect(current.business).toEqual(beforeRestart.business);expect(current.routes).toEqual(beforeRestart.routes)
+ expect(current.commands.slice(0,-1)).toEqual(beforeRestart.commands);expect(current.events.slice(0,beforeRestart.events.length)).toEqual(beforeRestart.events)
+ checkpoints.push('post-restart-durable-decision-changes-store-and-advances-once')
+ expect(current.tasks.find(t=>t.nodeId==='financeFinal').status).toBe('ACTIVE');expect(current.tasks.some(t=>t.nodeId==='final')).toBe(false);current=await vote(bob,current,'financeFinal');expect(current.forks[0].fired).toBe(true);expect(current.tasks.filter(t=>t.nodeId==='final')).toHaveLength(1);expect(current.tasks.find(t=>t.nodeId==='final').completionMode).toBe('ALL');current=await vote(bob,current,'final');expect(current.status).toBe('PENDING');await select(carol,high.id);current=await vote(carol,current,'final');expect(current.status).toBe('APPROVED');expect(current.definition).toEqual(high.definition);checkpoints.push('same-actor-multiple-tasks-independent-progress-join-once-frozen-ALL')
  const low=await submit(page,`low-${suffix}`,{high:false});expect(low.routes[0].selectedEdgeId).toBe('otherwise');expect(low.definition.version).toBe(next.version);expect(low.tasks.map(t=>t.nodeId)).toEqual(['standard']);await select(bob,low.id);let lowState=await vote(bob,low,'standard');lowState=await vote(bob,lowState,'final');expect(lowState.status).toBe('APPROVED');expect(lowState.tasks.find(t=>t.nodeId==='final').votes).toHaveLength(1);await capture(bob,info,'default-approved',lowState);checkpoints.push('default-selected-unselected-skipped-group-ANY')
  await bob.getByTestId('graph-expand-runtime').click();await expect(bob.getByTestId('graph-expand-runtime')).toHaveAttribute('aria-pressed','true');await expect(bob.locator('.gf-request-list')).not.toBeVisible()
  await bob.setViewportSize({width:320,height:844});await expect(bob.locator('.gf-request-list')).toBeVisible();await bob.getByTestId(`graph-request-${high.id}`).click();await expect(bob.getByTestId('graph-runtime')).toHaveAttribute('data-request-id',high.id)
@@ -215,7 +249,7 @@ test('graph workflow: author, persist, preview, execute independent paths, freez
  }
  const width=await page.evaluate(()=>({inner:innerWidth,document:document.documentElement.scrollWidth}));expect(width.document).toBeLessThanOrEqual(width.inner);checkpoints.push('320px-keyboard-properties-escape')
  await captureProperties(page,info,next,'highValue');checkpoints.push('condition-properties-320px-390px-bilingual-paired-regions-visible')
- expect(errors).toEqual([]);writeFileSync(info.outputPath('graph-receipt.json'),JSON.stringify({schemaVersion:1,...await sourceProvenance(),result:'passed',realBackend:true,browser:'Chromium',capturedAt:new Date().toISOString(),checkpoints,requests:[current,lowState,rejectedState].map(value=>({id:value.id,status:value.status,commandRevision:value.commandRevision,definition:value.definition,business:value.business,tasks:value.tasks,forks:value.forks,routes:value.routes,commands:value.commands,events:value.events}))},null,2));await bobContext.close();await carolContext.close()
+ expect(errors).toEqual([]);writeFileSync(info.outputPath('graph-receipt.json'),JSON.stringify({schemaVersion:1,...await sourceProvenance(),result:'passed',realBackend:true,browser:'Chromium',capturedAt:new Date().toISOString(),checkpoints,restartWitness,requests:[current,lowState,rejectedState].map(restartRequestState)},null,2));await bobContext.close();await carolContext.close()
 })
 
 test('graph workflow: distinct actors converge concurrently and recover committed responses with original keys',async({page,browser,request},info)=>{

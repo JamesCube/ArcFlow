@@ -11,6 +11,9 @@ for (const user of ['ALICE', 'BOB', 'CAROL']) {
   process.env[`APPROVAL_${user}_PASSWORD`] ||= randomUUID()
 }
 const dataDirectory = mkdtempSync(join(tmpdir(), 'arcflow-e2e-'))
+// Workers inherit the exact store/control directory used by this webServer.
+process.env.ARCFLOW_TEST_DATA_FILE ||= join(dataDirectory, 'requests.json')
+process.env.ARCFLOW_TEST_RESTART_DIRECTORY ||= mkdtempSync(join(dataDirectory, 'restart-'))
 // Keep the actual launched archive stable if a parallel build repackages target.
 // Evidence hashes this disposable copy, never a later file at the build path.
 prepareBackendArtifact(process.env, dataDirectory, '../approval-demo/backend/target/approval-demo-0.1.0-SNAPSHOT.jar')
@@ -33,7 +36,7 @@ export default defineConfig({
       url: 'http://127.0.0.1:8080/api/me',
       reuseExistingServer: false,
       timeout: 90_000,
-      env: { ...process.env, APPROVAL_DATA_FILE: join(dataDirectory, 'requests.json'), APPROVAL_UI_ORIGIN: 'http://localhost:5173' },
+      env: { ...process.env, APPROVAL_DATA_FILE: process.env.ARCFLOW_TEST_DATA_FILE, APPROVAL_UI_ORIGIN: 'http://localhost:5173' },
     },
     { command: 'npm run dev', url: 'http://localhost:5173', reuseExistingServer: false, timeout: 30_000 },
   ],

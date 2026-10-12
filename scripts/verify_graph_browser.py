@@ -5,6 +5,7 @@ This integrity gate does not replace human visual inspection. It rejects missing
 truncated, cross-revision or incomplete evidence instead of counting PNG files.
 """
 import argparse
+from datetime import datetime
 import hashlib
 import json
 import math
@@ -37,6 +38,8 @@ REQUIRED_CHECKPOINTS = {
     'condition-properties-320px-390px-bilingual-paired-regions-visible',
     'runtime-expanded-resize-restores-request-navigation',
     'four-branches-two-levels-readable-at-320px-and-desktop',
+    'child-JVM-restart-at-partial-join-unchanged-store-frozen-runtime-normal-auth',
+    'post-restart-durable-decision-changes-store-and-advances-once',
 }
 
 def require(condition, message):
@@ -180,6 +183,152 @@ def designer_state(item):
                 'edge': {key: selected[key] for key in ('id', 'label', 'defaultBranch', 'condition')}}
     require(observed == expected, 'Visible designer controls differ from the independently published definition')
 
+RESTART_IDENTITY_FIELDS = ('captureSessionId', 'captureRunId', 'captureRunAttempt', 'captureRepository', 'captureRunUrl')
+FROZEN_REQUEST_FIELDS = ('id', 'submissionKey', 'applicantId', 'createdAt', 'definition', 'business', 'routes')
+TASK_IDENTITY_FIELDS = ('id', 'nodeInstanceId', 'nodeId', 'participants', 'completionMode', 'lineage')
+
+def instant(value):
+    try:
+        parsed = datetime.fromisoformat(value.replace('Z', '+00:00'))
+        require(parsed.tzinfo is not None, 'Restart timestamps must carry an offset')
+        return parsed
+    except (AttributeError, TypeError, ValueError) as error:
+        raise ValueError('Invalid restart timestamp') from error
+
+def restart_state(receipt, backend):
+    """Bind the real process restart to this journey, disk records and a single next transition."""
+    witness = receipt.get('restartWitness')
+    require(isinstance(witness, dict) and witness.get('schemaVersion') == 1
+            and witness.get('result') == 'restarted' and witness.get('platform') == 'linux',
+            'Missing real child-JVM restart witness')
+    require(re.fullmatch(r'[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}',
+                         witness.get('nonce', '')) is not None, 'Invalid restart command nonce')
+    require(all(key in witness and key in receipt and witness[key] == receipt[key] for key in RESTART_IDENTITY_FIELDS)
+            and witness['captureSessionId'] and witness['captureRunId'], 'Restart belongs to a different capture session/run')
+    def process(value):
+        require(isinstance(value, dict) and type(value.get('pid')) is int and value['pid'] > 0
+                and value.get('startTimeSource') == 'linux-proc-stat'
+                and re.fullmatch(r'[1-9][0-9]*', value.get('linuxStartTicks', '')) is not None,
+                'Missing actual Linux process identity')
+        require(instant(value.get('observedAt')) >= instant(value.get('spawnedAt')),
+                'Process was observed before it was started')
+        return value
+    before, after = process(witness.get('processBefore')), process(witness.get('processAfter'))
+    require(before['pid'] != after['pid'] and int(after['linuxStartTicks']) > int(before['linuxStartTicks'])
+            and instant(after['spawnedAt']) > instant(before['spawnedAt']), 'Browser witness reused the original JVM')
+    independent = {}
+    for suffix, expected in [('Before', before), ('After', after)]:
+        observed = independent[suffix] = process(witness.get('independentlyObservedProcess' + suffix))
+        require(all(observed[key] == expected[key] for key in ('pid', 'linuxStartTicks', 'spawnedAt')),
+                'Independent process observation disagrees with the supervisor')
+    exit_info = witness.get('oldProcessExit')
+    require(isinstance(exit_info, dict) and witness.get('exitedBeforeReplacement') is True
+            and witness.get('oldProcessAbsentAfterReady') is True, 'Old JVM exit was not established')
+    require((exit_info.get('code') is None or type(exit_info['code']) is int)
+            and (exit_info.get('signal') is None or isinstance(exit_info['signal'], str))
+            and (exit_info.get('code') is not None or bool(exit_info.get('signal'))), 'Missing child exit result')
+    started, completed, captured = (instant(witness.get('startedAt')), instant(witness.get('completedAt')),
+                                  instant(receipt.get('capturedAt')))
+    exited, ready = instant(exit_info.get('observedAt')), instant(witness.get('readyAt'))
+    require(instant(before['observedAt']) <= started <= instant(independent['Before']['observedAt']) <= exited
+            <= instant(after['spawnedAt']) <= instant(after['observedAt']) <= ready
+            <= instant(independent['After']['observedAt']) <= completed <= captured,
+            'Restart process observations do not belong to the captured journey')
+    hash_fields = ['graphFileSHA256Before', 'graphFileSHA256AfterReady',
+                   'graphFileSHA256AfterAuthenticatedRead', 'graphFileSHA256AfterDecision']
+    require(all(re.fullmatch(r'[0-9a-f]{64}', witness.get(field, '')) is not None for field in hash_fields)
+            and witness.get('backendJarSHA256') == backend, 'Missing restart artifact/store byte hashes')
+    require(witness[hash_fields[0]] == witness[hash_fields[1]] == witness[hash_fields[2]]
+            and witness[hash_fields[3]] != witness[hash_fields[0]], 'Store bytes changed on restart or did not change on a real decision')
+    require(witness.get('unauthenticatedReadStatus') == 401 and witness.get('authenticatedUser') == 'bob',
+            'Restart bypassed normal request authentication')
+    snapshots = [witness.get('request' + suffix) for suffix in ('Before', 'AfterReady', 'AfterAuthenticatedRead', 'AfterDecision')]
+    prior, restored, authenticated, decided = snapshots
+    require(all(isinstance(value, dict) and all(key in value for key in FROZEN_REQUEST_FIELDS +
+                ('status', 'updatedAt', 'commandRevision', 'tasks', 'forks', 'commands', 'events')) for value in snapshots)
+            and prior == restored == authenticated, 'Restart changed or omitted the full frozen request')
+    observations = []
+    for suffix, expected, hash_field in zip(('Before', 'AfterReady', 'AfterAuthenticatedRead', 'AfterDecision'), snapshots, hash_fields):
+        disk = witness.get('persisted' + suffix)
+        require(isinstance(disk, dict) and disk.get('storageSchemaVersion') == 14 and disk.get('request') == expected
+                and disk.get('graphFileSHA256') == witness[hash_field], 'Target request on disk differs from the corresponding HTTP state')
+        observations.append(instant(disk.get('observedAt')))
+    require(started <= observations[0] <= exited and ready <= observations[1] <= completed <= observations[2]
+            <= observations[3] <= captured, 'Persistent snapshots are outside the restart journey')
+    require(prior['status'] == decided['status'] == 'PENDING' and len(prior['forks']) == 1
+            and prior['forks'] == decided['forks'] and prior['forks'][0]['fired'] is False
+            and prior['forks'][0]['arrivedBranchIds'] == ['businessBranch']
+            and set(prior['forks'][0]['expectedBranchIds']) == {'businessBranch', 'financeBranch'},
+            'Restart did not preserve the actual one-of-two parallel join')
+    for field in FROZEN_REQUEST_FIELDS:
+        require(decided[field] == prior[field], 'Post-restart decision changed frozen identity/business/routes')
+    require(type(prior['commandRevision']) is int and type(decided['commandRevision']) is int
+            and decided['commandRevision'] == prior['commandRevision'] + 1
+            and len(prior['commands']) == prior['commandRevision']
+            and len(decided['commands']) == decided['commandRevision']
+            and decided['commands'][:-1] == prior['commands'], 'Post-restart command was lost or advanced more than once')
+    command = decided['commands'][-1]
+    require(command.get('actorId') == 'bob' and command.get('decision') == 'APPROVE'
+            and command.get('id') not in {old['id'] for old in prior['commands']}
+            and observations[2] <= instant(command.get('at')) <= observations[3]
+            and decided['updatedAt'] == command['at'], 'New durable command does not match the authenticated next vote')
+    def tasks_by_node(value):
+        tasks = value['tasks']
+        require(isinstance(tasks, list) and all(isinstance(t, dict) and all(k in t for k in TASK_IDENTITY_FIELDS + ('status', 'votes')) for t in tasks), 'Incomplete restart tasks')
+        require(len({t['id'] for t in tasks}) == len(tasks) == len({t['nodeId'] for t in tasks}), 'Duplicate restart task activation')
+        return {t['nodeId']: t for t in tasks}
+    old_tasks, new_tasks = tasks_by_node(prior), tasks_by_node(decided)
+    require(set(old_tasks) == {'finance', 'businessReview'} and set(new_tasks) == {'finance', 'businessReview', 'financeFinal'},
+            'Post-restart decision activated an unexpected task')
+    finance, completed_finance, successor = old_tasks['finance'], new_tasks['finance'], new_tasks['financeFinal']
+    require(finance['status'] == 'ACTIVE' and finance['votes'] == []
+            and old_tasks['businessReview']['status'] == 'COMPLETED'
+            and old_tasks['businessReview'] == new_tasks['businessReview'], 'Restart rewrote the already completed branch')
+    require(all(completed_finance[key] == finance[key] for key in TASK_IDENTITY_FIELDS)
+            and completed_finance['status'] == 'COMPLETED' and len(completed_finance['votes']) == 1
+            and command.get('taskId') == finance['id'], 'New vote changed the original task identity')
+    vote = completed_finance['votes'][0]
+    require(vote == dict((key, command[key]) for key in ('actorId', 'decision', 'comment', 'at')) | {'commandId': command['id']},
+            'New task vote differs from the committed command')
+    node = next((node for node in prior['definition']['nodes'] if node['id'] == 'financeFinal'), None)
+    require(node and successor == {'id': prior['id'] + ':financeFinal', 'nodeInstanceId': prior['id'] + ':financeFinal',
+                'nodeId': 'financeFinal', 'status': 'ACTIVE', 'participants': node['assigneeIds'],
+                'completionMode': node['completionMode'], 'votes': [], 'lineage': finance['lineage']},
+            'Finance successor is not the expected frozen active task')
+    require(decided['events'][:len(prior['events'])] == prior['events'], 'Restart rewrote prior event history')
+    additions = [('TASK_VOTED', 'finance', finance['id'], 'bob:APPROVE'),
+                 ('TASK_COMPLETED', 'finance', finance['id'], 'Voting rule satisfied'),
+                 ('TASK_ACTIVATED', 'financeFinal', successor['id'], node['name'])]
+    expected_events = [dict(sequence=len(prior['events']) + index + 1, type=kind, nodeId=node_id,
+                            taskId=task_id, detail=detail, at=command['at'])
+                       for index, (kind, node_id, task_id, detail) in enumerate(additions)]
+    require(decided['events'][len(prior['events']):] == expected_events,
+            'Next durable command does not carry exactly its vote/completion/successor events')
+    finals = [request for request in receipt.get('requests', []) if request.get('id') == prior['id']]
+    require(len(finals) == 1, 'Restarted request is missing or duplicated in the completed journey')
+    final = finals[0]
+    require(final.get('status') == 'APPROVED' and all(final.get(key) == prior[key] for key in FROZEN_REQUEST_FIELDS)
+            and final['commands'][:len(decided['commands'])] == decided['commands']
+            and final['events'][:len(decided['events'])] == decided['events'], 'Completed journey does not continue the restarted request')
+    final_tasks = tasks_by_node(final)
+    for name, task in new_tasks.items():
+        actual = final_tasks.get(name)
+        require(actual and all(actual[key] == task[key] for key in TASK_IDENTITY_FIELDS)
+                and actual['votes'][:len(task['votes'])] == task['votes']
+                and (task['status'] != 'COMPLETED' or actual == task), 'Completed journey rewrote a persisted restart task/vote')
+    rendered_state({'state': 'waiting-join', 'request': restored, 'renderedState': witness.get('renderedAfterReload')})
+
+def restart_capture(item, receipt):
+    if item.get('state') != 'waiting-join':
+        return
+    witness = receipt['restartWitness']
+    require(all(item.get(key) == witness[key] for key in RESTART_IDENTITY_FIELDS), 'Waiting screenshot belongs to another restart session')
+    expected = witness['requestAfterReady']
+    keys = ('id', 'status', 'commandRevision', 'definition', 'tasks', 'forks', 'routes', 'commands')
+    require(item.get('request') == {key: expected[key] for key in keys}, 'Waiting screenshot shows a different or stale restarted request')
+    require(instant(witness['persistedAfterAuthenticatedRead']['observedAt']) <= instant(item.get('capturedAt'))
+            <= instant(witness['requestAfterDecision']['commands'][-1]['at']), 'Waiting screenshot was not captured after restart and before the next decision')
+
 def validate(directory, source, backend):
     require(re.fullmatch(r'[0-9a-f]{40}', source) is not None, 'Expected exact source commit SHA')
     receipts = list(directory.rglob('graph-receipt.json'))
@@ -188,6 +337,7 @@ def validate(directory, source, backend):
     provenance(receipt, source, backend)
     require(receipt.get('result') == 'passed' and receipt.get('realBackend') is True and receipt.get('browser') == 'Chromium', 'Real browser journey did not complete')
     require(REQUIRED_CHECKPOINTS <= set(receipt.get('checkpoints', [])), 'Missing required graph user journeys')
+    restart_state(receipt, backend)
     recovery_paths = list(directory.rglob('graph-recovery-receipt.json'))
     require(len(recovery_paths) == 1, 'Exactly one completed concurrency/recovery browser receipt is required')
     recovery = json.loads(recovery_paths[0].read_text())
@@ -218,6 +368,7 @@ def validate(directory, source, backend):
         rendered_state(item)
         canvas_state(item)
         designer_state(item)
+        restart_capture(item, receipt)
         require(item['captureSessionId'] in sessions, 'Mixed browser sessions')
         image = item.get('image')
         require(isinstance(image, str) and Path(image).name == image, 'Unsafe screenshot path')
