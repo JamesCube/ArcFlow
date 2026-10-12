@@ -14,3 +14,11 @@ dialog{padding:0 16px 16px}dialog form{position:sticky;top:0;left:0;height:auto;
 
 /* Keep the five-case evidence entry visible independently of the scenario tabs. */
 .scenario-gallery-entry{margin-top:32px;padding-top:24px;border-top:1px solid #d9e2ce}.scenario-gallery-entry p{margin:12px 0 0;color:var(--muted)}
+
+/* Original graph captures remain intact; thumbnails never alter image bytes. */
+.graph-hero .zoom-link{max-height:none}.graph-hero img{width:100%;max-width:100%;height:auto;transform:none}
+.graph-boundary{font-size:13px;line-height:1.8;color:var(--muted);padding:18px 0;border-block:1px solid var(--line);margin:24px 0}
+.graph-links{display:flex;align-items:flex-start;flex-direction:column;gap:14px}.graph-links .text-link{max-width:100%}
+.graph-runtime{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#e8eee5}.graph-runtime .zoom-link{max-height:660px}.graph-runtime img{width:100%;height:auto}.graph-runtime figcaption{padding:20px;font-size:13px;line-height:1.7;color:var(--muted);background:var(--paper)}
+.graph-launch-note{margin:18px 0;color:var(--ink);font-size:14px;line-height:1.8}
+@media(max-width:600px){.graph-runtime .zoom-link{max-height:480px}.graph-showcase{padding-top:65px}.graph-links .text-link{font-size:13px}}
