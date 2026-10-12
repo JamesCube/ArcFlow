@@ -30,9 +30,11 @@ npm test
 ## Content and assets
 
 - Copy lives in `content.json`, structure in `scripts/build.py`, styles in `style.css`, and progressive enhancement in `app.js`.
-- Feature copy and launch commands are pinned to `666ff64b280157e44a86f07a15fcb42f859ec11a`; all documentation links target the matching language on current main. PRs #39/#40/#41/#42 are merged, but are not thereby included in the older alpha.3 tag.
+- Feature copy and launch commands are pinned to `8f7e37ce9bea6a4f04f357fab280a04cb5c885c3`; all documentation links target the matching language on current main. This includes PR #50 graph support, which is not included in the older alpha.3 tag.
 - Documentation navigation leads to the categorized index, HTTP reference and OpenAPI. Publish revised navigation only after its target documentation is merged.
-- `assets/provenance.json` retains original screenshot paths, commits, CI and SHA-256. Ten original images contain synthetic data only and do not prove current CI or production readiness.
+- `assets/provenance.json` retains original screenshot paths, commits, CI and SHA-256. Fourteen original images contain synthetic data only and do not prove current CI or production readiness.
+- Four graph images are exact originals from accepted commit `9bb7a84a`, run `38193744653`, artifact `11722613201`. Their original artifact paths, dimensions and hashes are recorded in the same provenance file. The complete source images are displayed without editing; previews link to the local originals.
+- The graph guide and local-start links describe the standalone payment workspace. This static site does not host Java or an interactive approval demo.
 - `assets/social-card.svg` is the original editable vector source of the committed 1200×630 PNG. Rebuild with Inkscape after edits; do not fabricate product UI.
 
 <!-- topic:publication -->
