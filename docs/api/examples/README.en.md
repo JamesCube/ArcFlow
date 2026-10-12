@@ -92,3 +92,10 @@ Substitute the path and JSON file in the curl command above. For quote submissio
 The publisher must be Alice; publication increments the version and is not retry-idempotent. Group publication uses process schema 3; the payment rule uses schema 4. Other conditional predicates are documented in the [API reference](../API_REFERENCE.en.md) and [routing contract](../../CONDITIONAL_ROUTING.en.md).
 
 RuoYi uses its own token, permissions, response envelope, and `/arcflow` paths. These Basic-auth commands must not be sent unchanged to RuoYi. See [native host differences](../API_REFERENCE.en.md#ruoyi-native-host).
+
+
+## Structured graph examples
+
+The six `graph-*.json` files belong only to `/api/graphs/payment`. In a fresh graph store, validate `graph-definition.json`, preview `graph-preview.json`, PUT `graph-draft.json`, POST `graph-publish.json`, then submit `graph-payment.json` with an idempotency key. Use `graph-decision.json` on each returned active task URL, with a separate stable command key. The raw files assume published version 1 and draft revision 0 before saving; publication makes version 2. Read the live workspace before adapting them to another state.
+
+The same verifier executes all six raw files, checks server-computed multi-line net total, preview without persistence, two concurrent tasks assigned to Bob, one incomplete fork across host restart, join release and replay-safe terminal approval. Graph responses are validated against their checked-in JSON schemas. It still uses only disposable loopback files, never a production service or database. See the [graph contract](../../GRAPH_DESIGNER.en.md).

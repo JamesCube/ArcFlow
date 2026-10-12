@@ -61,7 +61,7 @@ The domain has nine types, but generic `/api/documents` accepts only `leave`/`pr
 <!-- topic:persistence -->
 ## Persistence and verification
 
-The main file, adjacent quote file, and six scenario files each use single-writer JSON storage. Current readers strictly accept wrappers **1–13**. Files upgrade monotonically when content requires it; definition schema **4** requires wrapper **13**. SQL revision **3** belongs to the separate optional JDBC adapter; this host never switches to a database automatically.
+The main file, adjacent quote file, and six scenario files each use single-writer JSON storage. Legacy readers strictly accept wrappers **1–13**; the separately configured graph reader accepts only its dedicated wrapper **14**. Files upgrade monotonically when content requires it; definition schema **4** requires wrapper **13**. SQL revision **3** belongs to the separate optional JDBC adapter; this host never switches to a database automatically.
 
 Stop incompatible readers/writers, back up every file, and deploy compatible binaries before upgrading. Reads do not rewrite files; format increases save exact immediately-preceding bytes. Restoring an old backup loses later changes. See [persistence and migration](../../../docs/development/PERSISTENCE.en.md#en) for the version matrix and rollout steps.
 
@@ -71,3 +71,8 @@ mvn -f examples/approval-demo/backend/pom.xml verify
 ```
 
 Tests cover HTTP/security and scenario boundaries. After packaging, run relevant live-HTTP and Playwright checks using the [layered checklist](../../../docs/development/QUICKSTART.en.md#en) and [host CI](../../../.github/workflows/approval-demo.yml). Test presence is not a passing current-commit result. Host dependency verification does not replace native RuoYi, H5, or database acceptance.
+
+
+## Structured graph workspace
+
+The standalone host also serves `/api/graphs/payment` for the separate schema-5 payment graph designer and task runtime. It stores graph data in `<APPROVAL_DATA_FILE>.graph.json` (wrapper 14); it does not migrate legacy requests or enable graph execution in RuoYi/mobile. See [graph scope, API, concurrency and restart contract](../../../docs/GRAPH_DESIGNER.en.md).

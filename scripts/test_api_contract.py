@@ -48,7 +48,35 @@ class ContractMutationTests(unittest.TestCase):
             Checker(self.root).check()
 
     def test_baseline(self):
-        self.assertIn('30 controller handlers', Checker(self.root).check())
+        self.assertIn('42 controller handlers', Checker(self.root).check())
+
+    def test_graph_route_inventory_is_standalone_only(self):
+        self.spec(lambda s: s['paths'].pop('/api/graphs/payment/requests/{id}/tasks/{taskId}/decision'))
+        self.rejected('count|omits')
+
+    def test_graph_put_requires_client_header(self):
+        self.spec(lambda s: s['paths']['/api/graphs/payment/draft']['put'].__setitem__('parameters', []))
+        self.rejected('client header')
+
+    def test_graph_decision_requires_command_key(self):
+        self.spec(lambda s: s['paths']['/api/graphs/payment/requests/{id}/tasks/{taskId}/decision']['post'].__setitem__('x-idempotency', 'none'))
+        self.rejected('idempotency')
+
+    def test_graph_missing_nullable_node_field_is_rejected(self):
+        self.mutate_json('docs/api/examples/graph-definition.json', lambda d: d['nodes'][0].pop('pairId'))
+        self.rejected('required fields')
+
+    def test_graph_semantic_cycle_is_rejected(self):
+        self.mutate_json('docs/api/examples/graph-definition.json', lambda d: d['edges'][-1].__setitem__('target', 'fork'))
+        self.rejected('graph degree|graph cycle')
+
+    def test_graph_definition_cannot_claim_expense_facts(self):
+        self.mutate_json('docs/api/examples/graph-definition.json', lambda d: d['edges'][1]['condition'].__setitem__('predicates', [{'field': 'receiving.hasRejectedLines', 'operator': 'EQ', 'expected': True}]))
+        self.rejected('graph fact family')
+
+    def test_graph_response_model_cannot_be_linear(self):
+        self.spec(lambda s: s['paths']['/api/graphs/payment/requests']['post']['responses']['201']['content']['application/json'].__setitem__('schema', {'$ref': '#/components/schemas/Request'}))
+        self.rejected('response model')
 
     def test_missing_real_route(self):
         self.spec(lambda s: s['paths'].pop('/api/scenarios/oa-seal-use/documents'))

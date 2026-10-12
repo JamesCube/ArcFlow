@@ -57,10 +57,10 @@
 
 [简体中文](./API_REFERENCE.md) · [English](./API_REFERENCE.en.md) · [开发文档](../development/README.md)
 
-源码基线：[`main` 提交 `199db7548f6faba5dfef105eaaf7311972adb388`](https://github.com/JamesCube/ArcFlow/tree/199db7548f6faba5dfef105eaaf7311972adb388)。本文描述仓库中已实现的示例宿主接口，不是尚未实现的平台 API。Java 核心 `arcflow-core` 本身不启动 HTTP 服务。
+原顺序 API 源码基线：[`main` 提交 `199db7548f6faba5dfef105eaaf7311972adb388`](https://github.com/JamesCube/ArcFlow/tree/199db7548f6faba5dfef105eaaf7311972adb388)。本文描述仓库中已实现的示例宿主接口，不是尚未实现的平台 API。Java 核心 `arcflow-core` 本身不启动 HTTP 服务。
 
-- [路由清单 JSON](./endpoint-inventory.json)：四个控制器的 30 项离线映射快照，供检查路由漂移；不是 OpenAPI。
-- 静态 OpenAPI 契约：[独立宿主](./openapi/standalone.openapi.json)（21 项操作）、[若依宿主](./openapi/ruoyi.openapi.json)（9 项操作），按各自认证、响应包装和状态码分别描述。
+- [路由清单 JSON](./endpoint-inventory.json)：五个控制器的 42 项离线映射快照，供检查路由漂移；不是 OpenAPI。
+- 静态 OpenAPI 契约：[独立宿主](./openapi/standalone.openapi.json)（33 项操作）、[若依宿主](./openapi/ruoyi.openapi.json)（9 项操作），按各自认证、响应包装和状态码分别描述。
 - [可执行请求示例](./examples/README.md)：使用自己的本地配置和合成数据；不要把密码、Authorization 或真实业务资料写入仓库。
 - 以文末链接的控制器、DTO 和领域校验为准。静态 OpenAPI 文件和可运行 HTTP 示例便于查阅与校验；金额词法精度、UTF-16 长度、跨字段约束、目录授权和并发规则仍由实际宿主验证，不能仅靠结构校验判断请求一定成功。
 
@@ -73,11 +73,12 @@
 | 独立示例 | `/api` | HTTP Basic；直接返回 JSON 对象或数组 | 旧请假、类型化请假/采购、成员收件箱 |
 | 独立六场景 | `/api/scenarios` | 同一 Basic 身份；每场景独立流程和存储 | 费用、出差、用印、收货、付款申请、合同审批 |
 | 独立报价案例 | `/api/crm` | 同一 Basic 身份，加报价版本访问控制 | 合成报价折扣审批 |
+| 独立付款图流程 | `/api/graphs/payment` | 同一 Basic 身份；直接返回图对象 | 草稿/发布、付款预览/提交、任务审批；仅独立宿主 |
 | 若依原生集成层 | `/arcflow` | 若依身份/令牌/RBAC；`AjaxResult` | 旧请假、类型化请假/采购、成员收件箱 |
 
 这些接口不执行付款、签约、用印、采购下单、入库、附件下载、真实 CRM 同步或汇率换算。业务引用是数据字段，不是可下载的文件地址。
 
-以下接口**没有实现**，不要凭名称推断：`/api/auth/me`、`/api/users`、`/api/login`、`/api/session`、`/api/csrf`、独立流程校验端点、`GET /requests/{id}`、更新/删除/撤回申请、审批转交、全宿主统一收件箱。应用未配置 Swagger UI 或自动生成的 `/v3/api-docs`；本目录的 OpenAPI 文件是纳入版本控制的静态契约，不是运行时端点。流程校验在发布命令中执行；页面也有本地校验，但这不构成 HTTP 校验接口。
+以下接口**没有实现**，不要凭名称推断：`/api/auth/me`、`/api/users`、`/api/login`、`/api/session`、`/api/csrf`、通用顺序流程校验端点、通用 `GET /api/requests/{id}`、更新/删除/撤回申请、审批转交、全宿主统一收件箱。应用未配置 Swagger UI 或自动生成的 `/v3/api-docs`；本目录的 OpenAPI 文件是纳入版本控制的静态契约，不是运行时端点。流程校验在发布命令中执行；页面也有本地校验，但这不构成顺序流程 HTTP 校验接口。单独的图工作区提供 `/api/graphs/payment/validate`、`/preview` 和 `/requests/{id}`，详见[图流程契约](../GRAPH_DESIGNER.md)。
 
 <!-- topic:transport -->
 
@@ -96,11 +97,11 @@
 | `X-Arcflow-Client: approval-demo` | 除 GET、HEAD、OPTIONS 外所有方法必须精确匹配；否则 403 |
 | `Origin` | 非浏览器请求可省略；一旦出现必须精确等于配置的界面来源，否则 403；这不等于启用了跨域 CORS |
 | `Sec-Fetch-Site` | 值为 `cross-site` 时一律 403；伪造这个头不能获得授权 |
-| `Idempotency-Key` | 仅提交使用，各宿主规则不同，见 §5 |
+| `Idempotency-Key` | 提交及图任务命令使用，各宿主规则不同，见 §5 和图流程契约 |
 
 浏览器示例通过前端开发代理访问后端；不要把上述来源检查理解为任意站点可跨域调用。这个宿主用严格来源与 Fetch Metadata 请求元数据检查和非简单客户端头保护写请求，Spring CSRF 令牌机制已禁用，不需先获取 CSRF 令牌。
 
-示例目录中的启用用户为 `alice`、`bob`、`carol`。Alice 可发布；Bob/Carol 可作为审批人。所有人可读取自身身份与启用人员简表。读取人员列表不意味着每个人都可被分配审批，发布/提交时还会检查 `canAssignApproval`。申请人不能出现在完整流程的任何审批阶段，包括条件不命中的阶段。
+示例目录中的启用用户为 `alice`、`bob`、`carol`。Alice 可发布；Bob/Carol 可作为审批人。所有人可读取自身身份与启用人员简表。读取人员列表不意味着每个人都可被分配审批，发布/提交时还会检查 `canAssignApproval`。原顺序/场景流程中，申请人不能出现在完整流程的任何审批阶段，包括条件不命中的阶段。
 
 ### 2.2 JSON、数字与版本
 
@@ -115,7 +116,7 @@
 
 ## 3. 路由清单
 
-四个控制器共声明 30 项路由映射：通用审批 9 项、场景 7 项、报价 5 项、若依 9 项。场景计数包含优先匹配的用印专用提交路径。
+五个控制器共声明 42 项路由映射：通用审批 9 项、场景 7 项、报价 5 项、图流程 12 项、若依 9 项。场景计数包含优先匹配的用印专用提交路径。
 
 以下成功状态是实际控制器状态。独立宿主所有新建/重放提交均为 201；没有 `Location` 头契约。其他成功调用为 200。认证失败、状态冲突等见 §10。
 
@@ -593,3 +594,8 @@ python3 scripts/verify_api_examples.py \
 ```
 
 离线检查用于发现控制器映射、静态 OpenAPI 契约及示例之间的漂移，不能替代真实宿主对数字词法、权限和状态转换的验证。HTTP 校验会启动自己的临时独立宿主；它不验证若依登录、MySQL、真实 CRM 或付款服务。完整范围与手工调用步骤见[可执行示例](./examples/README.md)。
+
+
+## 结构化付款审批图 API
+
+独立的 `/api/graphs/payment` 接口族使用定义 schema 5、任务级审批、草稿/发布 CAS 和隔离存储，不改变原顺序/场景接口。详见[完整图流程 API 契约](../GRAPH_DESIGNER.md#http-契约)，包括能力查询、严格字段、权限、幂等和错误返回。

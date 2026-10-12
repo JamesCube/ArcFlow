@@ -1,9 +1,9 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "ArcFlow standalone approval / scenario / quote HTTP API",
+    "title": "ArcFlow standalone approval / scenario / quote / graph HTTP API",
     "version": "0.1.0-SNAPSHOT",
-    "description": "Checked-in contract, not a deployed Swagger endpoint. No login or single-request GET route is implemented. Stateless HTTP Basic. Every unsafe request requires X-Arcflow-Client: approval-demo. Supplied Origin must match the configured UI origin; cross-site Fetch Metadata is rejected. Credentials are configured by the operator. Request-domain operations enforce live identity, effective-route visibility, stage assignment and applicable business ACLs. Generic people/process GET handlers are authenticated metadata reads."
+    "description": "Checked-in contract, not a deployed Swagger endpoint. No login route is implemented. Single-request GET is available only in the isolated graph workspace. Stateless HTTP Basic. Every unsafe request requires X-Arcflow-Client: approval-demo. Supplied Origin must match the configured UI origin; cross-site Fetch Metadata is rejected. Credentials are configured by the operator. Request-domain operations enforce live identity, effective-route visibility, stage assignment and applicable business ACLs. Generic people/process GET handlers are authenticated metadata reads."
   },
   "servers": [
     {
@@ -25,6 +25,9 @@
     },
     {
       "name": "quote"
+    },
+    {
+      "name": "graphs"
     }
   ],
   "paths": {
@@ -1945,6 +1948,1022 @@
         },
         "x-idempotency": "decision-replay"
       }
+    },
+    "/api/graphs/payment/capabilities": {
+      "get": {
+        "operationId": "standalone_graph_capabilities",
+        "tags": [
+          "graphs"
+        ],
+        "summary": "capabilities in the structured payment graph workspace",
+        "description": "Standalone-only graph schema 5; fixed payment document family. Publisher permission required for workspace, draft, validate, preview and publish. Runtime reads are applicant or selected frozen-path participants only; publication rights do not override runtime ACLs. Task commands use authenticated actor and exact task ID.",
+        "x-source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java",
+        "x-handler": "capabilities",
+        "x-java-return": "Capabilities",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Current graph result. Preview does not write; decisions and submissions replay without duplicate side effects.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GraphCapabilities"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current actor, authoring, request visibility, task assignment or Origin/client checks failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Storage unavailable; no change confirmed. Refresh before retrying.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unhandled framework exceptions have no uniform envelope guarantee."
+          }
+        }
+      }
+    },
+    "/api/graphs/payment/process": {
+      "get": {
+        "operationId": "standalone_graph_process",
+        "tags": [
+          "graphs"
+        ],
+        "summary": "process in the structured payment graph workspace",
+        "description": "Standalone-only graph schema 5; fixed payment document family. Publisher permission required for workspace, draft, validate, preview and publish. Runtime reads are applicant or selected frozen-path participants only; publication rights do not override runtime ACLs. Task commands use authenticated actor and exact task ID.",
+        "x-source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java",
+        "x-handler": "process",
+        "x-java-return": "GraphDefinition",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Current graph result. Preview does not write; decisions and submissions replay without duplicate side effects.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GraphDefinition"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current actor, authoring, request visibility, task assignment or Origin/client checks failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Storage unavailable; no change confirmed. Refresh before retrying.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unhandled framework exceptions have no uniform envelope guarantee."
+          }
+        }
+      }
+    },
+    "/api/graphs/payment/workspace": {
+      "get": {
+        "operationId": "standalone_graph_workspace",
+        "tags": [
+          "graphs"
+        ],
+        "summary": "workspace in the structured payment graph workspace",
+        "description": "Standalone-only graph schema 5; fixed payment document family. Publisher permission required for workspace, draft, validate, preview and publish. Runtime reads are applicant or selected frozen-path participants only; publication rights do not override runtime ACLs. Task commands use authenticated actor and exact task ID.",
+        "x-source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java",
+        "x-handler": "workspace",
+        "x-java-return": "GraphApprovalStore.Snapshot",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Current graph result. Preview does not write; decisions and submissions replay without duplicate side effects.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GraphWorkspace"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current actor, authoring, request visibility, task assignment or Origin/client checks failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Storage unavailable; no change confirmed. Refresh before retrying.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unhandled framework exceptions have no uniform envelope guarantee."
+          }
+        }
+      }
+    },
+    "/api/graphs/payment/users": {
+      "get": {
+        "operationId": "standalone_graph_users",
+        "tags": [
+          "graphs"
+        ],
+        "summary": "users in the structured payment graph workspace",
+        "description": "Standalone-only graph schema 5; fixed payment document family. Publisher permission required for workspace, draft, validate, preview and publish. Runtime reads are applicant or selected frozen-path participants only; publication rights do not override runtime ACLs. Task commands use authenticated actor and exact task ID.",
+        "x-source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java",
+        "x-handler": "users",
+        "x-java-return": "List<ApprovalService.Person>",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Current graph result. Preview does not write; decisions and submissions replay without duplicate side effects.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Person"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current actor, authoring, request visibility, task assignment or Origin/client checks failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unhandled framework exceptions have no uniform envelope guarantee."
+          }
+        }
+      }
+    },
+    "/api/graphs/payment/draft": {
+      "put": {
+        "operationId": "standalone_graph_saveDraft",
+        "tags": [
+          "graphs"
+        ],
+        "summary": "saveDraft in the structured payment graph workspace",
+        "description": "Standalone-only graph schema 5; fixed payment document family. Publisher permission required for workspace, draft, validate, preview and publish. Runtime reads are applicant or selected frozen-path participants only; publication rights do not override runtime ACLs. Task commands use authenticated actor and exact task ID.",
+        "x-source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java",
+        "x-handler": "saveDraft",
+        "x-java-return": "GraphApprovalStore.Draft",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ClientHeader"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current graph result. Preview does not write; decisions and submissions replay without duplicate side effects.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GraphDraft"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid strict JSON, shape, graph, business or idempotency key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current actor, authoring, request visibility, task assignment or Origin/client checks failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Draft/publication stale, changed idempotent intent or inactive/conflicting task.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported request media type.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Storage unavailable; no change confirmed. Refresh before retrying.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unhandled framework exceptions have no uniform envelope guarantee."
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GraphDraftInput"
+              },
+              "examples": {
+                "reviewed": {
+                  "externalValue": "../examples/graph-draft.json"
+                }
+              }
+            }
+          }
+        },
+        "x-idempotency": "none"
+      }
+    },
+    "/api/graphs/payment/validate": {
+      "post": {
+        "operationId": "standalone_graph_validate",
+        "tags": [
+          "graphs"
+        ],
+        "summary": "validate in the structured payment graph workspace",
+        "description": "Standalone-only graph schema 5; fixed payment document family. Publisher permission required for workspace, draft, validate, preview and publish. Runtime reads are applicant or selected frozen-path participants only; publication rights do not override runtime ACLs. Task commands use authenticated actor and exact task ID.",
+        "x-source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java",
+        "x-handler": "validate",
+        "x-java-return": "Validation",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ClientHeader"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current graph result. Preview does not write; decisions and submissions replay without duplicate side effects.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GraphValidation"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid strict JSON, shape, graph, business or idempotency key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current actor, authoring, request visibility, task assignment or Origin/client checks failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported request media type.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unhandled framework exceptions have no uniform envelope guarantee."
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GraphDefinition"
+              },
+              "examples": {
+                "reviewed": {
+                  "externalValue": "../examples/graph-definition.json"
+                }
+              }
+            }
+          }
+        },
+        "x-idempotency": "none"
+      }
+    },
+    "/api/graphs/payment/preview": {
+      "post": {
+        "operationId": "standalone_graph_preview",
+        "tags": [
+          "graphs"
+        ],
+        "summary": "preview in the structured payment graph workspace",
+        "description": "Standalone-only graph schema 5; fixed payment document family. Publisher permission required for workspace, draft, validate, preview and publish. Runtime reads are applicant or selected frozen-path participants only; publication rights do not override runtime ACLs. Task commands use authenticated actor and exact task ID.",
+        "x-source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java",
+        "x-handler": "preview",
+        "x-java-return": "GraphInstance",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ClientHeader"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current graph result. Preview does not write; decisions and submissions replay without duplicate side effects.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GraphInstance"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid strict JSON, shape, graph, business or idempotency key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current actor, authoring, request visibility, task assignment or Origin/client checks failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported request media type.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unhandled framework exceptions have no uniform envelope guarantee."
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GraphPreview"
+              },
+              "examples": {
+                "reviewed": {
+                  "externalValue": "../examples/graph-preview.json"
+                }
+              }
+            }
+          }
+        },
+        "x-idempotency": "none"
+      }
+    },
+    "/api/graphs/payment/publish": {
+      "post": {
+        "operationId": "standalone_graph_publish",
+        "tags": [
+          "graphs"
+        ],
+        "summary": "publish in the structured payment graph workspace",
+        "description": "Standalone-only graph schema 5; fixed payment document family. Publisher permission required for workspace, draft, validate, preview and publish. Runtime reads are applicant or selected frozen-path participants only; publication rights do not override runtime ACLs. Task commands use authenticated actor and exact task ID.",
+        "x-source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java",
+        "x-handler": "publish",
+        "x-java-return": "GraphDefinition",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ClientHeader"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current graph result. Preview does not write; decisions and submissions replay without duplicate side effects.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GraphDefinition"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid strict JSON, shape, graph, business or idempotency key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current actor, authoring, request visibility, task assignment or Origin/client checks failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Draft/publication stale, changed idempotent intent or inactive/conflicting task.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported request media type.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Storage unavailable; no change confirmed. Refresh before retrying.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unhandled framework exceptions have no uniform envelope guarantee."
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GraphPublication"
+              },
+              "examples": {
+                "reviewed": {
+                  "externalValue": "../examples/graph-publish.json"
+                }
+              }
+            }
+          }
+        },
+        "x-idempotency": "none"
+      }
+    },
+    "/api/graphs/payment/requests": {
+      "get": {
+        "operationId": "standalone_graph_requests",
+        "tags": [
+          "graphs"
+        ],
+        "summary": "requests in the structured payment graph workspace",
+        "description": "Standalone-only graph schema 5; fixed payment document family. Publisher permission required for workspace, draft, validate, preview and publish. Runtime reads are applicant or selected frozen-path participants only; publication rights do not override runtime ACLs. Task commands use authenticated actor and exact task ID.",
+        "x-source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java",
+        "x-handler": "requests",
+        "x-java-return": "List<GraphInstance>",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Current graph result. Preview does not write; decisions and submissions replay without duplicate side effects.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GraphInstance"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current actor, authoring, request visibility, task assignment or Origin/client checks failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Storage unavailable; no change confirmed. Refresh before retrying.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unhandled framework exceptions have no uniform envelope guarantee."
+          }
+        }
+      },
+      "post": {
+        "operationId": "standalone_graph_submit",
+        "tags": [
+          "graphs"
+        ],
+        "summary": "submit in the structured payment graph workspace",
+        "description": "Standalone-only graph schema 5; fixed payment document family. Publisher permission required for workspace, draft, validate, preview and publish. Runtime reads are applicant or selected frozen-path participants only; publication rights do not override runtime ACLs. Task commands use authenticated actor and exact task ID.",
+        "x-source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java",
+        "x-handler": "submit",
+        "x-java-return": "GraphInstance",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ClientHeader"
+          },
+          {
+            "$ref": "#/components/parameters/RequiredIdempotencyKey"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Current graph result. Preview does not write; decisions and submissions replay without duplicate side effects.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GraphInstance"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid strict JSON, shape, graph, business or idempotency key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current actor, authoring, request visibility, task assignment or Origin/client checks failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Draft/publication stale, changed idempotent intent or inactive/conflicting task.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported request media type.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Storage unavailable; no change confirmed. Refresh before retrying.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unhandled framework exceptions have no uniform envelope guarantee."
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GraphSubmission"
+              },
+              "examples": {
+                "reviewed": {
+                  "externalValue": "../examples/graph-payment.json"
+                }
+              }
+            }
+          }
+        },
+        "x-idempotency": "required-header"
+      }
+    },
+    "/api/graphs/payment/requests/{id}": {
+      "get": {
+        "operationId": "standalone_graph_request",
+        "tags": [
+          "graphs"
+        ],
+        "summary": "request in the structured payment graph workspace",
+        "description": "Standalone-only graph schema 5; fixed payment document family. Publisher permission required for workspace, draft, validate, preview and publish. Runtime reads are applicant or selected frozen-path participants only; publication rights do not override runtime ACLs. Task commands use authenticated actor and exact task ID.",
+        "x-source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java",
+        "x-handler": "request",
+        "x-java-return": "GraphInstance",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Use the returned stable ID and URL-encode the path segment."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current graph result. Preview does not write; decisions and submissions replay without duplicate side effects.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GraphInstance"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current actor, authoring, request visibility, task assignment or Origin/client checks failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Graph request or activated task does not exist.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Storage unavailable; no change confirmed. Refresh before retrying.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unhandled framework exceptions have no uniform envelope guarantee."
+          }
+        }
+      }
+    },
+    "/api/graphs/payment/requests/{id}/tasks/{taskId}/decision": {
+      "post": {
+        "operationId": "standalone_graph_decide",
+        "tags": [
+          "graphs"
+        ],
+        "summary": "decide in the structured payment graph workspace",
+        "description": "Standalone-only graph schema 5; fixed payment document family. Publisher permission required for workspace, draft, validate, preview and publish. Runtime reads are applicant or selected frozen-path participants only; publication rights do not override runtime ACLs. Task commands use authenticated actor and exact task ID.",
+        "x-source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java",
+        "x-handler": "decide",
+        "x-java-return": "GraphInstance",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Use the returned stable ID and URL-encode the path segment."
+          },
+          {
+            "name": "taskId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Use the returned stable ID and URL-encode the path segment."
+          },
+          {
+            "$ref": "#/components/parameters/ClientHeader"
+          },
+          {
+            "$ref": "#/components/parameters/RequiredIdempotencyKey"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current graph result. Preview does not write; decisions and submissions replay without duplicate side effects.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GraphInstance"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid strict JSON, shape, graph, business or idempotency key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current actor, authoring, request visibility, task assignment or Origin/client checks failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Graph request or activated task does not exist.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Draft/publication stale, changed idempotent intent or inactive/conflicting task.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported request media type.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Storage unavailable; no change confirmed. Refresh before retrying.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unhandled framework exceptions have no uniform envelope guarantee."
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GraphDecision"
+              },
+              "examples": {
+                "reviewed": {
+                  "externalValue": "../examples/graph-decision.json"
+                }
+              }
+            }
+          }
+        },
+        "x-idempotency": "required-header"
+      }
     }
   },
   "components": {
@@ -2152,6 +3171,87 @@
       },
       "ScenarioDate": {
         "$ref": "./schemas.json#/$defs/ScenarioDate"
+      },
+      "GraphNodeId": {
+        "$ref": "./schemas.json#/$defs/GraphNodeId"
+      },
+      "GraphKey": {
+        "$ref": "./schemas.json#/$defs/GraphKey"
+      },
+      "GraphNode": {
+        "$ref": "./schemas.json#/$defs/GraphNode"
+      },
+      "GraphEdge": {
+        "$ref": "./schemas.json#/$defs/GraphEdge"
+      },
+      "GraphDefinition": {
+        "$ref": "./schemas.json#/$defs/GraphDefinition"
+      },
+      "GraphDiagnostic": {
+        "$ref": "./schemas.json#/$defs/GraphDiagnostic"
+      },
+      "GraphDraft": {
+        "$ref": "./schemas.json#/$defs/GraphDraft"
+      },
+      "GraphFrame": {
+        "$ref": "./schemas.json#/$defs/GraphFrame"
+      },
+      "GraphVote": {
+        "$ref": "./schemas.json#/$defs/GraphVote"
+      },
+      "GraphTask": {
+        "$ref": "./schemas.json#/$defs/GraphTask"
+      },
+      "GraphFork": {
+        "$ref": "./schemas.json#/$defs/GraphFork"
+      },
+      "GraphEvaluation": {
+        "$ref": "./schemas.json#/$defs/GraphEvaluation"
+      },
+      "GraphRoute": {
+        "$ref": "./schemas.json#/$defs/GraphRoute"
+      },
+      "GraphEvent": {
+        "$ref": "./schemas.json#/$defs/GraphEvent"
+      },
+      "GraphCommand": {
+        "$ref": "./schemas.json#/$defs/GraphCommand"
+      },
+      "GraphInstance": {
+        "$ref": "./schemas.json#/$defs/GraphInstance"
+      },
+      "GraphWorkspace": {
+        "$ref": "./schemas.json#/$defs/GraphWorkspace"
+      },
+      "GraphDraftInput": {
+        "$ref": "./schemas.json#/$defs/GraphDraftInput"
+      },
+      "GraphPublication": {
+        "$ref": "./schemas.json#/$defs/GraphPublication"
+      },
+      "GraphPreview": {
+        "$ref": "./schemas.json#/$defs/GraphPreview"
+      },
+      "GraphSubmission": {
+        "$ref": "./schemas.json#/$defs/GraphSubmission"
+      },
+      "GraphDecision": {
+        "$ref": "./schemas.json#/$defs/GraphDecision"
+      },
+      "GraphValidation": {
+        "$ref": "./schemas.json#/$defs/GraphValidation"
+      },
+      "GraphLimits": {
+        "$ref": "./schemas.json#/$defs/GraphLimits"
+      },
+      "GraphFact": {
+        "$ref": "./schemas.json#/$defs/GraphFact"
+      },
+      "GraphPermissions": {
+        "$ref": "./schemas.json#/$defs/GraphPermissions"
+      },
+      "GraphCapabilities": {
+        "$ref": "./schemas.json#/$defs/GraphCapabilities"
       }
     },
     "securitySchemes": {
@@ -2193,7 +3293,7 @@
     },
     "responses": {}
   },
-  "x-controller-route-count": 21,
+  "x-controller-route-count": 33,
   "x-host": "standalone",
   "x-scenario-catalog": {
     "oa-expense": "expense",

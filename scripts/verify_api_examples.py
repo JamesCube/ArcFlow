@@ -17,6 +17,7 @@ import tempfile
 import time
 import zipfile
 from verify_developer_docs import unique_json
+from check_api_contract import Checker, SPEC_DIR
 import urllib.error
 import urllib.request
 import urllib.parse
@@ -251,8 +252,57 @@ def main():
             foreign = copy.deepcopy(high)
             foreign['business']['currency'] = 'USD'
             call('alice', 'POST', payment_route + '/documents', foreign, 400, 'currency-mismatch')
+            # The separately published graph examples use their own storage and task API.
+            graph_base = '/api/graphs/payment'
+            checker = Checker(ROOT)
+            def graph_schema(value, model='GraphInstance'):
+                checker.validate(value, {'$ref': '#/$defs/' + model}, ROOT / SPEC_DIR / 'schemas.json')
+                return value
+            call(None, 'GET', graph_base + '/process', expected=401)
+            assert graph_schema(call('alice', 'GET', graph_base + '/capabilities'), 'GraphCapabilities')['permissions']['canPublish']
+            assert not call('bob', 'GET', graph_base + '/capabilities')['permissions']['canPublish']
+            assert {p['id'] for p in call('alice', 'GET', graph_base + '/users')} == {'bob', 'carol'}
+            call('bob', 'GET', graph_base + '/workspace', expected=403)
+            workspace = graph_schema(call('alice', 'GET', graph_base + '/workspace'), 'GraphWorkspace')
+            assert graph_schema(call('alice', 'POST', graph_base + '/validate', sample('graph-definition'), raw=raw_sample('graph-definition')), 'GraphValidation') == {'diagnostics': []}
+            preview = graph_schema(call('alice', 'POST', graph_base + '/preview', sample('graph-preview'), raw=raw_sample('graph-preview')))
+            assert preview['routes'][0]['evaluations'][0]['facts'][0]['actualValue'] == 'CNY 6500'
+            assert workspace == call('alice', 'GET', graph_base + '/workspace')
+            assert not call('alice', 'GET', graph_base + '/requests')
+            call('alice', 'PUT', graph_base + '/draft', sample('graph-draft'), 403, client=False)
+            draft = graph_schema(call('alice', 'PUT', graph_base + '/draft', sample('graph-draft'), raw=raw_sample('graph-draft')), 'GraphDraft')
+            assert draft['revision'] == 1
+            published = graph_schema(call('alice', 'POST', graph_base + '/publish', sample('graph-publish'), raw=raw_sample('graph-publish')), 'GraphDefinition')
+            assert published['version'] == 2
+            call('alice', 'POST', graph_base + '/publish', sample('graph-publish'), 409)
+            graph = call('alice', 'POST', graph_base + '/requests', sample('graph-payment'), 201, 'docs-graph-payment', raw=raw_sample('graph-payment'))
+            assert graph['definition'] == published
+            call('carol', 'GET', graph_base + '/requests/' + graph['id'], expected=403)
+            call('alice', 'POST', graph_base + '/requests', dict(sample('graph-payment'), tasks=[]), 400, 'graph-forged')
+            graph_schema(graph)
+            def graph_vote(state, node, command, raw=False):
+                task = next(t for t in state['tasks'] if t['nodeId'] == node)
+                actor = next(a for a in task['participants'] if a not in {v['actorId'] for v in task['votes']})
+                path = graph_base + '/requests/' + state['id'] + '/tasks/' + urllib.parse.quote(task['id'], safe='') + '/decision'
+                result = call(actor, 'POST', path, sample('graph-decision'), key=command, raw=raw_sample('graph-decision') if raw else None)
+                return graph_schema(result)
+            graph = graph_vote(graph, 'low', 'docs-graph-low', raw=True)
+            assert {t['nodeId'] for t in graph['tasks'] if t['status'] == 'ACTIVE'} == {'a', 'b'}
+            graph = graph_vote(graph, 'a', 'docs-graph-a')
+            assert [t['nodeId'] for t in graph['tasks'] if t['status'] == 'ACTIVE'] == ['b']
+            assert not graph['forks'][0]['fired']
             stop()
             start()
+            assert graph == call('alice', 'GET', graph_base + '/requests/' + graph['id'])
+            assert graph == call('alice', 'POST', graph_base + '/requests', sample('graph-payment'), 201, 'docs-graph-payment')
+            graph = graph_vote(graph, 'b', 'docs-graph-b')
+            assert graph['forks'][0]['fired']
+            assert [t['nodeId'] for t in graph['tasks'] if t['status'] == 'ACTIVE'] == ['final']
+            graph = graph_vote(graph, 'final', 'docs-graph-final')
+            assert graph['status'] == 'APPROVED' and graph['commandRevision'] == 4
+            path = graph_base + '/requests/' + graph['id'] + '/tasks/' + urllib.parse.quote(graph['id'] + ':final', safe='') + '/decision'
+            assert graph == call('bob', 'POST', path, sample('graph-decision'), key='docs-graph-final')
+            assert json.loads((directory / 'state.json.graph.json').read_text())['storageSchemaVersion'] == 14
             for route, body, key, approved in saved + conditional:
                 assert approved == call('alice', 'POST', route + '/documents', body, 201, key)
             state = json.loads((directory / 'state.json.scenario-erp-payment.json').read_text())
@@ -260,7 +310,7 @@ def main():
             print(json.dumps({'status': 'PASS', 'backend': 'real packaged standalone Spring Boot 4.1.1',
                               'http_checks': count, 'json_example_files': len(list(EXAMPLES.glob('*.json'))),
                               'business_types': 9, 'scenario_catalog_entries': 6,
-                              'conditional_business_types': 3, 'restart': True,
+                              'conditional_business_types': 3, 'graph_example_files': 6, 'graph_partial_fork_restart': True, 'restart': True,
                               'synthetic_only': True, 'browser': 'not run by this script',
                               'native_ruoyi': 'not run by this standalone script'}, indent=2))
         finally:

@@ -46,3 +46,6 @@ examples/approval-ui/complex-visual-results/
 
 # Conditional-routing real-backend screenshots and provenance
 examples/approval-ui/routing-visual-results/
+
+# Structured-graph real-backend screenshots and provenance
+examples/approval-ui/graph-results/

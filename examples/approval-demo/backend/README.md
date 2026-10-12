@@ -71,3 +71,8 @@ mvn -f examples/approval-demo/backend/pom.xml verify
 ```
 
 测试覆盖 HTTP／安全边界及业务场景；打包后可继续运行真实 HTTP 与 Playwright 检查，见[分层验证清单](../../../docs/development/QUICKSTART.md#zh)和[宿主 CI](../../../.github/workflows/approval-demo.yml)。测试存在不等于当前提交已通过，框架迁移通过也不代替若依／H5／数据库验证。
+
+
+## 结构化审批图工作区
+
+独立后端另提供 `/api/graphs/payment`，用于单独的 schema 5 付款图设计器和任务运行。数据保存在 `<APPROVAL_DATA_FILE>.graph.json`（wrapper 14），不迁移旧申请，也不会自动启用 RuoYi/移动端图流程。详见[图流程范围、API、并发和重启契约](../../../docs/GRAPH_DESIGNER.md)。
