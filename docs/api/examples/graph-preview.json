@@ -1,0 +1,248 @@
+{
+  "definition": {
+    "schemaVersion": 5,
+    "id": "payment-graph",
+    "version": 1,
+    "name": "Payment branching and parallel review",
+    "nodes": [
+      {
+        "id": "start",
+        "type": "start",
+        "name": "Submit",
+        "assigneeIds": [],
+        "completionMode": null,
+        "pairId": null
+      },
+      {
+        "id": "amount",
+        "type": "exclusiveGateway",
+        "name": "Net payment threshold",
+        "assigneeIds": [],
+        "completionMode": null,
+        "pairId": "merge"
+      },
+      {
+        "id": "high",
+        "type": "approval",
+        "name": "High amount",
+        "assigneeIds": [
+          "carol"
+        ],
+        "completionMode": "ALL",
+        "pairId": null
+      },
+      {
+        "id": "low",
+        "type": "approval",
+        "name": "Ordinary amount",
+        "assigneeIds": [
+          "bob"
+        ],
+        "completionMode": "ALL",
+        "pairId": null
+      },
+      {
+        "id": "merge",
+        "type": "exclusiveMerge",
+        "name": "Selected route complete",
+        "assigneeIds": [],
+        "completionMode": null,
+        "pairId": "amount"
+      },
+      {
+        "id": "fork",
+        "type": "parallelFork",
+        "name": "Independent checks",
+        "assigneeIds": [],
+        "completionMode": null,
+        "pairId": "join"
+      },
+      {
+        "id": "a",
+        "type": "approval",
+        "name": "Invoice check",
+        "assigneeIds": [
+          "bob"
+        ],
+        "completionMode": "ALL",
+        "pairId": null
+      },
+      {
+        "id": "b",
+        "type": "approval",
+        "name": "Allocation check",
+        "assigneeIds": [
+          "bob"
+        ],
+        "completionMode": "ALL",
+        "pairId": null
+      },
+      {
+        "id": "join",
+        "type": "parallelJoin",
+        "name": "Both checks done",
+        "assigneeIds": [],
+        "completionMode": null,
+        "pairId": "fork"
+      },
+      {
+        "id": "final",
+        "type": "approval",
+        "name": "Final review",
+        "assigneeIds": [
+          "bob"
+        ],
+        "completionMode": "ALL",
+        "pairId": null
+      },
+      {
+        "id": "end",
+        "type": "end",
+        "name": "Complete",
+        "assigneeIds": [],
+        "completionMode": null,
+        "pairId": null
+      }
+    ],
+    "edges": [
+      {
+        "id": "enter",
+        "source": "start",
+        "target": "amount",
+        "label": "Evaluate",
+        "condition": null,
+        "defaultBranch": false
+      },
+      {
+        "id": "highBranch",
+        "source": "amount",
+        "target": "high",
+        "label": "At least 10000 CNY",
+        "condition": {
+          "mode": "ALL",
+          "predicates": [
+            {
+              "field": "payment.netTotal",
+              "operator": "GTE",
+              "currency": "CNY",
+              "threshold": 10000
+            }
+          ]
+        },
+        "defaultBranch": false
+      },
+      {
+        "id": "lowBranch",
+        "source": "amount",
+        "target": "low",
+        "label": "Otherwise",
+        "condition": null,
+        "defaultBranch": true
+      },
+      {
+        "id": "highMerge",
+        "source": "high",
+        "target": "merge",
+        "label": "High done",
+        "condition": null,
+        "defaultBranch": false
+      },
+      {
+        "id": "lowMerge",
+        "source": "low",
+        "target": "merge",
+        "label": "Low done",
+        "condition": null,
+        "defaultBranch": false
+      },
+      {
+        "id": "parallel",
+        "source": "merge",
+        "target": "fork",
+        "label": "Start checks",
+        "condition": null,
+        "defaultBranch": false
+      },
+      {
+        "id": "branchA",
+        "source": "fork",
+        "target": "a",
+        "label": "Invoice",
+        "condition": null,
+        "defaultBranch": false
+      },
+      {
+        "id": "branchB",
+        "source": "fork",
+        "target": "b",
+        "label": "Allocation",
+        "condition": null,
+        "defaultBranch": false
+      },
+      {
+        "id": "aJoin",
+        "source": "a",
+        "target": "join",
+        "label": "Invoice done",
+        "condition": null,
+        "defaultBranch": false
+      },
+      {
+        "id": "bJoin",
+        "source": "b",
+        "target": "join",
+        "label": "Allocation done",
+        "condition": null,
+        "defaultBranch": false
+      },
+      {
+        "id": "finish",
+        "source": "join",
+        "target": "final",
+        "label": "All complete",
+        "condition": null,
+        "defaultBranch": false
+      },
+      {
+        "id": "exit",
+        "source": "final",
+        "target": "end",
+        "label": "Approved",
+        "condition": null,
+        "defaultBranch": false
+      }
+    ]
+  },
+  "business": {
+    "type": "paymentRequest",
+    "documentVersion": 1,
+    "businessId": "PAY-DEMO-001",
+    "title": "Synthetic developer example",
+    "reason": "Synthetic data for a disposable local test only",
+    "supplierRef": "SUPPLIER-DEMO-A",
+    "currency": "CNY",
+    "requestedPaymentOn": "2099-01-15",
+    "lines": [
+      {
+        "lineId": "line-1",
+        "invoiceRef": "INV-DEMO-01",
+        "description": "Equipment",
+        "invoiceAmount": 10000.0,
+        "previouslySettledAmount": 4000.0,
+        "allocationAmount": 4500.0,
+        "deductionAmount": 500.0,
+        "deductionReason": "Synthetic quality deduction"
+      },
+      {
+        "lineId": "line-2",
+        "invoiceRef": "INV-DEMO-02",
+        "description": "Supplies",
+        "invoiceAmount": 4000.0,
+        "previouslySettledAmount": 0,
+        "allocationAmount": 2500.0,
+        "deductionAmount": 0,
+        "deductionReason": ""
+      }
+    ]
+  }
+}

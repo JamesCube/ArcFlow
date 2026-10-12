@@ -2557,6 +2557,1116 @@
       ],
       "x-min-year": 1,
       "description": "Real calendar date in years 0001–9999 for registered scenarios."
+    },
+    "GraphNodeId": {
+      "type": "string",
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$"
+    },
+    "GraphKey": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "GraphNode": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/GraphNodeId"
+        },
+        "type": {
+          "enum": [
+            "start",
+            "end",
+            "approval",
+            "parallelApproval",
+            "exclusiveGateway",
+            "exclusiveMerge",
+            "parallelFork",
+            "parallelJoin"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "x-java-utf16-max": 120,
+          "x-nonblank": "java-isBlank",
+          "x-no-iso-controls": true
+        },
+        "assigneeIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ActorId"
+          },
+          "maxItems": 16,
+          "uniqueItems": true
+        },
+        "completionMode": {
+          "anyOf": [
+            {
+              "enum": [
+                "ALL",
+                "ANY"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "pairId": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GraphNodeId"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "name",
+        "assigneeIds",
+        "completionMode",
+        "pairId"
+      ],
+      "additionalProperties": false,
+      "description": "Draft shape. Publication additionally enforces human assignment cardinality, ALL single approval and structural node null fields.",
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/graph/GraphDefinition.java",
+        "name": "Node",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "GraphEdge": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/GraphNodeId"
+        },
+        "source": {
+          "$ref": "#/$defs/GraphNodeId"
+        },
+        "target": {
+          "$ref": "#/$defs/GraphNodeId"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "x-java-utf16-max": 120,
+          "x-nonblank": "java-isBlank",
+          "x-no-iso-controls": true
+        },
+        "condition": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RunIf"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "defaultBranch": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "source",
+        "target",
+        "label",
+        "condition",
+        "defaultBranch"
+      ],
+      "additionalProperties": false,
+      "description": "Stable edge ID is a branch ID. Draft can be incomplete. Publication permits payment.netTotal only, one currency, exactly one final default per exclusive gateway; other edges are unconditional/nondefault.",
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/graph/GraphDefinition.java",
+        "name": "Edge",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "GraphDefinition": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "type": "integer",
+          "const": 5,
+          "x-json-integer": true
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,127}(?![\\s\\S])"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647,
+          "x-json-integer": true
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "x-java-utf16-max": 120,
+          "x-nonblank": "java-isBlank",
+          "x-no-iso-controls": true
+        },
+        "nodes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/GraphNode"
+          },
+          "maxItems": 32
+        },
+        "edges": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/GraphEdge"
+          },
+          "maxItems": 48
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "id",
+        "version",
+        "name",
+        "nodes",
+        "edges"
+      ],
+      "additionalProperties": false,
+      "description": "Schema 5 semantic definition. Structural drafts may be incomplete. Publication requires a paired acyclic single-entry/single-exit graph with at most 16 human nodes, two nested regions, 2–4 branches each and 32 total predicate atoms. Node order/coordinates never define execution; exclusive outgoing edge order is FIRST_MATCH.",
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/graph/GraphDefinition.java",
+        "name": "GraphDefinition",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "GraphDiagnostic": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "nodeId": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GraphNodeId"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "edgeId": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GraphNodeId"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "nodeId",
+        "edgeId"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/graph/GraphDefinition.java",
+        "name": "Diagnostic",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "GraphDraft": {
+      "type": "object",
+      "properties": {
+        "revision": {
+          "type": "integer",
+          "minimum": 0,
+          "x-json-integer": true,
+          "maximum": 9223372036854775807
+        },
+        "baseVersion": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647
+        },
+        "definition": {
+          "$ref": "#/$defs/GraphDefinition"
+        }
+      },
+      "required": [
+        "revision",
+        "baseVersion",
+        "definition"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/graph/GraphApprovalStore.java",
+        "name": "Draft",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "GraphFrame": {
+      "type": "object",
+      "properties": {
+        "forkActivationId": {
+          "type": "string"
+        },
+        "branchId": {
+          "$ref": "#/$defs/GraphNodeId"
+        }
+      },
+      "required": [
+        "forkActivationId",
+        "branchId"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/graph/GraphInstance.java",
+        "name": "Frame",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "GraphVote": {
+      "type": "object",
+      "properties": {
+        "actorId": {
+          "$ref": "#/$defs/ActorId"
+        },
+        "decision": {
+          "enum": [
+            "APPROVE",
+            "REJECT"
+          ]
+        },
+        "comment": {
+          "type": "string",
+          "maxLength": 2000,
+          "pattern": "^[^\\x00-\\x08\\x0b-\\x1f\\x7f-\\x9f]*$",
+          "x-java-utf16-max": 2000
+        },
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "commandId": {
+          "$ref": "#/$defs/GraphKey"
+        }
+      },
+      "required": [
+        "actorId",
+        "decision",
+        "comment",
+        "at",
+        "commandId"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/graph/GraphInstance.java",
+        "name": "Vote",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "GraphTask": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "nodeInstanceId": {
+          "type": "string"
+        },
+        "nodeId": {
+          "$ref": "#/$defs/GraphNodeId"
+        },
+        "status": {
+          "enum": [
+            "ACTIVE",
+            "COMPLETED",
+            "REJECTED",
+            "CANCELLED"
+          ]
+        },
+        "participants": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ActorId"
+          },
+          "minItems": 1,
+          "maxItems": 16,
+          "uniqueItems": true
+        },
+        "completionMode": {
+          "enum": [
+            "ALL",
+            "ANY"
+          ]
+        },
+        "votes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/GraphVote"
+          },
+          "maxItems": 16
+        },
+        "lineage": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/GraphFrame"
+          },
+          "maxItems": 2
+        }
+      },
+      "required": [
+        "id",
+        "nodeInstanceId",
+        "nodeId",
+        "status",
+        "participants",
+        "completionMode",
+        "votes",
+        "lineage"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/graph/GraphInstance.java",
+        "name": "Task",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "GraphFork": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "forkId": {
+          "$ref": "#/$defs/GraphNodeId"
+        },
+        "joinId": {
+          "$ref": "#/$defs/GraphNodeId"
+        },
+        "expectedBranchIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/GraphNodeId"
+          },
+          "minItems": 2,
+          "maxItems": 4,
+          "uniqueItems": true
+        },
+        "arrivedBranchIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/GraphNodeId"
+          },
+          "maxItems": 4,
+          "uniqueItems": true
+        },
+        "fired": {
+          "type": "boolean"
+        },
+        "lineage": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/GraphFrame"
+          },
+          "maxItems": 2
+        }
+      },
+      "required": [
+        "id",
+        "forkId",
+        "joinId",
+        "expectedBranchIds",
+        "arrivedBranchIds",
+        "fired",
+        "lineage"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/graph/GraphInstance.java",
+        "name": "Fork",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "GraphEvaluation": {
+      "type": "object",
+      "properties": {
+        "edgeId": {
+          "$ref": "#/$defs/GraphNodeId"
+        },
+        "result": {
+          "type": "boolean"
+        },
+        "facts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/RoutingFact"
+          },
+          "maxItems": 8
+        }
+      },
+      "required": [
+        "edgeId",
+        "result",
+        "facts"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/graph/GraphInstance.java",
+        "name": "Evaluation",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "GraphRoute": {
+      "type": "object",
+      "properties": {
+        "gatewayId": {
+          "$ref": "#/$defs/GraphNodeId"
+        },
+        "selectedEdgeId": {
+          "$ref": "#/$defs/GraphNodeId"
+        },
+        "evaluations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/GraphEvaluation"
+          },
+          "maxItems": 4
+        }
+      },
+      "required": [
+        "gatewayId",
+        "selectedEdgeId",
+        "evaluations"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/graph/GraphInstance.java",
+        "name": "Route",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "GraphEvent": {
+      "type": "object",
+      "properties": {
+        "sequence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9223372036854775807
+        },
+        "type": {
+          "type": "string"
+        },
+        "nodeId": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "taskId": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "detail": {
+          "type": "string"
+        },
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "sequence",
+        "type",
+        "nodeId",
+        "taskId",
+        "detail",
+        "at"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/graph/GraphInstance.java",
+        "name": "Event",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "GraphCommand": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/GraphKey"
+        },
+        "taskId": {
+          "type": "string"
+        },
+        "actorId": {
+          "$ref": "#/$defs/ActorId"
+        },
+        "decision": {
+          "enum": [
+            "APPROVE",
+            "REJECT"
+          ]
+        },
+        "comment": {
+          "type": "string",
+          "maxLength": 2000,
+          "pattern": "^[^\\x00-\\x08\\x0b-\\x1f\\x7f-\\x9f]*$",
+          "x-java-utf16-max": 2000
+        },
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "taskId",
+        "actorId",
+        "decision",
+        "comment",
+        "at"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/graph/GraphInstance.java",
+        "name": "Command",
+        "synthetic": [],
+        "optional": []
+      },
+      "description": "Accepted command receipt. Fresh-key retries of an existing same actor/task/decision bind the key with COMMAND_REPLAYED while preserving the original vote and task state. Exact same-key replay appends nothing. At most 768 replay receipts are accepted, reserving 256 slots for original human votes; exact-key replay remains read-only beyond the alias budget."
+    },
+    "GraphInstance": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "submissionKey": {
+          "$ref": "#/$defs/GraphKey"
+        },
+        "applicantId": {
+          "$ref": "#/$defs/ActorId"
+        },
+        "status": {
+          "enum": [
+            "PENDING",
+            "APPROVED",
+            "REJECTED"
+          ]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "commandRevision": {
+          "type": "integer",
+          "minimum": 0,
+          "x-json-integer": true,
+          "maximum": 9223372036854775807
+        },
+        "definition": {
+          "$ref": "#/$defs/GraphDefinition"
+        },
+        "business": {
+          "$ref": "#/$defs/PaymentRequest"
+        },
+        "tasks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/GraphTask"
+          },
+          "maxItems": 16
+        },
+        "forks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/GraphFork"
+          },
+          "maxItems": 16
+        },
+        "routes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/GraphRoute"
+          },
+          "maxItems": 16
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/GraphEvent"
+          },
+          "minItems": 1,
+          "maxItems": 2048
+        },
+        "commands": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/GraphCommand"
+          },
+          "maxItems": 1024
+        }
+      },
+      "required": [
+        "id",
+        "submissionKey",
+        "applicantId",
+        "status",
+        "createdAt",
+        "updatedAt",
+        "commandRevision",
+        "definition",
+        "business",
+        "tasks",
+        "forks",
+        "routes",
+        "events",
+        "commands"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/graph/GraphInstance.java",
+        "name": "GraphInstance",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "GraphWorkspace": {
+      "type": "object",
+      "properties": {
+        "storageSchemaVersion": {
+          "type": "integer",
+          "const": 14
+        },
+        "definition": {
+          "$ref": "#/$defs/GraphDefinition"
+        },
+        "draft": {
+          "$ref": "#/$defs/GraphDraft"
+        },
+        "requests": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/GraphInstance"
+          },
+          "maxItems": 0
+        }
+      },
+      "required": [
+        "storageSchemaVersion",
+        "definition",
+        "draft",
+        "requests"
+      ],
+      "additionalProperties": false,
+      "description": "Publisher authoring view never includes requests.",
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/graph/GraphApprovalStore.java",
+        "name": "Snapshot",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "GraphDraftInput": {
+      "type": "object",
+      "properties": {
+        "expectedRevision": {
+          "type": "integer",
+          "minimum": 0,
+          "x-json-integer": true,
+          "maximum": 9223372036854775807
+        },
+        "definition": {
+          "$ref": "#/$defs/GraphDefinition"
+        }
+      },
+      "required": [
+        "expectedRevision",
+        "definition"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java",
+        "name": "DraftInput",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "GraphPublication": {
+      "type": "object",
+      "properties": {
+        "expectedVersion": {
+          "type": "integer",
+          "minimum": 1,
+          "x-json-integer": true,
+          "maximum": 2147483647
+        },
+        "expectedDraftRevision": {
+          "type": "integer",
+          "minimum": 0,
+          "x-json-integer": true,
+          "maximum": 9223372036854775807
+        }
+      },
+      "required": [
+        "expectedVersion",
+        "expectedDraftRevision"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java",
+        "name": "Publication",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "GraphPreview": {
+      "type": "object",
+      "properties": {
+        "definition": {
+          "$ref": "#/$defs/GraphDefinition"
+        },
+        "business": {
+          "$ref": "#/$defs/PaymentRequest"
+        }
+      },
+      "required": [
+        "definition",
+        "business"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java",
+        "name": "Preview",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "GraphSubmission": {
+      "type": "object",
+      "properties": {
+        "expectedVersion": {
+          "type": "integer",
+          "minimum": 1,
+          "x-json-integer": true,
+          "maximum": 2147483647
+        },
+        "business": {
+          "$ref": "#/$defs/PaymentRequest"
+        }
+      },
+      "required": [
+        "expectedVersion",
+        "business"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java",
+        "name": "Submission",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "GraphDecision": {
+      "type": "object",
+      "properties": {
+        "decision": {
+          "enum": [
+            "APPROVE",
+            "REJECT"
+          ]
+        },
+        "comment": {
+          "type": "string",
+          "maxLength": 2000,
+          "x-java-utf16-max": 2000,
+          "pattern": "^[^\\x00-\\x08\\x0b-\\x1f\\x7f-\\x9f]*$"
+        }
+      },
+      "required": [
+        "decision",
+        "comment"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java",
+        "name": "Decision",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "GraphValidation": {
+      "type": "object",
+      "properties": {
+        "diagnostics": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/GraphDiagnostic"
+          }
+        }
+      },
+      "required": [
+        "diagnostics"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java",
+        "name": "Validation",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "GraphLimits": {
+      "type": "object",
+      "properties": {
+        "maxNodes": {
+          "type": "integer",
+          "const": 32
+        },
+        "maxEdges": {
+          "type": "integer",
+          "const": 48
+        },
+        "maxHumanNodes": {
+          "type": "integer",
+          "const": 16
+        },
+        "maxRegionDepth": {
+          "type": "integer",
+          "const": 2
+        },
+        "minBranches": {
+          "type": "integer",
+          "const": 2
+        },
+        "maxBranches": {
+          "type": "integer",
+          "const": 4
+        },
+        "maxParticipants": {
+          "type": "integer",
+          "const": 16
+        },
+        "maxPredicateAtoms": {
+          "type": "integer",
+          "const": 32
+        },
+        "maxRuleAtoms": {
+          "type": "integer",
+          "const": 8
+        }
+      },
+      "required": [
+        "maxNodes",
+        "maxEdges",
+        "maxHumanNodes",
+        "maxRegionDepth",
+        "minBranches",
+        "maxBranches",
+        "maxParticipants",
+        "maxPredicateAtoms",
+        "maxRuleAtoms"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java",
+        "name": "Limits",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "GraphFact": {
+      "type": "object",
+      "properties": {
+        "field": {
+          "const": "payment.netTotal"
+        },
+        "type": {
+          "const": "money"
+        },
+        "currencies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Currency"
+          },
+          "minItems": 5,
+          "maxItems": 5,
+          "uniqueItems": true
+        },
+        "operators": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "EQ",
+              "GT",
+              "GTE",
+              "LT",
+              "LTE"
+            ]
+          },
+          "minItems": 5,
+          "maxItems": 5,
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "field",
+        "type",
+        "currencies",
+        "operators"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java",
+        "name": "Fact",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "GraphPermissions": {
+      "type": "object",
+      "properties": {
+        "canPublish": {
+          "type": "boolean"
+        },
+        "canSubmit": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "canPublish",
+        "canSubmit"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java",
+        "name": "Permissions",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "GraphCapabilities": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "const": 5
+        },
+        "businessType": {
+          "const": "paymentRequest"
+        },
+        "nodeTypes": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "start",
+              "end",
+              "approval",
+              "parallelApproval",
+              "exclusiveGateway",
+              "exclusiveMerge",
+              "parallelFork",
+              "parallelJoin"
+            ]
+          },
+          "minItems": 8,
+          "maxItems": 8,
+          "uniqueItems": true
+        },
+        "limits": {
+          "$ref": "#/$defs/GraphLimits"
+        },
+        "facts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/GraphFact"
+          },
+          "minItems": 1,
+          "maxItems": 1
+        },
+        "permissions": {
+          "$ref": "#/$defs/GraphPermissions"
+        },
+        "hosts": {
+          "type": "array",
+          "items": {
+            "const": "standalone"
+          },
+          "minItems": 1,
+          "maxItems": 1
+        },
+        "persistence": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "json",
+              "jdbc-library"
+            ]
+          },
+          "minItems": 2,
+          "maxItems": 2,
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "businessType",
+        "nodeTypes",
+        "limits",
+        "facts",
+        "permissions",
+        "hosts",
+        "persistence"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java",
+        "name": "Capabilities",
+        "synthetic": [],
+        "optional": []
+      }
     }
   }
 }

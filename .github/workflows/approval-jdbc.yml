@@ -40,6 +40,8 @@ jobs:
       - run: mvn --batch-mode --no-transfer-progress install
       - run: mvn --batch-mode --no-transfer-progress -f examples/approval-domain/pom.xml install
       - run: mvn --batch-mode --no-transfer-progress -f examples/approval-jdbc/pom.xml verify
+      - name: Require H2 and PostgreSQL graph transaction behaviors
+        run: python3 scripts/verify_graph_evidence.py --jdbc h2 --jdbc postgresql
       - name: Require actual PostgreSQL execution, never a skipped green build
         run: |
           python3 - <<'PY'
@@ -146,7 +148,9 @@ jobs:
           cache: maven
       - run: mvn --batch-mode --no-transfer-progress install
       - run: mvn --batch-mode --no-transfer-progress -f examples/approval-domain/pom.xml install
-      - run: mvn --batch-mode --no-transfer-progress -f examples/approval-jdbc/pom.xml -Dtest=MysqlApprovalStoreTest verify
+      - run: mvn --batch-mode --no-transfer-progress -f examples/approval-jdbc/pom.xml -Dtest=MysqlApprovalStoreTest,MysqlGraphApprovalStoreTest verify
+      - name: Require MySQL graph transaction behaviors
+        run: python3 scripts/verify_graph_evidence.py --jdbc mysql
       - name: Require actual MySQL execution, never a skipped green build
         run: |
           python3 - <<'PY'

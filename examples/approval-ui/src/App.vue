@@ -6,6 +6,7 @@ import { createSubmissionForms, isRejectedSubmissionVersion } from './submission
 import { validateSubmissionResponse, validateDecisionResponse } from './submission-response'
 import { SUPPORTED_CURRENCIES, InvalidApprovalPayloadError, businessDocumentErrors, procurementTotal, formatMoney, requestBusiness } from './business-document'
 import ProcessDesigner from './ProcessDesigner.vue'
+import GraphWorkspace from './graph/GraphWorkspace.vue'
 import UiIcon from './UiIcon.vue'
 import { appCopy, translate, validationText, apiFailure } from './locale'
 import { approvalNodes, isApproval, participants, pendingParticipants, participantVotes, cloneDefinition, validateDefinition, validatePublicationResponse, stepState } from './process'
@@ -18,6 +19,8 @@ const username = ref('alice'), password = ref(''), me = ref(null)
 const people = ref([]), process = ref(null), draft = ref(null), draftBaseline = ref(''), requests = ref([])
 const busy = ref(false), publishing = ref(false), error = ref(null), notice = ref(null), tab = ref('requests')
 const publishConflict = ref(false)
+const designerMode = ref('sequential'), graphVisited = ref(false)
+watch([tab, designerMode], ([value, mode]) => { if (value === 'graphs' || value === 'process' && mode === 'graph') graphVisited.value = true })
 const requestType = ref('leave'), submissionForms = reactive(createSubmissionForms())
 const activeForm = computed(() => submissionForms[requestType.value] || submissionForms.leave)
 const formValue = (field, type) => computed({
@@ -154,6 +157,7 @@ async function login() {
   finally { if (generation === current) busy.value = false }
 }
 function logout() {
+  graphVisited.value = false; designerMode.value = 'sequential'
   clearAllSubmissions()
   generation++; inbox.dispose(); api.logout(); me.value = null; people.value = []; process.value = null; draft.value = null; draftBaseline.value = ''; requests.value = []
   selectedId.value = null; unconfirmedDecisionIds.value = new Set(); Object.assign(submissionForms, createSubmissionForms()); requestType.value = 'leave'; formAttempted.value = false; comment.value = ''; password.value = ''
@@ -337,19 +341,21 @@ function select(item) { selectedId.value = item.id; comment.value = ''; error.va
         <button data-testid="inbox-tab" :class="{active: tab === 'inbox'}" :aria-current="tab === 'inbox' ? 'page' : undefined" @click="navigate('inbox')"><UiIcon name="review" /><span>{{ t.needsMyReview }}</span></button>
         <button data-testid="handled-tab" :class="{active: tab === 'handled'}" :aria-current="tab === 'handled' ? 'page' : undefined" @click="navigate('handled')"><UiIcon name="review" /><span>{{ t.myDecisions }}</span></button>
         <button data-testid="process-tab" :class="{active: tab === 'process'}" :aria-current="tab === 'process' ? 'page' : undefined" @click="navigate('process')"><UiIcon name="process" /><span>{{ t.processDesigner }}</span></button>
+        <button data-testid="graph-requests-tab" :class="{active: tab === 'graphs'}" :aria-current="tab === 'graphs' ? 'page' : undefined" @click="navigate('graphs')"><UiIcon name="requests" /><span>{{ locale === 'zh' ? '图流程申请' : 'Graph requests' }}</span></button>
       </nav>
       <div class="sidebar-bottom"><span class="avatar">{{ displayName(me).charAt(0) }}</span><div><strong>{{ displayName(me) }}</strong><small>{{ me.id }}</small></div><button class="logout" data-testid="sign-out" @click="logout" :aria-label="t.signOut" :title="t.signOut"><UiIcon name="logout" /></button></div>
     </aside>
     <section class="main-area">
-      <header class="topbar"><span class="breadcrumb">{{ t.workspace }} <span class="slash">/</span> <strong>{{ tab === 'process' ? t.processDesigner : tab === 'handled' ? t.myDecisions : tab === 'inbox' ? t.needsReview : t.businessApprovals }}</strong></span><div class="topbar-actions"><span class="prototype">{{ t.prototype }}</span><label class="workspace-locale"><span>{{ t.languageShort }}</span><select v-model="locale" data-testid="workspace-language" :aria-label="t.language"><option value="en">English</option><option value="zh">简体中文</option></select></label></div></header>
+      <header class="topbar" :class="{ 'has-designer-mode': tab === 'process' }"><span class="breadcrumb">{{ t.workspace }} <span class="slash">/</span> <strong>{{ tab === 'graphs' ? (locale === 'zh' ? '图流程申请' : 'Graph requests') : tab === 'process' ? t.processDesigner : tab === 'handled' ? t.myDecisions : tab === 'inbox' ? t.needsReview : t.businessApprovals }}</strong></span><div v-if="tab === 'process'" class="graph-mode-switch" role="group" :aria-label="locale === 'zh' ? '设计模式' : 'Designer mode'"><button :aria-pressed="designerMode === 'sequential'" data-testid="sequential-mode" @click="designerMode = 'sequential'">{{ locale === 'zh' ? '顺序流程' : 'Sequential' }}</button><button :aria-pressed="designerMode === 'graph'" data-testid="graph-mode" @click="designerMode = 'graph'">{{ locale === 'zh' ? '图流程' : 'Graph' }}</button></div><div class="topbar-actions"><span class="prototype">{{ t.prototype }}</span><label class="workspace-locale"><span>{{ t.languageShort }}</span><select v-model="locale" data-testid="workspace-language" :aria-label="t.language"><option value="en">English</option><option value="zh">简体中文</option></select></label></div></header>
       <div class="content">
         <div class="page-heading"><div>
-          <h1>{{ tab === 'process' ? t.processDesigner : tab === 'handled' ? t.myDecisions : tab === 'inbox' ? t.needsReview : t.businessApprovals }}</h1>
-          <p class="muted">{{ tab === 'process' ? t.designerDescription : isInbox ? t.inboxDescription : t.requestsDescription }}</p>
-        </div><button class="secondary" data-testid="refresh" :disabled="busy" @click="refresh">{{ busy ? t.working : t.refresh }}</button></div>
+          <h1>{{ tab === 'graphs' ? (locale === 'zh' ? '图流程申请' : 'Graph requests') : tab === 'process' ? t.processDesigner : tab === 'handled' ? t.myDecisions : tab === 'inbox' ? t.needsReview : t.businessApprovals }}</h1>
+          <p v-if="tab !== 'graphs'" class="muted">{{ tab === 'process' ? (designerMode === 'graph' ? (locale === 'zh' ? '配置条件分支、并行路径与配对汇合。' : 'Configure conditional branches, parallel paths, and paired joins.') : t.designerDescription) : isInbox ? t.inboxDescription : t.requestsDescription }}</p>
+        </div><button v-if="tab !== 'graphs' && !(tab === 'process' && designerMode === 'graph')" class="secondary" data-testid="refresh" :disabled="busy" @click="refresh">{{ busy ? t.working : t.refresh }}</button></div>
         <p v-if="errorText" class="error" role="alert">{{ errorText }}</p><p v-if="noticeText" class="notice" role="status">{{ noticeText }}</p>
 
-        <ProcessDesigner v-if="draft" v-show="tab === 'process'" v-model="draft" :published="process" :people="people" :editable="canEdit" :busy="busy" :publishing="publishing" :dirty="draftDirty" :stale="staleDraft" :initial-locale="locale" :show-language="false" @update:locale="locale = $event" @publish="publish" @reset="resetDraft" />
+        <GraphWorkspace v-if="graphVisited" v-show="tab === 'graphs' || tab === 'process' && designerMode === 'graph'" :actor="me" :locale="locale" :active="tab === 'graphs' || tab === 'process' && designerMode === 'graph'" :mode="tab === 'graphs' ? 'requests' : 'designer'" @unauthorized="logout" />
+        <ProcessDesigner v-if="draft" v-show="tab === 'process' && designerMode === 'sequential'" v-model="draft" :published="process" :people="people" :editable="canEdit" :busy="busy" :publishing="publishing" :dirty="draftDirty" :stale="staleDraft" :initial-locale="locale" :show-language="false" @update:locale="locale = $event" @publish="publish" @reset="resetDraft" />
 
         <section v-if="tab === 'requests'" class="workspace-summary" :aria-label="t.summary">
           <div class="summary-stat"><span>{{ t.visibleRequests }}</span><strong>{{ requests.length }}</strong></div>
@@ -357,7 +363,7 @@ function select(item) { selectedId.value = item.id; comment.value = ''; error.va
           <div class="summary-stat"><span>{{ t.completedRequests }}</span><strong>{{ completedCount }}</strong></div>
           <div class="summary-stat"><span>{{ t.publishedVersion }}</span><strong>v{{ process?.version }}</strong><small>{{ tr('reviewSteps', { count: publishedApprovals.length }) }}</small></div>
         </section>
-        <div v-if="tab !== 'process'" class="columns">
+        <div v-if="tab !== 'process' && tab !== 'graphs'" class="columns">
           <section class="request-column">
             <form v-if="tab === 'requests'" ref="requestFormElement" class="card new-request" novalidate @submit.prevent="submit">
               <div class="card-heading"><div><p class="eyebrow">{{ t.startHere }}</p><h2>{{ requestType === 'procurement' ? t.newProcurement : t.newRequest }}</h2></div><span class="small-icon"><UiIcon name="arrow" /></span></div>

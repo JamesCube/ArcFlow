@@ -13,7 +13,7 @@ const definition = { schemaVersion: 3, id: 'leave-approval', version: 2, name: '
 const item = { id: 'request-1', title: 'Original title', reason: 'Original reason', days: 1, applicantId: 'alice', approverId: 'bob', currentStepId: 'team', status: 'PENDING', createdAt: '2026-10-05T01:00:00Z', updatedAt: '2026-10-05T01:00:00Z', decision: null, comment: null, processId: 'leave-approval', processVersion: 2, definition, history: [{ action: 'SUBMIT', stepId: null, actorId: 'alice', at: '2026-10-05T01:00:00Z', comment: '' }] }
 const copy = value => structuredClone(value)
 const wrappers = []
-function setup(identity = 'bob', items = [item]) {
+function setup(identity = 'bob', items = [item], mountOptions = {}) {
   const server = { definition: copy(definition), items: copy(items) }
   api.request.mockImplementation(async path => {
     if (path.startsWith('/requests/inbox?')) {
@@ -23,7 +23,7 @@ function setup(identity = 'bob', items = [item]) {
     }
     return copy({ '/me': people.find(person => person.id === identity), '/people': people, '/process': server.definition, '/requests': server.items }[path])
   })
-  const wrapper = mount(App); wrappers.push(wrapper); return { wrapper, server }
+  const wrapper = mount(App, mountOptions); wrappers.push(wrapper); return { wrapper, server }
 }
 const field = (wrapper, id) => wrapper.find(`[data-testid="${id}"]`)
 async function login(wrapper) { await wrapper.find('input[type=password]').setValue('test-only'); await wrapper.find('.login-form').trigger('submit'); await flushPromises() }
@@ -114,6 +114,34 @@ describe('one language throughout the workspace', () => {
     await field(wrapper, 'sign-out').trigger('click')
     expect(wrapper.find('h2').text()).toBe('选择示例账号')
     expect(wrapper.find('input[type=password]').element.value).toBe('')
+  })
+})
+
+describe('designer mode chrome', () => {
+  it.each(['en', 'zh'])('keeps one reachable %s mode group in the top bar without an extra content row', async language => {
+    const { wrapper } = setup('alice', [item], { attachTo: document.body, global: { stubs: { GraphWorkspace: { template: '<section data-testid="graph-workspace-stub" />' } } } })
+    await login(wrapper)
+    await locale(wrapper, language)
+    await field(wrapper, 'process-tab').trigger('click')
+    await field(wrapper, 'process-name').setValue('Preserved sequential draft')
+    const group = wrapper.find('.topbar > .graph-mode-switch')
+    expect(group.exists()).toBe(true)
+    expect(group.attributes('role')).toBe('group')
+    expect(group.attributes('aria-label')).toBe(language === 'zh' ? '设计模式' : 'Designer mode')
+    expect(wrapper.find('.content > .graph-mode-switch').exists()).toBe(false)
+    expect(wrapper.findAll('[data-testid="graph-mode"]')).toHaveLength(1)
+    expect(field(wrapper, 'sequential-mode').attributes('aria-pressed')).toBe('true')
+    expect(field(wrapper, 'workspace-language').exists()).toBe(true)
+    await field(wrapper, 'graph-mode').trigger('click')
+    expect(field(wrapper, 'graph-mode').attributes('aria-pressed')).toBe('true')
+    expect(field(wrapper, 'graph-workspace-stub').isVisible()).toBe(true)
+    expect(wrapper.find('.designer-workbench').isVisible()).toBe(false)
+    await field(wrapper, 'sequential-mode').trigger('click')
+    expect(field(wrapper, 'process-name').element.value).toBe('Preserved sequential draft')
+    expect(wrapper.find('.designer-workbench').isVisible()).toBe(true)
+    await field(wrapper, 'requests-tab').trigger('click')
+    expect(wrapper.find('.graph-mode-switch').exists()).toBe(false)
+    expect(wrapper.find('.topbar').classes()).not.toContain('has-designer-mode')
   })
 })
 

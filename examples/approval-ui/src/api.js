@@ -1,4 +1,5 @@
 import { parseApprovalJson } from './business-document.js'
+import { parseScenarioJson } from './scenarios/scenario-api.js'
 
 // Credentials live only in this closure. No localStorage, cookie, or URL persistence.
 export function createApi(fetcher = (...args) => fetch(...args)) {
@@ -25,7 +26,7 @@ export function createApi(fetcher = (...args) => fetch(...args)) {
         // Check the session before parsing a late body or exposing its errors.
         if (current !== generation || controller.signal.aborted) throw abortError()
         let data
-        try { data = /^\/(?:requests|documents)(?:\/|\?|$)/.test(path) ? parseApprovalJson(raw) : JSON.parse(raw) }
+        try { data = path.startsWith('/graphs/') ? parseScenarioJson(raw) : /^\/(?:requests|documents)(?:\/|\?|$)/.test(path) ? parseApprovalJson(raw) : JSON.parse(raw) }
         catch (cause) { if (response.ok) throw cause; data = null }
         if (current !== generation || controller.signal.aborted) throw abortError()
         if (!response.ok) {

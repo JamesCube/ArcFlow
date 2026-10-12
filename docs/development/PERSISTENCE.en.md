@@ -16,7 +16,7 @@
 [简体中文](PERSISTENCE.md) · [Documentation](../README.en.md)
 
 <!-- topic:keep-three-version-systems-separate -->
-## Keep three version systems separate
+## Keep legacy version systems separate
 
 | Version | Current support | Meaning |
 | --- | --- | --- |
@@ -24,7 +24,9 @@
 | Top-level JSON file `schemaVersion` | Strict readers for 1–13 | Snapshot envelope, submission keys, types, and retained conditional definitions; reading alone never upgrades it |
 | JDBC SQL revision | 3 | Tables, submission keys, and member projection; unrelated to the JSON schema number |
 
-Minimum JSON wrappers depend on saved content:
+These tables describe the legacy linear stores. The isolated [graph workspace](../GRAPH_DESIGNER.en.md#storage-restart-and-host-boundary) uses definition schema 5, JSON `storageSchemaVersion` 14 and separate JDBC graph schema 1; draft, publication, command revision and event sequence remain independent. It neither upgrades nor converts legacy requests.
+
+Minimum legacy JSON wrappers depend on saved content:
 
 | Content | Minimum wrapper |
 | --- | --- |
@@ -49,6 +51,7 @@ Sources: [BusinessDocumentSchema](../../examples/approval-domain/src/main/java/c
 
 `APPROVAL_DATA_FILE` selects the main leave/procurement file. Its default is `./data/requests.json`, relative to the backend working directory. Prefer an absolute path in a private directory. The standalone host also uses:
 
+- Payment graph: base path + `.graph.json`, dedicated wrapper 14
 - Quote: base path + `.quotes.json`
 - Six scenarios: base path + `.scenario-<scenarioId>.json`, with IDs `oa-expense`, `oa-travel`, `oa-seal-use`, `erp-receiving`, `erp-payment`, and `crm-contract`
 
@@ -62,7 +65,7 @@ This is not clustering, network-filesystem support, multiple writers, high avail
 ## JSON rollout and recovery
 
 1. Identify the readable formats of every binary, stop/drain incompatible readers and writers, and prevent mixed old/new writers.
-2. Back up main, quote, and scenario files; record the source revision, configuration, and paths, and restrict access. Do not assemble a cross-file backup while those files are changing.
+2. Back up main, quote, scenario and graph files; record the source revision, configuration, and paths, and restrict access. Do not assemble a cross-file backup while those files are changing.
 3. Deploy compatible binaries. On a backup copy, verify strict restore, history, retries, and pending requests before enabling new business/conditional writes.
 4. Opening an older file does not rewrite it. A successful mutation needing a higher wrapper first saves the **exact immediately preceding bytes** in `.schemaN.bak`; a collision preserves the existing backup and chooses another name. Schema-1 history migrates in memory until a real write occurs.
 5. On failure, preserve originals, backups, and logs, stop further writes, and reconcile the format/recovery plan. Never lower schema numbers, delete history, or remove a lock file to bypass an active writer.

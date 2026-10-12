@@ -178,7 +178,9 @@ public final class ConditionalRouting {
     public static int minimumSnapshotSchema(ProcessDefinition definition) {
         return definition.schemaVersion() == 4 ? SNAPSHOT_SCHEMA : definition.schemaVersion();
     }
-    private static Fact evaluate(Predicate atom, BusinessDocument business) {
+    /** Typed fact evaluation shared by the isolated graph interpreter; never evaluates user code. */
+    public static Fact evaluate(Predicate atom, BusinessDocument business) {
+        validate(atom);
         if (documentClass(atom.field()) != business.getClass()) throw invalid("Routing predicate document type mismatch");
         if (business instanceof BusinessDocument.PaymentRequest payment) {
             if (!payment.currency().equals(atom.currency()))

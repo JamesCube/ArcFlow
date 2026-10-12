@@ -64,7 +64,7 @@ curl --fail-with-body --user bob \
   "$BASE/api/requests/REQUEST_ID/decisions"
 ```
 
-没有独立的单条申请 GET 接口。场景／报价提交响应含 `request` 包装，使用 `response.request.id` 和对应宿主的决策路径；通用提交直接返回申请，使用 `response.id`。不要把响应中的摘要、历史、身份或路由计算结果作为提交字段回传。
+原顺序/场景接口没有单条申请 GET；单独的图 API 有自己的详情接口。场景／报价提交响应含 `request` 包装，使用 `response.request.id` 和对应宿主的决策路径；通用提交直接返回申请，使用 `response.id`。不要把响应中的摘要、历史、身份或路由计算结果作为提交字段回传。
 
 <!-- topic:payload-routes -->
 
@@ -92,3 +92,10 @@ curl --fail-with-body --user bob \
 发布者必须为 Alice；发布会递增版本，不能原样幂等重放。人员组发布使用流程结构版本 3，付款条件使用版本 4。其他条件谓词见[接口参考](../API_REFERENCE.md)和[路由契约](../../CONDITIONAL_ROUTING.md)。
 
 若依使用自己的令牌、权限、响应包装和 `/arcflow` 路径，不能直接套用以上 Basic 认证命令。见[原生宿主差异](../API_REFERENCE.md#ruoyi-native-host)。
+
+
+## 结构化图流程示例
+
+六个 `graph-*.json` 文件只用于 `/api/graphs/payment`。在全新图存储中，依次校验 `graph-definition.json`、预览 `graph-preview.json`、PUT `graph-draft.json`、POST `graph-publish.json`，再带幂等键提交 `graph-payment.json`。将 `graph-decision.json` 发送到返回的准确活动任务 URL，每条命令使用独立且稳定的幂等键。原始文件假设保存前发布版本为 1、草稿修订为 0，发布后为版本 2；用于已有状态前先读取工作区并明确调整版本。
+
+同一个验证程序会发送全部六个原始文件，检查多行净额的后端计算、预览无持久化、Bob 同时持有两个任务、未完成并行分支跨停机重启、汇合释放和终态命令安全重试，并按仓库 JSON Schema 验证图响应。它只使用可删除的回环测试文件，不接触生产服务或数据库。详见[图流程契约](../../GRAPH_DESIGNER.md)。

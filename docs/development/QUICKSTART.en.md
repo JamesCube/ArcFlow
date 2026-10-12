@@ -62,7 +62,7 @@ mvn -f examples/approval-demo/backend/pom.xml spring-boot:run
 
 Accounts are `alice`, `bob`, and `carol`; there are no default passwords. Choose three different demo-only passwords, each at least 12 characters and at most 72 UTF-8 bytes. Missing or out-of-range values fail startup. Alice may publish, and Bob/Carol may be assigned reviews. Keep passwords out of source, URLs, screenshots, and reports.
 
-The backend binds to `127.0.0.1:8080`. Host properties are in [application.properties](../../examples/approval-demo/backend/src/main/resources/application.properties). Data includes the main file and adjacent quote/six-scenario files; see [backup scope](PERSISTENCE.en.md#en).
+The backend binds to `127.0.0.1:8080`. Host properties are in [application.properties](../../examples/approval-demo/backend/src/main/resources/application.properties). Data includes the main file and adjacent quote/six-scenario/graph files; see [backup scope](PERSISTENCE.en.md#en).
 
 <!-- topic:3-run-the-standalone-ui -->
 ## 3. Run the standalone UI

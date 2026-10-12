@@ -21,7 +21,8 @@ DOMAIN = 'examples/approval-domain/src/main/java/com/arcflow/approval/'
 DEMO = 'examples/approval-demo/backend/src/main/java/com/arcflow/demo/'
 RUOYI = 'examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/'
 SOURCE_GUARDS = ({DOMAIN + n + '.java' for n in ('ApprovalService', 'BusinessDocument', 'ConditionalRouting', 'ProcessDefinition', 'ScenarioCatalog', 'ScenarioCase', 'QuoteDiscountCase', 'InboxQuery', 'StrictBusinessTypeResolver')}
-                 | {DEMO + n + '.java' for n in ('ApprovalController', 'ScenarioController', 'QuoteDiscountController', 'SecurityConfig', 'JsonConfig', 'ScenarioConfiguration')}
+                 | {DEMO + n + '.java' for n in ('ApprovalController', 'ScenarioController', 'QuoteDiscountController', 'SecurityConfig', 'JsonConfig', 'ScenarioConfiguration', 'GraphController', 'GraphConfiguration', 'ApprovalConfiguration')}
+                 | {DOMAIN + 'graph/' + n + '.java' for n in ('GraphDefinition', 'GraphInstance', 'GraphEngine', 'GraphApprovalStore', 'GraphApprovalService', 'GraphSamples', 'JsonGraphApprovalStore')}
                  | {RUOYI + n + '.java' for n in ('ArcFlowController', 'ArcFlowErrors', 'ArcFlowConfiguration')})
 METHODS = {'get', 'post', 'put', 'patch', 'delete', 'head', 'options', 'trace'}
 KEYWORDS = {'$schema', '$id', '$defs', '$ref', 'title', 'description', 'type', 'properties',
@@ -162,8 +163,8 @@ def controller_routes(root):
                            'permission': permission[1] if permission else None,
                            'consumes': 'application/json' if 'MediaType.APPLICATION_JSON_VALUE' in args else None,
                            'host': 'ruoyi' if bases[0] == '/arcflow' else 'standalone'}
-    require(len(files) == 4, f'Controller class inventory changed: found {len(files)}, expected 4')
-    require(len(routes) == 30, f'Controller route inventory changed: found {len(routes)}, expected 30')
+    require(len(files) == 5, f'Controller class inventory changed: found {len(files)}, expected 5')
+    require(len(routes) == 42, f'Controller route inventory changed: found {len(routes)}, expected 42')
     return routes
 
 
@@ -359,9 +360,9 @@ class Checker:
                     require(path_parameters == set(re.findall(r'\{([^}]+)\}', endpoint)), f'{key}: path parameter mismatch')
                     for p in parameters: self.lint_schema(p['schema'], path)
                     clients = [p for p in parameters if p['name'] == 'X-Arcflow-Client']
-                    if host == 'standalone' and method == 'post': require(len(clients) == 1 and clients[0]['required'] and clients[0]['schema'] == {'const': 'approval-demo'}, f'{key}: required client header drift')
+                    if host == 'standalone' and method in ('post', 'put'): require(len(clients) == 1 and clients[0]['required'] and clients[0]['schema'] == {'const': 'approval-demo'}, f'{key}: required client header drift')
                     elif host == 'ruoyi': require(not clients, f'{key}: invented native client header')
-                    if method == 'post':
+                    if method in ('post', 'put'):
                         require(op.get('requestBody', {}).get('required') is True, f'{key}: required body missing')
                         for media in op['requestBody']['content'].values():
                             self.lint_schema(media['schema'], path)
@@ -377,23 +378,31 @@ class Checker:
                         require(bool(response.get('description')), f'{key}: response description missing')
                         for media in response.get('content', {}).values(): self.lint_schema(media['schema'], path)
                     self.operation_contract(host, key, op, parameters, path)
-            require(count == spec['x-controller-route-count'] == (21 if host == 'standalone' else 9), f'{host}: operation count drift')
+            require(count == spec['x-controller-route-count'] == (33 if host == 'standalone' else 9), f'{host}: operation count drift')
         require(set(operations) == set(routes), 'OpenAPI omits actual controller handlers')
         files = {p.name for p in (self.root / 'docs/api/examples').glob('*.json')}
-        require(len(files) == 12 and self.examples == files, 'Every one of the 12 request examples must be referenced and schema checked')
+        require(len(files) == 18 and self.examples == files, 'Every one of the 18 request examples must be referenced and schema checked')
         manifest = load_json(self.root / SPEC_DIR / 'source-contract.json')
         require(manifest['formatVersion'] == 1, 'Unknown source review manifest format')
         require(set(manifest['sources']) == SOURCE_GUARDS, 'Source review guard inventory drift')
         for source, digest in manifest['sources'].items():
             require(source_digest(self.root / source) == digest, f'{source}: reviewed semantic source changed; review HTTP contract, schemas and tests before updating its digest')
-        return f'PASS: 30 controller handlers; 2 OpenAPI 3.1 contracts; {len(schemas)} shared models; 9 types; 6 scenarios; 3 condition families; 12 schema-checked examples; {len(manifest["sources"])} source review guards.'
+        return f'PASS: 42 controller handlers; 2 OpenAPI 3.1 contracts; {len(schemas)} shared models; 9 types; 6 scenarios; 3 condition families; 18 schema-checked examples; {len(manifest["sources"])} source review guards.'
 
     def operation_contract(self, host, key, op, parameters, path):
         method, endpoint = key
         required_errors = {'403'} if host == 'ruoyi' else {'401', '403'}
-        if method == 'POST': required_errors |= {'400', '409', '503'} | ({'415'} if host == 'standalone' else set())
+        if method in ('POST', 'PUT'): required_errors |= {'400', '409', '503'} | ({'415'} if host == 'standalone' else set())
         if endpoint.endswith('/inbox'): required_errors |= {'400', '503'}
         if endpoint.endswith('/decisions') or '/scenarios/' in endpoint or endpoint == '/api/crm/documents': required_errors.add('404')
+        if endpoint.startswith('/api/graphs/payment/'):
+            suffix = endpoint.removeprefix('/api/graphs/payment')
+            required_errors = {'401', '403'}
+            if suffix != '/users' and suffix not in ('/validate', '/preview'): required_errors.add('503')
+            if method in ('POST', 'PUT'): required_errors |= {'400', '415'}
+            if method in ('POST', 'PUT') and suffix not in ('/validate', '/preview'): required_errors.add('409')
+            if '{id}' in suffix: required_errors.add('404')
+            require({e for e in op['responses'] if e.isdigit() and int(e) >= 400} == required_errors, f'{key}: graph controlled error status drift')
         require(required_errors <= set(op['responses']), f'{key}: controlled error status missing')
         if endpoint.endswith('/inbox'):
             require({p['name'] for p in parameters if p['in'] == 'query'} == {'box', 'limit', 'status', 'processVersion', 'cursor'}, f'{key}: inbox query drift')
@@ -402,14 +411,25 @@ class Checker:
         if host == 'ruoyi':
             require(set(schema.get('properties', {})) == {'code', 'msg', 'data'} and schema['properties']['code'] == {'type': 'integer', 'const': 200}, f'{key}: native envelope drift')
             schema = schema['properties']['data']
-        expected = 'ScenarioTemplate' if endpoint == '/api/scenarios' else 'NativePerson' if endpoint == '/arcflow/me' else 'Person' if endpoint.endswith(('/me', '/people')) else 'ProcessDefinition' if '/scenarios/' in endpoint and endpoint.endswith('/process') else 'GenericProcessDefinition' if endpoint.endswith('/process') else 'QuoteVersion' if endpoint.endswith('/quotes') else 'InboxPage' if endpoint.endswith('/inbox') else 'ScenarioView' if '/scenarios/' in endpoint else 'QuoteView' if '/crm/' in endpoint else 'Request'
-        is_list = method == 'GET' and (endpoint.endswith(('/people', '/quotes', '/requests')) or endpoint == '/api/scenarios')
+        graph = endpoint.startswith('/api/graphs/payment/')
+        if graph:
+            suffix = endpoint.removeprefix('/api/graphs/payment')
+            responses = {'/capabilities': 'GraphCapabilities', '/process': 'GraphDefinition', '/workspace': 'GraphWorkspace', '/users': 'Person', '/draft': 'GraphDraft', '/validate': 'GraphValidation', '/preview': 'GraphInstance', '/publish': 'GraphDefinition', '/requests': 'GraphInstance', '/requests/{id}': 'GraphInstance', '/requests/{id}/tasks/{taskId}/decision': 'GraphInstance'}
+            expected = responses[suffix]
+            is_list = method == 'GET' and suffix in ('/users', '/requests')
+        else:
+            expected = 'ScenarioTemplate' if endpoint == '/api/scenarios' else 'NativePerson' if endpoint == '/arcflow/me' else 'Person' if endpoint.endswith(('/me', '/people')) else 'ProcessDefinition' if '/scenarios/' in endpoint and endpoint.endswith('/process') else 'GenericProcessDefinition' if endpoint.endswith('/process') else 'QuoteVersion' if endpoint.endswith('/quotes') else 'InboxPage' if endpoint.endswith('/inbox') else 'ScenarioView' if '/scenarios/' in endpoint else 'QuoteView' if '/crm/' in endpoint else 'Request'
+            is_list = method == 'GET' and (endpoint.endswith(('/people', '/quotes', '/requests')) or endpoint == '/api/scenarios')
         wanted = {'$ref': '#/components/schemas/' + expected}
         require(schema == ({'type': 'array', 'items': wanted} if is_list else wanted), f'{key}: response model/wrapper drift')
-        if method == 'POST':
-            expected_body = 'NativeDecision' if host == 'ruoyi' and endpoint.endswith('/decisions') else 'Decision' if endpoint.endswith('/decisions') else 'Publication' if '/scenarios/' in endpoint and endpoint.endswith('/process') else 'GenericPublication' if endpoint.endswith('/process') else 'LegacySubmission' if endpoint.endswith('/requests') else 'SealSubmission' if endpoint.endswith('/oa-seal-use/documents') else 'ScenarioSubmission' if '/scenarios/' in endpoint else 'QuoteSubmission' if '/crm/' in endpoint else 'GenericSubmission'
+        if method in ('POST', 'PUT'):
+            if graph:
+                expected_body = {'/draft': 'GraphDraftInput', '/validate': 'GraphDefinition', '/preview': 'GraphPreview', '/publish': 'GraphPublication', '/requests': 'GraphSubmission', '/requests/{id}/tasks/{taskId}/decision': 'GraphDecision'}[suffix]
+                expected_key = 'required-header' if suffix == '/requests' or suffix.endswith('/decision') else 'none'
+            else:
+                expected_body = 'NativeDecision' if host == 'ruoyi' and endpoint.endswith('/decisions') else 'Decision' if endpoint.endswith('/decisions') else 'Publication' if '/scenarios/' in endpoint and endpoint.endswith('/process') else 'GenericPublication' if endpoint.endswith('/process') else 'LegacySubmission' if endpoint.endswith('/requests') else 'SealSubmission' if endpoint.endswith('/oa-seal-use/documents') else 'ScenarioSubmission' if '/scenarios/' in endpoint else 'QuoteSubmission' if '/crm/' in endpoint else 'GenericSubmission'
+                expected_key = 'forbidden-header-quote-revision' if endpoint == '/api/crm/documents' else 'required-header' if '/scenarios/' in endpoint and endpoint.endswith('/documents') else 'optional-header' if endpoint.endswith(('/documents', '/requests')) else 'decision-replay' if endpoint.endswith('/decisions') else 'none'
             require(op['requestBody']['content']['application/json']['schema'] == {'$ref': '#/components/schemas/' + expected_body}, f'{key}: request DTO/host type drift')
-            expected_key = 'forbidden-header-quote-revision' if endpoint == '/api/crm/documents' else 'required-header' if '/scenarios/' in endpoint and endpoint.endswith('/documents') else 'optional-header' if endpoint.endswith(('/documents', '/requests')) else 'decision-replay' if endpoint.endswith('/decisions') else 'none'
             require(op.get('x-idempotency') == expected_key, f'{key}: idempotency policy drift')
             headers = [p for p in parameters if p['in'] == 'header' and p['name'] == 'Idempotency-Key']
             require(len(headers) == (1 if expected_key in ('required-header', 'optional-header') else 0), f'{key}: idempotency header presence drift')
@@ -455,7 +475,10 @@ class Checker:
                 dates = [line['dueOn'] for line in lines]
                 require(dates == sorted(dates) and all(b['startOn'] <= d <= b['endOn'] for d in dates), f'{where}: milestone dates')
                 require(sum(line['amount'] for line in lines) == b['contractAmount'], f'{where}: milestone total')
-        d = body.get('definition')
+        d = body if body.get('schemaVersion') == 5 else body.get('definition')
+        if d and d.get('schemaVersion') == 5:
+            self.graph_example(d, where)
+            return
         if d:
             nodes = d['nodes']; interior = nodes[1:-1]
             require(nodes[0]['id'] == nodes[0]['type'] == 'start' and nodes[-1]['id'] == nodes[-1]['type'] == 'end', f'{where}: process boundaries')
@@ -470,6 +493,57 @@ class Checker:
                 require(len(predicates) <= 8 and len({p['field'] for p in predicates}) == 1, f'{where}: bounded single condition family required')
                 require(len({p['currency'] for p in predicates if 'currency' in p}) <= 1, f'{where}: inconsistent condition currencies')
                 require(all(p['threshold'] == int(p['threshold']) for p in predicates if p.get('currency') == 'JPY'), f'{where}: fractional JPY threshold')
+
+
+    def graph_example(self, d, where):
+        """Review semantic examples independently; incomplete drafts remain allowed by HTTP."""
+        nodes = {n['id']: n for n in d['nodes']}; edges = d['edges']
+        require(len(nodes) == len(d['nodes']) and len({e['id'] for e in edges}) == len(edges), f'{where}: duplicate graph identity')
+        require(len(nodes) <= 32 and len(edges) <= 48, f'{where}: graph size')
+        starts = [n for n in nodes.values() if n['type'] == 'start']; ends = [n for n in nodes.values() if n['type'] == 'end']
+        require(len(starts) == len(ends) == 1, f'{where}: graph boundaries')
+        outgoing = {n: [] for n in nodes}; incoming = {n: [] for n in nodes}; currencies = set(); atoms = 0
+        humans = {'approval', 'parallelApproval'}; splits = {'exclusiveGateway': 'exclusiveMerge', 'parallelFork': 'parallelJoin'}
+        require(sum(n['type'] in humans for n in nodes.values()) <= 16, f'{where}: graph human limit')
+        for e in edges:
+            require(e['source'] in nodes and e['target'] in nodes, f'{where}: dangling graph edge')
+            outgoing[e['source']].append(e); incoming[e['target']].append(e)
+            if e['condition']:
+                require(nodes[e['source']]['type'] == 'exclusiveGateway' and not e['defaultBranch'], f'{where}: graph condition source')
+                for p in e['condition']['predicates']:
+                    require(p['field'] == 'payment.netTotal', f'{where}: graph fact family')
+                    currencies.add(p['currency']); atoms += 1
+            if nodes[e['source']]['type'] != 'exclusiveGateway': require(not e['defaultBranch'], f'{where}: graph default source')
+        require(len(currencies) <= 1 and atoms <= 32, f'{where}: graph predicate bounds/currency')
+        for id, n in nodes.items():
+            kind = n['type']; ic = len(incoming[id]); oc = len(outgoing[id])
+            require((ic == 0 and oc == 1) if kind == 'start' else (ic == 1 and oc == 0) if kind == 'end' else (ic == 1 and 2 <= oc <= 4) if kind in splits else (2 <= ic <= 4 and oc == 1) if kind in splits.values() else (ic == oc == 1), f'{where}: graph degree')
+            if kind in humans:
+                require(n['pairId'] is None and ((len(n['assigneeIds']) == 1 and n['completionMode'] == 'ALL') if kind == 'approval' else (2 <= len(n['assigneeIds']) <= 16)), f'{where}: graph assignment')
+            else:
+                require(not n['assigneeIds'] and n['completionMode'] is None, f'{where}: graph structural assignment')
+            if kind in splits:
+                pair = nodes.get(n['pairId']); require(pair and pair['type'] == splits[kind] and pair['pairId'] == id, f'{where}: graph pair')
+            if kind == 'exclusiveGateway':
+                branches = outgoing[id]; require(sum(e['defaultBranch'] for e in branches) == 1 and branches[-1]['defaultBranch'], f'{where}: graph default priority')
+                require(all(e['defaultBranch'] != bool(e['condition']) for e in branches), f'{where}: graph branch rule')
+        visited = set()
+        def walk(current, stop, depth):
+            minimum = 0
+            while current != stop:
+                require(current not in visited, f'{where}: graph cycle or shared branch'); visited.add(current)
+                n = nodes[current]; require(n['type'] not in set(splits.values()) | {'end'}, f'{where}: graph region escape')
+                minimum += n['type'] in humans
+                if n['type'] in splits:
+                    require(depth < 2, f'{where}: graph depth')
+                    counts = [walk(e['target'], n['pairId'], depth + 1) for e in outgoing[current]]
+                    require(n['pairId'] not in visited, f'{where}: graph pair reuse'); visited.add(n['pairId'])
+                    minimum += sum(counts) if n['type'] == 'parallelFork' else min(counts)
+                    current = outgoing[n['pairId']][0]['target']
+                else: current = outgoing[current][0]['target']
+            return minimum
+        require(walk(starts[0]['id'], ends[0]['id'], 0) > 0, f'{where}: graph empty approval path')
+        visited.add(ends[0]['id']); require(visited == set(nodes), f'{where}: graph unreachable node')
 
 
 def main():

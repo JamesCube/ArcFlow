@@ -852,6 +852,31 @@
         "content",
         "publication"
       ]
+    },
+    {
+      "path": "docs/GRAPH_DESIGNER.md",
+      "category": "reference",
+      "topics": [
+        "scope",
+        "limits",
+        "authoring",
+        "execution",
+        "http",
+        "storage",
+        "verification"
+      ]
+    },
+    {
+      "path": "examples/approval-jdbc/GRAPH_STORAGE.md",
+      "category": "reference",
+      "topics": [
+        "scope",
+        "installation",
+        "transactions",
+        "retries",
+        "rollback",
+        "verification"
+      ]
     }
   ],
   "historicalSources": [

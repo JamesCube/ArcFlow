@@ -36,10 +36,10 @@
 
 [简体中文](./API_REFERENCE.md) · [English](./API_REFERENCE.en.md) · [Developer guide](../development/README.en.md)
 
-Source baseline: [`main` at `199db7548f6faba5dfef105eaaf7311972adb388`](https://github.com/JamesCube/ArcFlow/tree/199db7548f6faba5dfef105eaaf7311972adb388). This reference describes the example hosts implemented in this repository. It is not a specification for an unimplemented platform API. The Java `arcflow-core` library does not start an HTTP server.
+Original linear API source baseline: [`main` at `199db7548f6faba5dfef105eaaf7311972adb388`](https://github.com/JamesCube/ArcFlow/tree/199db7548f6faba5dfef105eaaf7311972adb388). This reference describes the example hosts implemented in this repository. It is not a specification for an unimplemented platform API. The Java `arcflow-core` library does not start an HTTP server.
 
-- [Endpoint inventory JSON](./endpoint-inventory.json): 30 offline mappings from the four Controllers for detecting route drift; this is not OpenAPI.
-- Static OpenAPI contracts: [standalone host](./openapi/standalone.openapi.json) (21 operations) and [RuoYi host](./openapi/ruoyi.openapi.json) (9 operations), with separate authentication, envelopes and status codes.
+- [Endpoint inventory JSON](./endpoint-inventory.json): 42 offline mappings from the five Controllers for detecting route drift; this is not OpenAPI.
+- Static OpenAPI contracts: [standalone host](./openapi/standalone.openapi.json) (33 operations) and [RuoYi host](./openapi/ruoyi.openapi.json) (9 operations), with separate authentication, envelopes and status codes.
 - [Executable request examples](./examples/README.en.md): use your own local configuration and synthetic data. Never commit passwords, Authorization headers or real business information.
 - Controller, DTO and domain-validation source links at the end are authoritative. The static OpenAPI files and executable HTTP examples support inspection and verification. Numeric token precision, raw UTF-16 lengths, cross-field rules, authorization and concurrency remain server-enforced contracts; structural validation alone cannot guarantee that a request succeeds.
 
@@ -52,11 +52,12 @@ Source baseline: [`main` at `199db7548f6faba5dfef105eaaf7311972adb388`](https://
 | Standalone example | `/api` | HTTP Basic; direct JSON objects/arrays | Legacy leave, typed leave/procurement, member inbox |
 | Standalone scenarios | `/api/scenarios` | Same Basic identity; separate process/store per scenario | Expense, travel, seal use, receiving, payment request, contract review |
 | Dedicated quote example | `/api/crm` | Same Basic identity plus quote-revision ACL | Synthetic quote-discount review |
+| Structured payment graph | `/api/graphs/payment` | Same Basic identity; direct graph objects | Draft/publish, typed payment preview/submission, task decisions; standalone only |
 | Native RuoYi overlay | `/arcflow` | RuoYi identity/token/RBAC; `AjaxResult` | Legacy leave, typed leave/procurement, member inbox |
 
 These APIs do not make payments, sign contracts, apply seals, place purchase orders, post inventory, download attachments, synchronize a live CRM or convert currencies. A business reference is a data field, not a downloadable file URL.
 
-The following are **not implemented**: `/api/auth/me`, `/api/users`, `/api/login`, `/api/session`, `/api/csrf`, a separate process-validation endpoint, `GET /requests/{id}`, request editing/deletion/withdrawal, approval delegation, or a cross-host unified inbox. The application has no configured Swagger UI or generated `/v3/api-docs`; the OpenAPI files in this directory are version-controlled static contracts, not runtime endpoints. Publication validates a definition as part of the command. Frontend validation does not constitute an HTTP validation API.
+The following are **not implemented**: `/api/auth/me`, `/api/users`, `/api/login`, `/api/session`, `/api/csrf`, a generic linear process-validation endpoint, generic `GET /api/requests/{id}`, request editing/deletion/withdrawal, approval delegation, or a cross-host unified inbox. The application has no configured Swagger UI or generated `/v3/api-docs`; the OpenAPI files in this directory are version-controlled static contracts, not runtime endpoints. Publication validates a definition as part of the command. Frontend validation does not constitute a linear HTTP validation API. The separate graph workspace provides `/api/graphs/payment/validate`, `/preview`, and `/requests/{id}` as documented in the [graph contract](../GRAPH_DESIGNER.en.md).
 
 <!-- topic:transport -->
 
@@ -75,11 +76,11 @@ Every `/api/**` request requires HTTP Basic. Server credentials come from `APPRO
 | `X-Arcflow-Client: approval-demo` | Required with this exact value for every method except GET, HEAD and OPTIONS; otherwise 403. |
 | `Origin` | A non-browser client may omit it. If present, it must exactly equal the configured UI Origin; otherwise 403. This does not enable cross-origin CORS. |
 | `Sec-Fetch-Site` | `cross-site` is rejected with 403. Spoofing a header does not confer authorization. |
-| `Idempotency-Key` | Used for submission only, with host-specific rules in §5. |
+| `Idempotency-Key` | Used for submissions and graph task commands; see the host-specific rules in §5 and the graph contract. |
 
 The browser example uses a frontend development proxy. Origin validation does not mean arbitrary sites can call the backend through CORS. Strict Origin/Fetch-Metadata checks and the non-simple client header protect writes; Spring's CSRF-token mechanism is disabled, so clients do not fetch a CSRF token first.
 
-The demo directory contains active `alice`, `bob` and `carol`. Alice may publish; Bob and Carol are eligible approval assignees. All can read their identity and the active-person summary list. Being listed does not automatically imply assignment eligibility: publication/submission additionally check `canAssignApproval`. The applicant cannot appear in any approval stage in the full definition, even a conditional stage that would not run.
+The demo directory contains active `alice`, `bob` and `carol`. Alice may publish; Bob and Carol are eligible approval assignees. All can read their identity and the active-person summary list. Being listed does not automatically imply assignment eligibility: publication/submission additionally check `canAssignApproval`. For the legacy linear/scenario APIs, the applicant cannot appear in any approval stage in the full definition, even a conditional stage that would not run.
 
 ### 2.2 JSON, numbers and versions
 
@@ -94,7 +95,7 @@ The demo directory contains active `alice`, `bob` and `carol`. Alice may publish
 
 ## 3. Endpoint inventory
 
-The four Controllers declare 30 mappings: 9 generic, 7 scenario, 5 quote and 9 RuoYi mappings. The scenario count includes the literal seal-use submission path, which takes precedence over the scenario template.
+The five Controllers declare 42 mappings: 9 generic, 7 scenario, 5 quote, 12 graph and 9 RuoYi mappings. The scenario count includes the literal seal-use submission path, which takes precedence over the scenario template.
 
 The success codes below are the actual Controller statuses. All standalone submissions return 201, including successful replays; no `Location` response header is promised. Other successful operations return 200. See §10 for errors.
 
@@ -116,7 +117,7 @@ Source: [ApprovalController.java](../../examples/approval-demo/backend/src/main/
 
 A `Person` is `{ "id":"alice", "displayName":"Alice" }`. Standalone `/api/me` does **not** include `canPublish`; native `/arcflow/me` adds that field.
 
-Lists already include complete request snapshots and history. Detail views use those returned objects; there is no separate detail endpoint. The list is unpaged, has no ordering guarantee, and does not turn arbitrary query parameters into filters. Prefer the bounded inbox for pending/handled work.
+Lists already include complete request snapshots and history. Detail views use those returned objects; there is no separate generic linear detail endpoint. Graph requests have their own detail endpoint. The list is unpaged, has no ordering guarantee, and does not turn arbitrary query parameters into filters. Prefer the bounded inbox for pending/handled work.
 
 ### 3.2 Registered scenarios
 
@@ -574,3 +575,8 @@ python3 scripts/verify_api_examples.py \
 ```
 
 The offline check detects drift between Controller mappings, static OpenAPI contracts and examples. It does not replace real-host validation of numeric tokens, authorization or state transitions. The HTTP verifier starts its own temporary standalone host; it does not verify RuoYi login, MySQL, a live CRM or payment services. See the [executable examples](./examples/README.en.md) for the full scope and manual requests.
+
+
+## Structured payment graph API
+
+The separate `/api/graphs/payment` family uses definition schema 5, task-level decisions, draft/publication compare-and-swap and isolated storage. It does not change the linear/scenario contracts below. See the [complete graph API reference](../GRAPH_DESIGNER.en.md#http-contract), including capabilities, strict fields, permissions, idempotency and errors.

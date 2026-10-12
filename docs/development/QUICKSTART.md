@@ -62,7 +62,7 @@ mvn -f examples/approval-demo/backend/pom.xml spring-boot:run
 
 三个账号是 `alice`、`bob`、`carol`，没有默认密码。选择三个不同的演示专用密码，每个至少 12 个字符、最多 72 个 UTF-8 字节；启动会拒绝缺失或不符合长度的值。Alice 可发布，Bob／Carol 为可选审批人。不要将密码放入源码、URL、截图或报告。
 
-后端绑定 `127.0.0.1:8080`。环境变量对应的宿主配置在 [application.properties](../../examples/approval-demo/backend/src/main/resources/application.properties)。数据包括主文件及报价／六场景的相邻文件，备份范围见[存储说明](PERSISTENCE.md#zh)。
+后端绑定 `127.0.0.1:8080`。环境变量对应的宿主配置在 [application.properties](../../examples/approval-demo/backend/src/main/resources/application.properties)。数据包括主文件及报价／六场景／图流程的相邻文件，备份范围见[存储说明](PERSISTENCE.md#zh)。
 
 <!-- topic:3-run-the-standalone-ui -->
 ## 3. 启动独立界面
