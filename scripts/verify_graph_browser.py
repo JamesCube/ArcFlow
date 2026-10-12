@@ -40,6 +40,7 @@ REQUIRED_CHECKPOINTS = {
     'four-branches-two-levels-readable-at-320px-and-desktop',
     'child-JVM-restart-at-partial-join-unchanged-store-frozen-runtime-normal-auth',
     'post-restart-durable-decision-changes-store-and-advances-once',
+    'selected-request-visible-on-navigation-without-refresh-scroll-or-focus-theft',
 }
 
 def require(condition, message):
@@ -166,6 +167,28 @@ def canvas_state(item):
         require(abs(bounds['right'] - bounds['left'] - canvas['clientWidth']) < 0.01
                 and abs(bounds['bottom'] - bounds['top'] - canvas['clientHeight']) < 0.01,
                 'Graph client bounds differ from canvas dimensions')
+
+def request_list_state(item):
+    if item.get('state') in DESIGNER_STATES:
+        return
+    value = item.get('requestList')
+    require(isinstance(value, dict) and value.get('selectedId') == item['request']['id'],
+            'Screenshot request list does not identify the displayed request')
+    require(all(type(value.get(key)) in (int, float) and math.isfinite(value[key])
+                for key in ('scrollTop', 'scrollHeight', 'clientHeight'))
+            and value['scrollHeight'] >= value['clientHeight'] > 0
+            and 0 <= value['scrollTop'] <= value['scrollHeight'] - value['clientHeight'] + 1,
+            'Invalid independent request-list viewport')
+    bounds = [value.get(key) for key in ('clientBounds', 'selectedBounds')]
+    for bound in bounds:
+        require(isinstance(bound, dict) and all(type(bound.get(key)) in (int, float) and math.isfinite(bound[key])
+                for key in ('left', 'top', 'right', 'bottom')) and bound['right'] > bound['left']
+                and bound['bottom'] > bound['top'], 'Missing actual selected-row/list bounds')
+    outer, row = bounds
+    require(abs(outer['bottom'] - outer['top'] - value['clientHeight']) < .01
+            and row['left'] >= outer['left'] - .5 and row['right'] <= outer['right'] + .5
+            and row['top'] >= outer['top'] - .5 and row['bottom'] <= outer['bottom'] + .5,
+            'Selected request row is clipped outside the independent list viewport')
 
 def designer_state(item):
     if item.get('state') != 'designer-properties':
@@ -369,6 +392,7 @@ def validate(directory, source, backend):
         canvas_state(item)
         designer_state(item)
         restart_capture(item, receipt)
+        request_list_state(item)
         require(item['captureSessionId'] in sessions, 'Mixed browser sessions')
         image = item.get('image')
         require(isinstance(image, str) and Path(image).name == image, 'Unsafe screenshot path')

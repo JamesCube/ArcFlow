@@ -13,7 +13,7 @@ import GraphRuntime from './GraphRuntime.vue'
 import './graph.css'
 const props=defineProps({actor:Object,locale:{type:String,default:'en'},mode:{type:String,default:'designer'},active:{type:Boolean,default:true}})
 const emit=defineEmits(['unauthorized'])
-const rootElement=ref(null)
+const rootElement=ref(null), requestList=ref(null)
 const t=computed(()=>copyFor(props.locale)), busy=ref(false), loaded=ref(false), error=ref(''), notice=ref(''), canPublish=ref(false)
 const people=ref([]), published=ref(null), draft=ref(null), revision=ref(0), baseline=ref(''), selection=ref(null), mobilePanel=ref('canvas'), wideCanvas=ref(false)
 const history=ref([]), future=ref([]), diagnostics=ref([]), stale=ref(false), confirmReload=ref(false)
@@ -39,9 +39,40 @@ function keyboard(event) {
   if(event.target?.closest?.('input,textarea,select,[contenteditable=true]'))return
   if((event.ctrlKey||event.metaKey)&&['z','y'].includes(event.key.toLowerCase())){event.preventDefault();event.key.toLowerCase()==='y'||event.shiftKey?redo():undo()}
 }
-function selectRequest(id){requestSelectionEpoch++;selectedId.value=id}
+// Reveal only intentional navigation, never routine list or decision refreshes.
+async function revealSelectedRequest() {
+  const id=selectedId.value, epoch=requestSelectionEpoch
+  await nextTick()
+  if(!alive||!props.active||isDesigner.value||id!==selectedId.value||epoch!==requestSelectionEpoch)return
+  const list=requestList.value, item=list?.querySelector('.gf-request-item.chosen')
+  if(!item||!list.clientHeight)return
+  const bounds=item.getBoundingClientRect(), top=list.getBoundingClientRect().top+list.clientTop, bottom=top+list.clientHeight
+  // An oversized row already spanning the viewport needs no movement.
+  if(bounds.top<top&&bounds.bottom>bottom)return
+  const delta=bounds.top<top?Math.max(bounds.top-top,bounds.bottom-bottom):bounds.bottom>bottom?Math.min(bounds.top-top,bounds.bottom-bottom):0
+  if(delta)list.scrollTop+=delta
+}
+function setSelectedRequest(id){selectedId.value=id;revealSelectedRequest()}
+function selectRequest(id){requestSelectionEpoch++;setSelectedRequest(id)}
+watch(()=>props.active,active=>{if(active)revealSelectedRequest()},{flush:'post'})
+watch(requestList,(list,previous,onCleanup)=>{
+  if(!list)return
+  revealSelectedRequest()
+  let visible=list.clientHeight>0, narrow=window.innerWidth<=760
+  // The runtime's expanded canvas hides this list through CSS. Only restoration
+  // or entry into the scrolling mobile layout should reveal the selection again.
+  if(typeof ResizeObserver==='undefined')return
+  const observer=new ResizeObserver(()=>{
+    if(!alive||requestList.value!==list)return
+    const nextVisible=list.clientHeight>0, nextNarrow=window.innerWidth<=760
+    if(nextVisible&&(!visible||nextNarrow&&!narrow))revealSelectedRequest()
+    visible=nextVisible;narrow=nextNarrow
+  })
+  observer.observe(list)
+  onCleanup(()=>observer.disconnect())
+},{flush:'post'})
 function reconcile(items) {
-  if(submission.value){const found=items.find(item=>item.submissionKey===submission.value.key);if(found){verifySubmission(found,submission.value,props.actor.id);if(requestSelectionEpoch===submission.value.selectionEpoch)selectedId.value=found.id;submission.value=null;form.value=emptyPayment(newSubmissionKey);attempted.value=false;showNew.value=false;notice.value='submitted'}}
+  if(submission.value){const found=items.find(item=>item.submissionKey===submission.value.key);if(found){verifySubmission(found,submission.value,props.actor.id);if(requestSelectionEpoch===submission.value.selectionEpoch)setSelectedRequest(found.id);submission.value=null;form.value=emptyPayment(newSubmissionKey);attempted.value=false;showNew.value=false;notice.value='submitted'}}
   for(const [taskId,intent] of Object.entries(decisions.value)){const found=items.find(item=>item.id===intent.instanceId);const command=found?.commands.find(command=>command.id===intent.key);if(command&&command.taskId===intent.taskId&&command.actorId===props.actor.id&&command.decision===intent.decision&&command.comment===intent.comment){delete decisions.value[taskId];delete uncertain.value[taskId]}}
 }
 async function refresh() { if(!loaded.value)return initialize();await run(async()=>{const [process,items,users]=await Promise.all([api.request(`${GRAPH_BASE}/process`),api.request(`${GRAPH_BASE}/requests`),api.request(`${GRAPH_BASE}/users`)]);if(!alive)return;published.value=graphDefinition(process);requests.value=merge(items);people.value=users;reconcile(requests.value);if(selectedId.value&&!requests.value.some(r=>r.id===selectedId.value))selectedId.value=null}) }
@@ -59,7 +90,7 @@ async function publish() { if(dirty.value){error.value=t.value.needsSave;return}
 function checkPayment() {attempted.value=true;if(paymentErrors(form.value).length){error.value=t.value.invalidPayment;return false}return true}
 async function runPreview() { if(!checkPayment())return;await run(async()=>{const result=await api.request(`${GRAPH_BASE}/preview`,{method:'POST',body:previewBody(draft.value,form.value)});if(!alive)return;preview.value=graphInstance(result)}) }
 watch(form,()=>{preview.value=null},{deep:true})
-async function submit() { if(!checkPayment())return;await run(async()=>{if(!submission.value)submission.value={selectionEpoch:requestSelectionEpoch,key:newSubmissionKey(),signature:JSON.stringify(form.value),body:submissionBody(form.value,published.value.version),business:clone(form.value)};let result;try{result=graphInstance(await api.request(`${GRAPH_BASE}/requests`,{method:'POST',headers:{'Idempotency-Key':submission.value.key},body:submission.value.body}))}catch(cause){if(cause?.status===400||cause?.status===403||cause?.status===409&&cause.message==='The published graph changed; review the current version before submitting')submission.value=null;throw cause}if(!alive)return;verifySubmission(result,submission.value,props.actor.id);requests.value=[result,...requests.value.filter(item=>item.id!==result.id)];if(requestSelectionEpoch===submission.value.selectionEpoch)selectedId.value=result.id;submission.value=null;form.value=emptyPayment(newSubmissionKey);attempted.value=false;showNew.value=false;notice.value='submitted'},'submission') }
+async function submit() { if(!checkPayment())return;await run(async()=>{if(!submission.value)submission.value={selectionEpoch:requestSelectionEpoch,key:newSubmissionKey(),signature:JSON.stringify(form.value),body:submissionBody(form.value,published.value.version),business:clone(form.value)};let result;try{result=graphInstance(await api.request(`${GRAPH_BASE}/requests`,{method:'POST',headers:{'Idempotency-Key':submission.value.key},body:submission.value.body}))}catch(cause){if(cause?.status===400||cause?.status===403||cause?.status===409&&cause.message==='The published graph changed; review the current version before submitting')submission.value=null;throw cause}if(!alive)return;verifySubmission(result,submission.value,props.actor.id);requests.value=[result,...requests.value.filter(item=>item.id!==result.id)];if(requestSelectionEpoch===submission.value.selectionEpoch)setSelectedRequest(result.id);submission.value=null;form.value=emptyPayment(newSubmissionKey);attempted.value=false;showNew.value=false;notice.value='submitted'},'submission') }
 async function decide(input) { const {task,decision,comment}=input;const instanceId=selected.value.id; const intent={key:newSubmissionKey(),taskId:task.id,instanceId,actorId:props.actor.id,decision,comment};decisions.value[task.id]=intent;await executeDecision(intent) }
 async function executeDecision(intent) { await run(async()=>{uncertain.value[intent.taskId]=true;const result=graphInstance(await api.request(`${GRAPH_BASE}/requests/${encodeURIComponent(intent.instanceId)}/tasks/${encodeURIComponent(intent.taskId)}/decision`,{method:'POST',headers:{'Idempotency-Key':intent.key},body:body({decision:intent.decision,comment:intent.comment})}));if(!alive)return;verifyDecision(result,intent,requests.value.find(item=>item.id===intent.instanceId));requests.value=requests.value.map(item=>item.id===result.id?result:item);delete uncertain.value[intent.taskId];delete decisions.value[intent.taskId];notice.value='recorded'},'decision') }
 const retry=task=>executeDecision(decisions.value[task.id])
@@ -75,6 +106,6 @@ const retry=task=>executeDecision(decisions.value[task.id])
       <div class="gf-workbench" :class="[`gf-panel-${mobilePanel}`,{'gf-expanded':wideCanvas}]"><div class="gf-canvas" tabindex="-1" data-testid="graph-canvas"><p class="gf-canvas-hint">{{ t.selectConnection }}</p><p class="gf-layout-hint">{{ t.responsiveGraph }}</p><GraphSequence :items="sequence" :locale="locale" :people="people" :selected="selection?.id" :editable="canPublish&&!busy" @select="select" /></div><GraphInspector :definition="definition" :selection="selection" :locale="locale" :people="people" :busy="busy" :editable="canPublish" @select="select" @change="change" @error="failure" /></div>
       <section v-if="previewOpen&&canPublish" class="gf-preview-panel"><header><h2>{{ t.preview }}</h2><p>{{ t.previewHelp }}</p></header><GraphPaymentForm v-model="form" :locale="locale" :busy="busy || !!submission" :attempted="attempted" /><button class="primary" :disabled="busy" data-testid="graph-preview" @click="runPreview">{{ t.preview }}</button><GraphRuntime v-if="preview" :instance="preview" :locale="locale" :people="people" :actor="actor" preview /></section>
     </template>
-    <template v-if="loaded&&!isDesigner"><div class="gf-request-toolbar"><p>{{ t.onlySelected }}</p><button class="primary" data-testid="graph-new-request" :disabled="busy" @click="showNew=!showNew">＋ {{ t.newRequest }}</button></div><section v-if="showNew" class="gf-new-request"><h2>{{ t.newRequest }}</h2><p>{{ t.published }} v{{ published.version }}</p><p v-if="submission" class="gf-callout">{{ t.submissionUncertain }}</p><GraphPaymentForm v-model="form" :locale="locale" :busy="busy || !!submission" :attempted="attempted" /><button class="primary" data-testid="graph-submit" :disabled="busy" @click="submit">{{ submission?t.retrySubmit:t.submit }}</button></section><div class="gf-request-layout"><aside class="gf-request-list"><h3>{{ t.visibleRequests }} <span>{{ requests.length }}</span></h3><p v-if="!requests.length" class="gf-muted">{{ t.noRequests }}</p><button v-for="item in requests" :key="item.id" type="button" class="gf-request-item" :class="{chosen:selectedId===item.id}" :aria-pressed="selectedId===item.id" :data-testid="`graph-request-${item.id}`" @click="selectRequest(item.id)"><strong>{{ item.business.title }}</strong><small>{{ item.business.businessId }} · v{{ item.definition.version }}</small><span>{{ t[item.status.toLowerCase()] }} · {{ item.tasks.filter(task=>task.status==='ACTIVE').length }} {{ t.activeTasks }}</span></button></aside><GraphRuntime v-if="selected" :key="selected.id" :instance="selected" :locale="locale" :people="people" :actor="actor" :busy="busy" :uncertain="uncertain" @decide="decide" @retry="retry" /><p v-else class="gf-empty">{{ t.inspect }}</p></div></template>
+    <template v-if="loaded&&!isDesigner"><div class="gf-request-toolbar"><p>{{ t.onlySelected }}</p><button class="primary" data-testid="graph-new-request" :disabled="busy" @click="showNew=!showNew">＋ {{ t.newRequest }}</button></div><section v-if="showNew" class="gf-new-request"><h2>{{ t.newRequest }}</h2><p>{{ t.published }} v{{ published.version }}</p><p v-if="submission" class="gf-callout">{{ t.submissionUncertain }}</p><GraphPaymentForm v-model="form" :locale="locale" :busy="busy || !!submission" :attempted="attempted" /><button class="primary" data-testid="graph-submit" :disabled="busy" @click="submit">{{ submission?t.retrySubmit:t.submit }}</button></section><div class="gf-request-layout"><aside ref="requestList" class="gf-request-list"><h3>{{ t.visibleRequests }} <span>{{ requests.length }}</span></h3><p v-if="!requests.length" class="gf-muted">{{ t.noRequests }}</p><button v-for="item in requests" :key="item.id" type="button" class="gf-request-item" :class="{chosen:selectedId===item.id}" :aria-pressed="selectedId===item.id" :data-testid="`graph-request-${item.id}`" @click="selectRequest(item.id)"><strong>{{ item.business.title }}</strong><small>{{ item.business.businessId }} · v{{ item.definition.version }}</small><span>{{ t[item.status.toLowerCase()] }} · {{ item.tasks.filter(task=>task.status==='ACTIVE').length }} {{ t.activeTasks }}</span></button></aside><GraphRuntime v-if="selected" :key="selected.id" :instance="selected" :locale="locale" :people="people" :actor="actor" :busy="busy" :uncertain="uncertain" @decide="decide" @retry="retry" /><p v-else class="gf-empty">{{ t.inspect }}</p></div></template>
   </section>
 </template>

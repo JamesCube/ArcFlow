@@ -6,7 +6,7 @@ import tempfile
 import unittest
 import zlib
 from verify_graph_browser import (REQUIRED_CHECKPOINTS, RECOVERY_CHECKPOINTS, REQUIRED_SCREENSHOTS,
-                                  canvas_state, designer_state, png_dimensions, provenance, rendered_state, restart_state, restart_capture, sha, validate)
+                                  canvas_state, designer_state, png_dimensions, provenance, rendered_state, restart_state, restart_capture, request_list_state, sha, validate)
 
 
 def png(width=2, height=2):
@@ -224,6 +224,20 @@ class GraphBrowserEvidenceTests(unittest.TestCase):
             with self.subTest(width=width),self.assertRaises(ValueError):canvas_state(dense)
         canvas_state({'state':'designer-properties','canvases':[]})
         with self.assertRaises(ValueError):canvas_state({'state':'designer-properties','canvases':item['canvases']})
+    def test_selected_request_row_must_be_fully_visible_in_its_own_scroll_viewport(self):
+        item={'state':'approved','request':{'id':'chosen'},'requestList':{'selectedId':'chosen','scrollTop':250,
+              'scrollHeight':600,'clientHeight':280,'clientBounds':{'left':16,'top':210,'right':374,'bottom':490},
+              'selectedBounds':{'left':17,'top':355,'right':373,'bottom':475}}}
+        request_list_state(item)
+        for field,value in [('selectedId','other'),('scrollTop',-1),('scrollTop',999),('clientHeight',0),
+                            ('selectedBounds',{'left':17,'top':475,'right':373,'bottom':595}),
+                            ('selectedBounds',{'left':17,'top':float('nan'),'right':373,'bottom':475}),
+                            ('clientBounds',{'left':16,'top':210,'right':374,'bottom':500})]:
+            changed=copy.deepcopy(item);changed['requestList'][field]=value
+            with self.subTest(field=field),self.assertRaises(ValueError):request_list_state(changed)
+        del item['requestList']
+        with self.assertRaises(ValueError):request_list_state(item)
+
     def test_condition_property_witness_cannot_hide_stale_or_default_controls(self):
         edge={'id':'condition','label':'High','defaultBranch':False,
               'condition':{'mode':'ALL','predicates':[{'field':'payment.netTotal','operator':'GTE','currency':'CNY','threshold':12500}]}}
@@ -279,6 +293,10 @@ class GraphBrowserEvidenceTests(unittest.TestCase):
                           'allNodeIds':['financeFinal','start'],'fullyVisibleNodeIds':['financeFinal','start'],'nodeHorizontalClipping':[],
                           'minimumNodeWidth':140,
                           'clientBounds':{'left':0,'top':0,'right':width,'bottom':2}}])
+                if request is not None:
+                    item['requestList']={'selectedId':request['id'],'scrollTop':0,'scrollHeight':2,'clientHeight':2,
+                        'clientBounds':{'left':0,'top':0,'right':width,'bottom':2},
+                        'selectedBounds':{'left':0,'top':0,'right':width,'bottom':2}}
                 if state=='designer-properties':
                     item['canvases']=[]
                     item['designerState']={'definitionId':'graph','definitionVersion':2,'definitionName':'Graph',

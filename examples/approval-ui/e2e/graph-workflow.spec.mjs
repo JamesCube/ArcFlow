@@ -3,7 +3,7 @@ import { randomUUID, createHash } from 'node:crypto'
 import { writeFileSync } from 'node:fs'
 import { sourceProvenance } from './complex-evidence.mjs'
 import { restartBackend, readPersistedRequest, restartRequestState } from './backend-restart.mjs'
-import { readRenderedGraphState, assertRenderedGraphState, renderedStatusLabel, readGraphCanvasState, readDesignerProperties, assertDesignerProperties } from './graph-rendered-state.mjs'
+import { readRenderedGraphState, assertRenderedGraphState, renderedStatusLabel, readGraphCanvasState, readRequestListState, readDesignerProperties, assertDesignerProperties } from './graph-rendered-state.mjs'
 const BASE='/graphs/payment', DESKTOP={width:1440,height:1000}, MOBILE={width:390,height:844}
 test.use({locale:'en-GB',timezoneId:'UTC',reducedMotion:'reduce',actionTimeout:15000})
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex')
@@ -29,6 +29,33 @@ async function fillPayment(page,tag,{high=true}={}){
 }
 async function submit(page,tag,options){await requests(page);await page.getByTestId('graph-new-request').click();await fillPayment(page,tag,options);return mutation(page,`${BASE}/requests`,()=>page.getByTestId('graph-submit').click())}
 async function vote(page,instance,nodeId,decision='APPROVE',comment='Reviewed synthetic request') {await page.getByTestId(`graph-comment-${nodeId}`).fill(comment);const task=instance.tasks.find(task=>task.nodeId===nodeId);return mutation(page,`${BASE}/requests/${instance.id}/tasks/${encodeURIComponent(task.id)}/decision`,()=>page.getByTestId(`graph-${decision==='APPROVE'?'approve':'reject'}-${nodeId}`).click())}
+async function visibleSelectedRequest(page,id){
+ await expect.poll(async()=>{const state=await page.evaluate(readRequestListState),a=state.selectedBounds,b=state.clientBounds;return state.selectedId===id&&a.right>a.left&&a.bottom>a.top&&a.left>=b.left-.5&&a.right<=b.right+.5&&a.top>=b.top-.5&&a.bottom<=b.bottom+.5}).toBe(true)
+ return page.evaluate(readRequestListState)
+}
+async function verifyRequestListNavigation(page,firstId,lastId){
+ await page.setViewportSize(MOBILE);await requests(page)
+ await page.getByTestId(`graph-request-${firstId}`).click();await visibleSelectedRequest(page,firstId)
+ const list=page.locator('.gf-request-list')
+ const manual=await list.evaluate(element=>{element.scrollTop=element.scrollHeight;return element.scrollTop})
+ expect(manual).toBeGreaterThan(0)
+ await page.getByTestId('workspace-language').focus()
+ const before=await page.evaluate(()=>({x:scrollX,y:scrollY,focus:document.activeElement?.getAttribute('data-testid'),canvases:Array.from(document.querySelectorAll('.gf-canvas'),c=>({top:c.scrollTop,left:c.scrollLeft}))}))
+ await page.getByTestId('graph-refresh').evaluate(button=>button.click());await expect(page.getByTestId('graph-refresh')).toBeEnabled()
+ expect(await list.evaluate(element=>element.scrollTop)).toBe(manual)
+ expect(await page.evaluate(()=>({x:scrollX,y:scrollY,focus:document.activeElement?.getAttribute('data-testid'),canvases:Array.from(document.querySelectorAll('.gf-canvas'),c=>({top:c.scrollTop,left:c.scrollLeft}))}))).toEqual(before)
+ await designer(page);await requests(page);await visibleSelectedRequest(page,firstId)
+ await page.getByTestId(`graph-request-${lastId}`).click();await visibleSelectedRequest(page,lastId)
+ await page.setViewportSize(DESKTOP);await page.getByTestId('graph-expand-runtime').click();await expect(list).not.toBeVisible()
+ await page.setViewportSize(MOBILE);await expect(list).toBeVisible();await visibleSelectedRequest(page,lastId)
+ await page.getByTestId('workspace-language').focus()
+ const origin=await page.evaluate(()=>({x:scrollX,y:scrollY}))
+ const focus=await page.evaluate(()=>document.activeElement?.getAttribute('data-testid'))
+ await page.evaluate(()=>{dispatchEvent(new Event('resize'));return new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))})
+ expect(await page.evaluate(()=>({x:scrollX,y:scrollY}))).toEqual(origin)
+ expect(await page.evaluate(()=>document.activeElement?.getAttribute('data-testid'))).toBe(focus)
+ await page.setViewportSize(DESKTOP)
+}
 async function capture(page,info,state,instance=null,designerDefinition=null){
  for(const locale of ['en','zh']){await page.getByTestId('workspace-language').selectOption(locale);for(const viewport of ['designer','designer-dense'].includes(state)?[DESKTOP,MOBILE,{width:320,height:844}]:[DESKTOP,MOBILE]){
   await page.setViewportSize(viewport)
@@ -87,14 +114,15 @@ async function capture(page,info,state,instance=null,designerDefinition=null){
   const canvases=await page.evaluate(readGraphCanvasState)
   expect(canvases.length).toBeGreaterThan(0)
   for(const canvas of canvases){expect(canvas.scrollLeft).toBe(0);expect(canvas.scrollTop).toBe(0);expect(canvas.clientWidth).toBeGreaterThan(0);expect(canvas.clientHeight).toBeGreaterThan(0);expect(canvas.scrollWidth).toBeGreaterThanOrEqual(canvas.clientWidth);expect(canvas.scrollHeight).toBeGreaterThanOrEqual(canvas.clientHeight);expect(canvas.visibleNodeIds.length).toBeGreaterThan(0);expect(canvas.nodeHorizontalClipping).toEqual([]);expect(canvas.fullyVisibleNodeIds).toEqual(canvas.allNodeIds);expect(canvas.allNodeIds).toEqual((instance?.definition||designerDefinition).nodes.map(node=>node.id).sort())}
+  const requestList=instance?await visibleSelectedRequest(page,instance.id):null
   const stem=`graph-${state}-${locale}-${viewport.width===1440?'desktop':`${viewport.width}px`}`,bytes=await page.screenshot({fullPage:true,animations:'disabled'})
   // Reject a state change while the screenshot was being generated, before
   // saving either artifact. The witness is always read from the actual DOM.
   await expect(page.locator('.gf-alert')).toHaveCount(0)
-  if(instance)expect(assertRenderedGraphState(await page.getByTestId('graph-runtime').evaluate(readRenderedGraphState),instance)).toEqual(renderedState)
+  if(instance){expect(assertRenderedGraphState(await page.getByTestId('graph-runtime').evaluate(readRenderedGraphState),instance)).toEqual(renderedState);expect(await page.evaluate(readRequestListState)).toEqual(requestList)}
   expect(await page.evaluate(readGraphCanvasState)).toEqual(canvases)
   writeFileSync(info.outputPath(`${stem}.png`),bytes)
-  writeFileSync(info.outputPath(`${stem}.json`),JSON.stringify({schemaVersion:1,...await sourceProvenance(),scenario:'graph-workflow',state,locale,viewport:page.viewportSize(),fullPage:true,image:`${stem}.png`,imageSHA256:hash(bytes),capturedAt:new Date().toISOString(),scrollOrigin:layout.origin,canvases,...(instance?{renderedState}:{designerDefinition}),request:instance?{id:instance.id,status:instance.status,commandRevision:instance.commandRevision,definition:instance.definition,tasks:instance.tasks,forks:instance.forks,routes:instance.routes,commands:instance.commands}:null},null,2))
+  writeFileSync(info.outputPath(`${stem}.json`),JSON.stringify({schemaVersion:1,...await sourceProvenance(),scenario:'graph-workflow',state,locale,viewport:page.viewportSize(),fullPage:true,image:`${stem}.png`,imageSHA256:hash(bytes),capturedAt:new Date().toISOString(),scrollOrigin:layout.origin,canvases,...(instance?{renderedState,requestList}:{designerDefinition}),request:instance?{id:instance.id,status:instance.status,commandRevision:instance.commandRevision,definition:instance.definition,tasks:instance.tasks,forks:instance.forks,routes:instance.routes,commands:instance.commands}:null},null,2))
   if(['designer','designer-dense'].includes(state)&&viewport.width===1440){
    await page.getByTestId('graph-expand-canvas').click();await expect(page.getByTestId('graph-expand-canvas')).toHaveAttribute('aria-pressed','false');await expect(page.getByTestId('graph-properties')).toBeVisible()
    expect(await page.getByTestId('graph-properties').getAttribute('data-selected-id')).toBe(originalSelection)
@@ -237,7 +265,7 @@ test('graph workflow: author, persist, preview, execute independent paths, freez
  await bob.getByTestId('graph-expand-runtime').click();await expect(bob.getByTestId('graph-expand-runtime')).toHaveAttribute('aria-pressed','true');await expect(bob.locator('.gf-request-list')).not.toBeVisible()
  await bob.setViewportSize({width:320,height:844});await expect(bob.locator('.gf-request-list')).toBeVisible();await bob.getByTestId(`graph-request-${high.id}`).click();await expect(bob.getByTestId('graph-runtime')).toHaveAttribute('data-request-id',high.id)
  await bob.setViewportSize(DESKTOP);await expect(bob.locator('.gf-request-list')).toBeVisible();await expect(bob.getByTestId('graph-expand-runtime')).toHaveAttribute('aria-pressed','false');checkpoints.push('runtime-expanded-resize-restores-request-navigation')
- const rejected=await submit(page,`reject-${suffix}`);await select(bob,rejected.id);const rejectedState=await vote(bob,rejected,'finance','REJECT','Reject synthetic allocation');expect(rejectedState.status).toBe('REJECTED');expect(rejectedState.tasks.find(t=>t.nodeId==='businessReview').status).toBe('CANCELLED');await expect(bob.getByTestId('graph-join-reviewJoin')).toContainText('Cancelled');await expect(bob.getByTestId('graph-branch-highValue')).toContainText('Selected');await expect(bob.getByTestId('graph-branch-otherwise')).toContainText('Skipped');await expect(bob.getByTestId('graph-branch-financeBranch')).toContainText('Cancelled');await expect(bob.getByTestId('graph-branch-businessBranch')).toContainText('Cancelled');await expect(bob.getByTestId('graph-node-financeFinal')).toContainText('Not reached');await expect(bob.getByTestId('graph-node-final')).toContainText('Not reached');await expect(bob.getByTestId('graph-node-end')).toContainText('Not reached');await capture(bob,info,'rejected',rejectedState);checkpoints.push('rejection-cancels-active-sibling-and-unfired-join')
+ await page.setViewportSize(MOBILE);const rejected=await submit(page,`reject-${suffix}`);await visibleSelectedRequest(page,rejected.id);await page.setViewportSize(DESKTOP);await select(bob,rejected.id);const rejectedState=await vote(bob,rejected,'finance','REJECT','Reject synthetic allocation');expect(rejectedState.status).toBe('REJECTED');expect(rejectedState.tasks.find(t=>t.nodeId==='businessReview').status).toBe('CANCELLED');await expect(bob.getByTestId('graph-join-reviewJoin')).toContainText('Cancelled');await expect(bob.getByTestId('graph-branch-highValue')).toContainText('Selected');await expect(bob.getByTestId('graph-branch-otherwise')).toContainText('Skipped');await expect(bob.getByTestId('graph-branch-financeBranch')).toContainText('Cancelled');await expect(bob.getByTestId('graph-branch-businessBranch')).toContainText('Cancelled');await expect(bob.getByTestId('graph-node-financeFinal')).toContainText('Not reached');await expect(bob.getByTestId('graph-node-final')).toContainText('Not reached');await expect(bob.getByTestId('graph-node-end')).toContainText('Not reached');await capture(bob,info,'rejected',rejectedState);checkpoints.push('rejection-cancels-active-sibling-and-unfired-join')
  await page.reload();await login(page,'alice');await select(page,high.id);await expect(page.getByTestId('graph-runtime')).toContainText('Approved');await capture(page,info,'approved',current);checkpoints.push('browser-reload-preserves-durable-runtime')
  await designer(page);await page.setViewportSize({width:320,height:844});await page.getByTestId('graph-node-final').click();await expect(page.getByTestId('graph-properties')).toBeVisible();await page.keyboard.press('Escape');await expect(page.getByTestId('graph-canvas')).toBeVisible();
  for(const nodeId of ['finance','businessReview','standard']){
@@ -249,6 +277,7 @@ test('graph workflow: author, persist, preview, execute independent paths, freez
  }
  const width=await page.evaluate(()=>({inner:innerWidth,document:document.documentElement.scrollWidth}));expect(width.document).toBeLessThanOrEqual(width.inner);checkpoints.push('320px-keyboard-properties-escape')
  await captureProperties(page,info,next,'highValue');checkpoints.push('condition-properties-320px-390px-bilingual-paired-regions-visible')
+ await verifyRequestListNavigation(page,high.id,rejected.id);checkpoints.push('selected-request-visible-on-navigation-without-refresh-scroll-or-focus-theft')
  expect(errors).toEqual([]);writeFileSync(info.outputPath('graph-receipt.json'),JSON.stringify({schemaVersion:1,...await sourceProvenance(),result:'passed',realBackend:true,browser:'Chromium',capturedAt:new Date().toISOString(),checkpoints,restartWitness,requests:[current,lowState,rejectedState].map(restartRequestState)},null,2));await bobContext.close();await carolContext.close()
 })
 

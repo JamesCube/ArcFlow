@@ -158,3 +158,19 @@ export function assertDesignerProperties(observed, definition, edgeId) {
   if (JSON.stringify(observed) !== JSON.stringify(expected)) throw new Error('Rendered designer properties differ from the published branch')
   return observed
 }
+
+// This witness observes the independent list viewport, not the full page.
+export function readRequestListState(root = document) {
+  const list = root.querySelector('.gf-request-list')
+  if (!list) throw new Error('Missing request navigation list')
+  const rows = list.querySelectorAll('.gf-request-item[aria-pressed="true"]')
+  if (rows.length !== 1) throw new Error('Expected exactly one selected request row')
+  const row = rows[0], rect = list.getBoundingClientRect(), chosen = row.getBoundingClientRect()
+  const left = rect.left + list.clientLeft, top = rect.top + list.clientTop
+  return {
+    selectedId: (row.getAttribute('data-testid') || '').replace(/^graph-request-/, ''),
+    scrollTop: list.scrollTop, scrollHeight: list.scrollHeight, clientHeight: list.clientHeight,
+    clientBounds: { left, top, right: left + list.clientWidth, bottom: top + list.clientHeight },
+    selectedBounds: { left: chosen.left, top: chosen.top, right: chosen.right, bottom: chosen.bottom },
+  }
+}

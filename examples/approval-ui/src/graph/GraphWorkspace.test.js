@@ -150,3 +150,123 @@ describe('screenshot DOM witnesses',()=>{
   expect(readGraphCanvasState(root)[0]).toMatchObject({visibleNodeIds:['left','right'],fullyVisibleNodeIds:['left'],nodeHorizontalClipping:['right']})
  })
 })
+
+describe('selected request list visibility',()=>{
+ let geometry, observers, scrollWrites, scrollValues
+ const request=id=>{const value=JSON.parse(JSON.stringify(instance()).replaceAll('request-1',id));value.submissionKey=`submit-${id}`;value.business.title=`Request ${id}`;return value}
+ const items=()=>Array.from({length:8},(_,index)=>request(`item-${index}`))
+ const listOf=wrapper=>wrapper.get('.gf-request-list').element
+ const visibleRow=(wrapper,id)=>{
+  const list=listOf(wrapper),row=button(wrapper,`graph-request-${id}`).element.getBoundingClientRect(),top=list.getBoundingClientRect().top+list.clientTop
+  expect(row.top).toBeGreaterThanOrEqual(top);expect(row.bottom).toBeLessThanOrEqual(top+list.clientHeight)
+ }
+ beforeEach(()=>{
+  geometry={height:280,top:120,rowHeight:100,hidden:false};observers=[];scrollWrites=[];scrollValues=new WeakMap()
+  vi.stubGlobal('innerWidth',390)
+  vi.stubGlobal('ResizeObserver',class{
+   constructor(callback){this.callback=callback;this.disconnect=vi.fn();observers.push(this)}
+   observe(element){this.element=element}
+   fire(){this.callback([{target:this.element}])}
+  })
+  const clientHeight=Object.getOwnPropertyDescriptor(Element.prototype,'clientHeight').get,clientTop=Object.getOwnPropertyDescriptor(Element.prototype,'clientTop').get,rect=Element.prototype.getBoundingClientRect
+  vi.spyOn(Element.prototype,'clientHeight','get').mockImplementation(function(){return this.matches('.gf-request-list')?(geometry.hidden?0:geometry.height):clientHeight.call(this)})
+  vi.spyOn(Element.prototype,'clientTop','get').mockImplementation(function(){return this.matches('.gf-request-list')?1:clientTop.call(this)})
+  vi.spyOn(Element.prototype,'scrollTop','get').mockImplementation(function(){return scrollValues.get(this)||0})
+  vi.spyOn(Element.prototype,'scrollTop','set').mockImplementation(function(value){scrollValues.set(this,value);scrollWrites.push({element:this,value})})
+  vi.spyOn(Element.prototype,'getBoundingClientRect').mockImplementation(function(){
+   if(this.matches('.gf-request-list'))return{top:geometry.top,bottom:geometry.top+geometry.height+2,height:geometry.height+2}
+   if(this.matches('.gf-request-item')){
+    const list=this.parentElement,index=[...list.querySelectorAll('.gf-request-item')].indexOf(this),top=geometry.top+1+40+index*geometry.rowHeight-list.scrollTop
+    return{top,bottom:top+geometry.rowHeight,height:geometry.rowHeight}
+   }
+   return rect.call(this)
+  })
+ })
+ afterEach(()=>{vi.restoreAllMocks();vi.unstubAllGlobals()})
+ it('reveals below/above rows and a repeated selection using only the minimum list scroll without focus or canvas movement',async()=>{
+  const {wrapper}=setup({items:items(),attached:true});await flushPromises();await wrapper.setProps({mode:'requests'});await flushPromises()
+  expect(scrollWrites).toHaveLength(0)
+  const list=listOf(wrapper);await button(wrapper,'graph-request-item-7').trigger('click');await flushPromises();expect(list.scrollTop).toBe(560);visibleRow(wrapper,'item-7')
+  const canvas=wrapper.get('.gf-runtime-canvas').element;canvas.scrollTop=73;canvas.scrollLeft=91;document.documentElement.scrollTop=142
+  button(wrapper,'graph-new-request').element.focus();const focus=document.activeElement
+  list.scrollTop=0;scrollWrites=[];await button(wrapper,'graph-request-item-7').trigger('click');await flushPromises()
+  expect(scrollWrites).toEqual([{element:list,value:560}]);expect(canvas.scrollTop).toBe(73);expect(canvas.scrollLeft).toBe(91);expect(document.documentElement.scrollTop).toBe(142);expect(document.activeElement).toBe(focus)
+  await button(wrapper,'graph-request-item-0').trigger('click');await flushPromises();expect(list.scrollTop).toBe(40);visibleRow(wrapper,'item-0')
+  scrollWrites=[];await button(wrapper,'graph-request-item-1').trigger('click');await flushPromises();expect(scrollWrites).toHaveLength(0);visibleRow(wrapper,'item-1')
+ })
+ it('reveals the newly submitted request after the DOM inserts its selected row',async()=>{
+  const {wrapper}=setup({items:items(),attached:true});await flushPromises();await wrapper.setProps({mode:'requests'});await button(wrapper,'graph-request-item-7').trigger('click');await flushPromises()
+  const original=api.request.getMockImplementation();api.request.mockImplementation(async(path,options)=>{
+   if(path.endsWith('/requests')&&options?.method==='POST'){const created=instance();created.submissionKey=options.headers['Idempotency-Key'];return created}
+   return original(path,options)
+  })
+  await button(wrapper,'graph-new-request').trigger('click');wrapper.getComponent(GraphPaymentForm).vm.$emit('update:modelValue',business());await flushPromises()
+  button(wrapper,'graph-refresh').element.focus();const focus=document.activeElement
+  await button(wrapper,'graph-submit').trigger('click');await flushPromises()
+  expect(button(wrapper,'graph-request-request-1').attributes('aria-pressed')).toBe('true');expect(listOf(wrapper).scrollTop).toBe(40);visibleRow(wrapper,'request-1');expect(document.activeElement).toBe(focus)
+ })
+ it('reveals the original-key request when an uncertain submission is reconciled at the back of a refreshed list',async()=>{
+  const {wrapper,server}=setup({items:items()});await flushPromises();await wrapper.setProps({mode:'requests'});await button(wrapper,'graph-new-request').trigger('click');wrapper.getComponent(GraphPaymentForm).vm.$emit('update:modelValue',business());await flushPromises()
+  const original=api.request.getMockImplementation();let key
+  api.request.mockImplementation(async(path,options)=>{if(path.endsWith('/requests')&&options?.method==='POST'){key=options.headers['Idempotency-Key'];throw new Error('Response lost')}return original(path,options)})
+  await button(wrapper,'graph-submit').trigger('click');await flushPromises();const created=instance();created.submissionKey=key;server.items.push(created)
+  await button(wrapper,'graph-refresh').trigger('click');await flushPromises()
+  expect(button(wrapper,'graph-request-request-1').attributes('aria-pressed')).toBe('true');expect(listOf(wrapper).scrollTop).toBe(660);visibleRow(wrapper,'request-1');expect(wrapper.find('[data-testid="graph-payment-form"]').exists()).toBe(false)
+ })
+ it('restores the selected row after designer navigation and inactive workspace restoration',async()=>{
+  const {wrapper}=setup({items:items()});await flushPromises();await wrapper.setProps({mode:'requests'});await button(wrapper,'graph-request-item-7').trigger('click');await flushPromises()
+  listOf(wrapper).scrollTop=0;await wrapper.setProps({mode:'designer'});expect(observers[0].disconnect).toHaveBeenCalledOnce();await wrapper.setProps({mode:'requests'});await flushPromises();visibleRow(wrapper,'item-7')
+  await wrapper.setProps({active:false});listOf(wrapper).scrollTop=0;await flushPromises();expect(listOf(wrapper).scrollTop).toBe(0)
+  await wrapper.setProps({active:true});await flushPromises();visibleRow(wrapper,'item-7')
+ })
+ it('reveals only on hidden-list restoration or entry into mobile layout, not every resize observation',async()=>{
+  vi.stubGlobal('innerWidth',1200);geometry.height=900
+  const {wrapper}=setup({items:items()});await flushPromises();await wrapper.setProps({mode:'requests'});await button(wrapper,'graph-request-item-7').trigger('click');await flushPromises()
+  const list=listOf(wrapper),observer=observers[0];expect(list.scrollTop).toBe(0)
+  vi.stubGlobal('innerWidth',390);geometry.height=280;observer.fire();await flushPromises();visibleRow(wrapper,'item-7')
+  list.scrollTop=113;observer.fire();await flushPromises();expect(list.scrollTop).toBe(113)
+  geometry.height=260;observer.fire();await flushPromises();expect(list.scrollTop).toBe(113)
+  vi.stubGlobal('innerWidth',1200);await button(wrapper,'graph-expand-runtime').trigger('click');geometry.hidden=true;observer.fire();await flushPromises();expect(list.scrollTop).toBe(113)
+  list.scrollTop=0;await button(wrapper,'graph-expand-runtime').trigger('click');geometry.hidden=false;observer.fire();await flushPromises();visibleRow(wrapper,'item-7')
+  list.scrollTop=81;observer.fire();await flushPromises();expect(list.scrollTop).toBe(81)
+  wrapper.unmount();expect(observer.disconnect).toHaveBeenCalledOnce();scrollWrites=[];observer.fire();await flushPromises();expect(scrollWrites).toHaveLength(0)
+ })
+ it('preserves manual browsing through list reordering, localization, and task updates',async()=>{
+  const {wrapper,server}=setup({publisher:false,items:items()});await flushPromises();await wrapper.setProps({mode:'requests'});await button(wrapper,'graph-request-item-7').trigger('click');await flushPromises()
+  const list=listOf(wrapper);list.scrollTop=123;scrollWrites=[];server.items.reverse()
+  await button(wrapper,'graph-refresh').trigger('click');await flushPromises();await wrapper.setProps({locale:'zh'});observers[0].fire();await flushPromises()
+  expect(list.scrollTop).toBe(123);expect(scrollWrites).toHaveLength(0)
+  const original=api.request.getMockImplementation();api.request.mockImplementation(async(path,options)=>{
+   if(!path.endsWith('/decision'))return original(path,options)
+   const result=copy(server.items[0]),id=options.headers['Idempotency-Key'],input=JSON.parse(options.body),at='2026-10-11T00:01:00Z'
+   result.commandRevision=1;result.updatedAt=at;result.tasks[0].status='COMPLETED';result.tasks[0].votes=[{actorId:'reviewer-a',decision:input.decision,comment:input.comment,at,commandId:id}];result.forks[0].arrivedBranchIds=['branchA']
+   result.commands=[{id,taskId:result.tasks[0].id,actorId:'reviewer-a',decision:input.decision,comment:input.comment,at}];return result
+  })
+  await button(wrapper,'graph-approve-first').trigger('click');await flushPromises();observers[0].fire();await flushPromises()
+  expect(wrapper.get('[data-testid="graph-runtime"]').attributes('data-command-revision')).toBe('1');expect(list.scrollTop).toBe(123);expect(scrollWrites).toHaveLength(0)
+ })
+ it('does not scroll to an old submit result after the user chose another request and resumed manual browsing',async()=>{
+  const {wrapper}=setup({items:items()});await flushPromises();await wrapper.setProps({mode:'requests'});await button(wrapper,'graph-new-request').trigger('click');wrapper.getComponent(GraphPaymentForm).vm.$emit('update:modelValue',business());await flushPromises()
+  const wait=deferred(),original=api.request.getMockImplementation();let key
+  api.request.mockImplementation((path,options)=>{if(path.endsWith('/requests')&&options?.method==='POST'){key=options.headers['Idempotency-Key'];return wait.promise}return original(path,options)})
+  await button(wrapper,'graph-submit').trigger('click');await button(wrapper,'graph-request-item-7').trigger('click');await flushPromises();visibleRow(wrapper,'item-7')
+  const list=listOf(wrapper);list.scrollTop=119;scrollWrites=[];const created=instance();created.submissionKey=key;wait.resolve(created);await flushPromises();observers[0].fire();await flushPromises()
+  expect(wrapper.get('[data-testid="graph-runtime"]').attributes('data-request-id')).toBe('item-7');expect(button(wrapper,'graph-request-request-1').exists()).toBe(true);expect(list.scrollTop).toBe(119);expect(scrollWrites).toHaveLength(0)
+ })
+ it('does not scroll to an old uncertain submission during reconciliation after newer request navigation',async()=>{
+  const {wrapper,server}=setup({items:items()});await flushPromises();await wrapper.setProps({mode:'requests'});await button(wrapper,'graph-new-request').trigger('click');wrapper.getComponent(GraphPaymentForm).vm.$emit('update:modelValue',business());await flushPromises()
+  const original=api.request.getMockImplementation();let key
+  api.request.mockImplementation(async(path,options)=>{if(path.endsWith('/requests')&&options?.method==='POST'){key=options.headers['Idempotency-Key'];throw new Error('Response lost')}return original(path,options)})
+  await button(wrapper,'graph-submit').trigger('click');await flushPromises();await button(wrapper,'graph-request-item-7').trigger('click');await flushPromises()
+  const list=listOf(wrapper);list.scrollTop=83;scrollWrites=[];const created=instance();created.submissionKey=key;server.items.unshift(created)
+  await button(wrapper,'graph-refresh').trigger('click');await flushPromises();observers[0].fire();await flushPromises()
+  expect(wrapper.get('[data-testid="graph-runtime"]').attributes('data-request-id')).toBe('item-7');expect(list.scrollTop).toBe(83);expect(scrollWrites).toHaveLength(0)
+ })
+ it('does not act on superseded, hidden, or unmounted selection work',async()=>{
+  const {wrapper}=setup({items:items()});await flushPromises();await wrapper.setProps({mode:'requests'});await flushPromises()
+  const last=button(wrapper,'graph-request-item-7'),first=button(wrapper,'graph-request-item-0')
+  last.element.click();first.element.click();await flushPromises();expect(scrollWrites).toHaveLength(0);expect(first.attributes('aria-pressed')).toBe('true')
+  geometry.hidden=true;await last.trigger('click');await flushPromises();expect(scrollWrites).toHaveLength(0)
+  geometry.hidden=false;observers[0].fire();await flushPromises();scrollWrites=[];first.element.click();wrapper.unmount();await flushPromises();expect(scrollWrites).toHaveLength(0)
+ })
+})
