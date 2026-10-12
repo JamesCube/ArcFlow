@@ -132,6 +132,14 @@ for (const lang of ['zh', 'en']) for (const width of [320, 390]) {
     }
     await graph.scrollIntoViewIfNeeded();
     await expect(page.locator('html')).toHaveJSProperty('scrollWidth',width);
+    // Finish lazy loading the visible page, then capture from the document top.
+    // A full-page screenshot taken mid-scroll can misplace fixed offscreen UI.
+    for (const img of await page.locator('.hero-screen img, .graph-runtime img, .scenario-panel:not([hidden]) img').all()) {
+      await img.scrollIntoViewIfNeeded();
+      await expect.poll(()=>img.evaluate(i=>i.complete&&i.naturalWidth>0)).toBe(true);
+    }
+    await page.evaluate(()=>window.scrollTo({top:0,left:0,behavior:'instant'}));
+    await expect.poll(()=>page.evaluate(()=>window.scrollY)).toBe(0);
     await page.screenshot({path:`test-results/graph-${lang}-${width}.png`,fullPage:true});
   });
 }
