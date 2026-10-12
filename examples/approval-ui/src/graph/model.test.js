@@ -182,11 +182,12 @@ describe('branch edits and FIRST_MATCH order', () => {
     expect(() => deleteBranch(after, outgoing(after, split.id)[0].id)).toThrow(/at least two/)
   })
 
-  it('promotes the last surviving conditional branch when deleting the default', () => {
+  it('rejects deletion of the unique default without changing any earlier business condition', () => {
     const definition = region(), split = splitOf(definition), expanded = addBranch(definition, split.id, people)
-    const branches = outgoing(expanded, split.id), after = deleteBranch(expanded, branches.at(-1).id)
-    expect(outgoing(after, split.id).at(-1)).toEqual({ ...branches[1], condition: null, defaultBranch: true })
-    expectValid(after)
+    const branches = outgoing(expanded, split.id), before = JSON.stringify(expanded)
+    expect(() => deleteBranch(freeze(expanded), branches.at(-1).id)).toThrow(/default branch cannot be deleted/)
+    expect(JSON.stringify(expanded)).toBe(before)
+    expectValid(expanded)
   })
 
   it('allows all parallel branches to reorder without inventing conditions', () => {
@@ -199,6 +200,11 @@ describe('branch edits and FIRST_MATCH order', () => {
 })
 
 describe('bounds and client diagnostics', () => {
+  it('locates a broken region pair at the exact split node', () => {
+    const definition = region(), split = splitOf(definition); split.pairId = 'missing'
+    expect(validateClientGraph(definition)).toContainEqual(expect.objectContaining({code:'INVALID_PAIR', nodeId:split.id}))
+  })
+
   it('requires globally unique node and edge IDs and avoids both namespaces during generation', () => {
     const definition = empty()
     definition.edges[0].id = 'approval_1'
@@ -351,7 +357,7 @@ describe('runtime projection from frozen task, fork, and route records', () => {
     expect(runtimeNodeStatus(instance, group.id)).toBe('active')
     instance.tasks[0].status = 'CANCELLED'; instance.status = 'REJECTED'
     expect(runtimeNodeStatus(instance, group.id)).toBe('cancelled')
-    expect(runtimeNodeStatus(instance, 'end')).toBe('skipped')
+    expect(runtimeNodeStatus(instance, 'end')).toBe('idle')
     instance.tasks[0].status = 'REJECTED'
     expect(runtimeNodeStatus(instance, group.id)).toBe('rejected')
   })
@@ -365,7 +371,47 @@ describe('runtime projection from frozen task, fork, and route records', () => {
     expect(state.nodes[split.pairId]).toBe('cancelled')
     expect(state.edges[branches[0].id]).toBe('completed')
     expect(state.nodes[branches[1].target]).toBe('rejected')
+    expect(state.edges[branches[1].id]).toBe('cancelled')
     expect(JSON.stringify(instance)).toBe(original)
+  })
+
+  it('preserves the chosen condition and cancelled parallel paths after rejection instead of calling them skipped', () => {
+    const outer = region(), gateway = splitOf(outer), choices = outgoing(outer, gateway.id)
+    const definition = insertOnEdge(outer, choices[0].id, 'parallelFork', people)
+    const fork = definition.nodes.find(value => value.type === 'parallelFork'), branches = outgoing(definition, fork.id)
+    const instance = { definition, status: 'REJECTED',
+      routes: [{ gatewayId: gateway.id, selectedEdgeId: choices[0].id }],
+      tasks: [{ nodeId: branches[0].target, status: 'REJECTED' }, { nodeId: branches[1].target, status: 'CANCELLED' }],
+      forks: [{ forkId: fork.id, joinId: fork.pairId, expectedBranchIds: branches.map(branch => branch.id), arrivedBranchIds: [], fired: false }] }
+    const before = JSON.stringify(instance), state = graphRuntimeStatus(freeze(instance))
+    expect(state.edges[choices[0].id]).toBe('selected')
+    expect(state.edges[choices[1].id]).toBe('skipped')
+    expect(state.nodes[gateway.id]).toBe('completed')
+    expect(state.nodes[gateway.pairId]).toBe('cancelled')
+    expect(state.nodes['end']).toBe('idle')
+    expect(Object.values(state.nodes)).not.toContain('active')
+    expect(Object.values(state.nodes)).not.toContain('waiting')
+    expect(state.nodes[fork.pairId]).toBe('cancelled')
+    expect(state.nodes[branches[0].target]).toBe('rejected')
+    expect(state.nodes[branches[1].target]).toBe('cancelled')
+    for (const branch of branches) expect(state.edges[branch.id]).toBe('cancelled')
+    expect(JSON.stringify(instance)).toBe(before)
+  })
+
+  it('retains a future frozen selection after earlier rejection without claiming its path was activated', () => {
+    const base = linear(), first = humanOf(base), tail = outgoing(base, first.id)[0]
+    const definition = insertOnEdge(base, tail.id, 'exclusiveGateway', people), gateway = splitOf(definition)
+    const choices = outgoing(definition, gateway.id)
+    const instance = { definition, status: 'REJECTED', tasks: [{ nodeId: first.id, status: 'REJECTED' }], forks: [], routes: [{ gatewayId: gateway.id, selectedEdgeId: choices[0].id }] }
+    const state = graphRuntimeStatus(instance)
+    expect(state.edges[choices[0].id]).toBe('selected')
+    expect(state.edges[choices[1].id]).toBe('skipped')
+    expect(state.nodes[first.id]).toBe('rejected')
+    expect(Object.values(state.edges)).not.toContain('active')
+    expect(state.edges[tail.id]).toBe('idle')
+    expect(state.nodes[gateway.id]).toBe('idle')
+    expect(state.nodes[gateway.pairId]).toBe('idle')
+    expect(state.nodes[choices[0].target]).toBe('idle')
   })
 
   it('does not activate a future gateway just because its route was frozen at submission', () => {

@@ -7,12 +7,19 @@ truncated, cross-revision or incomplete evidence instead of counting PNG files.
 import argparse
 import hashlib
 import json
+import math
 from pathlib import Path
 import re
 import struct
 import zlib
 
-REQUIRED_STATES = {'designer', 'waiting-join', 'rejected', 'approved', 'distinct-actors-active', 'distinct-actors-completed'}
+REQUIRED_STATES = {'designer', 'designer-dense', 'waiting-join', 'rejected', 'approved', 'default-approved', 'distinct-actors-active', 'distinct-actors-completed'}
+DESIGNER_STATES = {'designer', 'designer-dense', 'designer-properties'}
+REQUIRED_SCREENSHOTS = ({(state, language, width) for state in REQUIRED_STATES
+                         for language in ('en', 'zh') for width in (390, 1440)}
+                        | {(state, language, 320) for state in ('designer', 'designer-dense') for language in ('en', 'zh')}
+                        | {('designer-properties', language, width) for language in ('en', 'zh')
+                           for width in (320, 390)})
 RECOVERY_CHECKPOINTS = {
     'committed-submission-response-loss-original-key-body-mode-close-back-retry',
     'committed-decision-response-loss-original-key-body-mode-retry',
@@ -27,6 +34,9 @@ REQUIRED_CHECKPOINTS = {
     'rejection-cancels-active-sibling-and-unfired-join',
     'browser-reload-preserves-durable-runtime',
     '320px-keyboard-properties-escape',
+    'condition-properties-320px-390px-bilingual-paired-regions-visible',
+    'runtime-expanded-resize-restores-request-navigation',
+    'four-branches-two-levels-readable-at-320px-and-desktop',
 }
 
 def require(condition, message):
@@ -82,7 +92,7 @@ def rendered_state(item):
     """
     request = item.get('request')
     displayed = item.get('renderedState')
-    if item.get('state') == 'designer':
+    if item.get('state') in DESIGNER_STATES:
         require(request is None and displayed is None, 'Designer capture must not claim a runtime state')
         return
     require(isinstance(request, dict) and isinstance(displayed, dict), 'Missing rendered runtime state')
@@ -118,9 +128,16 @@ def rendered_state(item):
     require(observed == expected, 'Screenshot DOM does not match the expected request, revision, tasks or joins')
 
 def canvas_state(item):
-    """Retain internal clipping/scroll facts instead of treating page width as whole-graph visibility."""
+    """Require readable, complete default views, not merely one node in a clipped canvas."""
     canvases = item.get('canvases')
+    if item.get('state') == 'designer-properties':
+        require(canvases == [], 'Properties capture must truthfully record its hidden canvas')
+        return
     require(isinstance(canvases, list) and len(canvases) > 0, 'Missing visible graph canvas evidence')
+    definition = (item.get('request') or {}).get('definition') or item.get('designerDefinition')
+    require(isinstance(definition, dict) and isinstance(definition.get('nodes'), list), 'Missing independent canvas definition')
+    expected_ids = sorted(node['id'] for node in definition['nodes'])
+    require(expected_ids and len(expected_ids) == len(set(expected_ids)), 'Invalid canvas definition nodes')
     for canvas in canvases:
         require(isinstance(canvas, dict) and canvas.get('scrollLeft') == 0 and canvas.get('scrollTop') == 0,
                 'Graph canvas is not captured from its internal origin')
@@ -131,6 +148,37 @@ def canvas_state(item):
         ids = canvas.get('visibleNodeIds')
         require(isinstance(ids, list) and ids and all(isinstance(node, str) and node for node in ids)
                 and len(ids) == len(set(ids)), 'No distinct visible graph nodes in canvas')
+        require(sorted(ids) == expected_ids and canvas.get('allNodeIds') == expected_ids
+                and canvas.get('fullyVisibleNodeIds') == expected_ids,
+                'Default graph view hides or clips a definition node')
+        require(canvas.get('nodeHorizontalClipping') == [], 'Default graph view has horizontal node clipping')
+        if item.get('state') == 'designer-dense':
+            width = canvas.get('minimumNodeWidth')
+            require(type(width) in (int, float) and math.isfinite(width) and width >= 140,
+                    'Dense graph node text is squeezed below the readable track width')
+        bounds = canvas.get('clientBounds')
+        require(isinstance(bounds, dict) and all(type(bounds.get(field)) in (int, float)
+                and math.isfinite(bounds[field]) for field in ('left', 'top', 'right', 'bottom')),
+                'Missing actual graph client bounds')
+        require(abs(bounds['right'] - bounds['left'] - canvas['clientWidth']) < 0.01
+                and abs(bounds['bottom'] - bounds['top'] - canvas['clientHeight']) < 0.01,
+                'Graph client bounds differ from canvas dimensions')
+
+def designer_state(item):
+    if item.get('state') != 'designer-properties':
+        return
+    definition, observed = item.get('designerDefinition'), item.get('designerState')
+    require(isinstance(definition, dict) and definition.get('schemaVersion') == 5
+            and isinstance(observed, dict), 'Missing independent designer property state')
+    require(observed.get('selectedKind') == 'edge', 'Properties screenshot must show an editable condition branch')
+    selected = next((edge for edge in definition.get('edges', []) if edge['id'] == observed.get('selectedId')), None)
+    require(selected is not None and selected.get('defaultBranch') is False
+            and isinstance(selected.get('condition'), dict) and selected['condition'].get('predicates'),
+            'Properties screenshot must show a non-default condition branch')
+    expected = {'definitionId': definition['id'], 'definitionVersion': definition['version'],
+                'definitionName': definition['name'], 'selectedKind': 'edge', 'selectedId': selected['id'],
+                'edge': {key: selected[key] for key in ('id', 'label', 'defaultBranch', 'condition')}}
+    require(observed == expected, 'Visible designer controls differ from the independently published definition')
 
 def validate(directory, source, backend):
     require(re.fullmatch(r'[0-9a-f]{40}', source) is not None, 'Expected exact source commit SHA')
@@ -169,6 +217,7 @@ def validate(directory, source, backend):
         provenance(item, source, backend)
         rendered_state(item)
         canvas_state(item)
+        designer_state(item)
         require(item['captureSessionId'] in sessions, 'Mixed browser sessions')
         image = item.get('image')
         require(isinstance(image, str) and Path(image).name == image, 'Unsafe screenshot path')
@@ -191,8 +240,14 @@ def validate(directory, source, backend):
             require(len(active) >= 2 and len({actor for task in active for actor in task['participants']}) >= 2, 'No independent tasks for different actors in screenshot')
         if item.get('state') in ('approved', 'distinct-actors-completed'):
             require(r and r['status'] == 'APPROVED', 'Approved screenshot is not approved')
-    required = {(state, language, width) for state in REQUIRED_STATES for language in ('en', 'zh') for width in (390, 1440)}
-    require(required <= seen, f'Missing bilingual desktop/narrow screenshots: {required-seen}')
+        if item.get('state') == 'default-approved':
+            require(r and r['status'] == 'APPROVED' and not r['forks'], 'Default screenshot did not complete its exclusive route')
+            selected = {route['selectedEdgeId'] for route in r.get('routes', [])}
+            require(any(edge['id'] in selected and edge.get('defaultBranch') is True
+                        for edge in r['definition'].get('edges', [])), 'Default screenshot does not select the default edge')
+            require(any(task.get('completionMode') == 'ANY' and task['status'] == 'COMPLETED'
+                        and len(task['votes']) == 1 for task in r['tasks']), 'Default screenshot does not prove one-vote ANY completion')
+    require(REQUIRED_SCREENSHOTS <= seen, f'Missing bilingual desktop/narrow screenshots: {REQUIRED_SCREENSHOTS-seen}')
     return len(seen)
 
 def main():

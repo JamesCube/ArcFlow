@@ -109,11 +109,13 @@ export function readGraphCanvasState(root = document) {
     if (bounds.width <= 0 || bounds.height <= 0) return []
     const left = bounds.left + canvas.clientLeft, top = bounds.top + canvas.clientTop
     const right = left + canvas.clientWidth, bottom = top + canvas.clientHeight
-    const visibleNodeIds = Array.from(canvas.querySelectorAll('.gf-node[data-testid]')).flatMap(node => {
-      const rect = node.getBoundingClientRect(), testId = node.getAttribute('data-testid') || ''
-      return testId.startsWith('graph-node-') && rect.width > 0 && rect.height > 0 && rect.right > left && rect.left < right && rect.bottom > top && rect.top < bottom
-        ? [testId.slice('graph-node-'.length)] : []
-    }).sort()
+    const nodes = Array.from(canvas.querySelectorAll('.gf-node[data-testid]')).map(node => ({
+      id: (node.getAttribute('data-testid') || '').replace(/^graph-node-/, ''), rect: node.getBoundingClientRect(),
+    }))
+    const allNodeIds = nodes.map(node => node.id).sort()
+    const visibleNodeIds = nodes.filter(({rect}) => rect.width > 0 && rect.height > 0 && rect.right > left && rect.left < right && rect.bottom > top && rect.top < bottom).map(node => node.id).sort()
+    const fullyVisibleNodeIds = nodes.filter(({rect}) => rect.width > 0 && rect.height > 0 && rect.left >= left - .5 && rect.right <= right + .5 && rect.top >= top - .5 && rect.bottom <= bottom + .5).map(node => node.id).sort()
+    const nodeHorizontalClipping = nodes.filter(({rect}) => rect.left < left - .5 || rect.right > right + .5).map(node => node.id).sort()
     return [{
       scrollLeft: canvas.scrollLeft,
       scrollTop: canvas.scrollTop,
@@ -121,7 +123,38 @@ export function readGraphCanvasState(root = document) {
       scrollWidth: canvas.scrollWidth,
       clientHeight: canvas.clientHeight,
       scrollHeight: canvas.scrollHeight,
-      visibleNodeIds,
+      minimumNodeWidth: nodes.length ? Math.min(...nodes.map(node => node.rect.width)) : 0,
+      visibleNodeIds, allNodeIds, fullyVisibleNodeIds, nodeHorizontalClipping, clientBounds: {left, top, right, bottom},
     }]
   })
+}
+
+// Reads the editable condition controls, not the supplied published snapshot.
+export function readDesignerProperties(root) {
+  const panel = root.querySelector('[data-testid="graph-properties"]')
+  const value = selector => {
+    const control = root.querySelector(`[data-testid="${selector}"]`)
+    if (!control) throw new Error(`Missing visible designer control: ${selector}`)
+    return control.value
+  }
+  const selectedKind = panel?.getAttribute('data-selected-kind'), selectedId = panel?.getAttribute('data-selected-id')
+  if (selectedKind !== 'edge' || !selectedId) throw new Error('Expected an identified conditional branch inspector')
+  const predicates = Array.from(panel.querySelectorAll('.gf-predicate'), (fieldset, index) => {
+    const threshold = value(`graph-threshold-${index}`)
+    if (!/^(?:0|[1-9]\d*)(?:\.\d{1,2})?$/.test(threshold)) throw new Error('Invalid visible threshold')
+    return { field: fieldset.getAttribute('data-field'), operator: value(`graph-operator-${index}`), currency: value(`graph-condition-currency-${index}`), threshold: Number(threshold) }
+  })
+  if (!predicates.length) throw new Error('Expected visible branch conditions')
+  return {
+    definitionId: root.getAttribute('data-definition-id'), definitionVersion: Number(root.getAttribute('data-definition-version')),
+    definitionName: value('graph-process-name'), selectedKind, selectedId,
+    edge: { id: selectedId, label: value('graph-branch-name'), defaultBranch: panel.getAttribute('data-default-branch') === 'true', condition: { mode: value('graph-condition-mode'), predicates } },
+  }
+}
+
+export function assertDesignerProperties(observed, definition, edgeId) {
+  const edge = definition.edges.find(edge => edge.id === edgeId)
+  const expected = { definitionId: definition.id, definitionVersion: definition.version, definitionName: definition.name, selectedKind: 'edge', selectedId: edgeId, edge: { id: edge.id, label: edge.label, defaultBranch: edge.defaultBranch, condition: edge.condition } }
+  if (JSON.stringify(observed) !== JSON.stringify(expected)) throw new Error('Rendered designer properties differ from the published branch')
+  return observed
 }

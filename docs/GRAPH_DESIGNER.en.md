@@ -21,6 +21,10 @@ This is a bounded approval interpreter, not a general BPMN editor. Canvas positi
 <!-- topic:authoring -->
 ## Authoring and versioning
 
+Choose a connection's **+** to insert an approval or a complete paired conditional/parallel region. Select a branch to edit its name, amount rule and priority in Properties; moving a condition earlier changes FIRST_MATCH priority. The default branch remains last and cannot be deleted independently. Select an approval to choose current eligible people and its SINGLE/ALL/ANY voting rule. Deleting a region removes its split, paired join and contained branches together; Undo restores that whole operation.
+
+Narrow canvases show each split as an enclosed set of separately numbered branch tracks. These tracks are alternative or concurrent paths, not sequential steps: the heading explains FIRST_MATCH or waiting for every parallel path, and the paired join is outside the branch group. On desktop, **Full-width canvas** makes more room for side-by-side branches; returning to Properties retains the selection. On phones, switch between Graph and Properties, or press Escape to return to the selected graph item. Tab and Enter work without dragging; Ctrl/Cmd+Z and Ctrl/Cmd+Shift+Z undo/redo graph edits without taking over text-input undo.
+
 Save unfinished work as a draft. A structurally incomplete graph, such as one with disconnected nodes, may be saved and reloaded when its fields, IDs and bounds are valid. Publication requires full server validation plus current reviewer eligibility. Draft revision, published version and definition schema version are separate numbers.
 
 Saving requires the last observed draft revision. Publication requires both the current published version and draft revision. A stale operation returns 409 without overwriting another edit. Successful publication increments the published version and atomically resets the draft to that published definition with a new draft revision. Preview uses the supplied graph and business payload without saving a draft, creating a request, or changing publication.

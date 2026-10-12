@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test'
 import { randomUUID, createHash } from 'node:crypto'
 import { writeFileSync } from 'node:fs'
 import { sourceProvenance } from './complex-evidence.mjs'
-import { readRenderedGraphState, assertRenderedGraphState, renderedStatusLabel, readGraphCanvasState } from './graph-rendered-state.mjs'
+import { readRenderedGraphState, assertRenderedGraphState, renderedStatusLabel, readGraphCanvasState, readDesignerProperties, assertDesignerProperties } from './graph-rendered-state.mjs'
 const BASE='/graphs/payment', DESKTOP={width:1440,height:1000}, MOBILE={width:390,height:844}
 test.use({locale:'en-GB',timezoneId:'UTC',reducedMotion:'reduce',actionTimeout:15000})
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex')
@@ -28,10 +28,19 @@ async function fillPayment(page,tag,{high=true}={}){
 }
 async function submit(page,tag,options){await requests(page);await page.getByTestId('graph-new-request').click();await fillPayment(page,tag,options);return mutation(page,`${BASE}/requests`,()=>page.getByTestId('graph-submit').click())}
 async function vote(page,instance,nodeId,decision='APPROVE',comment='Reviewed synthetic request') {await page.getByTestId(`graph-comment-${nodeId}`).fill(comment);const task=instance.tasks.find(task=>task.nodeId===nodeId);return mutation(page,`${BASE}/requests/${instance.id}/tasks/${encodeURIComponent(task.id)}/decision`,()=>page.getByTestId(`graph-${decision==='APPROVE'?'approve':'reject'}-${nodeId}`).click())}
-async function capture(page,info,state,instance=null){
- for(const locale of ['en','zh']){await page.getByTestId('workspace-language').selectOption(locale);for(const mobile of [false,true]){
-  await page.setViewportSize(mobile?MOBILE:DESKTOP)
+async function capture(page,info,state,instance=null,designerDefinition=null){
+ for(const locale of ['en','zh']){await page.getByTestId('workspace-language').selectOption(locale);for(const viewport of ['designer','designer-dense'].includes(state)?[DESKTOP,MOBILE,{width:320,height:844}]:[DESKTOP,MOBILE]){
+  await page.setViewportSize(viewport)
   if(await page.locator('.gf-mobile-switch').isVisible())await page.locator('.gf-mobile-switch button').first().click()
+  let originalSelection
+  if(['designer','designer-dense'].includes(state)&&viewport.width===1440){
+   originalSelection=await page.getByTestId('graph-properties').getAttribute('data-selected-id')
+   await page.getByTestId('graph-expand-canvas').click()
+   await expect(page.getByTestId('graph-expand-canvas')).toHaveAttribute('aria-pressed','true')
+   await expect(page.getByTestId('graph-properties')).not.toBeVisible()
+   const parallelLanes=await page.locator('.gf-canvas .gf-region.parallelFork').first().evaluate(region=>Array.from(region.querySelectorAll(':scope > .gf-lane'),lane=>{const box=lane.getBoundingClientRect();return{left:box.left,right:box.right,top:box.top}}))
+   if(state==='designer'){expect(parallelLanes).toHaveLength(2);expect(parallelLanes[1].left).toBeGreaterThanOrEqual(parallelLanes[0].right);expect(Math.abs(parallelLanes[0].top-parallelLanes[1].top)).toBeLessThan(1)}
+  }
   await page.locator('.gf-canvas').evaluateAll(elements=>{for(const canvas of elements){const bounds=canvas.getBoundingClientRect();if(bounds.width>0&&bounds.height>0){canvas.scrollLeft=0;canvas.scrollTop=0}}})
   await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))))
   await expect(page.locator('input[type=password]')).toHaveCount(0)
@@ -65,7 +74,7 @@ async function capture(page,info,state,instance=null){
    }
    renderedState=assertRenderedGraphState(await runtime.evaluate(readRenderedGraphState),instance)
   }else{
-   expect(state).toBe('designer')
+   expect(['designer','designer-dense']).toContain(state)
    await expect(page.getByTestId('graph-canvas')).toBeVisible()
    await expect(page.getByTestId('graph-process-name')).toBeVisible()
    await expect(page.getByTestId('graph-process-name')).not.toHaveValue('')
@@ -73,18 +82,44 @@ async function capture(page,info,state,instance=null){
   await page.evaluate(()=>document.fonts.ready)
   await page.evaluate(()=>{scrollTo({top:0,left:0,behavior:'instant'});return new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))})
   const layout=await page.evaluate(()=>({inner:innerWidth,document:document.documentElement.scrollWidth,body:document.body.scrollWidth,origin:{x:scrollX,y:scrollY}}));expect(layout.document).toBeLessThanOrEqual(layout.inner);expect(layout.body).toBeLessThanOrEqual(layout.inner)
+  for(const box of await page.locator('.gf-canvas:visible .gf-node').evaluateAll(nodes=>nodes.map(node=>({id:node.dataset.testid,width:node.getBoundingClientRect().width}))))expect(box.width,`Readable ${box.id} at ${viewport.width}px`).toBeGreaterThanOrEqual(140)
   const canvases=await page.evaluate(readGraphCanvasState)
   expect(canvases.length).toBeGreaterThan(0)
-  for(const canvas of canvases){expect(canvas.scrollLeft).toBe(0);expect(canvas.scrollTop).toBe(0);expect(canvas.clientWidth).toBeGreaterThan(0);expect(canvas.clientHeight).toBeGreaterThan(0);expect(canvas.scrollWidth).toBeGreaterThanOrEqual(canvas.clientWidth);expect(canvas.scrollHeight).toBeGreaterThanOrEqual(canvas.clientHeight);expect(canvas.visibleNodeIds.length).toBeGreaterThan(0)}
-  const stem=`graph-${state}-${locale}-${mobile?'390px':'desktop'}`,bytes=await page.screenshot({fullPage:true,animations:'disabled'})
+  for(const canvas of canvases){expect(canvas.scrollLeft).toBe(0);expect(canvas.scrollTop).toBe(0);expect(canvas.clientWidth).toBeGreaterThan(0);expect(canvas.clientHeight).toBeGreaterThan(0);expect(canvas.scrollWidth).toBeGreaterThanOrEqual(canvas.clientWidth);expect(canvas.scrollHeight).toBeGreaterThanOrEqual(canvas.clientHeight);expect(canvas.visibleNodeIds.length).toBeGreaterThan(0);expect(canvas.nodeHorizontalClipping).toEqual([]);expect(canvas.fullyVisibleNodeIds).toEqual(canvas.allNodeIds);expect(canvas.allNodeIds).toEqual((instance?.definition||designerDefinition).nodes.map(node=>node.id).sort())}
+  const stem=`graph-${state}-${locale}-${viewport.width===1440?'desktop':`${viewport.width}px`}`,bytes=await page.screenshot({fullPage:true,animations:'disabled'})
   // Reject a state change while the screenshot was being generated, before
   // saving either artifact. The witness is always read from the actual DOM.
   await expect(page.locator('.gf-alert')).toHaveCount(0)
   if(instance)expect(assertRenderedGraphState(await page.getByTestId('graph-runtime').evaluate(readRenderedGraphState),instance)).toEqual(renderedState)
   expect(await page.evaluate(readGraphCanvasState)).toEqual(canvases)
   writeFileSync(info.outputPath(`${stem}.png`),bytes)
-  writeFileSync(info.outputPath(`${stem}.json`),JSON.stringify({schemaVersion:1,...await sourceProvenance(),scenario:'graph-workflow',state,locale,viewport:page.viewportSize(),fullPage:true,image:`${stem}.png`,imageSHA256:hash(bytes),capturedAt:new Date().toISOString(),scrollOrigin:layout.origin,canvases,...(instance?{renderedState}:{}),request:instance?{id:instance.id,status:instance.status,commandRevision:instance.commandRevision,definition:instance.definition,tasks:instance.tasks,forks:instance.forks,routes:instance.routes,commands:instance.commands}:null},null,2))
+  writeFileSync(info.outputPath(`${stem}.json`),JSON.stringify({schemaVersion:1,...await sourceProvenance(),scenario:'graph-workflow',state,locale,viewport:page.viewportSize(),fullPage:true,image:`${stem}.png`,imageSHA256:hash(bytes),capturedAt:new Date().toISOString(),scrollOrigin:layout.origin,canvases,...(instance?{renderedState}:{designerDefinition}),request:instance?{id:instance.id,status:instance.status,commandRevision:instance.commandRevision,definition:instance.definition,tasks:instance.tasks,forks:instance.forks,routes:instance.routes,commands:instance.commands}:null},null,2))
+  if(['designer','designer-dense'].includes(state)&&viewport.width===1440){
+   await page.getByTestId('graph-expand-canvas').click();await expect(page.getByTestId('graph-expand-canvas')).toHaveAttribute('aria-pressed','false');await expect(page.getByTestId('graph-properties')).toBeVisible()
+   expect(await page.getByTestId('graph-properties').getAttribute('data-selected-id')).toBe(originalSelection)
+  }
  }}await page.setViewportSize(DESKTOP);await page.getByTestId('workspace-language').selectOption('en')
+}
+
+
+async function captureProperties(page,info,definition,edgeId){
+ for(const locale of ['en','zh'])for(const width of [320,390]){
+  await page.setViewportSize({width,height:844});await page.getByTestId('workspace-language').selectOption(locale)
+  await page.locator('.gf-mobile-switch button').first().click();await page.getByTestId(`graph-branch-${edgeId}`).click()
+  await expect(page.getByTestId('graph-properties')).toBeVisible();await expect(page.getByTestId('graph-canvas')).not.toBeVisible()
+  await expect(page.getByTestId('graph-properties')).toContainText('FIRST_MATCH')
+  await expect(page.getByTestId('graph-threshold-0')).toBeVisible();await expect(page.locator('.gf-alert')).toHaveCount(0)
+  await page.evaluate(()=>document.fonts.ready);await page.evaluate(()=>{scrollTo({top:0,left:0,behavior:'instant'});return new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))})
+  const designerState=assertDesignerProperties(await page.getByTestId('graph-workspace').evaluate(readDesignerProperties),definition,edgeId)
+  const canvases=await page.evaluate(readGraphCanvasState);expect(canvases).toEqual([])
+  const layout=await page.evaluate(()=>({width:innerWidth,document:document.documentElement.scrollWidth,origin:{x:scrollX,y:scrollY}}));expect(layout.document).toBeLessThanOrEqual(layout.width)
+  const stem=`graph-designer-properties-${locale}-${width}px`,bytes=await page.screenshot({fullPage:true,animations:'disabled'})
+  expect(assertDesignerProperties(await page.getByTestId('graph-workspace').evaluate(readDesignerProperties),definition,edgeId)).toEqual(designerState)
+  await expect(page.locator('.gf-alert')).toHaveCount(0)
+  writeFileSync(info.outputPath(`${stem}.png`),bytes)
+  writeFileSync(info.outputPath(`${stem}.json`),JSON.stringify({schemaVersion:1,...await sourceProvenance(),scenario:'graph-workflow',state:'designer-properties',locale,viewport:page.viewportSize(),fullPage:true,image:`${stem}.png`,imageSHA256:hash(bytes),capturedAt:new Date().toISOString(),scrollOrigin:layout.origin,canvases,designerState,designerDefinition:definition,request:null},null,2))
+ }
+ await page.setViewportSize(DESKTOP);await page.getByTestId('workspace-language').selectOption('en')
 }
 
 test('graph workflow: author, persist, preview, execute independent paths, freeze versions and cancel siblings',async({page,browser,request},info)=>{
@@ -96,6 +131,19 @@ test('graph workflow: author, persist, preview, execute independent paths, freez
  await page.getByTestId(`graph-node-${created[0]}`).click();await page.getByTestId('graph-delete').click();await expect(page.getByTestId(`graph-node-${created[0]}`)).toHaveCount(0);await page.getByTestId('graph-undo').click();await expect(page.getByTestId(`graph-node-${created[0]}`)).toBeVisible();await page.getByTestId('graph-redo').click()
  await page.getByTestId('graph-node-financeFinal').click();await page.getByTestId('graph-move-target').selectOption('toEnd');await page.getByTestId('graph-move').click();await page.getByTestId('graph-undo').click()
  await page.getByTestId('graph-node-amount').click();await page.getByTestId('graph-add-branch').click();const branches=page.locator('.gf-canvas [data-node-id="amount"]>.gf-region>.gf-lane');expect(await branches.count()).toBe(3);const extra=await branches.nth(1).getAttribute('data-branch-id');await branches.nth(1).locator(':scope>.gf-branch-label').click();await page.getByRole('button',{name:'↑ Move earlier',exact:true}).click();expect(await branches.first().getAttribute('data-branch-id')).toBe(extra);await page.getByRole('button',{name:'Remove branch',exact:true}).click();expect(await branches.count()).toBe(2)
+ // Exercise the supported four-lane, two-level topology at real readable widths.
+ for(const split of ['amount','reviewFork']){await page.getByTestId(`graph-node-${split}`).click();await page.getByTestId('graph-add-branch').click();await page.getByTestId('graph-add-branch').click();await expect(page.locator(`[data-region-id="${split}"] > .gf-lane`)).toHaveCount(4)}
+ await page.getByTestId('graph-preview-toggle').click();await fillPayment(page,`dense-${suffix}`);const densePreview=await mutation(page,`${BASE}/preview`,()=>page.getByTestId('graph-preview').click());await page.getByTestId('graph-preview-toggle').click();await capture(page,info,'designer-dense',null,densePreview.definition)
+ for(const width of [1440,320]){
+  await page.setViewportSize({width,height:1000})
+  if(await page.locator('.gf-mobile-switch').isVisible())await page.locator('.gf-mobile-switch button').first().click()
+  const widths=await page.locator('.gf-canvas .gf-node').evaluateAll(nodes=>nodes.map(node=>({id:node.dataset.testid,width:node.getBoundingClientRect().width})))
+  for(const node of widths)expect(node.width,`Readable ${node.id} at ${width}px`).toBeGreaterThanOrEqual(140)
+  for(const canvas of await page.evaluate(readGraphCanvasState)){expect(canvas.nodeHorizontalClipping).toEqual([]);expect(canvas.fullyVisibleNodeIds).toEqual(canvas.allNodeIds)}
+ }
+ await page.setViewportSize(DESKTOP);for(let i=0;i<4;i++)await page.getByTestId('graph-undo').click()
+ await expect(page.locator('[data-region-id="amount"] > .gf-lane')).toHaveCount(2);await expect(page.locator('[data-region-id="reviewFork"] > .gf-lane')).toHaveCount(2)
+ checkpoints.push('four-branches-two-levels-readable-at-320px-and-desktop')
  // One person owns two independent active tasks; final review is group ALL.
  await page.getByTestId('graph-node-businessReview').click();await page.getByTestId('graph-person-bob').check();await page.getByTestId('graph-node-final').click();await page.getByTestId('graph-node-type').selectOption('parallelApproval');await page.getByTestId('graph-person-bob').check();await page.getByTestId('graph-person-carol').check();await page.getByTestId('graph-vote-mode').selectOption('ALL')
  await page.getByTestId('graph-branch-highValue').click()
@@ -143,7 +191,7 @@ test('graph workflow: author, persist, preview, execute independent paths, freez
  await page.getByTestId('graph-preview-toggle').click()
  // Main mode navigation keeps editor state and keyboard undo does not consume input typing.
  await page.getByTestId('graph-process-name').fill(`Keyboard ${suffix}`);await page.getByTestId('graph-node-start').focus();await page.keyboard.press('Control+z');await expect(page.getByTestId('graph-process-name')).toHaveValue(`Graph acceptance ${suffix}`)
- await page.getByTestId('sequential-mode').click();await page.getByTestId('graph-mode').click();await expect(page.getByTestId('graph-process-name')).toHaveValue(`Graph acceptance ${suffix}`);await capture(page,info,'designer');checkpoints.push('server-preview-multiline-netTotal-12500-keyboard-mode-navigation')
+ await page.getByTestId('sequential-mode').click();await page.getByTestId('graph-mode').click();await expect(page.getByTestId('graph-process-name')).toHaveValue(`Graph acceptance ${suffix}`);await capture(page,info,'designer',null,published);checkpoints.push('server-preview-multiline-netTotal-12500-keyboard-mode-navigation')
  // Clear preview's form through a submitted real request, preserving the original netTotal.
  await requests(page);await page.getByTestId('graph-new-request').click();const high=await mutation(page,`${BASE}/requests`,()=>page.getByTestId('graph-submit').click());expect(high.definition.version).toBe(published.version);expect(high.tasks.filter(t=>t.status==='ACTIVE').map(t=>t.nodeId).sort()).toEqual(['businessReview','finance']);expect(high.routes[0].selectedEdgeId).toBe('highValue')
  // Publishing ANY changes only future requests; old request stays frozen ALL.
@@ -151,8 +199,11 @@ test('graph workflow: author, persist, preview, execute independent paths, freez
  const bobContext=await browser.newContext({baseURL:'http://localhost:5173',viewport:DESKTOP,locale:'en-GB'}),carolContext=await browser.newContext({baseURL:'http://localhost:5173',viewport:DESKTOP,locale:'en-GB'});const bob=await bobContext.newPage(),carol=await carolContext.newPage();bob.on('pageerror',e=>errors.push(e.message));carol.on('pageerror',e=>errors.push(e.message));await Promise.all([login(bob,'bob'),login(carol,'carol')]);await select(bob,high.id)
  await expect(bob.getByTestId('graph-approve-finance')).toBeVisible();await expect(bob.getByTestId('graph-approve-businessReview')).toBeVisible();let current=await vote(bob,high,'businessReview');expect(current.forks[0].arrivedBranchIds).toHaveLength(1);expect(current.forks[0].fired).toBe(false);await expect(bob.getByTestId('graph-join-reviewJoin')).toContainText('1 / 2');await capture(bob,info,'waiting-join',current)
  current=await vote(bob,current,'finance');expect(current.tasks.find(t=>t.nodeId==='financeFinal').status).toBe('ACTIVE');expect(current.tasks.some(t=>t.nodeId==='final')).toBe(false);current=await vote(bob,current,'financeFinal');expect(current.forks[0].fired).toBe(true);expect(current.tasks.filter(t=>t.nodeId==='final')).toHaveLength(1);expect(current.tasks.find(t=>t.nodeId==='final').completionMode).toBe('ALL');current=await vote(bob,current,'final');expect(current.status).toBe('PENDING');await select(carol,high.id);current=await vote(carol,current,'final');expect(current.status).toBe('APPROVED');expect(current.definition).toEqual(high.definition);checkpoints.push('same-actor-multiple-tasks-independent-progress-join-once-frozen-ALL')
- const low=await submit(page,`low-${suffix}`,{high:false});expect(low.routes[0].selectedEdgeId).toBe('otherwise');expect(low.definition.version).toBe(next.version);expect(low.tasks.map(t=>t.nodeId)).toEqual(['standard']);await select(bob,low.id);let lowState=await vote(bob,low,'standard');lowState=await vote(bob,lowState,'final');expect(lowState.status).toBe('APPROVED');expect(lowState.tasks.find(t=>t.nodeId==='final').votes).toHaveLength(1);checkpoints.push('default-selected-unselected-skipped-group-ANY')
- const rejected=await submit(page,`reject-${suffix}`);await select(bob,rejected.id);const rejectedState=await vote(bob,rejected,'finance','REJECT','Reject synthetic allocation');expect(rejectedState.status).toBe('REJECTED');expect(rejectedState.tasks.find(t=>t.nodeId==='businessReview').status).toBe('CANCELLED');await expect(bob.getByTestId('graph-join-reviewJoin')).toContainText('Cancelled');await capture(bob,info,'rejected',rejectedState);checkpoints.push('rejection-cancels-active-sibling-and-unfired-join')
+ const low=await submit(page,`low-${suffix}`,{high:false});expect(low.routes[0].selectedEdgeId).toBe('otherwise');expect(low.definition.version).toBe(next.version);expect(low.tasks.map(t=>t.nodeId)).toEqual(['standard']);await select(bob,low.id);let lowState=await vote(bob,low,'standard');lowState=await vote(bob,lowState,'final');expect(lowState.status).toBe('APPROVED');expect(lowState.tasks.find(t=>t.nodeId==='final').votes).toHaveLength(1);await capture(bob,info,'default-approved',lowState);checkpoints.push('default-selected-unselected-skipped-group-ANY')
+ await bob.getByTestId('graph-expand-runtime').click();await expect(bob.getByTestId('graph-expand-runtime')).toHaveAttribute('aria-pressed','true');await expect(bob.locator('.gf-request-list')).not.toBeVisible()
+ await bob.setViewportSize({width:320,height:844});await expect(bob.locator('.gf-request-list')).toBeVisible();await bob.getByTestId(`graph-request-${high.id}`).click();await expect(bob.getByTestId('graph-runtime')).toHaveAttribute('data-request-id',high.id)
+ await bob.setViewportSize(DESKTOP);await expect(bob.locator('.gf-request-list')).toBeVisible();await expect(bob.getByTestId('graph-expand-runtime')).toHaveAttribute('aria-pressed','false');checkpoints.push('runtime-expanded-resize-restores-request-navigation')
+ const rejected=await submit(page,`reject-${suffix}`);await select(bob,rejected.id);const rejectedState=await vote(bob,rejected,'finance','REJECT','Reject synthetic allocation');expect(rejectedState.status).toBe('REJECTED');expect(rejectedState.tasks.find(t=>t.nodeId==='businessReview').status).toBe('CANCELLED');await expect(bob.getByTestId('graph-join-reviewJoin')).toContainText('Cancelled');await expect(bob.getByTestId('graph-branch-highValue')).toContainText('Selected');await expect(bob.getByTestId('graph-branch-otherwise')).toContainText('Skipped');await expect(bob.getByTestId('graph-branch-financeBranch')).toContainText('Cancelled');await expect(bob.getByTestId('graph-branch-businessBranch')).toContainText('Cancelled');await expect(bob.getByTestId('graph-node-financeFinal')).toContainText('Not reached');await expect(bob.getByTestId('graph-node-final')).toContainText('Not reached');await expect(bob.getByTestId('graph-node-end')).toContainText('Not reached');await capture(bob,info,'rejected',rejectedState);checkpoints.push('rejection-cancels-active-sibling-and-unfired-join')
  await page.reload();await login(page,'alice');await select(page,high.id);await expect(page.getByTestId('graph-runtime')).toContainText('Approved');await capture(page,info,'approved',current);checkpoints.push('browser-reload-preserves-durable-runtime')
  await designer(page);await page.setViewportSize({width:320,height:844});await page.getByTestId('graph-node-final').click();await expect(page.getByTestId('graph-properties')).toBeVisible();await page.keyboard.press('Escape');await expect(page.getByTestId('graph-canvas')).toBeVisible();
  for(const nodeId of ['finance','businessReview','standard']){
@@ -163,6 +214,7 @@ test('graph workflow: author, persist, preview, execute independent paths, freez
   expect(inCanvas,`Keyboard can reveal graph node ${nodeId} inside the horizontal canvas`).toBe(true)
  }
  const width=await page.evaluate(()=>({inner:innerWidth,document:document.documentElement.scrollWidth}));expect(width.document).toBeLessThanOrEqual(width.inner);checkpoints.push('320px-keyboard-properties-escape')
+ await captureProperties(page,info,next,'highValue');checkpoints.push('condition-properties-320px-390px-bilingual-paired-regions-visible')
  expect(errors).toEqual([]);writeFileSync(info.outputPath('graph-receipt.json'),JSON.stringify({schemaVersion:1,...await sourceProvenance(),result:'passed',realBackend:true,browser:'Chromium',capturedAt:new Date().toISOString(),checkpoints,requests:[current,lowState,rejectedState].map(value=>({id:value.id,status:value.status,commandRevision:value.commandRevision,definition:value.definition,business:value.business,tasks:value.tasks,forks:value.forks,routes:value.routes,commands:value.commands,events:value.events}))},null,2));await bobContext.close();await carolContext.close()
 })
 

@@ -7,3 +7,43 @@
 /* Nested lanes retain their own minimum width and scroll inside the canvas. */
 .gf-canvas>.gf-sequence{min-width:100%;width:max-content}.gf-region{min-width:100%;width:max-content}.gf-lane:has(.gf-region){min-width:max-content}.gf-lane>.gf-sequence{min-width:175px}
 @media(max-width:640px){.sidebar nav:has([data-testid="graph-requests-tab"]){display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:3px}.sidebar nav:has([data-testid="graph-requests-tab"]) button{min-width:0;width:100%;flex-direction:column;gap:3px;padding:7px 3px}.sidebar nav:has([data-testid="graph-requests-tab"]) button span{font-size:10px;overflow-wrap:anywhere;text-align:center}}
+
+/* Designer modes share the existing top bar instead of pushing the first stage
+   below the mobile viewport. The page heading retains the full page identity. */
+.topbar.has-designer-mode{height:auto;min-height:56px;flex-wrap:wrap;padding-block:3px;gap:8px 16px}
+.topbar>.graph-mode-switch{margin:0;padding:3px;gap:4px;flex-shrink:0}
+.topbar>.graph-mode-switch button{min-height:44px;padding:8px 12px;line-height:1.4}
+.topbar.has-designer-mode>.topbar-actions{margin-left:auto}
+@media(max-width:640px){.topbar.has-designer-mode{flex-wrap:nowrap;gap:8px;padding-inline:14px}.topbar.has-designer-mode>.breadcrumb{display:none}.topbar.has-designer-mode>.topbar-actions{flex-shrink:0}}
+
+/* Container-sized structure: every split encloses independent, numbered tracks.
+   Joining happens outside the track group, never between adjacent branches. */
+.gf-canvas{container:graph / inline-size}
+.gf-canvas>.gf-sequence,.gf-runtime-canvas>.gf-sequence{width:100%;min-width:0;padding:0}
+.gf-node{min-width:0;max-width:100%;flex-shrink:0}
+.gf-region{display:grid;grid-template-columns:repeat(var(--gf-branch-count),minmax(0,1fr));width:100%;min-width:0;gap:14px;padding:14px;margin-top:20px;border:1px solid #b8cec0;border-left:3px solid #82aa91;border-radius:10px;background:#edf4ef}
+.gf-region.parallelFork{background:#edf3fa;border-color:#b8cce2;border-left-color:#7199c2}
+.gf-region::before{top:-21px;height:20px}
+.gf-region-heading{grid-column:1/-1;color:#355d45;text-align:left;min-width:0;overflow-wrap:anywhere}
+.gf-region-heading>strong{font-size:13px;line-height:1.5}
+.gf-region-heading>p{font-size:12px;line-height:1.6;margin:6px 0 0;color:#5a7062}
+.gf-lane,.gf-lane:has(.gf-region){container:lane / inline-size;min-width:0;padding:12px 10px 0;border:1px solid #c4d7ca;border-radius:8px;background:#fbfdfb}
+.gf-lane>.gf-sequence{min-width:0;width:100%}
+.gf-branch-label{min-width:0}.gf-branch-label strong{font-size:12px}.gf-branch-label small{font-size:11px}.gf-branch-order{font-size:11px}
+.gf-layout-hint{font-size:12px;line-height:1.6;color:#5d7469;margin:0 0 18px}
+.gf-workbench-meta .gf-expand-control{padding:7px 10px;font-size:12px;min-height:44px;margin-left:auto}
+.gf-workbench.gf-expanded{grid-template-columns:minmax(0,1fr)}.gf-workbench.gf-expanded>.gf-inspector{display:none}
+.gf-runtime-graph-heading{display:flex;align-items:start;gap:12px;margin-top:18px}.gf-runtime-graph-heading .gf-layout-hint{flex:1;margin:0}.gf-runtime-graph-heading button{font-size:12px;flex-shrink:0}
+@media(min-width:761px){.gf-request-layout:has(>.gf-runtime.gf-expanded){grid-template-columns:minmax(0,1fr)}.gf-request-layout:has(>.gf-runtime.gf-expanded)>.gf-request-list{display:none}}
+@container graph (max-width:700px){.gf-region{grid-template-columns:minmax(0,1fr)}.gf-region,.gf-canvas>.gf-sequence>.gf-unit>.gf-region{padding:12px 8px;gap:14px}.gf-lane{padding:12px 8px 0}}
+@container lane (max-width:480px){.gf-region{grid-template-columns:minmax(0,1fr);padding:12px 8px;gap:14px}.gf-lane{padding:12px 8px 0}}
+@media(max-width:760px){.gf-expand-control{display:none}.gf-canvas{padding:20px 12px}.gf-workbench-meta>span:last-of-type{display:none}.gf-canvas-hint{font-size:12px}.gf-mobile-switch button{min-height:44px}.gf-region-heading>strong{font-size:13px}}
+
+.gf-canvas>.gf-sequence>.gf-unit>.gf-region{min-width:0}
+
+/* Four supported branches must wrap into readable tracks, not four tiny cards.
+   The nearest owning unit supplies the actual available region width. */
+.gf-unit{container:graphunit / inline-size}
+@container graphunit (max-width:1000px){.gf-region[data-branch-count="4"]{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@container graphunit (max-width:700px){.gf-region[data-branch-count="3"]{grid-template-columns:minmax(0,1fr)}}
+@container graphunit (max-width:480px){.gf-region[data-branch-count]{grid-template-columns:minmax(0,1fr)}}

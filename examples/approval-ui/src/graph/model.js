@@ -268,17 +268,13 @@ export function addBranch(definition, splitId, people = [], locale = 'en') {
 
 export function deleteBranch(definition, edgeId) {
   const { split, branches, item } = requireBranch(definition, edgeId)
+  if (split.type === 'exclusiveGateway' && branches.find(edge => edge.id === edgeId)?.defaultBranch) fail('The default branch cannot be deleted. Delete the entire region instead.')
   if (branches.length <= 2) fail('Keep at least two branches, or delete the entire region.')
   const branch = item.branches.find(value => value.edge.id === edgeId), ids = new Set()
   for (const entry of branch.items) for (const id of unitIds(entry)) ids.add(id)
   const next = clone(definition)
   next.nodes = next.nodes.filter(node => !ids.has(node.id))
   next.edges = next.edges.filter(edge => edge.id !== edgeId && !ids.has(edge.source) && !ids.has(edge.target))
-  if (split.type === 'exclusiveGateway' && branch.edge.defaultBranch) {
-    const fallback = outgoing(next, split.id).at(-1)
-    fallback.defaultBranch = true
-    fallback.condition = null
-  }
   return finish(next)
 }
 
@@ -314,6 +310,10 @@ export function validateClientGraph(definition) {
     } else {
       if (node.assigneeIds.length || node.completionMode !== null) add('INVALID_ASSIGNMENT', 'Nonhuman nodes must have no participants and a null completion mode.', node.id)
       if (['start', 'end'].includes(node.type) && node.pairId !== null) add('INVALID_PAIR', 'Start and end nodes cannot have pair IDs.', node.id)
+      if (isSplit(node) || CLOSERS.has(node.type)) {
+        const pair = nodeById(definition, node.pairId), expected = PAIRS[node.type] || Object.keys(PAIRS).find(type => PAIRS[type] === node.type)
+        if (!pair || pair.type !== expected || pair.pairId !== node.id) add('INVALID_PAIR', 'This region needs its own reciprocal split and matching merge or join.', node.id)
+      }
     }
   }
   const currencies = new Set()
@@ -385,11 +385,11 @@ export function graphRuntimeStatus(instance) {
           if (selected && branch.edge.id !== selected) { edges[branch.edge.id] = 'skipped'; skip(branch.items) }
           else {
             const done = sequence(branch.items, ready && branch.edge.id === selected)
-            edges[branch.edge.id] = branch.edge.id === selected ? (done ? 'completed' : ready ? 'active' : 'selected') : 'idle'
+            edges[branch.edge.id] = branch.edge.id === selected ? (done ? 'completed' : instance.status === 'REJECTED' ? 'selected' : ready ? 'active' : 'selected') : 'idle'
             if (branch.edge.id === selected) complete = done
           }
         }
-        nodes[pair.id] = complete ? 'completed' : ready && selected ? 'waiting' : 'idle'
+        nodes[pair.id] = complete ? 'completed' : ready && selected ? (instance.status === 'REJECTED' ? 'cancelled' : 'waiting') : 'idle'
       } else if (node.type === 'parallelFork') {
         const fork = forks.get(node.id)
         nodes[node.id] = fork ? 'completed' : 'idle'
@@ -407,11 +407,12 @@ export function graphRuntimeStatus(instance) {
   }
   try { sequence(graphSequence(definition), true) } catch {
     for (const [id, task] of tasks) nodes[id] = String(task.status).toLowerCase()
-    for (const fork of forks.values()) { nodes[fork.forkId] = 'completed'; nodes[fork.joinId] = fork.fired ? 'completed' : 'waiting' }
+    for (const fork of forks.values()) { nodes[fork.forkId] = 'completed'; nodes[fork.joinId] = fork.fired ? 'completed' : instance.status === 'REJECTED' ? 'cancelled' : 'waiting' }
   }
   if (instance.status === 'REJECTED') {
-    for (const id of Object.keys(nodes)) if (nodes[id] === 'idle' || nodes[id] === 'waiting') nodes[id] = 'skipped'
-    for (const id of Object.keys(edges)) if (['idle', 'active', 'selected'].includes(edges[id])) edges[id] = 'skipped'
+    // A terminal rejection cancels live paths; it cannot rewrite frozen route
+    // selection or erase an activated fork's history as an unchosen branch.
+    for (const id of Object.keys(edges)) if (edges[id] === 'active') edges[id] = 'cancelled'
   }
   return { nodes, edges }
 }

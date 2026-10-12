@@ -5,7 +5,7 @@ import GraphRuntime from './GraphRuntime.vue'
 import GraphInspector from './GraphInspector.vue'
 import GraphPaymentForm from './GraphPaymentForm.vue'
 import {api} from '../api.js'
-import {readRenderedGraphState,assertRenderedGraphState,expectedRenderedGraphState,readGraphCanvasState} from '../../e2e/graph-rendered-state.mjs'
+import {readRenderedGraphState,assertRenderedGraphState,expectedRenderedGraphState,readGraphCanvasState,readDesignerProperties,assertDesignerProperties} from '../../e2e/graph-rendered-state.mjs'
 import {definition,business,directory,instance} from './fixtures.test-support.js'
 vi.mock('../api.js',()=>({api:{request:vi.fn()}}))
 const mounted=[]
@@ -48,6 +48,72 @@ describe('graph focus and operation scope regressions',()=>{
  it('a delayed task409 after mode navigation does not stale an unrelated editable draft',async()=>{const{wrapper}=setup({items:[instance()]});await flushPromises();await wrapper.setProps({actor:directory[1]});await button(wrapper,'graph-process-name').setValue('Keep editable');await wrapper.setProps({mode:'requests'});await button(wrapper,'graph-request-request-1').trigger('click');const wait=deferred(),original=api.request.getMockImplementation();api.request.mockImplementation((path,options)=>path.endsWith('/decision')?wait.promise:original(path,options));await button(wrapper,'graph-approve-first').trigger('click');await wrapper.setProps({mode:'designer'});wait.reject(Object.assign(new Error('task changed'),{status:409}));await flushPromises();expect(button(wrapper,'graph-save').element.disabled).toBe(false);expect(button(wrapper,'graph-process-name').element.value).toBe('Keep editable');expect(wrapper.get('[role=alert]').text()).toContain('task changed')})
 })
 
+describe('structured responsive graph controls',()=>{
+ it('encloses independently numbered parallel tracks and places their shared join after the whole region',async()=>{
+  const {wrapper}=setup();await flushPromises()
+  const region=wrapper.get('[data-region-id="fork"]')
+  expect(region.get('.gf-region-heading').text()).toContain('ALL · Independent parallel paths')
+  expect(region.get('.gf-region-heading').text()).toContain('waits for every branch')
+  expect(region.findAll(':scope > .gf-lane')).toHaveLength(2)
+  expect(region.findAll(':scope > .gf-connector')).toHaveLength(0)
+  expect(region.findAll('.gf-branch-order').map(label=>label.text())).toEqual(['Branch 01','Branch 02'])
+  expect(region.element.nextElementSibling.dataset.testid).toBe('graph-node-join')
+  expect(region.attributes('data-pair-id')).toBe('join')
+  await wrapper.setProps({locale:'zh'});expect(region.get('.gf-region-heading').text()).toContain('多条路径独立并行')
+ })
+ it('offers a full-width canvas and restores the selected inspector without changing its values',async()=>{
+  const {wrapper}=setup({attached:true});await flushPromises();await button(wrapper,'graph-node-first').trigger('click');await button(wrapper,'graph-node-name').setValue('Keep selected node')
+  await button(wrapper,'graph-expand-canvas').trigger('click');expect(wrapper.get('.gf-workbench').classes()).toContain('gf-expanded');expect(button(wrapper,'graph-expand-canvas').attributes('aria-pressed')).toBe('true')
+  await button(wrapper,'graph-node-first').trigger('click');await flushPromises();expect(wrapper.get('.gf-workbench').classes()).not.toContain('gf-expanded');expect(button(wrapper,'graph-node-name').element.value).toBe('Keep selected node');expect(document.activeElement.dataset.testid).toBe('graph-node-name')
+ })
+ it('reads published conditional properties from live controls and rejects stale or changed witnesses',async()=>{
+  const {wrapper,server}=setup();await flushPromises();await button(wrapper,'graph-edge-finish').trigger('click');await button(wrapper,'graph-insert-exclusiveGateway').trigger('click');await button(wrapper,'graph-save').trigger('click');await flushPromises();await button(wrapper,'graph-publish').trigger('click');await flushPromises()
+  const edge=server.definition.edges.find(edge=>edge.condition);await button(wrapper,`graph-branch-${edge.id}`).trigger('click')
+  const root=wrapper.element,observed=readDesignerProperties(root)
+  expect(assertDesignerProperties(observed,server.definition,edge.id)).toEqual(observed)
+  expect(wrapper.get('[data-testid="graph-properties"]').text()).toContain('FIRST_MATCH')
+  await wrapper.setProps({locale:'zh'});expect(readDesignerProperties(root)).toEqual(observed)
+  expect(()=>assertDesignerProperties({...observed,selectedId:'other'},server.definition,edge.id)).toThrow('differ')
+  expect(()=>assertDesignerProperties({...observed,definitionVersion:99},server.definition,edge.id)).toThrow('differ')
+  button(wrapper,'graph-threshold-0').element.value='12500'
+  expect(()=>assertDesignerProperties(readDesignerProperties(root),server.definition,edge.id)).toThrow('differ')
+  button(wrapper,'graph-threshold-0').element.value='19999999999.999999'
+  expect(()=>readDesignerProperties(root)).toThrow('Invalid visible threshold')
+ })
+ it('opens the exact region named by a server pairing diagnostic',async()=>{
+  const {wrapper}=setup({attached:true});await flushPromises();const original=api.request.getMockImplementation();api.request.mockImplementation((path,options)=>path.endsWith('/validate')?Promise.resolve({diagnostics:[{code:'INVALID_PAIR',message:'Wrong matching join',nodeId:'fork',edgeId:null}]}):original(path,options))
+  await button(wrapper,'graph-validate').trigger('click');await flushPromises();await wrapper.get('.gf-diagnostics button').trigger('click');await flushPromises()
+  expect(wrapper.get('[data-testid="graph-properties"]').attributes('data-selected-id')).toBe('fork');expect(button(wrapper,'graph-node-name').element.value).toBe('fork');expect(document.activeElement.dataset.testid).toBe('graph-node-name')
+ })
+})
+
+describe('graph operation notice localization',()=>{
+ it('retranslates saved-draft feedback without repeating the save',async()=>{
+  const {wrapper}=setup();await flushPromises();await button(wrapper,'graph-process-name').setValue('Bilingual feedback');await button(wrapper,'graph-save').trigger('click');await flushPromises()
+  expect(wrapper.get('.gf-notice').text()).toBe('Draft saved.')
+  const calls=api.request.mock.calls.length
+  await wrapper.setProps({locale:'zh'});expect(wrapper.get('.gf-notice').text()).toBe('草稿已保存。')
+  await wrapper.setProps({locale:'en'});expect(wrapper.get('.gf-notice').text()).toBe('Draft saved.')
+  expect(api.request).toHaveBeenCalledTimes(calls)
+ })
+ it('retranslates a recorded decision without replaying its command',async()=>{
+  const value=instance(),{wrapper}=setup({publisher:false,items:[value]});await flushPromises();await wrapper.setProps({mode:'requests'});await button(wrapper,'graph-request-request-1').trigger('click')
+  const original=api.request.getMockImplementation()
+  api.request.mockImplementation(async(path,options)=>{
+   if(!path.endsWith('/decision'))return original(path,options)
+   const result=copy(value),id=options.headers['Idempotency-Key'],input=JSON.parse(options.body),at='2026-10-11T00:01:00Z'
+   result.commandRevision=1;result.updatedAt=at;result.tasks[0].status='COMPLETED';result.tasks[0].votes=[{actorId:'reviewer-a',decision:input.decision,comment:input.comment,at,commandId:id}];result.forks[0].arrivedBranchIds=['branchA']
+   result.commands=[{id,taskId:result.tasks[0].id,actorId:'reviewer-a',decision:input.decision,comment:input.comment,at}]
+   return result
+  })
+  await button(wrapper,'graph-approve-first').trigger('click');await flushPromises();expect(wrapper.find('.gf-alert').exists()).toBe(false);expect(wrapper.get('.gf-notice').text()).toBe('Decision recorded.')
+  const calls=api.request.mock.calls.length
+  await wrapper.setProps({locale:'zh'});expect(wrapper.get('.gf-notice').text()).toBe('审批决定已记录。')
+  await wrapper.setProps({locale:'en'});expect(wrapper.get('.gf-notice').text()).toBe('Decision recorded.')
+  expect(api.request).toHaveBeenCalledTimes(calls)
+ })
+})
+
 describe('newer request navigation wins over late submit',()=>{
  it('merges a newly saved request without stealing a newer user selection',async()=>{const existing=instance();existing.id='existing';existing.tasks=existing.tasks.map(task=>({...task,id:`existing:${task.nodeId}`,nodeInstanceId:`existing:${task.nodeId}`,lineage:task.lineage.map(frame=>({...frame,forkActivationId:'existing:fork'}))}));existing.forks[0].id='existing:fork';existing.business.title='Existing request';const{wrapper}=setup({items:[existing]});await flushPromises();await wrapper.setProps({mode:'requests'});await button(wrapper,'graph-new-request').trigger('click');wrapper.getComponent(GraphPaymentForm).vm.$emit('update:modelValue',business());await flushPromises();const wait=deferred(),original=api.request.getMockImplementation();let attempt;api.request.mockImplementation((path,options)=>{if(path.endsWith('/requests')&&options?.method==='POST'){attempt=options;return wait.promise}return original(path,options)});await button(wrapper,'graph-submit').trigger('click');await button(wrapper,'graph-request-existing').trigger('click');const created=instance();created.submissionKey=attempt.headers['Idempotency-Key'];wait.resolve(created);await flushPromises();expect(wrapper.get('.gf-runtime-heading h2').text()).toBe('Existing request');expect(wrapper.find('[data-testid="graph-request-request-1"]').exists()).toBe(true);expect(wrapper.find('[data-testid="graph-payment-form"]').exists()).toBe(false)})
 })
@@ -79,6 +145,8 @@ describe('screenshot DOM witnesses',()=>{
  it('records only nodes intersecting the canvas viewport and preserves clipping dimensions',()=>{
   const root=document.createElement('div');root.innerHTML='<div class="gf-canvas"><button class="gf-node" data-testid="graph-node-left"></button><button class="gf-node" data-testid="graph-node-right"></button></div>';const canvas=root.firstElementChild
   Object.defineProperties(canvas,{clientLeft:{value:0},clientTop:{value:0},clientWidth:{value:300},scrollWidth:{value:900},clientHeight:{value:400},scrollHeight:{value:700}});canvas.getBoundingClientRect=()=>({left:0,top:0,right:300,bottom:400,width:300,height:400});canvas.children[0].getBoundingClientRect=()=>({left:10,top:10,right:100,bottom:100,width:90,height:90});canvas.children[1].getBoundingClientRect=()=>({left:600,top:10,right:700,bottom:100,width:100,height:90})
-  expect(readGraphCanvasState(root)).toEqual([{scrollLeft:0,scrollTop:0,clientWidth:300,scrollWidth:900,clientHeight:400,scrollHeight:700,visibleNodeIds:['left']}])
+  expect(readGraphCanvasState(root)).toEqual([{scrollLeft:0,scrollTop:0,clientWidth:300,scrollWidth:900,clientHeight:400,scrollHeight:700,minimumNodeWidth:90,visibleNodeIds:['left'],allNodeIds:['left','right'],fullyVisibleNodeIds:['left'],nodeHorizontalClipping:['right'],clientBounds:{left:0,top:0,right:300,bottom:400}}])
+  canvas.children[1].getBoundingClientRect=()=>({left:250,top:10,right:350,bottom:100,width:100,height:90})
+  expect(readGraphCanvasState(root)[0]).toMatchObject({visibleNodeIds:['left','right'],fullyVisibleNodeIds:['left'],nodeHorizontalClipping:['right']})
  })
 })
