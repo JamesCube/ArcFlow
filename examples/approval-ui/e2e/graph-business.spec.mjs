@@ -5,7 +5,7 @@ import { sourceProvenance } from './complex-evidence.mjs'
 import { readRenderedGraphState, assertRenderedGraphState, readGraphCanvasState } from './graph-rendered-state.mjs'
 import { persistedBusinessGraph, restartBusinessGraph } from './graph-business-restart.mjs'
 
-const DESKTOP = {width: 1440, height: 1000}, MOBILE = {width: 390, height: 844}
+const DESKTOP = {width: 1440, height: 1000}, MOBILE = {width: 390, height: 844}, NARROW = {width: 320, height: 844}
 const cases = [
   {key: 'travel', ui: 'travel', type: 'travel', edge: 'highCost', fork: 'travelFork', join: 'travelJoin', first: 'operations', second: 'finance'},
   {key: 'receiving', ui: 'receiving', type: 'receiving', edge: 'hasExceptions', fork: 'receivingFork', join: 'receivingJoin', first: 'qualityReview', second: 'purchasingReview'},
@@ -86,10 +86,16 @@ async function fill(page, scenario, tag, {high = true, quoteIndex = 0} = {}) {
 }
 async function capture(page, info, scenario, state, {instance = null, definition = null} = {}) {
   const view = root(page, scenario)
-  for (const locale of ['en', 'zh']) for (const viewport of [DESKTOP, MOBILE]) {
+  for (const locale of ['en', 'zh']) for (const viewport of (state === 'properties' ? [NARROW] : [DESKTOP, MOBILE, NARROW])) {
     await page.getByTestId('workspace-language').selectOption(locale)
     await page.setViewportSize(viewport)
     if (state === 'designer' && await view.locator('.gf-mobile-switch').isVisible()) await view.locator('.gf-mobile-switch button').first().click()
+    if (state === 'properties') {
+      await view.locator('.gf-mobile-switch button').last().click()
+      await expect(view.getByTestId('graph-properties')).toBeVisible()
+      await expect(view.getByTestId('graph-field-0')).toBeVisible()
+      await expect(view.getByTestId('graph-branch-name')).toHaveValue(definition.edges.find(edge => edge.id === scenario.edge).label)
+    }
     await expect(view.locator('.gf-alert')).toHaveCount(0)
     await expect(page.locator('input[type="password"]')).toHaveCount(0)
     await page.evaluate(() => document.fonts.ready)
@@ -104,14 +110,14 @@ async function capture(page, info, scenario, state, {instance = null, definition
     const visible = await view.evaluate(element => ({scenario: element.dataset.scenario, definitionId: element.dataset.definitionId,
       processName: element.querySelector('[data-testid="graph-process-name"]')?.value || null,
       fields: Array.from(element.querySelectorAll('[data-testid]')).filter(el => el.matches('input,select,textarea') && el.getBoundingClientRect().width > 0)
-        .map(el => ({testid: el.dataset.testid, value: el.value, disabled: el.disabled}))}))
+        .map(el => { const bounds = el.getBoundingClientRect(); return {testid: el.dataset.testid, value: el.value, disabled: el.disabled, bounds: {left: bounds.left, right: bounds.right}} })}))
     expect(visible.scenario).toBe(scenario.ui)
     if (state === 'designer') {
       expect(visible.processName).toBe(definition.name)
       expect(canvases.length).toBeGreaterThan(0)
       for (const canvas of canvases) { expect(canvas.nodeHorizontalClipping).toEqual([]); expect(canvas.fullyVisibleNodeIds).toEqual(canvas.allNodeIds) }
     }
-    const name = `graph-business-${scenario.key}-${state}-${locale}-${viewport.width === 1440 ? 'desktop' : '390px'}`
+    const name = `graph-business-${scenario.key}-${state}-${locale}-${viewport.width === 1440 ? 'desktop' : `${viewport.width}px`}`
     const bytes = await page.screenshot({fullPage: true, animations: 'disabled'})
     if (instance) expect(assertRenderedGraphState(await view.getByTestId('graph-runtime').evaluate(readRenderedGraphState), instance)).toEqual(renderedState)
     writeFileSync(info.outputPath(`${name}.png`), bytes)
@@ -198,6 +204,8 @@ for (const scenario of cases) test(`business graph: ${scenario.key} authors and 
   const published = await mutation(page, scenario, `${base(scenario)}/publish`, () => view.getByTestId('graph-publish').click())
   expect(published.version).toBe(initial.definition.version + 1)
   await capture(page, info, scenario, 'designer', {definition: published})
+  await view.getByTestId(`graph-branch-${scenario.edge}`).click()
+  await capture(page, info, scenario, 'properties', {definition: published})
   checkpoints.push('scenario-bound-ui-author-save-publish-and-unsaved-switch')
   await view.getByTestId('graph-preview-toggle').click()
   await fill(page, scenario, `preview-${tag}`)

@@ -3,7 +3,7 @@ import copy
 import tempfile
 import unittest
 from pathlib import Path
-from verify_graph_business_browser import BUSINESS, CHECKPOINTS, EDGES, check_journey, check_capture, verify
+from verify_graph_business_browser import BUSINESS, CHECKPOINTS, EDGES, FACTS, expected_captures, check_journey, check_capture, verify
 
 
 def rendered(request):
@@ -72,6 +72,51 @@ class BusinessGraphEvidenceTests(unittest.TestCase):
             self.assertIs(check_journey(journey, scenario), journey)
             check_capture(capture(journey), journey)
             check_capture(capture(journey, 'waiting-join'), journey)
+
+    def test_narrowest_width_and_properties_are_required_in_both_languages(self):
+        keys = expected_captures()
+        self.assertEqual(len(keys), 114)
+        for scenario in BUSINESS:
+            for locale in ('en', 'zh'):
+                for state in ('designer', 'form', 'waiting-join', 'approved', 'default-approved', 'rejected', 'properties'):
+                    self.assertIn((scenario, state, locale, 320), keys)
+
+    def test_narrow_properties_require_visible_business_condition_and_unclipped_controls(self):
+        for scenario in BUSINESS:
+            journey = fixture(scenario)
+            definition = journey['approved']['definition']
+            rule = {'field': FACTS[scenario], 'operator': 'EQ', 'expected': True} if scenario == 'receiving' else {'field': FACTS[scenario], 'operator': 'GTE', 'threshold': 20 if scenario == 'quote' else 10000, **({'currency': 'CNY'} if scenario == 'travel' else {})}
+            definition['edges'] = [{'id': EDGES[scenario], 'label': 'Typed business branch', 'condition': {'mode': 'ALL', 'predicates': [rule]}}]
+            value = {'scenario': scenario, 'businessType': BUSINESS[scenario], 'state': 'properties', 'locale': 'en',
+                     'viewport': {'width': 320, 'height': 844}, 'definition': definition, 'request': None, 'renderedState': None,
+                     'layout': {'width': 320, 'document': 320, 'body': 320, 'x': 0, 'y': 0},
+                     'visible': {'scenario': 'quoteDiscount' if scenario == 'quote' else scenario,
+                                 'definitionId': f'{scenario}-graph', 'processName': definition['name'],
+                                 'fields': [{'testid': 'graph-branch-name', 'value': 'Typed business branch', 'bounds': {'left': 12, 'right': 308}},
+                                            {'testid': 'graph-field-0', 'value': FACTS[scenario], 'bounds': {'left': 24, 'right': 296}}]}}
+            controls = {'graph-condition-mode': 'ALL', 'graph-operator-0': rule['operator']}
+            if scenario == 'receiving': controls['graph-expected-0'] = 'true'
+            else:
+                controls['graph-threshold-0'] = str(rule['threshold'])
+                if scenario == 'travel': controls['graph-condition-currency-0'] = 'CNY'
+            value['visible']['fields'].extend({'testid': key, 'value': text, 'bounds': {'left': 24, 'right': 296}} for key, text in controls.items())
+            check_capture(value, journey)
+            for key in controls:
+                broken = copy.deepcopy(value); broken['visible']['fields'] = [field for field in broken['visible']['fields'] if field['testid'] != key]
+                with self.assertRaisesRegex(ValueError, 'typed condition control'):
+                    check_capture(broken, journey)
+                broken = copy.deepcopy(value); next(field for field in broken['visible']['fields'] if field['testid'] == key)['value'] = 'wrong'
+                with self.assertRaisesRegex(ValueError, 'typed condition control'):
+                    check_capture(broken, journey)
+            broken = copy.deepcopy(value); broken['visible']['fields'][0]['bounds']['right'] = 321
+            with self.assertRaisesRegex(ValueError, 'controls are clipped'):
+                check_capture(broken, journey)
+            broken = copy.deepcopy(value); broken['visible']['fields'][1]['value'] = 'payment.netTotal'
+            with self.assertRaisesRegex(ValueError, 'typed condition'):
+                check_capture(broken, journey)
+            broken = copy.deepcopy(value); broken['viewport']['width'] = 390; broken['layout']['width'] = 390
+            with self.assertRaisesRegex(ValueError, 'narrowest'):
+                check_capture(broken, journey)
 
     def test_missing_behavior_checkpoint_is_rejected(self):
         value = fixture(); value['checkpoints'].remove(next(iter(CHECKPOINTS)))

@@ -39,7 +39,7 @@
 
 先读取 `/api/graphs/quote/quotes`，获得当前身份可读的当前 `QuoteVersion[]`。提交业务为 `quoteDiscount`：`businessId`、`title`、`reason`、`customerRef`、`quoteRevision`、`item`、`quantity`、`listUnitPrice`、`requestedUnitPrice`、`currency`、`validUntil`。这个既有类型没有 `documentVersion` 字段。源列表的 `revision` 对应提交的 `quoteRevision`。
 
-客户引用、商品、数量、标价、币种和有效期必须与指定源版本相符。申请人只能修改标题、理由和申请单价；申请单价必须大于零且严格低于标价。后端以 `BigDecimal` 计算减让总额 `(listUnitPrice - requestedUnitPrice) * quantity`。百分比条件通过交叉相乘比较 `(listUnitPrice - requestedUnitPrice) * 100` 与 `listUnitPrice * threshold`，不会用界面四舍五入后的百分比选择路径。
+客户引用、商品、数量、标价、币种和有效期必须与指定源版本相符。申请人只能修改标题、理由和申请单价；申请单价必须大于零且严格低于标价。后端以 `BigDecimal` 计算减让总额 `(listUnitPrice - requestedUnitPrice) * quantity`。百分比条件通过交叉相乘比较 `(listUnitPrice - requestedUnitPrice) * 100` 与 `listUnitPrice * threshold`。运行页将精确比值显示为易读的百分比；显示精度无法完整表达时，用“约”或“小于／大于”提示。冻结 JSON 快照仍保留原始精确比值；显示格式不会改变条件判定，也不会参与路径选择。
 
 - 只有源报价负责人可以提交。发布权限本身不赋予源报价可读权限。
 - 预览要求可读源版本、源字段一致、当前版本且未过期，并要求选中路径上的全部审批人可读该版本。

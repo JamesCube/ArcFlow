@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { copyFor } from './copy.js'
-import { factLabel, factType } from './business.js'
+import { formatPredicateSummary } from './fact-display.js'
 import { runtimeNodeStatus, runtimeEdgeStatus } from './model.js'
 const props = defineProps({ items: {type:Array,default:()=>[]}, locale: String, people: Array, selected: String, editable: Boolean, instance: Object })
 const emit = defineEmits(['select'])
@@ -11,7 +11,7 @@ const state = node => props.instance ? runtimeNodeStatus(props.instance,node.id)
 const edgeState = edge => props.instance ? runtimeEdgeStatus(props.instance,edge.id) : ''
 const label = status => t.value[status === 'waiting' ? 'waitingState' : status] || status
 const marker = type => ({start:'○',end:'●',approval:'✓',parallelApproval:'✓✓',exclusiveGateway:'◇',exclusiveMerge:'◇',parallelFork:'⑂',parallelJoin:'⊕'})[type]
-const describePredicate = p => `${factLabel(p.field,props.locale)} ${p.operator} ${factType(p.field)==='boolean'?(props.locale==='zh'?(p.expected?'是':'否'):(p.expected?'Yes':'No')):`${p.currency || ''} ${p.threshold}${factType(p.field)==='percent'?'%':''}`}`
+const describePredicate = predicate => formatPredicateSummary(predicate, props.locale)
 const select = (kind,id) => emit('select',{kind,id})
 </script>
 <template>

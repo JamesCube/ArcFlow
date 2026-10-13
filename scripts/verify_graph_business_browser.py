@@ -9,7 +9,8 @@ from verify_graph_browser import require, png_dimensions, provenance, rendered_s
 
 BUSINESS = {'travel': 'travel', 'receiving': 'receiving', 'quote': 'quoteDiscount'}
 EDGES = {'travel': 'highCost', 'receiving': 'hasExceptions', 'quote': 'discounted'}
-STATES = {'designer', 'form', 'waiting-join', 'approved', 'default-approved', 'rejected'}
+FACTS = {'travel': 'travel.estimatedCost', 'receiving': 'receiving.hasRejectedLines', 'quote': 'quote.discountPercent'}
+STATES = {'designer', 'form', 'waiting-join', 'approved', 'default-approved', 'rejected', 'properties'}
 CHECKPOINTS = {
     'scenario-bound-ui-author-save-publish-and-unsaved-switch',
     'server-derived-high-default-preview-without-write',
@@ -18,6 +19,10 @@ CHECKPOINTS = {
     'ordinary-default-route-and-unselected-reviewer-isolation',
     'terminal-rejection-cancels-parallel-business-sibling',
 }
+
+def expected_captures():
+    return {(scenario, state, locale, width) for scenario in BUSINESS for state in STATES
+            for locale in ('en', 'zh') for width in ((320,) if state == 'properties' else (320, 390, 1440))}
 
 def check_request(request, scenario):
     require(isinstance(request, dict) and request.get('business', {}).get('type') == BUSINESS[scenario], 'Wrong business snapshot family')
@@ -73,23 +78,40 @@ def check_journey(item, scenario):
 def check_capture(item, journey):
     scenario, state = item.get('scenario'), item.get('state')
     require(scenario in BUSINESS and state in STATES and item.get('businessType') == BUSINESS[scenario], 'Unknown business capture')
-    require(item.get('locale') in ('en', 'zh') and item.get('viewport', {}).get('width') in (390, 1440), 'Missing bilingual/responsive capture')
+    require(item.get('locale') in ('en', 'zh') and item.get('viewport', {}).get('width') in (320, 390, 1440), 'Missing bilingual/responsive capture')
     visible = item.get('visible', {})
     require(visible.get('scenario') == ('quoteDiscount' if scenario == 'quote' else scenario) and visible.get('definitionId') == f'{scenario}-graph', 'Visible workspace belongs to another family')
     layout = item.get('layout', {})
     require(layout.get('width') == item['viewport']['width'] and layout.get('document', float('inf')) <= layout['width'] and layout.get('body', float('inf')) <= layout['width'], 'Viewport horizontal overflow')
     require(layout.get('x') == layout.get('y') == 0, 'Capture not at document origin')
-    if state in ('designer', 'form'):
+    if state in ('designer', 'form', 'properties'):
         require(item.get('request') is None and item.get('renderedState') is None, 'Form/designer falsely claims persisted runtime')
-        if state == 'designer':
+        if state in ('designer', 'properties'):
             definition = item.get('definition', {})
             require(definition == journey['approved']['definition'] and visible.get('processName') == definition['name'], 'Designer differs from submitted graph')
-            canvas_state(dict(item, designerDefinition=definition))
+            if state == 'designer':
+                canvas_state(dict(item, designerDefinition=definition))
+            else:
+                require(item['viewport']['width'] == 320, 'Properties evidence must cover the narrowest viewport')
+                fields = {field.get('testid'): field for field in visible.get('fields', [])}
+                edge = next(edge for edge in definition['edges'] if edge['id'] == EDGES[scenario])
+                rule = edge['condition']['predicates'][0]
+                controls = {'graph-branch-name': edge['label'], 'graph-condition-mode': edge['condition']['mode'],
+                            'graph-field-0': FACTS[scenario], 'graph-operator-0': rule['operator']}
+                if scenario == 'receiving':
+                    controls['graph-expected-0'] = str(rule['expected']).lower()
+                else:
+                    controls['graph-threshold-0'] = str(rule['threshold'])
+                    if scenario == 'travel': controls['graph-condition-currency-0'] = rule['currency']
+                require(all(fields.get(key, {}).get('value') == value for key, value in controls.items()), 'Properties hide or alter a typed condition control')
         else:
             fields = visible.get('fields')
             require(isinstance(fields, list) and fields, 'Filled business form is not evidenced')
             prefix = 'graph-quote-' if scenario == 'quote' else f'graph-{scenario}-'
             require(any(field.get('testid', '').startswith(prefix) and field.get('value') for field in fields), 'No populated real business fields')
+        for field in visible.get('fields', []):
+            bounds = field.get('bounds', {})
+            require(isinstance(bounds.get('left'), (int, float)) and isinstance(bounds.get('right'), (int, float)) and 0 <= bounds['left'] < bounds['right'] <= item['viewport']['width'], 'Business controls are clipped')
     else:
         expected = {'approved': journey['approved'], 'default-approved': journey['ordinary'], 'rejected': journey['rejected'], 'waiting-join': journey['restart']['persistedBefore']['request']}[state]
         require(item.get('request') == expected, 'Capture is detached from its durable journey')
@@ -110,7 +132,7 @@ def verify(directory, source, backend):
         journeys[scenario] = check_journey(item, scenario)
         sessions.add((item.get('captureSessionId'), item.get('captureRunId'), item.get('captureRunAttempt')))
     require(set(journeys) == set(BUSINESS), 'Three successful business journeys are required')
-    expected = {(scenario, state, locale, width) for scenario in BUSINESS for state in STATES for locale in ('en', 'zh') for width in (390, 1440)}
+    expected = expected_captures()
     observed = set()
     for image in directory.rglob('*.png'):
         item = json.loads(image.with_suffix('.json').read_text())
