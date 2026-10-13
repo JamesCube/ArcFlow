@@ -24,7 +24,7 @@
 | Approval domain | [`examples/approval-domain`](../../examples/approval-domain/src/main/java/com/arcflow/approval/) | Identity SPI, immutable documents, process versions, voting, retries, frozen routing, and persistence SPI |
 | Default storage | [`JsonApprovalStore`](../../examples/approval-domain/src/main/java/com/arcflow/approval/JsonApprovalStore.java) | Exclusive local writer, atomic snapshots, strict restoration, and pre-upgrade backups |
 | Optional storage | [`examples/approval-jdbc`](../../examples/approval-jdbc/README.en.md) | JDBC transactions, retained definitions, audit, and member projection; host owns DataSource, drivers, and migrations |
-| Standalone host | [`examples/approval-demo/backend`](../../examples/approval-demo/backend/src/main/java/com/arcflow/demo/) | Boot 4.1.1, Basic auth, fixed demo identities, strict JSON, and three endpoint families with separate stores |
+| Standalone host | [`examples/approval-demo/backend`](../../examples/approval-demo/backend/src/main/java/com/arcflow/demo/) | Boot 4.1.1, Basic auth, fixed demo identities, strict JSON, and isolated generic, quote, scenario and graph endpoint families |
 | Standalone UI | [`examples/approval-ui`](../../examples/approval-ui/README.en.md) | Vue workspace, designer, quote page, and scenarios; never the final authority for permissions or money |
 | Other hosts/clients | [RuoYi](../../examples/ruoyi-vue3/README.en.md), [H5](../../examples/approval-mobile/README.en.md) | RuoYi reuses native authentication/permissions; H5 reads/reviews leave and procurement only |
 
@@ -44,6 +44,8 @@ Read [ApprovalService](../../examples/approval-domain/src/main/java/com/arcflow/
 
 <!-- topic:voting-and-conditional-paths -->
 ## Voting and conditional paths
+
+The bullets below describe the legacy linear `ProcessDefinition`, not schema-5/6 graph definitions. The [graph interpreter](../GRAPH_DESIGNER.en.md) and [business graph adoption](../GRAPH_BUSINESS_SCENARIOS.en.md) provide bounded paired branches and task-level state.
 
 - A definition is fixed `start` → **1–8 ordered human stages** → fixed `end`. It is not arbitrary graph editing, loops, or BPMN execution.
 - UI **SINGLE** means `type: "approval"` with one `assigneeId`. It is not the JSON value `completionMode: "SINGLE"`.

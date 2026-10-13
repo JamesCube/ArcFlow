@@ -47,3 +47,5 @@
 @container graphunit (max-width:1000px){.gf-region[data-branch-count="4"]{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @container graphunit (max-width:700px){.gf-region[data-branch-count="3"]{grid-template-columns:minmax(0,1fr)}}
 @container graphunit (max-width:480px){.gf-region[data-branch-count]{grid-template-columns:minmax(0,1fr)}}
+
+.gf-family-selector{display:flex;gap:1.2rem;align-items:center;flex-wrap:wrap;margin-bottom:1.2rem;padding:1rem 1.2rem;background:#fff;border:1px solid #dfe6eb;border-radius:12px}.gf-family-selector label{display:grid;gap:.4rem;font-size:.8rem;font-weight:650;min-width:220px}.gf-family-selector select{padding:.65rem;border:1px solid #bdcbd4;border-radius:7px;background:#fff;color:inherit}.gf-family-selector p{max-width:42rem;flex:1;font-size:.85rem;color:#586776;margin:0}.gf-hub{min-width:0}@media(max-width:600px){.gf-family-selector{display:block}.gf-family-selector label{min-width:0}.gf-family-selector p{margin-top:.7rem}}

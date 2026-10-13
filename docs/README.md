@@ -40,7 +40,8 @@
 
 - [架构与扩展](development/ARCHITECTURE.md)：模块、调用链、类型和宿主边界
 - [能力与场景目录](CAPABILITIES.md)：实现、有限支持与未实现项
-- [结构化图流程工作区](GRAPH_DESIGNER.md)：付款分支/汇合、草稿、任务运行、API 与持久化边界
+- [结构化图流程工作区](GRAPH_DESIGNER.md)：四类业务、分支/汇合、草稿、任务运行、API 与持久化边界
+- [出差、收货与报价审批图](GRAPH_BUSINESS_SCENARIOS.md)：严格业务字段、报价源权限与运行边界
 - [设计器工作台](DESIGNER_WORKBENCH.md)：交互、设计依据和对应版本证据
 - [企业集成提议](INTEGRATION_DESIGN.md)：规划中的通用 API/DSL，不是现有端点
 - [路线图](ROADMAP.md)：已完成里程碑与未承诺日期的后续方向

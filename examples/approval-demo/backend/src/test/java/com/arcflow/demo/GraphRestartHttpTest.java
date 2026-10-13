@@ -32,7 +32,10 @@ class GraphRestartHttpTest {
             "--APPROVAL_ALICE_PASSWORD=test-alice-password","--APPROVAL_BOB_PASSWORD=test-bob-password","--APPROVAL_CAROL_PASSWORD=test-carol-password");
     }
     JsonNode call(ConfigurableApplicationContext context,String method,String path,String actor,JsonNode body,String key,int status)throws Exception {
-        var request=HttpRequest.newBuilder(URI.create("http://127.0.0.1:"+((WebServerApplicationContext)context).getWebServer().getPort()+"/api/graphs/payment"+path))
+        return callScenario(context,"payment",method,path,actor,body,key,status);
+    }
+    JsonNode callScenario(ConfigurableApplicationContext context,String scenario,String method,String path,String actor,JsonNode body,String key,int status)throws Exception {
+        var request=HttpRequest.newBuilder(URI.create("http://127.0.0.1:"+((WebServerApplicationContext)context).getWebServer().getPort()+"/api/graphs/"+scenario+path))
             .header("Authorization","Basic "+Base64.getEncoder().encodeToString((actor+":test-"+actor+"-password").getBytes(StandardCharsets.UTF_8)))
             .header("X-Arcflow-Client","approval-demo").header("Content-Type","application/json");
         if(key!=null)request.header("Idempotency-Key",key);

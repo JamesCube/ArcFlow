@@ -6,6 +6,20 @@ import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
 DOMAIN = {
+    'GraphBusinessScenariosTest': {
+        'allThreeActualTopologiesRouteBothWaysWithIndependentTasksAndWaitingJoins',
+        'eachParallelRejectionCancelsSiblingAndNeverFiresJoin',
+        'boundFamiliesApplyToDraftsPreviewsAndConditionlessHistoricalDefinitions',
+        'newServicesKeepPublicationCasFrozenVersionsIdentityAndRetries',
+        'quoteSourceGuardsOwnerImmutableFieldsPreviewSelectedReadersAndCanonicalKey',
+        'sourceRevocationDuringDirectoryLookupIsRecheckedBeforeCreateAndPreviewReturn',
+        'quoteHistoricalRetrySurvivesExpiryAndSourceRevisionButNotAccessRevocation',
+        'concurrentQuoteRevisionSubmissionsConvergeAndChangedPayloadConflicts',
+        'allNewJsonStoresRestartAndRejectCorruptHistoricalSnapshotsWithoutOverwritingBytes',
+        'quoteNoncanonicalDurableKeyIsRejectedBeforeJsonMutation',
+        'percentRoutingUsesExactComparisonAtRoundingBoundaryAndStrictShapes',
+        'schemaFiveCollidingIdsRetainPaymentAcrossJsonRestartAndNewHostsRejectDowngrade',
+    },
     'GraphEngineTest': {
         'thresholdDefaultAndFirstMatchingPriorityUseExactServerFacts',
         'branchesAdvanceIndependentlyThenJoinFiresExactlyOnce',
@@ -43,6 +57,12 @@ JSON = {
     'invalidWriteKeepsDurableBytesAndMemoryUnchanged',
 }
 HTTP = {
+    'GraphBusinessApiTest': {
+        'realBusinessGraphsRunTrueAndDefaultPathsWithIndependentTaskJoinAndRejection',
+        'sourceQuotePolicyCannotBeBypassedThroughGraphHttpAndStrictWireRejectsDerivedFacts',
+        'endpointFamilyAndDraftFactValidationAreAuthoritativeAndPublicationCasRemainsScoped',
+    },
+    'GraphBusinessRestartHttpTest': {'restoresEveryScenarioFrozenVersionSourceBindingAndWaitingJoinAcrossHttpRestart'},
     'GraphApiTest': {
         'authenticatesAndUsesCurrentDirectoryAndPublisherPermissions',
         'preservesOriginAndClientHeaderProtectionOnEveryGraphWrite',
@@ -58,6 +78,9 @@ HTTP = {
     'GraphRestartHttpTest': {'restartsWithFrozenBusinessOneOutstandingBranchAndDurableCommandReplay'},
 }
 JDBC = {
+    'quoteCanonicalIdentityRejectsBeforeAnyJdbcMutationAndSurvivesRestart',
+    'businessGraphFamiliesPersistPartialJoinsAndIsolateTypedSnapshots',
+    'schemaFiveCollidingBusinessIdsRemainPaymentAndRejectSchemaSixReopen',
     'freshSchemaIsExplicitUnknownSchemaRejectedAndLegacyTablesUntouched',
     'initializationAndRestartPreserveEveryDurableProjection',
     'sameActorHasTwoTaskRowsAndRequestFlagsAreLogicalOr',

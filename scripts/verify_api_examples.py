@@ -7,6 +7,7 @@ the jar is launched on loopback, restarted once, and stopped in all outcomes.
 import argparse
 import base64
 import copy
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -291,6 +292,45 @@ def main():
             graph = graph_vote(graph, 'a', 'docs-graph-a')
             assert [t['nodeId'] for t in graph['tasks'] if t['status'] == 'ACTIVE'] == ['b']
             assert not graph['forks'][0]['fired']
+            # New graph examples use the same raw-file discipline and independent stores.
+            graph_business = []
+            def business_vote(route, state, task):
+                actor = next(a for a in task['participants'] if a not in {v['actorId'] for v in task['votes']})
+                command = 'docs-' + route.rsplit('/', 1)[-1] + '-' + task['nodeId'] + '-' + actor
+                path = route + '/requests/' + state['id'] + '/tasks/' + urllib.parse.quote(task['id'], safe='') + '/decision'
+                result = graph_schema(call(actor, 'POST', path, sample('graph-decision'), key=command))
+                assert result == call(actor, 'POST', path, sample('graph-decision'), key=command)
+                return result
+            call('alice', 'GET', '/api/graphs/unknown/process', expected=404)
+            call('alice', 'GET', '/api/graphs/travel/quotes', expected=400)
+            for family in ('travel', 'receiving', 'quote'):
+                route = '/api/graphs/' + family
+                body = sample('graph-' + family)
+                key = 'docs-graph-' + family
+                if family == 'quote':
+                    source = call('alice', 'GET', route + '/quotes')
+                    assert any(q['businessId'] == body['business']['businessId'] and q['revision'] == body['business']['quoteRevision'] for q in source)
+                    key = 'quote:' + hashlib.sha256((body['business']['businessId'] + r'\n' + str(body['business']['quoteRevision'])).encode()).hexdigest()
+                    call('alice', 'POST', route + '/requests', body, 400, 'noncanonical-key')
+                capability = graph_schema(call('alice', 'GET', route + '/capabilities'), 'GraphCapabilities')
+                assert capability['businessType'] == body['business']['type']
+                definition = graph_schema(call('alice', 'GET', route + '/process'), 'GraphDefinition')
+                assert definition['id'] == family + '-graph' and definition['schemaVersion'] == 6
+                assert capability['schemaVersion'] == 6
+                before = call('alice', 'GET', route + '/workspace')
+                preview = graph_schema(call('alice', 'POST', route + '/preview', {'definition': definition, 'business': body['business']}))
+                assert before == call('alice', 'GET', route + '/workspace')
+                instance = graph_schema(call('alice', 'POST', route + '/requests', body, 201, key, raw=raw_sample('graph-' + family)))
+                assert instance['routes'] == preview['routes']
+                assert instance == call('alice', 'POST', route + '/requests', body, 201, key)
+                if family == 'travel':
+                    instance = business_vote(route, instance, next(t for t in instance['tasks'] if t['status'] == 'ACTIVE'))
+                active = [t for t in instance['tasks'] if t['status'] == 'ACTIVE']
+                assert len(active) == 2
+                instance = business_vote(route, instance, active[0])
+                assert instance['status'] == 'PENDING' and not instance['forks'][0]['fired']
+                assert len(instance['forks'][0]['arrivedBranchIds']) == 1
+                graph_business.append((route, body, key, instance))
             stop()
             start()
             assert graph == call('alice', 'GET', graph_base + '/requests/' + graph['id'])
@@ -303,6 +343,19 @@ def main():
             path = graph_base + '/requests/' + graph['id'] + '/tasks/' + urllib.parse.quote(graph['id'] + ':final', safe='') + '/decision'
             assert graph == call('bob', 'POST', path, sample('graph-decision'), key='docs-graph-final')
             assert json.loads((directory / 'state.json.graph.json').read_text())['storageSchemaVersion'] == 14
+            for route, body, key, instance in graph_business:
+                assert instance == call('alice', 'GET', route + '/requests/' + instance['id'])
+                assert instance == call('alice', 'POST', route + '/requests', body, 201, key)
+                for _ in range(16):
+                    if instance['status'] != 'PENDING': break
+                    active = next(t for t in instance['tasks'] if t['status'] == 'ACTIVE')
+                    instance = business_vote(route, instance, active)
+                assert instance['status'] == 'APPROVED'
+                assert sum(e['type'] == 'JOIN_FIRED' for e in instance['events']) == 1
+                assert instance == call('alice', 'POST', route + '/requests', body, 201, key)
+                family = route.rsplit('/', 1)[-1]
+                assert json.loads((directory / ('state.json.' + family + '.graph.json')).read_text())['storageSchemaVersion'] == 14
+
             for route, body, key, approved in saved + conditional:
                 assert approved == call('alice', 'POST', route + '/documents', body, 201, key)
             state = json.loads((directory / 'state.json.scenario-erp-payment.json').read_text())
@@ -310,7 +363,7 @@ def main():
             print(json.dumps({'status': 'PASS', 'backend': 'real packaged standalone Spring Boot 4.1.1',
                               'http_checks': count, 'json_example_files': len(list(EXAMPLES.glob('*.json'))),
                               'business_types': 9, 'scenario_catalog_entries': 6,
-                              'conditional_business_types': 3, 'graph_example_files': 6, 'graph_partial_fork_restart': True, 'restart': True,
+                              'conditional_business_types': 3, 'graph_example_files': 9, 'graph_business_families': 4, 'graph_partial_fork_restart': True, 'restart': True,
                               'synthetic_only': True, 'browser': 'not run by this script',
                               'native_ruoyi': 'not run by this standalone script'}, indent=2))
         finally:

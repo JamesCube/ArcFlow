@@ -38,8 +38,8 @@
 
 Original linear API source baseline: [`main` at `199db7548f6faba5dfef105eaaf7311972adb388`](https://github.com/JamesCube/ArcFlow/tree/199db7548f6faba5dfef105eaaf7311972adb388). This reference describes the example hosts implemented in this repository. It is not a specification for an unimplemented platform API. The Java `arcflow-core` library does not start an HTTP server.
 
-- [Endpoint inventory JSON](./endpoint-inventory.json): 42 offline mappings from the five Controllers for detecting route drift; this is not OpenAPI.
-- Static OpenAPI contracts: [standalone host](./openapi/standalone.openapi.json) (33 operations) and [RuoYi host](./openapi/ruoyi.openapi.json) (9 operations), with separate authentication, envelopes and status codes.
+- [Endpoint inventory JSON](./endpoint-inventory.json): 43 offline mappings from the five Controllers for detecting route drift; this is not OpenAPI.
+- Static OpenAPI contracts: [standalone host](./openapi/standalone.openapi.json) (34 operations) and [RuoYi host](./openapi/ruoyi.openapi.json) (9 operations), with separate authentication, envelopes and status codes.
 - [Executable request examples](./examples/README.en.md): use your own local configuration and synthetic data. Never commit passwords, Authorization headers or real business information.
 - Controller, DTO and domain-validation source links at the end are authoritative. The static OpenAPI files and executable HTTP examples support inspection and verification. Numeric token precision, raw UTF-16 lengths, cross-field rules, authorization and concurrency remain server-enforced contracts; structural validation alone cannot guarantee that a request succeeds.
 
@@ -52,7 +52,7 @@ Original linear API source baseline: [`main` at `199db7548f6faba5dfef105eaaf7311
 | Standalone example | `/api` | HTTP Basic; direct JSON objects/arrays | Legacy leave, typed leave/procurement, member inbox |
 | Standalone scenarios | `/api/scenarios` | Same Basic identity; separate process/store per scenario | Expense, travel, seal use, receiving, payment request, contract review |
 | Dedicated quote example | `/api/crm` | Same Basic identity plus quote-revision ACL | Synthetic quote-discount review |
-| Structured payment graph | `/api/graphs/payment` | Same Basic identity; direct graph objects | Draft/publish, typed payment preview/submission, task decisions; standalone only |
+| Structured business graphs | `/api/graphs/{scenario}` | Same Basic identity; direct graph objects | Four fixed payment/travel/receiving/quote families, drafts/publication, preview/submission and task decisions; standalone only |
 | Native RuoYi overlay | `/arcflow` | RuoYi identity/token/RBAC; `AjaxResult` | Legacy leave, typed leave/procurement, member inbox |
 
 These APIs do not make payments, sign contracts, apply seals, place purchase orders, post inventory, download attachments, synchronize a live CRM or convert currencies. A business reference is a data field, not a downloadable file URL.
@@ -95,7 +95,7 @@ The demo directory contains active `alice`, `bob` and `carol`. Alice may publish
 
 ## 3. Endpoint inventory
 
-The five Controllers declare 42 mappings: 9 generic, 7 scenario, 5 quote, 12 graph and 9 RuoYi mappings. The scenario count includes the literal seal-use submission path, which takes precedence over the scenario template.
+The five Controllers declare 43 mappings: 9 generic, 7 scenario, 5 quote, 13 graph and 9 RuoYi mappings. Graph mappings use one finite `{scenario}` parameter and are counted once per handler, not four times. The scenario count includes the literal seal-use submission path, which takes precedence over the scenario template.
 
 The success codes below are the actual Controller statuses. All standalone submissions return 201, including successful replays; no `Location` response header is promised. Other successful operations return 200. See §10 for errors.
 
@@ -577,6 +577,9 @@ python3 scripts/verify_api_examples.py \
 The offline check detects drift between Controller mappings, static OpenAPI contracts and examples. It does not replace real-host validation of numeric tokens, authorization or state transitions. The HTTP verifier starts its own temporary standalone host; it does not verify RuoYi login, MySQL, a live CRM or payment services. See the [executable examples](./examples/README.en.md) for the full scope and manual requests.
 
 
-## Structured payment graph API
+<a id="structured-payment-graph-api"></a>
+## Structured business graph API
 
-The separate `/api/graphs/payment` family uses definition schema 5, task-level decisions, draft/publication compare-and-swap and isolated storage. It does not change the linear/scenario contracts below. See the [complete graph API reference](../GRAPH_DESIGNER.en.md#http-contract), including capabilities, strict fields, permissions, idempotency and errors.
+The separate `/api/graphs/{scenario}` family (`payment`, `travel`, `receiving`, `quote`) uses payment definition schema 5 / new-business schema 6, task-level decisions, draft/publication compare-and-swap and isolated storage. It does not change the linear/scenario contracts below. See the [complete graph API reference](../GRAPH_DESIGNER.en.md#http-contract), including capabilities, strict fields, permissions, idempotency and errors.
+
+Business models and quote-source ownership, ACL, revision, expiry and deterministic submission keys are documented in [business approval graphs](../GRAPH_BUSINESS_SCENARIOS.en.md). The existing `/api/graphs/payment` URLs and legacy `/api/crm` contract remain unchanged.

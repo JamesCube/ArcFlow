@@ -1,5 +1,5 @@
 import { CURRENCIES, InvalidScenarioPayload, invalid, isRecord } from './expense-document.js'
-const MONEY_FIELDS = new Set(['amount', 'estimatedCost', 'contractAmount', 'invoiceAmount', 'previouslySettledAmount', 'allocationAmount', 'deductionAmount'])
+const MONEY_FIELDS = new Set(['amount', 'estimatedCost', 'contractAmount', 'invoiceAmount', 'previouslySettledAmount', 'allocationAmount', 'deductionAmount', 'listUnitPrice', 'requestedUnitPrice'])
 const ZERO_MONEY_FIELDS = new Set(['previouslySettledAmount', 'deductionAmount'])
 class NumberToken { constructor(source) { this.source = source } }
 // Preserve numeric lexemes before native parsing can hide sub-cent fractions.
@@ -49,16 +49,19 @@ export function parseScenarioJson(source) {
     position += number[0].length; return new NumberToken(number[0])
   }
   const raw = value(0); whitespace(); if (position !== source.length) return invalid()
-  function materialize(current, key, currency) {
+  function materialize(current, key, currency, predicateField) {
     if (current instanceof NumberToken) {
       if (MONEY_FIELDS.has(key)) return exactAmount(current.source, currency, ZERO_MONEY_FIELDS.has(key))
-      if (key === 'threshold') return exactThreshold(current.source, currency)
+      if (key === 'threshold') {
+        if (predicateField === 'quote.discountPercent') { const percent = exactThreshold(current.source, 'CNY'); if (percent > 100 || currency !== undefined) return invalid(); return percent }
+        return exactThreshold(current.source, currency)
+      }
       if (!/^-?(?:0|[1-9]\d*)$/.test(current.source) || !Number.isSafeInteger(Number(current.source))) return invalid()
       return Number(current.source)
     }
     if (key === 'threshold') return invalid()
     if (Array.isArray(current)) return current.map(entry => materialize(entry, undefined, currency))
-    if (isRecord(current)) return Object.fromEntries(Object.entries(current).map(([field, entry]) => [field, materialize(entry, field, current.currency ?? currency)]))
+    if (isRecord(current)) return Object.fromEntries(Object.entries(current).map(([field, entry]) => [field, materialize(entry, field, current.currency ?? currency, current.field)]))
     if (MONEY_FIELDS.has(key)) return invalid()
     return current
   }

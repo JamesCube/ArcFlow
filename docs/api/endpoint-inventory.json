@@ -95,73 +95,79 @@
     {
       "host": "standalone",
       "method": "GET",
-      "path": "/api/graphs/payment/capabilities",
+      "path": "/api/graphs/{scenario}/capabilities",
       "source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java"
     },
     {
       "host": "standalone",
       "method": "PUT",
-      "path": "/api/graphs/payment/draft",
+      "path": "/api/graphs/{scenario}/draft",
       "source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java"
     },
     {
       "host": "standalone",
       "method": "POST",
-      "path": "/api/graphs/payment/preview",
+      "path": "/api/graphs/{scenario}/preview",
       "source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java"
     },
     {
       "host": "standalone",
       "method": "GET",
-      "path": "/api/graphs/payment/process",
+      "path": "/api/graphs/{scenario}/process",
       "source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java"
     },
     {
       "host": "standalone",
       "method": "POST",
-      "path": "/api/graphs/payment/publish",
+      "path": "/api/graphs/{scenario}/publish",
       "source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java"
     },
     {
       "host": "standalone",
       "method": "GET",
-      "path": "/api/graphs/payment/requests",
+      "path": "/api/graphs/{scenario}/quotes",
+      "source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java"
+    },
+    {
+      "host": "standalone",
+      "method": "GET",
+      "path": "/api/graphs/{scenario}/requests",
       "source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java"
     },
     {
       "host": "standalone",
       "method": "POST",
-      "path": "/api/graphs/payment/requests",
+      "path": "/api/graphs/{scenario}/requests",
       "source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java"
     },
     {
       "host": "standalone",
       "method": "GET",
-      "path": "/api/graphs/payment/requests/{id}",
+      "path": "/api/graphs/{scenario}/requests/{id}",
       "source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java"
     },
     {
       "host": "standalone",
       "method": "POST",
-      "path": "/api/graphs/payment/requests/{id}/tasks/{taskId}/decision",
+      "path": "/api/graphs/{scenario}/requests/{id}/tasks/{taskId}/decision",
       "source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java"
     },
     {
       "host": "standalone",
       "method": "GET",
-      "path": "/api/graphs/payment/users",
+      "path": "/api/graphs/{scenario}/users",
       "source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java"
     },
     {
       "host": "standalone",
       "method": "POST",
-      "path": "/api/graphs/payment/validate",
+      "path": "/api/graphs/{scenario}/validate",
       "source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java"
     },
     {
       "host": "standalone",
       "method": "GET",
-      "path": "/api/graphs/payment/workspace",
+      "path": "/api/graphs/{scenario}/workspace",
       "source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java"
     },
     {

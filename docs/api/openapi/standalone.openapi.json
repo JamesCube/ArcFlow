@@ -1949,18 +1949,28 @@
         "x-idempotency": "decision-replay"
       }
     },
-    "/api/graphs/payment/capabilities": {
+    "/api/graphs/{scenario}/capabilities": {
       "get": {
         "operationId": "standalone_graph_capabilities",
         "tags": [
           "graphs"
         ],
-        "summary": "capabilities in the structured payment graph workspace",
-        "description": "Standalone-only graph schema 5; fixed payment document family. Publisher permission required for workspace, draft, validate, preview and publish. Runtime reads are applicant or selected frozen-path participants only; publication rights do not override runtime ACLs. Task commands use authenticated actor and exact task ID.",
+        "summary": "capabilities in the selected structured business graph workspace",
+        "description": "Standalone-only: schema 5 payment and schema 6 fixed travel/receiving/quote families. Historical schema-5 custom IDs remain payment-only. Configured process/schema cannot change. Publisher permission required for workspace, draft, validate, preview and publish. Runtime reads are applicant or selected frozen-path participants only; publication rights do not override runtime ACLs. Task commands use authenticated actor and exact task ID.",
         "x-source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java",
         "x-handler": "capabilities",
         "x-java-return": "Capabilities",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "scenario",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/GraphScenario"
+            },
+            "description": "Fixed graph family; unknown keys return 404. Each family owns isolated process, draft, requests and storage."
+          }
+        ],
         "responses": {
           "200": {
             "description": "Current graph result. Preview does not write; decisions and submissions replay without duplicate side effects.",
@@ -2004,22 +2014,42 @@
           },
           "default": {
             "description": "Unhandled framework exceptions have no uniform envelope guarantee."
+          },
+          "404": {
+            "description": "Unknown graph family, missing graph request/task, or unreadable/missing source quote revision.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
     },
-    "/api/graphs/payment/process": {
+    "/api/graphs/{scenario}/process": {
       "get": {
         "operationId": "standalone_graph_process",
         "tags": [
           "graphs"
         ],
-        "summary": "process in the structured payment graph workspace",
-        "description": "Standalone-only graph schema 5; fixed payment document family. Publisher permission required for workspace, draft, validate, preview and publish. Runtime reads are applicant or selected frozen-path participants only; publication rights do not override runtime ACLs. Task commands use authenticated actor and exact task ID.",
+        "summary": "process in the selected structured business graph workspace",
+        "description": "Standalone-only: schema 5 payment and schema 6 fixed travel/receiving/quote families. Historical schema-5 custom IDs remain payment-only. Configured process/schema cannot change. Publisher permission required for workspace, draft, validate, preview and publish. Runtime reads are applicant or selected frozen-path participants only; publication rights do not override runtime ACLs. Task commands use authenticated actor and exact task ID.",
         "x-source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java",
         "x-handler": "process",
         "x-java-return": "GraphDefinition",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "scenario",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/GraphScenario"
+            },
+            "description": "Fixed graph family; unknown keys return 404. Each family owns isolated process, draft, requests and storage."
+          }
+        ],
         "responses": {
           "200": {
             "description": "Current graph result. Preview does not write; decisions and submissions replay without duplicate side effects.",
@@ -2063,22 +2093,42 @@
           },
           "default": {
             "description": "Unhandled framework exceptions have no uniform envelope guarantee."
+          },
+          "404": {
+            "description": "Unknown graph family, missing graph request/task, or unreadable/missing source quote revision.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
     },
-    "/api/graphs/payment/workspace": {
+    "/api/graphs/{scenario}/workspace": {
       "get": {
         "operationId": "standalone_graph_workspace",
         "tags": [
           "graphs"
         ],
-        "summary": "workspace in the structured payment graph workspace",
-        "description": "Standalone-only graph schema 5; fixed payment document family. Publisher permission required for workspace, draft, validate, preview and publish. Runtime reads are applicant or selected frozen-path participants only; publication rights do not override runtime ACLs. Task commands use authenticated actor and exact task ID.",
+        "summary": "workspace in the selected structured business graph workspace",
+        "description": "Standalone-only: schema 5 payment and schema 6 fixed travel/receiving/quote families. Historical schema-5 custom IDs remain payment-only. Configured process/schema cannot change. Publisher permission required for workspace, draft, validate, preview and publish. Runtime reads are applicant or selected frozen-path participants only; publication rights do not override runtime ACLs. Task commands use authenticated actor and exact task ID.",
         "x-source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java",
         "x-handler": "workspace",
         "x-java-return": "GraphApprovalStore.Snapshot",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "scenario",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/GraphScenario"
+            },
+            "description": "Fixed graph family; unknown keys return 404. Each family owns isolated process, draft, requests and storage."
+          }
+        ],
         "responses": {
           "200": {
             "description": "Current graph result. Preview does not write; decisions and submissions replay without duplicate side effects.",
@@ -2122,22 +2172,42 @@
           },
           "default": {
             "description": "Unhandled framework exceptions have no uniform envelope guarantee."
+          },
+          "404": {
+            "description": "Unknown graph family, missing graph request/task, or unreadable/missing source quote revision.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
     },
-    "/api/graphs/payment/users": {
+    "/api/graphs/{scenario}/users": {
       "get": {
         "operationId": "standalone_graph_users",
         "tags": [
           "graphs"
         ],
-        "summary": "users in the structured payment graph workspace",
-        "description": "Standalone-only graph schema 5; fixed payment document family. Publisher permission required for workspace, draft, validate, preview and publish. Runtime reads are applicant or selected frozen-path participants only; publication rights do not override runtime ACLs. Task commands use authenticated actor and exact task ID.",
+        "summary": "users in the selected structured business graph workspace",
+        "description": "Standalone-only: schema 5 payment and schema 6 fixed travel/receiving/quote families. Historical schema-5 custom IDs remain payment-only. Configured process/schema cannot change. Publisher permission required for workspace, draft, validate, preview and publish. Runtime reads are applicant or selected frozen-path participants only; publication rights do not override runtime ACLs. Task commands use authenticated actor and exact task ID.",
         "x-source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java",
         "x-handler": "users",
         "x-java-return": "List<ApprovalService.Person>",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "scenario",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/GraphScenario"
+            },
+            "description": "Fixed graph family; unknown keys return 404. Each family owns isolated process, draft, requests and storage."
+          }
+        ],
         "responses": {
           "200": {
             "description": "Current graph result. Preview does not write; decisions and submissions replay without duplicate side effects.",
@@ -2174,22 +2244,41 @@
           },
           "default": {
             "description": "Unhandled framework exceptions have no uniform envelope guarantee."
+          },
+          "404": {
+            "description": "Unknown graph family, missing graph request/task, or unreadable/missing source quote revision.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
     },
-    "/api/graphs/payment/draft": {
+    "/api/graphs/{scenario}/draft": {
       "put": {
         "operationId": "standalone_graph_saveDraft",
         "tags": [
           "graphs"
         ],
-        "summary": "saveDraft in the structured payment graph workspace",
-        "description": "Standalone-only graph schema 5; fixed payment document family. Publisher permission required for workspace, draft, validate, preview and publish. Runtime reads are applicant or selected frozen-path participants only; publication rights do not override runtime ACLs. Task commands use authenticated actor and exact task ID.",
+        "summary": "saveDraft in the selected structured business graph workspace",
+        "description": "Standalone-only: schema 5 payment and schema 6 fixed travel/receiving/quote families. Historical schema-5 custom IDs remain payment-only. Configured process/schema cannot change. Publisher permission required for workspace, draft, validate, preview and publish. Runtime reads are applicant or selected frozen-path participants only; publication rights do not override runtime ACLs. Task commands use authenticated actor and exact task ID.",
         "x-source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java",
         "x-handler": "saveDraft",
         "x-java-return": "GraphApprovalStore.Draft",
         "parameters": [
+          {
+            "name": "scenario",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/GraphScenario"
+            },
+            "description": "Fixed graph family; unknown keys return 404. Each family owns isolated process, draft, requests and storage."
+          },
           {
             "$ref": "#/components/parameters/ClientHeader"
           }
@@ -2267,6 +2356,16 @@
           },
           "default": {
             "description": "Unhandled framework exceptions have no uniform envelope guarantee."
+          },
+          "404": {
+            "description": "Unknown graph family, missing graph request/task, or unreadable/missing source quote revision.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         },
         "requestBody": {
@@ -2287,18 +2386,27 @@
         "x-idempotency": "none"
       }
     },
-    "/api/graphs/payment/validate": {
+    "/api/graphs/{scenario}/validate": {
       "post": {
         "operationId": "standalone_graph_validate",
         "tags": [
           "graphs"
         ],
-        "summary": "validate in the structured payment graph workspace",
-        "description": "Standalone-only graph schema 5; fixed payment document family. Publisher permission required for workspace, draft, validate, preview and publish. Runtime reads are applicant or selected frozen-path participants only; publication rights do not override runtime ACLs. Task commands use authenticated actor and exact task ID.",
+        "summary": "validate in the selected structured business graph workspace",
+        "description": "Standalone-only: schema 5 payment and schema 6 fixed travel/receiving/quote families. Historical schema-5 custom IDs remain payment-only. Configured process/schema cannot change. Publisher permission required for workspace, draft, validate, preview and publish. Runtime reads are applicant or selected frozen-path participants only; publication rights do not override runtime ACLs. Task commands use authenticated actor and exact task ID.",
         "x-source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java",
         "x-handler": "validate",
         "x-java-return": "Validation",
         "parameters": [
+          {
+            "name": "scenario",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/GraphScenario"
+            },
+            "description": "Fixed graph family; unknown keys return 404. Each family owns isolated process, draft, requests and storage."
+          },
           {
             "$ref": "#/components/parameters/ClientHeader"
           }
@@ -2356,6 +2464,16 @@
           },
           "default": {
             "description": "Unhandled framework exceptions have no uniform envelope guarantee."
+          },
+          "404": {
+            "description": "Unknown graph family, missing graph request/task, or unreadable/missing source quote revision.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         },
         "requestBody": {
@@ -2376,18 +2494,27 @@
         "x-idempotency": "none"
       }
     },
-    "/api/graphs/payment/preview": {
+    "/api/graphs/{scenario}/preview": {
       "post": {
         "operationId": "standalone_graph_preview",
         "tags": [
           "graphs"
         ],
-        "summary": "preview in the structured payment graph workspace",
-        "description": "Standalone-only graph schema 5; fixed payment document family. Publisher permission required for workspace, draft, validate, preview and publish. Runtime reads are applicant or selected frozen-path participants only; publication rights do not override runtime ACLs. Task commands use authenticated actor and exact task ID.",
+        "summary": "preview in the selected structured business graph workspace",
+        "description": "Standalone-only: schema 5 payment and schema 6 fixed travel/receiving/quote families. Historical schema-5 custom IDs remain payment-only. Configured process/schema cannot change. Publisher permission required for workspace, draft, validate, preview and publish. Runtime reads are applicant or selected frozen-path participants only; publication rights do not override runtime ACLs. Task commands use authenticated actor and exact task ID.",
         "x-source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java",
         "x-handler": "preview",
         "x-java-return": "GraphInstance",
         "parameters": [
+          {
+            "name": "scenario",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/GraphScenario"
+            },
+            "description": "Fixed graph family; unknown keys return 404. Each family owns isolated process, draft, requests and storage."
+          },
           {
             "$ref": "#/components/parameters/ClientHeader"
           }
@@ -2445,6 +2572,26 @@
           },
           "default": {
             "description": "Unhandled framework exceptions have no uniform envelope guarantee."
+          },
+          "404": {
+            "description": "Unknown graph family, missing graph request/task, or unreadable/missing source quote revision.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Source quote fields or current revision conflict.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         },
         "requestBody": {
@@ -2465,18 +2612,27 @@
         "x-idempotency": "none"
       }
     },
-    "/api/graphs/payment/publish": {
+    "/api/graphs/{scenario}/publish": {
       "post": {
         "operationId": "standalone_graph_publish",
         "tags": [
           "graphs"
         ],
-        "summary": "publish in the structured payment graph workspace",
-        "description": "Standalone-only graph schema 5; fixed payment document family. Publisher permission required for workspace, draft, validate, preview and publish. Runtime reads are applicant or selected frozen-path participants only; publication rights do not override runtime ACLs. Task commands use authenticated actor and exact task ID.",
+        "summary": "publish in the selected structured business graph workspace",
+        "description": "Standalone-only: schema 5 payment and schema 6 fixed travel/receiving/quote families. Historical schema-5 custom IDs remain payment-only. Configured process/schema cannot change. Publisher permission required for workspace, draft, validate, preview and publish. Runtime reads are applicant or selected frozen-path participants only; publication rights do not override runtime ACLs. Task commands use authenticated actor and exact task ID.",
         "x-source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java",
         "x-handler": "publish",
         "x-java-return": "GraphDefinition",
         "parameters": [
+          {
+            "name": "scenario",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/GraphScenario"
+            },
+            "description": "Fixed graph family; unknown keys return 404. Each family owns isolated process, draft, requests and storage."
+          },
           {
             "$ref": "#/components/parameters/ClientHeader"
           }
@@ -2554,6 +2710,16 @@
           },
           "default": {
             "description": "Unhandled framework exceptions have no uniform envelope guarantee."
+          },
+          "404": {
+            "description": "Unknown graph family, missing graph request/task, or unreadable/missing source quote revision.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         },
         "requestBody": {
@@ -2574,18 +2740,28 @@
         "x-idempotency": "none"
       }
     },
-    "/api/graphs/payment/requests": {
+    "/api/graphs/{scenario}/requests": {
       "get": {
         "operationId": "standalone_graph_requests",
         "tags": [
           "graphs"
         ],
-        "summary": "requests in the structured payment graph workspace",
-        "description": "Standalone-only graph schema 5; fixed payment document family. Publisher permission required for workspace, draft, validate, preview and publish. Runtime reads are applicant or selected frozen-path participants only; publication rights do not override runtime ACLs. Task commands use authenticated actor and exact task ID.",
+        "summary": "requests in the selected structured business graph workspace",
+        "description": "Standalone-only: schema 5 payment and schema 6 fixed travel/receiving/quote families. Historical schema-5 custom IDs remain payment-only. Configured process/schema cannot change. Publisher permission required for workspace, draft, validate, preview and publish. Runtime reads are applicant or selected frozen-path participants only; publication rights do not override runtime ACLs. Task commands use authenticated actor and exact task ID.",
         "x-source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java",
         "x-handler": "requests",
         "x-java-return": "List<GraphInstance>",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "scenario",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/GraphScenario"
+            },
+            "description": "Fixed graph family; unknown keys return 404. Each family owns isolated process, draft, requests and storage."
+          }
+        ],
         "responses": {
           "200": {
             "description": "Current graph result. Preview does not write; decisions and submissions replay without duplicate side effects.",
@@ -2632,6 +2808,16 @@
           },
           "default": {
             "description": "Unhandled framework exceptions have no uniform envelope guarantee."
+          },
+          "404": {
+            "description": "Unknown graph family, missing graph request/task, or unreadable/missing source quote revision.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       },
@@ -2640,12 +2826,21 @@
         "tags": [
           "graphs"
         ],
-        "summary": "submit in the structured payment graph workspace",
-        "description": "Standalone-only graph schema 5; fixed payment document family. Publisher permission required for workspace, draft, validate, preview and publish. Runtime reads are applicant or selected frozen-path participants only; publication rights do not override runtime ACLs. Task commands use authenticated actor and exact task ID.",
+        "summary": "submit in the selected structured business graph workspace",
+        "description": "Submit the configured business family using the current published version. Require exactly one Idempotency-Key. For quote it must be the canonical source-revision key; source owner, immutable source fields, current revision, UTC expiry and selected-reviewer source ACL are checked. Matching replay returns saved current state; altered intent conflicts.",
         "x-source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java",
         "x-handler": "submit",
         "x-java-return": "GraphInstance",
         "parameters": [
+          {
+            "name": "scenario",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/GraphScenario"
+            },
+            "description": "Fixed graph family; unknown keys return 404. Each family owns isolated process, draft, requests and storage."
+          },
           {
             "$ref": "#/components/parameters/ClientHeader"
           },
@@ -2726,6 +2921,16 @@
           },
           "default": {
             "description": "Unhandled framework exceptions have no uniform envelope guarantee."
+          },
+          "404": {
+            "description": "Unknown graph family, missing graph request/task, or unreadable/missing source quote revision.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         },
         "requestBody": {
@@ -2738,6 +2943,15 @@
               "examples": {
                 "reviewed": {
                   "externalValue": "../examples/graph-payment.json"
+                },
+                "travel": {
+                  "externalValue": "../examples/graph-travel.json"
+                },
+                "receiving": {
+                  "externalValue": "../examples/graph-receiving.json"
+                },
+                "quote": {
+                  "externalValue": "../examples/graph-quote.json"
                 }
               }
             }
@@ -2746,18 +2960,27 @@
         "x-idempotency": "required-header"
       }
     },
-    "/api/graphs/payment/requests/{id}": {
+    "/api/graphs/{scenario}/requests/{id}": {
       "get": {
         "operationId": "standalone_graph_request",
         "tags": [
           "graphs"
         ],
-        "summary": "request in the structured payment graph workspace",
-        "description": "Standalone-only graph schema 5; fixed payment document family. Publisher permission required for workspace, draft, validate, preview and publish. Runtime reads are applicant or selected frozen-path participants only; publication rights do not override runtime ACLs. Task commands use authenticated actor and exact task ID.",
+        "summary": "request in the selected structured business graph workspace",
+        "description": "Standalone-only: schema 5 payment and schema 6 fixed travel/receiving/quote families. Historical schema-5 custom IDs remain payment-only. Configured process/schema cannot change. Publisher permission required for workspace, draft, validate, preview and publish. Runtime reads are applicant or selected frozen-path participants only; publication rights do not override runtime ACLs. Task commands use authenticated actor and exact task ID.",
         "x-source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java",
         "x-handler": "request",
         "x-java-return": "GraphInstance",
         "parameters": [
+          {
+            "name": "scenario",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/GraphScenario"
+            },
+            "description": "Fixed graph family; unknown keys return 404. Each family owns isolated process, draft, requests and storage."
+          },
           {
             "name": "id",
             "in": "path",
@@ -2800,7 +3023,7 @@
             }
           },
           "404": {
-            "description": "Graph request or activated task does not exist.",
+            "description": "Unknown graph family, missing graph request/task, or unreadable/missing source quote revision.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2825,18 +3048,27 @@
         }
       }
     },
-    "/api/graphs/payment/requests/{id}/tasks/{taskId}/decision": {
+    "/api/graphs/{scenario}/requests/{id}/tasks/{taskId}/decision": {
       "post": {
         "operationId": "standalone_graph_decide",
         "tags": [
           "graphs"
         ],
-        "summary": "decide in the structured payment graph workspace",
-        "description": "Standalone-only graph schema 5; fixed payment document family. Publisher permission required for workspace, draft, validate, preview and publish. Runtime reads are applicant or selected frozen-path participants only; publication rights do not override runtime ACLs. Task commands use authenticated actor and exact task ID.",
+        "summary": "decide in the selected structured business graph workspace",
+        "description": "Standalone-only: schema 5 payment and schema 6 fixed travel/receiving/quote families. Historical schema-5 custom IDs remain payment-only. Configured process/schema cannot change. Publisher permission required for workspace, draft, validate, preview and publish. Runtime reads are applicant or selected frozen-path participants only; publication rights do not override runtime ACLs. Task commands use authenticated actor and exact task ID.",
         "x-source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java",
         "x-handler": "decide",
         "x-java-return": "GraphInstance",
         "parameters": [
+          {
+            "name": "scenario",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/GraphScenario"
+            },
+            "description": "Fixed graph family; unknown keys return 404. Each family owns isolated process, draft, requests and storage."
+          },
           {
             "name": "id",
             "in": "path",
@@ -2904,7 +3136,7 @@
             }
           },
           "404": {
-            "description": "Graph request or activated task does not exist.",
+            "description": "Unknown graph family, missing graph request/task, or unreadable/missing source quote revision.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2963,6 +3195,88 @@
           }
         },
         "x-idempotency": "required-header"
+      }
+    },
+    "/api/graphs/{scenario}/quotes": {
+      "get": {
+        "operationId": "graphQuotes",
+        "tags": [
+          "quote"
+        ],
+        "summary": "List readable current source quotes for the quote graph",
+        "description": "Available only for scenario=quote. Other known graph families return 400; unknown families return 404. Only current source revisions readable by the authenticated actor are listed. Synthetic source; no external CRM connection.",
+        "x-source": "examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java",
+        "x-handler": "quotes",
+        "x-java-return": "List<com.arcflow.approval.QuoteDiscountCase.QuoteVersion>",
+        "parameters": [
+          {
+            "name": "scenario",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/GraphScenario"
+            },
+            "description": "Fixed graph family; unknown keys return 404. Each family owns isolated process, draft, requests and storage."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/QuoteVersion"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required; no login endpoint in this application.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin/client header, live identity, publication permission or exact participant authorization denied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unhandled exceptions/framework security dispatch have no uniform envelope guarantee. Not every storage failure is a controlled 503."
+          },
+          "400": {
+            "description": "Graph family has no quote source.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown graph family.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
       }
     }
   },
@@ -3252,6 +3566,30 @@
       },
       "GraphCapabilities": {
         "$ref": "./schemas.json#/$defs/GraphCapabilities"
+      },
+      "GraphScenario": {
+        "$ref": "schemas.json#/$defs/GraphScenario"
+      },
+      "GraphBusinessDocument": {
+        "$ref": "schemas.json#/$defs/GraphBusinessDocument"
+      },
+      "TravelPredicate": {
+        "$ref": "schemas.json#/$defs/TravelPredicate"
+      },
+      "QuoteReductionPredicate": {
+        "$ref": "schemas.json#/$defs/QuoteReductionPredicate"
+      },
+      "QuotePercentPredicate": {
+        "$ref": "schemas.json#/$defs/QuotePercentPredicate"
+      },
+      "GraphRoutingPredicate": {
+        "$ref": "schemas.json#/$defs/GraphRoutingPredicate"
+      },
+      "GraphRunIf": {
+        "$ref": "schemas.json#/$defs/GraphRunIf"
+      },
+      "GraphRoutingFact": {
+        "$ref": "schemas.json#/$defs/GraphRoutingFact"
       }
     },
     "securitySchemes": {
@@ -3293,7 +3631,7 @@
     },
     "responses": {}
   },
-  "x-controller-route-count": 33,
+  "x-controller-route-count": 34,
   "x-host": "standalone",
   "x-scenario-catalog": {
     "oa-expense": "expense",
@@ -3307,5 +3645,40 @@
     "payment.netTotal",
     "receiving.hasRejectedLines",
     "contract.termsKind"
-  ]
+  ],
+  "x-graph-scenarios": {
+    "payment": {
+      "processId": "payment-graph",
+      "businessType": "paymentRequest",
+      "facts": [
+        "payment.netTotal"
+      ],
+      "schemaVersion": 5
+    },
+    "travel": {
+      "processId": "travel-graph",
+      "businessType": "travel",
+      "facts": [
+        "travel.estimatedCost"
+      ],
+      "schemaVersion": 6
+    },
+    "receiving": {
+      "processId": "receiving-graph",
+      "businessType": "receiving",
+      "facts": [
+        "receiving.hasRejectedLines"
+      ],
+      "schemaVersion": 6
+    },
+    "quote": {
+      "processId": "quote-graph",
+      "businessType": "quoteDiscount",
+      "facts": [
+        "quote.reductionTotal",
+        "quote.discountPercent"
+      ],
+      "schemaVersion": 6
+    }
+  }
 }

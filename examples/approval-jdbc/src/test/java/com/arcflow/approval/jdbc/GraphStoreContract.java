@@ -61,6 +61,65 @@ abstract class GraphStoreContract {
     static GraphInstance vote(GraphInstance before, String node, String actor, String decision, String command) {
         return GraphEngine.decide(before, before.id() + ":" + node, actor, decision, "", command, AT);
     }
+    @Test void quoteCanonicalIdentityRejectsBeforeAnyJdbcMutationAndSurvivesRestart() throws Exception {
+        var definition=GraphSamples.quote();var business=new BusinessDocument.QuoteDiscount("Q-JDBC","Quote","Synthetic quote","CUSTOMER",1,"Item",10,new BigDecimal("1000"),new BigDecimal("800"),"CNY","2099-12-31");
+        var invalid=GraphEngine.start("quote-request","arbitrary","alice",definition,business,AT);
+        GraphInstance waiting;
+        try(var store=new JdbcGraphApprovalStore(dataSource,mapper,definition)) {
+            var before=store.snapshot();
+            assertThrows(IllegalArgumentException.class,()->store.create(1,invalid));assertEquals(before,store.snapshot());
+            for(String table:List.of("arc_graph_request","arc_graph_task","arc_graph_task_member","arc_graph_request_member","arc_graph_event","arc_graph_command"))assertEquals(0,count(table),table);
+            var initial=GraphEngine.start("quote-request",GraphQuotePolicy.revisionKey(business.businessId(),business.quoteRevision()),"alice",definition,business,AT);
+            assertTrue(store.create(1,initial));waiting=vote(initial,"commercial","bob","APPROVE","commercial");assertTrue(store.replace(initial.id(),0,waiting));assertFalse(waiting.forks().get(0).fired());
+        }
+        try(var store=new JdbcGraphApprovalStore(dataSource,mapper,definition)) {
+            assertEquals(waiting,store.snapshot().requests().get(0));var joined=vote(waiting,"finance","carol","APPROVE","finance");assertTrue(store.replace(waiting.id(),1,joined));assertTrue(joined.forks().get(0).fired());assertEquals("final",joined.tasks().get(joined.tasks().size()-1).nodeId());
+        }
+    }
+    static BusinessDocument businessGraphDocument(String family,boolean high,String id) {
+        return switch(family) {
+            case "travel" -> new BusinessDocument.Travel(1,id,"Travel","Synthetic review","Shanghai","2026-11-01","2026-11-03","CUSTOMER_VISIT",new BigDecimal(high?"10000":"100"),"CNY","SALES");
+            case "receiving" -> new BusinessDocument.Receiving(1,id,"Receipt","Synthetic review","PO-1","EAST","2026-10-13",List.of(new BusinessDocument.ReceivingLine("L1","POL1","Item","PCS",10,10,high?8:10,high?2:0,high?"Damaged":"")));
+            default -> new BusinessDocument.QuoteDiscount(id,"Quote","Synthetic review","CUSTOMER",1,"Item",10,new BigDecimal("1000"),new BigDecimal(high?"800":"900"),"CNY","2099-12-31");
+        };
+    }
+    static String graphBusinessKey(BusinessDocument document,String fallback) {
+        return document instanceof BusinessDocument.QuoteDiscount q?GraphQuotePolicy.revisionKey(q.businessId(),q.quoteRevision()):fallback;
+    }
+    @Test void businessGraphFamiliesPersistPartialJoinsAndIsolateTypedSnapshots() throws Exception {
+        for(var definition:List.of(GraphSamples.travel(),GraphSamples.receiving(),GraphSamples.quote())) {
+            String family=GraphScenarios.forDefinition(definition).key();var high=businessGraphDocument(family,true,"HIGH-"+family);var low=businessGraphDocument(family,false,"LOW-"+family);GraphInstance waiting;
+            try(var store=new JdbcGraphApprovalStore(dataSource,mapper,definition)) {
+                var instance=GraphEngine.start(family+"-high",graphBusinessKey(high,"high-"+family),"alice",definition,high,AT);assertTrue(store.create(1,instance));
+                if(family.equals("travel")){var approved=vote(instance,"manager","bob","APPROVE","manager");assertTrue(store.replace(instance.id(),instance.commandRevision(),approved));instance=approved;}
+                var tasks=instance.tasks().stream().filter(t->t.status().equals("ACTIVE")).toList();assertEquals(2,tasks.size());var task=tasks.get(0);
+                waiting=vote(instance,task.nodeId(),task.participants().get(0),"APPROVE","first");assertTrue(store.replace(instance.id(),instance.commandRevision(),waiting));assertFalse(waiting.forks().get(0).fired());assertEquals(1,waiting.forks().get(0).arrivedBranchIds().size());
+                var ordinary=GraphEngine.start(family+"-low",graphBusinessKey(low,"low-"+family),"alice",definition,low,AT);assertTrue(store.create(1,ordinary));assertEquals("otherwise",ordinary.routes().get(0).selectedEdgeId());assertTrue(ordinary.forks().isEmpty());
+                assertThrows(IllegalArgumentException.class,()->GraphEngine.start("wrong", "wrong", "alice",definition,payment(),AT));
+            }
+            try(var store=new JdbcGraphApprovalStore(dataSource,mapper,definition)) {
+                var snapshot=store.snapshot();assertEquals(2,snapshot.requests().size());assertTrue(snapshot.requests().stream().allMatch(r->r.business().getClass()==high.getClass()));
+                assertEquals(waiting,snapshot.requests().stream().filter(r->r.id().equals(family+"-high")).findFirst().orElseThrow());
+                var task=waiting.tasks().stream().filter(t->t.status().equals("ACTIVE")).findFirst().orElseThrow();var joined=vote(waiting,task.nodeId(),task.participants().get(0),"APPROVE","second");assertTrue(store.replace(waiting.id(),waiting.commandRevision(),joined));assertTrue(joined.forks().get(0).fired());
+                if(family.equals("quote")){var complete=vote(joined,"final","carol","APPROVE","final");assertTrue(store.replace(joined.id(),joined.commandRevision(),complete));joined=complete;}assertEquals("APPROVED",joined.status());
+                var rejectionDocument=businessGraphDocument(family,true,"REJECT-"+family);var reject=GraphEngine.start(family+"-reject",graphBusinessKey(rejectionDocument,"reject-"+family),"alice",definition,rejectionDocument,AT);assertTrue(store.create(1,reject));
+                if(family.equals("travel")){var approved=vote(reject,"manager","bob","APPROVE","manager");assertTrue(store.replace(reject.id(),0,approved));reject=approved;}
+                var first=reject.tasks().stream().filter(t->t.status().equals("ACTIVE")).findFirst().orElseThrow();var terminal=vote(reject,first.nodeId(),first.participants().get(0),"REJECT","reject");assertTrue(store.replace(reject.id(),reject.commandRevision(),terminal));assertEquals("REJECTED",terminal.status());assertTrue(terminal.tasks().stream().noneMatch(t->t.status().equals("ACTIVE")));
+            }
+        }
+    }
+    @Test void schemaFiveCollidingBusinessIdsRemainPaymentAndRejectSchemaSixReopen() throws Exception {
+        for(var newDefinition:List.of(GraphSamples.travel(),GraphSamples.receiving(),GraphSamples.quote())) {
+            var legacy=new GraphDefinition(5,newDefinition.id(),1,"Legacy payment custom ID",definition().nodes(),definition().edges());GraphInstance waiting;
+            try(var store=new JdbcGraphApprovalStore(dataSource,mapper,legacy)) {
+                var initial=GraphEngine.start("legacy-"+legacy.id(),"legacy-key-"+legacy.id(),"alice",legacy,payment(),AT);assertTrue(store.create(1,initial));waiting=vote(initial,"left","bob","APPROVE","left");assertTrue(store.replace(initial.id(),0,waiting));
+                assertThrows(IllegalArgumentException.class,()->store.saveDraft(0,new GraphApprovalStore.Draft(1,1,newDefinition)));assertEquals(0,store.snapshot().draft().revision());
+            }
+            long rows=count("arc_graph_request"),events=count("arc_graph_event");
+            assertThrows(IOException.class,()->new JdbcGraphApprovalStore(dataSource,mapper,newDefinition));assertEquals(rows,count("arc_graph_request"));assertEquals(events,count("arc_graph_event"));
+            try(var reopened=new JdbcGraphApprovalStore(dataSource,mapper,legacy)){assertEquals(waiting,reopened.snapshot().requests().get(0));GraphEngine.validateInstance(waiting);}
+        }
+    }
     @Test void freshSchemaIsExplicitUnknownSchemaRejectedAndLegacyTablesUntouched() throws Exception {
         sql("CREATE TABLE arc_request (legacy_marker INTEGER PRIMARY KEY)"); sql("INSERT INTO arc_request VALUES (73)");
         try (var store = open()) { assertTrue(store.create(1, initial())); assertEquals(1, count("arc_request")); }

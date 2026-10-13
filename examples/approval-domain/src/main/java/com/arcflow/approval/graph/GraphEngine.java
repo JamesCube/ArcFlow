@@ -14,8 +14,7 @@ public final class GraphEngine {
         GraphDefinition.validate(definition);
         if (id == null || id.isBlank() || id.length()>128 || !validKey(key) || !ProcessDefinition.validActorId(applicant)) throw invalid("Invalid graph instance identity");
         timestamp(at);
-        if (!(business instanceof BusinessDocument.PaymentRequest)) throw invalid("The graph workspace accepts paymentRequest documents only");
-        business.validate();
+        GraphScenarios.validateDocument(definition,business);
         List<Route> routes = new ArrayList<>();
         for (var node : definition.nodes()) if ("exclusiveGateway".equals(node.type())) {
             String selected = null; List<Evaluation> evaluations = new ArrayList<>();

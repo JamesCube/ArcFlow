@@ -1,4 +1,6 @@
 import { routingThresholdCents } from '../routing.js'
+import { familyForDefinition, factType } from './business.js'
+import { parsePercentInput } from './threshold.js'
 
 export const GRAPH_LIMITS = Object.freeze({ nodes: 32, edges: 48, humans: 16, depth: 2, branches: 4, predicates: 32 })
 const HUMAN = new Set(['approval', 'parallelApproval'])
@@ -17,7 +19,7 @@ const incoming = (definition, id) => definition.edges.filter(edge => edge.target
 const isSplit = node => Boolean(node && Object.hasOwn(PAIRS, node.type))
 
 function indexGraph(definition) {
-  if (definition?.schemaVersion !== 5 || !Array.isArray(definition.nodes) || !Array.isArray(definition.edges)) fail('A schema 5 graph with nodes and edges is required.')
+  if (![5, 6].includes(definition?.schemaVersion) || !Array.isArray(definition.nodes) || !Array.isArray(definition.edges)) fail('A supported graph with nodes and edges is required.')
   const nodes = new Map(), edges = new Map(), starts = [], ends = []
   for (const node of definition.nodes) {
     if (!record(node) || !validId(node.id) || !TYPES.has(node.type) || nodes.has(node.id)) fail('Every graph node needs a unique ID and supported type.')
@@ -180,10 +182,14 @@ function makeEdge(definition, source, target, extras = {}) {
   definition.edges.push(edge)
   return edge
 }
-const initialCondition = definition => ({
-  mode: 'ALL', predicates: [{ field: 'payment.netTotal', operator: 'GTE',
-    currency: definition.edges.flatMap(edge => edge.condition?.predicates || []).find(predicate => predicate.field === 'payment.netTotal')?.currency || 'USD', threshold: 10000 }],
-})
+export function defaultPredicate(definition, field = familyForDefinition(definition).fields[0]) {
+  if (!familyForDefinition(definition).fields.includes(field)) fail('This field belongs to a different business family.')
+  if (factType(field) === 'boolean') return { field, operator: 'EQ', expected: true }
+  if (factType(field) === 'percent') return { field, operator: 'GTE', threshold: 20 }
+  return { field, operator: 'GTE', currency: definition.edges.flatMap(edge => edge.condition?.predicates || []).find(predicate => predicate.currency)?.currency || (familyForDefinition(definition).key === 'payment' ? 'USD' : 'CNY'), threshold: 10000 }
+}
+const initialCondition = definition => ({ mode: 'ALL', predicates: [defaultPredicate(definition)] })
+
 function requireUnit(graph, id) {
   const item = graph.units.get(id)
   if (!item || !HUMAN.has(item.node.type) && !item.branches) fail('Only approval nodes and complete split regions can be edited as a unit.')
@@ -295,10 +301,11 @@ export function moveBranch(definition, edgeId, offset) {
 
 export function validateClientGraph(definition) {
   const diagnostics = [], add = (code, message, nodeId = null, edgeId = null) => diagnostics.push({ code, message, nodeId, edgeId })
-  if (!exact(definition, ['schemaVersion', 'id', 'version', 'name', 'nodes', 'edges']) || definition.schemaVersion !== 5 || typeof definition.id !== 'string' || !/^[A-Za-z][A-Za-z0-9_-]{0,127}$/.test(definition.id) || !Number.isInteger(definition.version) || definition.version < 1 || !validText(definition.name) || !Array.isArray(definition.nodes) || !Array.isArray(definition.edges)) {
-    add('INVALID_DEFINITION', 'Use a named schema 5 definition with an ID, version, nodes, and edges.')
+  if (!exact(definition, ['schemaVersion', 'id', 'version', 'name', 'nodes', 'edges']) || ![5, 6].includes(definition.schemaVersion) || typeof definition.id !== 'string' || !/^[A-Za-z][A-Za-z0-9_-]{0,127}$/.test(definition.id) || !Number.isInteger(definition.version) || definition.version < 1 || !validText(definition.name) || !Array.isArray(definition.nodes) || !Array.isArray(definition.edges)) {
+    add('INVALID_DEFINITION', 'Use a named supported graph definition with an ID, version, nodes, and edges.')
     if (!Array.isArray(definition?.nodes) || !Array.isArray(definition?.edges)) return diagnostics
   }
+  try { familyForDefinition(definition) } catch { add('INVALID_DEFINITION', 'This schema and graph ID do not identify a registered business family.') }
   for (const node of definition.nodes) {
     if (!exact(node, ['id', 'type', 'name', 'assigneeIds', 'completionMode', 'pairId']) || !validId(node.id) || !TYPES.has(node.type) || !validText(node.name) || !Array.isArray(node.assigneeIds) || node.assigneeIds.some(id => !validText(id, 128)) || new Set(node.assigneeIds).size !== node.assigneeIds.length) {
       add('INVALID_NODE', 'Each node needs all graph fields, a name, and distinct participant IDs.', node?.id || null)
@@ -327,12 +334,19 @@ export function validateClientGraph(definition) {
     if (edge.condition !== null) {
       const rule = edge.condition
       if (!exact(rule, ['mode', 'predicates']) || !['ALL', 'ANY'].includes(rule.mode) || !Array.isArray(rule.predicates) || !rule.predicates.length || rule.predicates.length > 8) {
-        add('INVALID_CONDITION', 'Use ALL or ANY with 1–8 payment amount predicates per condition.', null, edge.id)
+        add('INVALID_CONDITION', 'Use ALL or ANY with 1–8 typed business predicates per condition.', null, edge.id)
         continue
       }
       for (const predicate of rule.predicates) {
-        if (!exact(predicate, ['field', 'operator', 'currency', 'threshold']) || predicate.field !== 'payment.netTotal' || !['EQ', 'GT', 'GTE', 'LT', 'LTE'].includes(predicate.operator) || routingThresholdCents(predicate.threshold, predicate.currency) === null) add('INVALID_PREDICATE', 'Use a supported payment.netTotal comparison, currency, and exact amount.', null, edge.id)
-        if (predicate?.currency) currencies.add(predicate.currency)
+        let fields = []
+        try { fields = familyForDefinition(definition).fields } catch { /* Unknown hosts have no allowed facts. */ }
+        const type = factType(predicate?.field), comparison = ['EQ', 'GT', 'GTE', 'LT', 'LTE'].includes(predicate?.operator)
+        const valid = fields.includes(predicate?.field) && (type === 'boolean'
+          ? exact(predicate, ['field', 'operator', 'expected']) && predicate.operator === 'EQ' && typeof predicate.expected === 'boolean'
+          : type === 'percent' ? exact(predicate, ['field', 'operator', 'threshold']) && comparison && typeof predicate.threshold === 'number' && parsePercentInput(String(predicate.threshold)) !== null
+          : exact(predicate, ['field', 'operator', 'currency', 'threshold']) && comparison && routingThresholdCents(predicate.threshold, predicate.currency) !== null)
+        if (!valid) add('INVALID_PREDICATE', 'Use a supported typed fact and exact comparison for this business family.', null, edge.id)
+        if (type === 'money' && predicate?.currency) currencies.add(predicate.currency)
       }
     }
   }
@@ -340,7 +354,7 @@ export function validateClientGraph(definition) {
     const branches = outgoing(definition, split.id), defaults = branches.filter(edge => edge.defaultBranch)
     if (defaults.length !== 1 || !branches.at(-1)?.defaultBranch || defaults[0]?.condition !== null || branches.filter(edge => !edge.defaultBranch).some(edge => !edge.condition)) add('INVALID_DEFAULT', 'Each conditional split needs conditioned branches followed by one unconditional default branch.', split.id)
   }
-  if (currencies.size > 1) add('CURRENCY_MISMATCH', 'All payment conditions must use the same currency.')
+  if (currencies.size > 1) add('CURRENCY_MISMATCH', 'All monetary conditions must use the same currency.')
   try {
     const graph = structure(definition)
     checkCaps(definition, graph)

@@ -32,6 +32,7 @@ public final class JdbcGraphApprovalStore implements GraphApprovalStore {
     private final DataSource dataSource;
     private final ObjectMapper mapper;
     private final String processId;
+    private final int processSchema;
     private final String dialect;
     private final AtomicBoolean closed = new AtomicBoolean();
     private record Flags(boolean pending, boolean handled) {
@@ -43,7 +44,7 @@ public final class JdbcGraphApprovalStore implements GraphApprovalStore {
         GraphDefinition.validate(initial);
         this.dataSource = Objects.requireNonNull(source);
         this.mapper = GraphApprovalService.strictMapper(Objects.requireNonNull(mapper).copy());
-        this.processId = initial.id();
+        this.processId = initial.id(); this.processSchema=initial.schemaVersion();
         try (var connection = source.getConnection()) {
             requireOwned(connection);
             dialect = inspect(connection);
@@ -171,7 +172,7 @@ public final class JdbcGraphApprovalStore implements GraphApprovalStore {
     }
 
     @Override public boolean create(int expectedVersion, GraphInstance instance) throws IOException {
-        GraphEngine.validateInstance(instance);
+        GraphApprovalService.validateStoredInstance(instance);
         if (!processId.equals(instance.definition().id()) || instance.commandRevision() != 0 || !instance.commands().isEmpty())
             throw new IllegalArgumentException("Invalid new graph request");
         try {
@@ -207,7 +208,7 @@ public final class JdbcGraphApprovalStore implements GraphApprovalStore {
 
     @Override public boolean replace(String id, long expectedRevision, GraphInstance next) throws IOException {
         if (!id.equals(next.id()) || !processId.equals(next.definition().id())) throw new IllegalArgumentException("Graph request identity cannot change");
-        GraphEngine.validateInstance(next);
+        GraphApprovalService.validateStoredInstance(next);
         return transaction(false, c -> {
             GraphInstance before = readRequest(c, id, true);
             if (before == null || before.commandRevision() != expectedRevision) return false;
@@ -242,7 +243,7 @@ public final class JdbcGraphApprovalStore implements GraphApprovalStore {
             s.setString(1, processId); s.setInt(2, number); try (var rows = s.executeQuery()) {
                 if (!rows.next()) throw new IOException("Missing frozen graph version");
                 GraphDefinition definition = decode(rows.getString(1), GraphDefinition.class);
-                if (definition.version() != number || !processId.equals(definition.id()) || rows.next()) throw new IOException("Corrupt graph version identity");
+                if (definition.version() != number || definition.schemaVersion()!=processSchema || !processId.equals(definition.id()) || rows.next()) throw new IOException("Corrupt graph version identity");
                 try { GraphDefinition.validate(definition); } catch (RuntimeException failure) { throw new IOException("Corrupt published graph", failure); }
                 return definition;
             }
@@ -267,7 +268,7 @@ public final class JdbcGraphApprovalStore implements GraphApprovalStore {
                     throw new IOException("Corrupt graph request projection");
             }
         }
-        try { GraphEngine.validateInstance(request); } catch (RuntimeException failure) { throw new IOException("Corrupt graph replay", failure); }
+        try { GraphApprovalService.validateStoredInstance(request); } catch (RuntimeException failure) { throw new IOException("Corrupt graph replay", failure); }
         if (!version(c, request.definition().version()).equals(request.definition())) throw new IOException("Frozen graph definition differs from published version");
         verifyAudit(c, request); verifyProjections(c, request);
         return request;

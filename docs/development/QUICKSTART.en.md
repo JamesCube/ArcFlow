@@ -77,7 +77,7 @@ npm run dev
 
 Open **http://localhost:5173**. Vite proxies `/api` to the loopback backend. The default UI port is strict. If you change the hostname or port, also change `APPROVAL_UI_ORIGIN`. A custom backend port requires matching backend configuration and UI `ARCFLOW_BACKEND_PORT`; the launcher can configure both for you.
 
-- `/`: leave/procurement, the process designer, and member inbox
+- `/`: leave/procurement, the process designer, member inbox, and **Graph requests**. Choose payment, travel, receiving or quote in the graph workspace; see [business graph fields and source rules](../GRAPH_BUSINESS_SCENARIOS.en.md).
 - `/quote-discount.html`: separate quote-discount page, fixed Bob → Carol
 - `/scenarios.html`: expense, travel, seal-use, receiving, payment, and contract catalog
 - `/receiving.html`: dedicated entry into the same receiving scenario

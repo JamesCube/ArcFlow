@@ -1,9 +1,14 @@
 import tempfile
 import unittest
 from pathlib import Path
-from verify_graph_evidence import require_suite
+from verify_graph_evidence import require_suite, DOMAIN, HTTP, JDBC
 
 class GraphEvidenceTests(unittest.TestCase):
+    def test_business_compatibility_and_real_database_names_cannot_drop_from_gate(self):
+        self.assertIn('schemaFiveCollidingIdsRetainPaymentAcrossJsonRestartAndNewHostsRejectDowngrade', DOMAIN['GraphBusinessScenariosTest'])
+        self.assertIn('GraphBusinessRestartHttpTest', HTTP)
+        self.assertTrue({'quoteCanonicalIdentityRejectsBeforeAnyJdbcMutationAndSurvivesRestart', 'businessGraphFamiliesPersistPartialJoinsAndIsolateTypedSnapshots', 'schemaFiveCollidingBusinessIdsRemainPaymentAndRejectSchemaSixReopen'} <= JDBC)
+
     def test_named_behavior_not_raw_count(self):
         with tempfile.TemporaryDirectory() as d:
             p=Path(d)/'report.xml'

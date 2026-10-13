@@ -89,7 +89,7 @@ def main():
         errors.append('Controller inventory drift: review docs/api/API_REFERENCE.md, then explicitly regenerate the inventory.')
     files = [ROOT / p for p in ['README.md', 'README.en.md', 'CONTRIBUTING.md', 'docs/GETTING_STARTED.md',
                               'examples/approval-demo/backend/README.md', 'examples/approval-domain/README.md',
-                              'docs/CAPABILITIES.md', 'docs/CONDITIONAL_ROUTING.md', 'docs/GRAPH_DESIGNER.md', 'docs/GRAPH_DESIGNER.en.md',
+                              'docs/CAPABILITIES.md', 'docs/CONDITIONAL_ROUTING.md', 'docs/GRAPH_DESIGNER.md', 'docs/GRAPH_DESIGNER.en.md', 'docs/GRAPH_BUSINESS_SCENARIOS.md', 'docs/GRAPH_BUSINESS_SCENARIOS.en.md',
                               'docs/PAYMENT_CONTRACT_SCENARIOS.md', 'docs/UNIFIED_SCENARIO_INTEGRATION.md']]
     files += sorted((ROOT / 'docs/development').glob('*.md'))
     files += sorted((ROOT / 'docs/api').rglob('*.md'))
@@ -109,8 +109,8 @@ def main():
             elif uri.fragment and destination.suffix == '.md' and unquote(uri.fragment) not in anchors(destination):
                 errors.append(f'{path.relative_to(ROOT)}: missing Markdown anchor {ref}')
     examples = sorted((ROOT / 'docs/api/examples').glob('*.json'))
-    if len(examples) != 18:
-        errors.append(f'Expected 18 reviewed request examples, found {len(examples)}')
+    if len(examples) != 21:
+        errors.append(f'Expected 21 reviewed request examples, found {len(examples)}')
     for path in examples:
         body = unique_json(path)
         if not isinstance(body, dict):

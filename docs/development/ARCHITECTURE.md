@@ -24,7 +24,7 @@
 | 审批领域 | [`examples/approval-domain`](../../examples/approval-domain/src/main/java/com/arcflow/approval/) | 身份目录接口、不可变业务数据、流程版本、表决状态机、幂等、冻结路由和存储 SPI |
 | 默认存储 | [`JsonApprovalStore`](../../examples/approval-domain/src/main/java/com/arcflow/approval/JsonApprovalStore.java) | 单进程文件锁、原子快照、严格恢复与升级备份 |
 | 可选存储 | [`examples/approval-jdbc`](../../examples/approval-jdbc/README.md) | JDBC 事务、保留版本、独立审计和成员索引；宿主管理 DataSource、驱动和迁移 |
-| 独立宿主 | [`examples/approval-demo/backend`](../../examples/approval-demo/backend/src/main/java/com/arcflow/demo/) | Boot 4.1.1、HTTP Basic、固定演示目录、严格 JSON、三个端点家族及各自存储 |
+| 独立宿主 | [`examples/approval-demo/backend`](../../examples/approval-demo/backend/src/main/java/com/arcflow/demo/) | Boot 4.1.1、HTTP Basic、固定演示目录、严格 JSON、相互隔离的通用、报价、场景和图流程端点家族 |
 | 独立界面 | [`examples/approval-ui`](../../examples/approval-ui/README.md) | Vue 工作区、设计器、报价页与场景页；不作为最终权限或金额校验依据 |
 | 其他宿主／客户端 | [RuoYi](../../examples/ruoyi-vue3/README.md)、[H5](../../examples/approval-mobile/README.md) | 若依复用原生账号权限；H5 只读／审批请假与采购，不自动获得全部场景能力 |
 
@@ -44,6 +44,8 @@
 
 <!-- topic:voting-and-conditional-paths -->
 ## 审批节点与条件路径
+
+以下规则描述原顺序 `ProcessDefinition`，不是 schema 5/6 图定义。[图解释器](../GRAPH_DESIGNER.md)与[业务图接入](../GRAPH_BUSINESS_SCENARIOS.md)另提供有界配对分支和任务级状态。
 
 - 定义为固定 `start` → **1–8 个有序人工步骤** → 固定 `end`。这不是任意连线、循环或 BPMN 执行器。
 - UI 的 **SINGLE** 对应 `type: "approval"` 和单个 `assigneeId`，不是 JSON 的 `completionMode: "SINGLE"`。
