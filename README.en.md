@@ -153,7 +153,7 @@ Go straight to a case: [OA leave](docs/CASE_GALLERY.en.md#oa) · [Expense reimbu
 
 [Limits, missing features and test evidence](docs/CAPABILITIES.en.md#en-integration)
 
-A separate [structured payment graph workspace](docs/GRAPH_DESIGNER.en.md) adds paired conditional/parallel regions, durable drafts and task-level execution. Use Process designer → Graph and the Graph requests navigation. Its bounds and standalone/JDBC-library scope are explicit; RuoYi/mobile are unchanged.
+A separate [structured business graph workspace](docs/GRAPH_DESIGNER.en.md) adds paired conditional/parallel regions, durable drafts and task-level execution. Use Process designer → Graph and the Graph requests navigation. Its bounds and standalone/JDBC-library scope are explicit; RuoYi/mobile are unchanged.
 
 The full catalog also lists each missing capability separately: arbitrary forks/joins, majority voting, added reviewers, claiming, delegation, CC, batch decisions, reminders, escalation, attachments, tenant isolation, asynchronous execution and BPMN. Expense, receiving, payment, and contract forms support repeating lines; procurement and quotes remain single-item. A compiled, versioned scenario catalog exists, without template installation/cloning or arbitrary-field publication. See the [proposed implementation sequence](docs/CAPABILITIES.en.md#en-next) for additional scenarios and form design.
 

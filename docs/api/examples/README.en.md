@@ -64,7 +64,7 @@ curl --fail-with-body --user bob \
   "$BASE/api/requests/REQUEST_ID/decisions"
 ```
 
-There is no separate single-request GET endpoint. Scenario/quote submissions return a `request` wrapper; use `response.request.id` and that host's decision path. Generic submissions return the request directly; use `response.id`. Never send returned summaries, history, actor IDs, or routing decisions back as submission fields.
+There is no separate single-request GET endpoint for the legacy linear APIs; graphs have their own `/requests/{id}` endpoint. Scenario/quote submissions return a `request` wrapper; use `response.request.id` and that host's decision path. Generic submissions return the request directly; use `response.id`. Never send returned summaries, history, actor IDs, or routing decisions back as submission fields.
 
 <!-- topic:payload-routes -->
 
@@ -96,6 +96,29 @@ RuoYi uses its own token, permissions, response envelope, and `/arcflow` paths. 
 
 ## Structured graph examples
 
-The six `graph-*.json` files belong only to `/api/graphs/payment`. In a fresh graph store, validate `graph-definition.json`, preview `graph-preview.json`, PUT `graph-draft.json`, POST `graph-publish.json`, then submit `graph-payment.json` with an idempotency key. Use `graph-decision.json` on each returned active task URL, with a separate stable command key. The raw files assume published version 1 and draft revision 0 before saving; publication makes version 2. Read the live workspace before adapting them to another state.
+The original six payment graph files remain unchanged: `graph-definition.json`, `graph-preview.json`, `graph-draft.json`, `graph-publish.json`, `graph-payment.json` and `graph-decision.json`. In a fresh graph store, validate `graph-definition.json`, preview `graph-preview.json`, PUT `graph-draft.json`, POST `graph-publish.json`, then submit `graph-payment.json` with an idempotency key. Use `graph-decision.json` on each returned active task URL, with a separate stable command key. The raw files assume published version 1 and draft revision 0 before saving; publication makes version 2. Read the live workspace before adapting them to another state.
 
 The same verifier executes all six raw files, checks server-computed multi-line net total, preview without persistence, two concurrent tasks assigned to Bob, one incomplete fork across host restart, join release and replay-safe terminal approval. Graph responses are validated against their checked-in JSON schemas. It still uses only disposable loopback files, never a production service or database. See the [graph contract](../../GRAPH_DESIGNER.en.md).
+
+
+Three additional raw examples submit the new business families to their initial version-1 definitions:
+
+| File | POST path | `Idempotency-Key` |
+| --- | --- | --- |
+| [graph-travel.json](graph-travel.json) | `/api/graphs/travel/requests` | Required stable key |
+| [graph-receiving.json](graph-receiving.json) | `/api/graphs/receiving/requests` | Required stable key |
+| [graph-quote.json](graph-quote.json) | `/api/graphs/quote/requests` | Required canonical source-revision key |
+
+Travel uses a 12,000.29 CNY estimate; receiving includes rejected lines; quote requests 750 CNY against a 1,000 CNY source price. Each takes its business-specific parallel branch. First read `/api/graphs/quote/quotes` and preserve its source fields. Compute the header for this exact synthetic quote with:
+
+```sh
+KEY=$(python3 -c 'import hashlib; print("quote:" + hashlib.sha256(("Q-DEMO-001" + r"\n" + "1").encode("utf-8")).hexdigest())')
+curl --fail-with-body --user alice \
+  -H 'Content-Type: application/json' -H 'X-Arcflow-Client: approval-demo' \
+  -H "Idempotency-Key: $KEY" \
+  --data-binary @docs/api/examples/graph-quote.json "$BASE/api/graphs/quote/requests"
+```
+
+Unlike legacy quote submission, graph quote submission requires this header. The separator in the hash input is a literal backslash and `n`. Use the same original body, version and key on retry; a different requested price for the same source revision conflicts. These examples are independent of the legacy quote store, even when they use the same synthetic quote ID.
+
+The HTTP verifier executes all nine graph request files, validates all four families' response schemas, checks typed previews without writes and the canonical quote key, saves each new business at a partially completed parallel fork, restarts the whole host, and completes each join exactly once with replay checks. See [business fields and source authorization](../../GRAPH_BUSINESS_SCENARIOS.en.md). This does not replace the wider browser, domain or database suites.

@@ -24,7 +24,7 @@
 | JSON 文件顶层 `schemaVersion` | 严格读取 1–13 | 文件包裹格式、提交键、业务类型和保留的条件定义；不会因为读取就升级 |
 | JDBC SQL revision | 3 | 数据表、提交键及成员投影；与 JSON 字段版本不是同一编号 |
 
-这些表格描述原顺序存储。独立的[图流程工作区](../GRAPH_DESIGNER.md#持久化重启与宿主边界) 使用定义 schema 5、JSON `storageSchemaVersion` 14 和单独的 JDBC 图 schema 1；草稿、发布版本、命令修订和事件序号互相独立，不升级或转换旧申请。
+这些表格描述原顺序存储。独立的[图流程工作区](../GRAPH_DESIGNER.md#持久化重启与宿主边界) 使用付款定义 schema 5／新业务定义 schema 6、JSON `storageSchemaVersion` 14 和单独的 JDBC 图 schema 1；草稿、发布版本、命令修订和事件序号互相独立，不升级或转换旧申请。
 
 原顺序 JSON 快照最低版本取决于实际内容：
 
@@ -51,7 +51,7 @@
 
 `APPROVAL_DATA_FILE` 对应主请假／采购文件；未设置时为相对后端工作目录的 `./data/requests.json`。推荐使用私有目录下的绝对路径。独立宿主另外使用：
 
-- 付款图流程：主路径 + `.graph.json`，专用 wrapper 14
+- 图流程：付款保留主路径 + `.graph.json`；出差、收货、报价分别使用 `.travel.graph.json`、`.receiving.graph.json`、`.quote.graph.json`，均为独立 wrapper 14
 - 报价：主路径 + `.quotes.json`
 - 六场景：主路径 + `.scenario-<scenarioId>.json`，ID 为 `oa-expense`、`oa-travel`、`oa-seal-use`、`erp-receiving`、`erp-payment`、`crm-contract`
 

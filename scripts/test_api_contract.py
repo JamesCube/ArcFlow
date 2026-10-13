@@ -48,18 +48,18 @@ class ContractMutationTests(unittest.TestCase):
             Checker(self.root).check()
 
     def test_baseline(self):
-        self.assertIn('42 controller handlers', Checker(self.root).check())
+        self.assertIn('43 controller handlers', Checker(self.root).check())
 
     def test_graph_route_inventory_is_standalone_only(self):
-        self.spec(lambda s: s['paths'].pop('/api/graphs/payment/requests/{id}/tasks/{taskId}/decision'))
+        self.spec(lambda s: s['paths'].pop('/api/graphs/{scenario}/requests/{id}/tasks/{taskId}/decision'))
         self.rejected('count|omits')
 
     def test_graph_put_requires_client_header(self):
-        self.spec(lambda s: s['paths']['/api/graphs/payment/draft']['put'].__setitem__('parameters', []))
+        self.spec(lambda s: s['paths']['/api/graphs/{scenario}/draft']['put'].__setitem__('parameters', [p for p in s['paths']['/api/graphs/{scenario}/draft']['put']['parameters'] if p.get('in') == 'path']))
         self.rejected('client header')
 
     def test_graph_decision_requires_command_key(self):
-        self.spec(lambda s: s['paths']['/api/graphs/payment/requests/{id}/tasks/{taskId}/decision']['post'].__setitem__('x-idempotency', 'none'))
+        self.spec(lambda s: s['paths']['/api/graphs/{scenario}/requests/{id}/tasks/{taskId}/decision']['post'].__setitem__('x-idempotency', 'none'))
         self.rejected('idempotency')
 
     def test_graph_missing_nullable_node_field_is_rejected(self):
@@ -75,8 +75,82 @@ class ContractMutationTests(unittest.TestCase):
         self.rejected('graph fact family')
 
     def test_graph_response_model_cannot_be_linear(self):
-        self.spec(lambda s: s['paths']['/api/graphs/payment/requests']['post']['responses']['201']['content']['application/json'].__setitem__('schema', {'$ref': '#/components/schemas/Request'}))
+        self.spec(lambda s: s['paths']['/api/graphs/{scenario}/requests']['post']['responses']['201']['content']['application/json'].__setitem__('schema', {'$ref': '#/components/schemas/Request'}))
         self.rejected('response model')
+
+    def test_schema_five_colliding_id_remains_payment_in_preview_schema(self):
+        checker = Checker(self.root)
+        base = self.root / SPEC_DIR / 'schemas.json'
+        preview = load_json(self.root / 'docs/api/examples/graph-preview.json', lexical=True)
+        preview['definition']['id'] = 'travel-graph'
+        checker.validate(preview, {'$ref': '#/$defs/GraphPreview'}, base)
+        checker.domain_example(preview, 'legacy-colliding-payment')
+        preview['business'] = load_json(self.root / 'docs/api/examples/graph-travel.json', lexical=True)['business']
+        with self.assertRaises(ContractError):
+            checker.validate(preview, {'$ref': '#/$defs/GraphPreview'}, base)
+
+    def test_schema_six_requires_registered_id_and_matching_business(self):
+        checker = Checker(self.root)
+        base = self.root / SPEC_DIR / 'schemas.json'
+        preview = load_json(self.root / 'docs/api/examples/graph-preview.json', lexical=True)
+        preview['definition'].update(schemaVersion=6, id='travel-graph')
+        for edge in preview['definition']['edges']:
+            if edge['condition']:
+                for atom in edge['condition']['predicates']: atom['field'] = 'travel.estimatedCost'
+        with self.assertRaises(ContractError):
+            checker.validate(preview, {'$ref': '#/$defs/GraphPreview'}, base)
+        preview['business'] = load_json(self.root / 'docs/api/examples/graph-travel.json', lexical=True)['business']
+        checker.validate(preview, {'$ref': '#/$defs/GraphPreview'}, base)
+        checker.domain_example(preview, 'new-travel')
+        for id in ('payment-graph', 'custom-business'):
+            preview['definition']['id'] = id
+            with self.assertRaises(ContractError):
+                checker.validate(preview, {'$ref': '#/$defs/GraphPreview'}, base)
+
+    def test_schema_six_identity_guard_cannot_be_removed(self):
+        self.schema(lambda s: s['GraphDefinition'].pop('allOf'))
+        self.rejected('Schema-six graph identity|allOf')
+
+    def test_graph_scenario_allowlist_is_not_open(self):
+        self.schema(lambda s: s['GraphScenario']['enum'].append('expense'))
+        self.rejected('scenario enum')
+
+    def test_graph_document_union_excludes_unadopted_types(self):
+        self.schema(lambda s: s['GraphBusinessDocument']['oneOf'].append({'$ref': '#/$defs/Expense'}))
+        self.rejected('Graph document union')
+
+    def test_graph_fact_union_does_not_expand_legacy_runif(self):
+        self.schema(lambda s: s['RoutingPredicate']['oneOf'].append({'$ref': '#/$defs/TravelPredicate'}))
+        self.rejected('Routing predicate union')
+
+    def test_graph_registry_bindings_cannot_drift(self):
+        self.spec(lambda s: s['x-graph-scenarios']['quote'].__setitem__('businessType', 'paymentRequest'))
+        self.rejected('graph scenario binding')
+
+    def test_graph_quote_source_route_is_inventoried(self):
+        self.spec(lambda s: s['paths'].pop('/api/graphs/{scenario}/quotes'))
+        self.rejected('count|omits')
+
+    def test_graph_percent_disallows_currency_and_out_of_range_threshold(self):
+        checker = Checker(self.root)
+        schema = {'$ref': '#/$defs/QuotePercentPredicate'}
+        base = self.root / SPEC_DIR / 'schemas.json'
+        checker.validate({'field': 'quote.discountPercent', 'operator': 'GTE', 'threshold': 20}, schema, base)
+        for extra in ({'currency': 'CNY'}, {'threshold': 101}, {'threshold': 20.001}):
+            with self.subTest(extra=extra), self.assertRaises(ContractError):
+                checker.validate(dict(field='quote.discountPercent', operator='GTE', threshold=20) | extra, schema, base)
+
+    def test_graph_receiving_false_is_valid_but_text_is_not(self):
+        checker = Checker(self.root)
+        schema = {'$ref': '#/$defs/GraphRoutingPredicate'}
+        base = self.root / SPEC_DIR / 'schemas.json'
+        checker.validate({'field': 'receiving.hasRejectedLines', 'operator': 'EQ', 'expected': False}, schema, base)
+        with self.assertRaises(ContractError):
+            checker.validate({'field': 'receiving.hasRejectedLines', 'operator': 'EQ', 'expected': 'false'}, schema, base)
+
+    def test_graph_business_examples_still_reject_derived_submission_fields(self):
+        self.mutate_json('docs/api/examples/graph-quote.json', lambda b: b['business'].__setitem__('discountPercent', 25))
+        self.rejected('schema alternative')
 
     def test_missing_real_route(self):
         self.spec(lambda s: s['paths'].pop('/api/scenarios/oa-seal-use/documents'))

@@ -24,7 +24,7 @@
 | Top-level JSON file `schemaVersion` | Strict readers for 1–13 | Snapshot envelope, submission keys, types, and retained conditional definitions; reading alone never upgrades it |
 | JDBC SQL revision | 3 | Tables, submission keys, and member projection; unrelated to the JSON schema number |
 
-These tables describe the legacy linear stores. The isolated [graph workspace](../GRAPH_DESIGNER.en.md#storage-restart-and-host-boundary) uses definition schema 5, JSON `storageSchemaVersion` 14 and separate JDBC graph schema 1; draft, publication, command revision and event sequence remain independent. It neither upgrades nor converts legacy requests.
+These tables describe the legacy linear stores. The isolated [graph workspace](../GRAPH_DESIGNER.en.md#storage-restart-and-host-boundary) uses payment definition schema 5 / new-business schema 6, JSON `storageSchemaVersion` 14 and separate JDBC graph schema 1; draft, publication, command revision and event sequence remain independent. It neither upgrades nor converts legacy requests.
 
 Minimum legacy JSON wrappers depend on saved content:
 
@@ -51,7 +51,7 @@ Sources: [BusinessDocumentSchema](../../examples/approval-domain/src/main/java/c
 
 `APPROVAL_DATA_FILE` selects the main leave/procurement file. Its default is `./data/requests.json`, relative to the backend working directory. Prefer an absolute path in a private directory. The standalone host also uses:
 
-- Payment graph: base path + `.graph.json`, dedicated wrapper 14
+- Graphs: payment keeps base path + `.graph.json`; travel, receiving and quote use `.travel.graph.json`, `.receiving.graph.json` and `.quote.graph.json`; each is dedicated wrapper 14
 - Quote: base path + `.quotes.json`
 - Six scenarios: base path + `.scenario-<scenarioId>.json`, with IDs `oa-expense`, `oa-travel`, `oa-seal-use`, `erp-receiving`, `erp-payment`, and `crm-contract`
 

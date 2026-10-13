@@ -1,9 +1,11 @@
-# 独立图流程持久化（定义 v5）
+# 独立图流程持久化（定义 v5/v6）
+
+<a id="独立图流程持久化定义-v5"></a>
 
 [English](GRAPH_STORAGE.en.md)
 
 <!-- topic:scope -->
-图存储是显式启用的新适配器，不迁移、改写或重新解释已有顺序 v2/v3、条件 v4 定义和实例。定义 schema 5、JSON 包装版本 14、SQL 安装版本 1、发布版本、草稿修订号、命令修订号和事件序号各自独立。
+图存储是显式启用的新适配器，不迁移、改写或重新解释已有顺序 v2/v3、条件 v4 定义和实例。付款定义 schema 5／新业务定义 schema 6、JSON 包装版本 14、SQL 安装版本 1、发布版本、草稿修订号、命令修订号和事件序号各自独立。
 
 <!-- topic:installation -->
 ## 安装与连接所有权
@@ -16,7 +18,9 @@
 
 脚本只创建九张 `arc_graph_*` 表及索引，不修改原有 `arc_request`、流程、审计或成员表。它们是一次性新装脚本，不是可重复执行的迁移；已有图数据库不要重新执行。宿主操作员应先确认目标库并做好备份。构造器不执行 DDL；缺表、缺列、重复或未知 schema 元数据会在初始化写入前被拒绝。MySQL 还检查 InnoDB、二进制精确排序规则和 LONGTEXT JSON 列。MariaDB 或 H2 兼容模式不能代替真实 Oracle MySQL 验证。
 
-使用 `new JdbcGraphApprovalStore(dataSource, mapper, GraphSamples.payment())`，再交给 `GraphApprovalService`。宿主拥有连接池；适配器每次借用独立的 auto-commit 连接，自己管理事务，不参加宿主/Spring 事务。关闭适配器不会关闭宿主连接池。
+使用 `new JdbcGraphApprovalStore(dataSource, mapper, GraphSamples.payment())`，再交给 `GraphApprovalService`。新业务存储使用相应 schema 6 的 `GraphSamples.travel()`、`.receiving()` 或 `.quote()`；报价服务还需显式提供 `QuoteSource` 和时钟以执行实时访问策略。存储同时绑定流程 ID 与执行 schema；初始化定义必须与持久化的业务/schema 一致，重启亦然，不会将重名的历史 schema 5 付款图解释为 schema 6。草稿、发布与历史实例不能改变业务/schema。详见[业务图接入](../../docs/GRAPH_BUSINESS_SCENARIOS.md)。
+
+宿主拥有连接池；适配器每次借用独立的 auto-commit 连接，自己管理事务，不参加宿主/Spring 事务。关闭适配器不会关闭宿主连接池。
 
 JSON 适配器要求单独提供 `<base>.graph.json` 文件名，以 `storageSchemaVersion:14` 包装。它持有进程文件锁，串行执行 CAS，将临时文件强制写盘后在同目录原子重命名，并同步父目录。没有非原子替换降级。第二个进程不能同时持有该文件。未知版本、缺少必填字段（包括应显式为 null 的字段）、重复或多余字段、错误标量类型、无法重放的快照都直接失败，不改写文件。包装版本检查后从原始数字 token 解码，重启保留精确小数。文件系统必须支持原子替换和目录同步；这是单进程演示存储，不是分布式数据库。
 
@@ -43,7 +47,7 @@ CAS 冲突后由服务重新检查权限、重读并归约。提交键限定于�
 <!-- topic:rollback -->
 ## 新旧二进制与回滚边界
 
-- 老 JSON reader 拒绝包装版本 14。新旧适配器必须使用不同文件。禁止把老 writer 指向图文件、把图文件改名成老数据文件，或声称包装 14 是包装 13 的原地升级。
+- 图能力引入前的 JSON reader 拒绝包装版本 14。既有 schema 5 图读取器能识别 wrapper 14，但拒绝新的 schema 6 定义；所有历史 schema 5 ID 保持付款语义。新旧适配器必须使用不同文件。禁止把老 writer 指向图文件、把图文件改名成老数据文件，或声称包装 14 是包装 13 的原地升级。
 - 老 SQL 二进制继续访问旧 `arc_*` 表，不会读取、理解、保护或拒绝新 `arc_graph_*` 状态；表隔离使它不会覆盖图状态。这是隔离安全，不是图能力混合版本兼容。
 - 回滚部署到老二进制时，必须停用或重新路由图接口和图提交入口，保持图表/文件不变。在恢复支持图的二进制之前，旧图实例不可操作。不能交给老归约器或复制进旧请求表。
 - 并行部署的图节点必须对 schema 和执行语义达成一致。schema 1 不是未来语义协商机制；未来升级应协调图节点和入口并显式审核迁移。

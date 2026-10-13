@@ -9,9 +9,9 @@ import verify_developer_docs as docs
 class DeveloperDocsChecks(unittest.TestCase):
     def test_all_real_controllers_are_inventoried(self):
         endpoints = docs.inventory()
-        self.assertEqual(42, len(endpoints))
+        self.assertEqual(43, len(endpoints))
         self.assertEqual(9, sum(e['host'] == 'ruoyi' for e in endpoints))
-        self.assertEqual(33, sum(e['host'] == 'standalone' for e in endpoints))
+        self.assertEqual(34, sum(e['host'] == 'standalone' for e in endpoints))
         self.assertFalse(any(e['path'].endswith('/login') for e in endpoints))
 
     def test_bounded_seal_handler_is_distinguished(self):
@@ -50,7 +50,7 @@ class DeveloperDocsChecks(unittest.TestCase):
     def test_examples_have_expected_business_types(self):
         directory = docs.ROOT / 'docs/api/examples'
         bodies = [docs.unique_json(p) for p in directory.glob('*.json')]
-        self.assertEqual(18, len(bodies))
+        self.assertEqual(21, len(bodies))
         self.assertEqual({'leave', 'procurement', 'quoteDiscount', 'expense', 'travel', 'sealUse',
                           'receiving', 'paymentRequest', 'contractApproval'},
                          {body['business']['type'] for body in bodies if 'business' in body})

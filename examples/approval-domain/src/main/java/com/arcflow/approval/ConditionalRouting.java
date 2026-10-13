@@ -54,10 +54,15 @@ public final class ConditionalRouting {
             String field = text(node, "field"), operator = text(node, "operator");
             Predicate atom;
             switch (field) {
-                case "payment.netTotal" -> {
+                case "payment.netTotal", "travel.estimatedCost", "quote.reductionTotal" -> {
                     exact(node, "field", "operator", "currency", "threshold");
                     if (!node.get("threshold").isNumber()) throw invalid("A monetary threshold must be a JSON number");
-                    atom = money(operator, text(node, "currency"), node.get("threshold").decimalValue());
+                    atom = new Predicate(field, operator, text(node, "currency"), node.get("threshold").decimalValue(), null, null);
+                }
+                case "quote.discountPercent" -> {
+                    exact(node, "field", "operator", "threshold");
+                    if (!node.get("threshold").isNumber()) throw invalid("A percentage threshold must be a JSON number");
+                    atom = new Predicate(field, operator, null, node.get("threshold").decimalValue(), null, null);
                 }
                 case "receiving.hasRejectedLines" -> {
                     exact(node, "field", "operator", "expected");
@@ -100,12 +105,18 @@ public final class ConditionalRouting {
     private static void validate(Predicate atom) {
         if (atom == null || atom.field() == null || atom.operator() == null) throw invalid("Invalid routing predicate");
         switch (atom.field()) {
-            case "payment.netTotal" -> {
+            case "payment.netTotal", "travel.estimatedCost", "quote.reductionTotal" -> {
                 if (!MONEY_OPERATORS.contains(atom.operator()) || atom.currency() == null || !CURRENCIES.contains(atom.currency()) ||
                     atom.threshold() == null || atom.threshold().signum() < 0 || atom.threshold().scale() > 2 ||
                     atom.threshold().compareTo(new BigDecimal("20000000000")) > 0 ||
                     ("JPY".equals(atom.currency()) && atom.threshold().stripTrailingZeros().scale() > 0) || atom.expected() != null || atom.values() != null)
                     throw invalid("Invalid exact monetary routing threshold or currency");
+            }
+            case "quote.discountPercent" -> {
+                if (!MONEY_OPERATORS.contains(atom.operator()) || atom.threshold() == null || atom.threshold().signum() < 0 ||
+                    atom.threshold().compareTo(new BigDecimal("100")) > 0 || atom.threshold().scale() > 2 ||
+                    atom.currency() != null || atom.expected() != null || atom.values() != null)
+                    throw invalid("A percentage condition needs an exact 0–100 threshold with at most two decimals");
             }
             case "receiving.hasRejectedLines" -> {
                 if (!"EQ".equals(atom.operator()) || atom.expected() == null || atom.currency() != null || atom.threshold() != null || atom.values() != null)
@@ -127,6 +138,8 @@ public final class ConditionalRouting {
             if (definition.schemaVersion() != 4) throw invalid("Conditions require definition schema 4");
             validate(node.runIf()); count += node.runIf().predicates().size();
             for (Predicate atom : node.runIf().predicates()) {
+                if (!Set.of("payment.netTotal", "receiving.hasRejectedLines", "contract.termsKind").contains(atom.field()))
+                    throw invalid("This fact is supported only by business graph schema 6");
                 Class<? extends BusinessDocument> next = documentClass(atom.field());
                 if (family != null && family != next) throw invalid("All conditions must target one document type");
                 family = next;
@@ -182,15 +195,21 @@ public final class ConditionalRouting {
     public static Fact evaluate(Predicate atom, BusinessDocument business) {
         validate(atom);
         if (documentClass(atom.field()) != business.getClass()) throw invalid("Routing predicate document type mismatch");
-        if (business instanceof BusinessDocument.PaymentRequest payment) {
-            if (!payment.currency().equals(atom.currency()))
-                throw invalid("Payment currency must match routing currency " + atom.currency() + "; no automatic conversion is supported");
-            BigDecimal value = payment.netTotal(); int comparison = value.compareTo(atom.threshold());
-            boolean matches = switch (atom.operator()) {
-                case "EQ" -> comparison == 0; case "GT" -> comparison > 0; case "GTE" -> comparison >= 0;
-                case "LT" -> comparison < 0; case "LTE" -> comparison <= 0; default -> throw invalid("Unknown money operator");
-            };
-            return new Fact(atom.field(), payment.currency() + " " + value.stripTrailingZeros().toPlainString(), matches);
+        if ("quote.discountPercent".equals(atom.field())) {
+            var quote = (BusinessDocument.QuoteDiscount) business;
+            BigDecimal numerator = quote.listUnitPrice().subtract(quote.requestedUnitPrice()).multiply(BigDecimal.valueOf(100));
+            int comparison = numerator.compareTo(quote.listUnitPrice().multiply(atom.threshold()));
+            // Evidence preserves an exact ratio; a rounded display percent never decides routing.
+            String exact = numerator.stripTrailingZeros().toPlainString() + "/" + quote.listUnitPrice().stripTrailingZeros().toPlainString() + "%";
+            return new Fact(atom.field(), exact, matches(atom.operator(), comparison));
+        }
+        if (atom.currency() != null) {
+            String currency; BigDecimal value;
+            if (business instanceof BusinessDocument.PaymentRequest payment) { currency = payment.currency(); value = payment.netTotal(); }
+            else if (business instanceof BusinessDocument.Travel travel) { currency = travel.currency(); value = travel.estimatedCost(); }
+            else { var quote = (BusinessDocument.QuoteDiscount) business; currency = quote.currency(); value = quote.reductionTotal(); }
+            if (!currency.equals(atom.currency())) throw invalid("Document currency must match routing currency " + atom.currency() + "; no automatic conversion is supported");
+            return new Fact(atom.field(), currency + " " + value.stripTrailingZeros().toPlainString(), matches(atom.operator(), value.compareTo(atom.threshold())));
         }
         if (business instanceof BusinessDocument.Receiving receiving) {
             boolean value = receiving.lines().stream().anyMatch(line -> line.rejected() > 0);
@@ -199,9 +218,17 @@ public final class ConditionalRouting {
         var contract = (BusinessDocument.ContractApproval) business;
         return new Fact(atom.field(), contract.termsKind(), atom.values().contains(contract.termsKind()));
     }
+    private static boolean matches(String operator, int comparison) {
+        return switch (operator) {
+            case "EQ" -> comparison == 0; case "GT" -> comparison > 0; case "GTE" -> comparison >= 0;
+            case "LT" -> comparison < 0; case "LTE" -> comparison <= 0; default -> throw invalid("Unknown comparison operator");
+        };
+    }
     private static Class<? extends BusinessDocument> documentClass(String field) {
         return switch (field) {
             case "payment.netTotal" -> BusinessDocument.PaymentRequest.class;
+            case "travel.estimatedCost" -> BusinessDocument.Travel.class;
+            case "quote.reductionTotal", "quote.discountPercent" -> BusinessDocument.QuoteDiscount.class;
             case "receiving.hasRejectedLines" -> BusinessDocument.Receiving.class;
             case "contract.termsKind" -> BusinessDocument.ContractApproval.class;
             default -> throw invalid("Unknown routing field");

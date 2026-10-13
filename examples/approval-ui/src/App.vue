@@ -6,7 +6,7 @@ import { createSubmissionForms, isRejectedSubmissionVersion } from './submission
 import { validateSubmissionResponse, validateDecisionResponse } from './submission-response'
 import { SUPPORTED_CURRENCIES, InvalidApprovalPayloadError, businessDocumentErrors, procurementTotal, formatMoney, requestBusiness } from './business-document'
 import ProcessDesigner from './ProcessDesigner.vue'
-import GraphWorkspace from './graph/GraphWorkspace.vue'
+import GraphHub from './graph/GraphHub.vue'
 import UiIcon from './UiIcon.vue'
 import { appCopy, translate, validationText, apiFailure } from './locale'
 import { approvalNodes, isApproval, participants, pendingParticipants, participantVotes, cloneDefinition, validateDefinition, validatePublicationResponse, stepState } from './process'
@@ -354,7 +354,7 @@ function select(item) { selectedId.value = item.id; comment.value = ''; error.va
         </div><button v-if="tab !== 'graphs' && !(tab === 'process' && designerMode === 'graph')" class="secondary" data-testid="refresh" :disabled="busy" @click="refresh">{{ busy ? t.working : t.refresh }}</button></div>
         <p v-if="errorText" class="error" role="alert">{{ errorText }}</p><p v-if="noticeText" class="notice" role="status">{{ noticeText }}</p>
 
-        <GraphWorkspace v-if="graphVisited" v-show="tab === 'graphs' || tab === 'process' && designerMode === 'graph'" :actor="me" :locale="locale" :active="tab === 'graphs' || tab === 'process' && designerMode === 'graph'" :mode="tab === 'graphs' ? 'requests' : 'designer'" @unauthorized="logout" />
+        <GraphHub v-if="graphVisited" v-show="tab === 'graphs' || tab === 'process' && designerMode === 'graph'" :actor="me" :locale="locale" :active="tab === 'graphs' || tab === 'process' && designerMode === 'graph'" :mode="tab === 'graphs' ? 'requests' : 'designer'" @unauthorized="logout" />
         <ProcessDesigner v-if="draft" v-show="tab === 'process' && designerMode === 'sequential'" v-model="draft" :published="process" :people="people" :editable="canEdit" :busy="busy" :publishing="publishing" :dirty="draftDirty" :stale="staleDraft" :initial-locale="locale" :show-language="false" @update:locale="locale = $event" @publish="publish" @reset="resetDraft" />
 
         <section v-if="tab === 'requests'" class="workspace-summary" :aria-label="t.summary">

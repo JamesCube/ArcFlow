@@ -40,8 +40,8 @@ public final class JsonGraphApprovalStore implements GraphApprovalStore {
             if (acquired == null) throw new IOException("Another process owns the graph data file");
             if (Files.exists(file)) {
                 state = decode(Files.readAllBytes(file));
-                if (!state.definition().id().equals(initial.id()))
-                    throw new IOException("Graph snapshot belongs to another process");
+                if (!state.definition().id().equals(initial.id()) || state.definition().schemaVersion()!=initial.schemaVersion())
+                    throw new IOException("Graph snapshot belongs to another process or executable schema");
             } else {
                 commit(new Snapshot(14, initial, new Draft(0, initial.version(), initial), List.of()));
             }

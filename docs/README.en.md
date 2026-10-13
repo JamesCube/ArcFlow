@@ -40,7 +40,8 @@ This task-oriented index describes current `0.1.0-SNAPSHOT` main. Historical alp
 
 - [Architecture and extension](development/ARCHITECTURE.en.md): modules, request flow, types, host boundaries
 - [Capabilities and scenarios](CAPABILITIES.en.md): implemented, limited, and unsupported behavior
-- [Structured graph workspace](GRAPH_DESIGNER.en.md): bounded payment branches/joins, drafts, task runtime, API and persistence boundaries
+- [Structured graph workspace](GRAPH_DESIGNER.en.md): four business families, bounded branches/joins, drafts, task runtime, API and persistence boundaries
+- [Travel, receiving and quote graphs](GRAPH_BUSINESS_SCENARIOS.en.md): strict fields, source-bound quote authorization and runtime boundaries
 - [Designer workbench](DESIGNER_WORKBENCH.en.md): interactions, rationale, revision-specific evidence
 - [Enterprise integration proposal](INTEGRATION_DESIGN.en.md): proposed general API/DSL, not existing routes
 - [Roadmap](ROADMAP.en.md): completed milestones and possible work without delivery dates

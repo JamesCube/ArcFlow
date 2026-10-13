@@ -77,7 +77,7 @@ npm run dev
 
 打开 **http://localhost:5173**。Vite 将 `/api` 代理到回环后端。默认端口严格固定；不要只改地址中的主机名或端口而保留旧 `APPROVAL_UI_ORIGIN`。如改后端端口，需要同步配置后端端口及 UI 的 `ARCFLOW_BACKEND_PORT`，或让试用脚本统一配置。
 
-- `/`：请假／采购、流程设计器及成员待办
+- `/`：请假／采购、流程设计器、成员待办及“图流程申请”。图工作区可选择付款、出差、收货、报价；参见[业务字段与源权限规则](../GRAPH_BUSINESS_SCENARIOS.md)。
 - `/quote-discount.html`：报价折扣独立页面，固定 Bob → Carol
 - `/scenarios.html`：报销、出差、用印、收货、付款、合同六场景目录
 - `/receiving.html`：收货专用入口，复用收货场景

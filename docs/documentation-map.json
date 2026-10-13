@@ -877,6 +877,20 @@
         "rollback",
         "verification"
       ]
+    },
+    {
+      "path": "docs/GRAPH_BUSINESS_SCENARIOS.md",
+      "category": "reference",
+      "topics": [
+        "scope-and-identity",
+        "travel",
+        "receiving",
+        "quote-source-and-pricing",
+        "authoring-and-http",
+        "frozen-runtime-and-retries",
+        "persistence-and-boundaries",
+        "sources-and-verification"
+      ]
     }
   ],
   "historicalSources": [

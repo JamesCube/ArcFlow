@@ -49,3 +49,6 @@ examples/approval-ui/routing-visual-results/
 
 # Structured-graph real-backend screenshots and provenance
 examples/approval-ui/graph-results/
+
+# Source-bound business graph browser evidence
+examples/approval-ui/graph-business-results/

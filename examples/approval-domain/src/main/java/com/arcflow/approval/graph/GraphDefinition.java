@@ -5,7 +5,7 @@ import com.arcflow.approval.ConditionalRouting;
 import com.arcflow.approval.ProcessDefinition;
 import java.util.*;
 
-/** Version-five executable structured graph. Edge order is explicit FIRST_MATCH priority. */
+/** Version-five payment and version-six business executable structured graph. Edge order is explicit FIRST_MATCH priority. */
 public record GraphDefinition(@JsonProperty(required = true) int schemaVersion, @JsonProperty(required = true) String id, @JsonProperty(required = true) int version, @JsonProperty(required = true) String name, @JsonProperty(required = true) List<Node> nodes, @JsonProperty(required = true) List<Edge> edges) {
     public static final int MAX_NODES = 32, MAX_EDGES = 48, MAX_DEPTH = 2, MAX_BRANCHES = 4;
     public static final Set<String> TYPES = Set.of("start", "end", "approval", "parallelApproval", "exclusiveGateway", "exclusiveMerge", "parallelFork", "parallelJoin");
@@ -23,9 +23,9 @@ public record GraphDefinition(@JsonProperty(required = true) int schemaVersion, 
     public List<Edge> outgoing(String id) { return edges.stream().filter(e -> e.source().equals(id)).toList(); }
     public static boolean validId(String id) { return id != null && id.matches("[A-Za-z][A-Za-z0-9_-]{0,63}"); }
     public static void validateDraft(GraphDefinition d) {
-        if (d == null || d.schemaVersion != 5 || !ProcessDefinition.validProcessId(d.id) || d.version < 1 || !name(d.name) ||
+        if (d == null || (d.schemaVersion != 5 && d.schemaVersion != 6) || !ProcessDefinition.validProcessId(d.id) || d.version < 1 || !name(d.name) ||
             d.nodes == null || d.edges == null || d.nodes.size() > MAX_NODES || d.edges.size() > MAX_EDGES)
-            throw new IllegalArgumentException("Graph schema 5 requires a process ID, positive publication version, name, at most 32 nodes and 48 edges");
+            throw new IllegalArgumentException("Graph schema 5/6 requires a process ID, positive publication version, name, at most 32 nodes and 48 edges");
         Set<String> ids = new HashSet<>();
         for (Node n : d.nodes) {
             if (n == null || !validId(n.id) || !ids.add(n.id) || n.type == null || !TYPES.contains(n.type) || !name(n.name) || n.assigneeIds == null)
@@ -45,6 +45,7 @@ public record GraphDefinition(@JsonProperty(required = true) int schemaVersion, 
                 throw new IllegalArgumentException("Invalid or duplicate graph edge");
             if (e.condition != null) { ConditionalRouting.validate(e.condition); predicates += e.condition.predicates().size(); }
         }
+        GraphScenarios.validateFacts(d);
         if (predicates > 32) throw new IllegalArgumentException("A graph permits at most 32 condition predicates");
     }
     private static boolean name(String value) { return value != null && !value.isBlank() && value.length() <= 120 && value.codePoints().noneMatch(Character::isISOControl); }
@@ -64,7 +65,7 @@ public record GraphDefinition(@JsonProperty(required = true) int schemaVersion, 
             out.get(e.source).add(e); in.get(e.target).add(e);
             if (e.source.equals(e.target)) errors.add(new Diagnostic("CYCLE", "A node cannot connect to itself",e.source,e.id));
             if (e.condition != null) for (var p : e.condition.predicates()) {
-                if (!"payment.netTotal".equals(p.field())) errors.add(new Diagnostic("FACT_FAMILY", "This graph workspace supports the payment.netTotal fact only",e.source,e.id));
+                if (!GraphScenarios.forDefinition(d).facts().contains(p.field())) errors.add(new Diagnostic("FACT_FAMILY", "Routing fields do not belong to this graph scenario",e.source,e.id));
                 if (p.currency() != null) currency.add(p.currency());
             }
             if (!"exclusiveGateway".equals(byId.get(e.source).type) && (e.condition != null || e.defaultBranch))

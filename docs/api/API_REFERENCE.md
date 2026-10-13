@@ -59,8 +59,8 @@
 
 原顺序 API 源码基线：[`main` 提交 `199db7548f6faba5dfef105eaaf7311972adb388`](https://github.com/JamesCube/ArcFlow/tree/199db7548f6faba5dfef105eaaf7311972adb388)。本文描述仓库中已实现的示例宿主接口，不是尚未实现的平台 API。Java 核心 `arcflow-core` 本身不启动 HTTP 服务。
 
-- [路由清单 JSON](./endpoint-inventory.json)：五个控制器的 42 项离线映射快照，供检查路由漂移；不是 OpenAPI。
-- 静态 OpenAPI 契约：[独立宿主](./openapi/standalone.openapi.json)（33 项操作）、[若依宿主](./openapi/ruoyi.openapi.json)（9 项操作），按各自认证、响应包装和状态码分别描述。
+- [路由清单 JSON](./endpoint-inventory.json)：五个控制器的 43 项离线映射快照，供检查路由漂移；不是 OpenAPI。
+- 静态 OpenAPI 契约：[独立宿主](./openapi/standalone.openapi.json)（34 项操作）、[若依宿主](./openapi/ruoyi.openapi.json)（9 项操作），按各自认证、响应包装和状态码分别描述。
 - [可执行请求示例](./examples/README.md)：使用自己的本地配置和合成数据；不要把密码、Authorization 或真实业务资料写入仓库。
 - 以文末链接的控制器、DTO 和领域校验为准。静态 OpenAPI 文件和可运行 HTTP 示例便于查阅与校验；金额词法精度、UTF-16 长度、跨字段约束、目录授权和并发规则仍由实际宿主验证，不能仅靠结构校验判断请求一定成功。
 
@@ -73,7 +73,7 @@
 | 独立示例 | `/api` | HTTP Basic；直接返回 JSON 对象或数组 | 旧请假、类型化请假/采购、成员收件箱 |
 | 独立六场景 | `/api/scenarios` | 同一 Basic 身份；每场景独立流程和存储 | 费用、出差、用印、收货、付款申请、合同审批 |
 | 独立报价案例 | `/api/crm` | 同一 Basic 身份，加报价版本访问控制 | 合成报价折扣审批 |
-| 独立付款图流程 | `/api/graphs/payment` | 同一 Basic 身份；直接返回图对象 | 草稿/发布、付款预览/提交、任务审批；仅独立宿主 |
+| 独立业务图流程 | `/api/graphs/{scenario}` | 同一 Basic 身份；直接返回图对象 | 固定付款/出差/收货/报价四类业务，草稿/发布、预览/提交、任务审批；仅独立宿主 |
 | 若依原生集成层 | `/arcflow` | 若依身份/令牌/RBAC；`AjaxResult` | 旧请假、类型化请假/采购、成员收件箱 |
 
 这些接口不执行付款、签约、用印、采购下单、入库、附件下载、真实 CRM 同步或汇率换算。业务引用是数据字段，不是可下载的文件地址。
@@ -116,7 +116,7 @@
 
 ## 3. 路由清单
 
-五个控制器共声明 42 项路由映射：通用审批 9 项、场景 7 项、报价 5 项、图流程 12 项、若依 9 项。场景计数包含优先匹配的用印专用提交路径。
+五个控制器共声明 43 项路由映射：通用审批 9 项、场景 7 项、报价 5 项、图流程 13 项、若依 9 项。图映射使用固定集合的 `{scenario}` 参数，按处理方法计数，不乘以四种业务。场景计数包含优先匹配的用印专用提交路径。
 
 以下成功状态是实际控制器状态。独立宿主所有新建/重放提交均为 201；没有 `Location` 头契约。其他成功调用为 200。认证失败、状态冲突等见 §10。
 
@@ -596,6 +596,9 @@ python3 scripts/verify_api_examples.py \
 离线检查用于发现控制器映射、静态 OpenAPI 契约及示例之间的漂移，不能替代真实宿主对数字词法、权限和状态转换的验证。HTTP 校验会启动自己的临时独立宿主；它不验证若依登录、MySQL、真实 CRM 或付款服务。完整范围与手工调用步骤见[可执行示例](./examples/README.md)。
 
 
-## 结构化付款审批图 API
+<a id="结构化付款审批图-api"></a>
+## 结构化业务审批图 API
 
-独立的 `/api/graphs/payment` 接口族使用定义 schema 5、任务级审批、草稿/发布 CAS 和隔离存储，不改变原顺序/场景接口。详见[完整图流程 API 契约](../GRAPH_DESIGNER.md#http-契约)，包括能力查询、严格字段、权限、幂等和错误返回。
+独立的 `/api/graphs/{scenario}` 接口族（`payment`、`travel`、`receiving`、`quote`）使用付款定义 schema 5／新业务定义 schema 6、任务级审批、草稿/发布 CAS 和隔离存储，不改变原顺序/场景接口。详见[完整图流程 API 契约](../GRAPH_DESIGNER.md#http-契约)，包括能力查询、严格字段、权限、幂等和错误返回。
+
+各业务模型、报价源负责人/ACL/版本/有效期与确定提交键见[业务审批图](../GRAPH_BUSINESS_SCENARIOS.md)。原 `/api/graphs/payment` URL 与旧 `/api/crm` 契约保持不变。

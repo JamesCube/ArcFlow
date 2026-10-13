@@ -75,4 +75,4 @@ Tests cover HTTP/security and scenario boundaries. After packaging, run relevant
 
 ## Structured graph workspace
 
-The standalone host also serves `/api/graphs/payment` for the separate schema-5 payment graph designer and task runtime. It stores graph data in `<APPROVAL_DATA_FILE>.graph.json` (wrapper 14); it does not migrate legacy requests or enable graph execution in RuoYi/mobile. See [graph scope, API, concurrency and restart contract](../../../docs/GRAPH_DESIGNER.en.md).
+The standalone host also serves `/api/graphs/{scenario}` for payment (schema 5) and travel/receiving/quote (schema 6) workspaces and task runtimes. Payment retains `<APPROVAL_DATA_FILE>.graph.json`; other families use `.travel.graph.json`, `.receiving.graph.json` and `.quote.graph.json` (all wrapper 14); it does not migrate legacy requests or enable graph execution in RuoYi/mobile. See [graph scope, API, concurrency and restart contract](../../../docs/GRAPH_DESIGNER.en.md).

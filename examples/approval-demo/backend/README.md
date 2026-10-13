@@ -75,4 +75,4 @@ mvn -f examples/approval-demo/backend/pom.xml verify
 
 ## 结构化审批图工作区
 
-独立后端另提供 `/api/graphs/payment`，用于单独的 schema 5 付款图设计器和任务运行。数据保存在 `<APPROVAL_DATA_FILE>.graph.json`（wrapper 14），不迁移旧申请，也不会自动启用 RuoYi/移动端图流程。详见[图流程范围、API、并发和重启契约](../../../docs/GRAPH_DESIGNER.md)。
+独立后端另提供 `/api/graphs/{scenario}`，用于付款（schema 5）及出差、收货、报价（schema 6）的图设计器与任务运行。付款保留 `<APPROVAL_DATA_FILE>.graph.json`；其他业务分别使用 `.travel.graph.json`、`.receiving.graph.json`、`.quote.graph.json`（均为 wrapper 14），不迁移旧申请，也不会自动启用 RuoYi/移动端图流程。详见[图流程范围、API、并发和重启契约](../../../docs/GRAPH_DESIGNER.md)。

@@ -6,3 +6,8 @@ export function parseThresholdInput(text,currency) {
   if(cents>2000000000000n||currency==='JPY'&&cents%100n!==0n)return null
   return Number(cents)/100
 }
+
+export function parsePercentInput(text) {
+  const number = parseThresholdInput(text, 'CNY')
+  return number !== null && number <= 100 ? number : null
+}

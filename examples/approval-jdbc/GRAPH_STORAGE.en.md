@@ -1,9 +1,11 @@
-# Isolated graph persistence (definition v5)
+# Isolated graph persistence (definitions v5/v6)
+
+<a id="isolated-graph-persistence-definition-v5"></a>
 
 [简体中文](GRAPH_STORAGE.md)
 
 <!-- topic:scope -->
-Graph storage is an opt-in adapter. It does not migrate, rewrite, or reinterpret existing sequential v2/v3 or conditional v4 definitions or requests. Graph definition schema 5, JSON wrapper 14, SQL installation schema 1, publication version, draft revision, command revision, and event sequence are separate counters/contracts.
+Graph storage is an opt-in adapter. It does not migrate, rewrite, or reinterpret existing sequential v2/v3 or conditional v4 definitions or requests. Payment definition schema 5 / new-business definition schema 6, JSON wrapper 14, SQL installation schema 1, publication version, draft revision, command revision, and event sequence are separate counters/contracts.
 
 <!-- topic:installation -->
 ## Installation and ownership
@@ -16,7 +18,9 @@ Install exactly one new resource explicitly with your normal database deployment
 
 These scripts create only nine `arc_graph_*` tables and indexes. They do not alter any existing `arc_request`, process, audit, or member table. They are fresh-install scripts, not repeatable migrations; do not rerun them on an existing graph installation. Back up and review the target database before the host operator applies DDL. The application constructor never runs DDL and rejects missing, malformed, duplicate, or unknown schema metadata before initial data writes. MySQL additionally verifies InnoDB, exact binary collations, and LONGTEXT JSON columns. MariaDB and compatibility-mode evidence are not substitutes for Oracle MySQL verification.
 
-Construct `new JdbcGraphApprovalStore(dataSource, mapper, GraphSamples.payment())` and pass it to `GraphApprovalService`. The host owns the DataSource; the store borrows independently owned auto-commit connections and performs its own transactions. Ambient/Spring transactions are rejected. Closing a store prevents new operations without closing the host pool.
+Construct `new JdbcGraphApprovalStore(dataSource, mapper, GraphSamples.payment())` and pass it to `GraphApprovalService`. Use the corresponding schema-6 `GraphSamples.travel()`, `.receiving()` or `.quote()` for a new business store; a quote service also needs an explicit `QuoteSource` and clock for live access policy. A store is bound to both process ID and executable schema. Its initial definition must match the persisted family/schema, including on restart; a colliding historical schema-5 payment ID is never reinterpreted as schema 6. Drafts, publications and retained instances cannot change family/schema. See [business graph integration](../../docs/GRAPH_BUSINESS_SCENARIOS.en.md).
+
+The host owns the DataSource; the store borrows independently owned auto-commit connections and performs its own transactions. Ambient/Spring transactions are rejected. Closing a store prevents new operations without closing the host pool.
 
 The JSON adapter uses a separately supplied `<base>.graph.json` filename, wrapper `storageSchemaVersion:14`, a held process lock, synchronized compare-and-set, forced temporary-file writes, atomic same-directory rename, and a parent-directory flush. It never falls back to non-atomic replacement. A second owner is rejected. Unexpected schemas, missing required fields (including nullable fields), duplicate fields, unknown fields, invalid scalar shapes, and snapshots that cannot replay fail closed without rewriting the file. Original numeric tokens are decoded after the wrapper probe so exact decimal scale survives restart. Use a filesystem that supports atomic replacement and directory synchronization; the JSON adapter is a single-process demonstration, not a distributed database.
 
@@ -43,7 +47,7 @@ A lost commit acknowledgement can mean the transaction committed. The adapter re
 <!-- topic:rollback -->
 ## Old/new binary and rollback safety
 
-- Old JSON readers reject wrapper 14. Old and graph adapters must retain different filenames. Never point an old writer at a graph file, rename a graph file to the old storage name, or claim wrapper 14 is an in-place upgrade of wrapper 13.
+- Pre-graph JSON readers reject wrapper 14. Existing schema-5 graph readers can understand wrapper 14, but reject new schema-6 definitions. All historical schema-5 IDs keep payment semantics. Old and graph adapters must retain different filenames. Never point an old writer at a graph file, rename a graph file to the old storage name, or claim wrapper 14 is an in-place upgrade of wrapper 13.
 - Old SQL binaries continue using their old `arc_*` tables. They do not read, understand, protect, or reject the new `arc_graph_*` state; table isolation prevents them from rewriting it. This is isolation safety, not mixed-version graph compatibility.
 - A deployment rollback to an old binary must disable/reroute graph endpoints and graph submissions and preserve the graph tables/file unchanged. Existing graph instances remain unavailable until a graph-capable binary is restored. Do not feed graph instances to the old reducer or copy graph rows into old request tables.
 - Concurrent graph-capable nodes must agree on schema/semantics. Unknown metadata is rejected, but schema 1 alone does not negotiate future semantic changes. Upgrade graph workers/endpoints as a coordinated deployment and review future migrations explicitly.

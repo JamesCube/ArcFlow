@@ -47,3 +47,20 @@
 @container graphunit (max-width:1000px){.gf-region[data-branch-count="4"]{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @container graphunit (max-width:700px){.gf-region[data-branch-count="3"]{grid-template-columns:minmax(0,1fr)}}
 @container graphunit (max-width:480px){.gf-region[data-branch-count]{grid-template-columns:minmax(0,1fr)}}
+
+.gf-family-selector{display:flex;gap:1.2rem;align-items:center;flex-wrap:wrap;margin-bottom:1.2rem;padding:1rem 1.2rem;background:#fff;border:1px solid #dfe6eb;border-radius:12px}.gf-family-selector label{display:grid;gap:.4rem;font-size:.8rem;font-weight:650;min-width:220px}.gf-family-selector select{padding:.65rem;border:1px solid #bdcbd4;border-radius:7px;background:#fff;color:inherit}.gf-family-selector p{max-width:42rem;flex:1;font-size:.85rem;color:#586776;margin:0}.gf-hub{min-width:0}@media(max-width:600px){.gf-family-selector{display:block}.gf-family-selector label{min-width:0}.gf-family-selector p{margin-top:.7rem}}
+
+/* Keep the short refresh action intact while the descriptive heading wraps. */
+.gf-workspace-heading > div { flex: 1; min-width: 0; }
+.gf-workspace-heading > .secondary { flex: 0 0 auto; min-width: max-content; white-space: nowrap; }
+
+/* Prefer complete words in bilingual node names. Truly long unbroken names
+   still have an emergency wrap instead of overflowing or being truncated. */
+.gf-node-copy > strong { overflow-wrap: break-word; word-break: normal; hyphens: none; }
+
+/* Two nested tracks in a 320px runtime leave about 148px per node. Compact
+   ornament spacing gives its label room without widening the track/canvas. */
+@container graphunit (max-width: 200px) {
+  .gf-node { gap: 8px; padding: 12px 10px; }
+  .gf-node-symbol { flex-basis: 24px; width: 24px; height: 24px; font-size: 16px; }
+}

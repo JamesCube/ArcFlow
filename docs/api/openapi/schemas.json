@@ -2664,7 +2664,7 @@
         "condition": {
           "anyOf": [
             {
-              "$ref": "#/$defs/RunIf"
+              "$ref": "#/$defs/GraphRunIf"
             },
             {
               "type": "null"
@@ -2684,7 +2684,7 @@
         "defaultBranch"
       ],
       "additionalProperties": false,
-      "description": "Stable edge ID is a branch ID. Draft can be incomplete. Publication permits payment.netTotal only, one currency, exactly one final default per exclusive gateway; other edges are unconditional/nondefault.",
+      "description": "Stable edge ID is a branch ID. Draft can be incomplete. Publication requires facts belonging to the fixed process family, at most one money currency, and exactly one final default per exclusive gateway. Other edges are unconditional/nondefault.",
       "x-java-record": {
         "source": "examples/approval-domain/src/main/java/com/arcflow/approval/graph/GraphDefinition.java",
         "name": "Edge",
@@ -2697,8 +2697,11 @@
       "properties": {
         "schemaVersion": {
           "type": "integer",
-          "const": 5,
-          "x-json-integer": true
+          "x-json-integer": true,
+          "enum": [
+            5,
+            6
+          ]
         },
         "id": {
           "type": "string",
@@ -2742,13 +2745,35 @@
         "edges"
       ],
       "additionalProperties": false,
-      "description": "Schema 5 semantic definition. Structural drafts may be incomplete. Publication requires a paired acyclic single-entry/single-exit graph with at most 16 human nodes, two nested regions, 2–4 branches each and 32 total predicate atoms. Node order/coordinates never define execution; exclusive outgoing edge order is FIRST_MATCH.",
+      "description": "Bounded graph definition. Schema 5 always means payment, regardless of process ID, preserving historical custom names. Schema 6 is limited to travel-graph/travel, receiving-graph/receiving and quote-graph/quoteDiscount. Other schema-6 IDs are invalid. Drafts may be incomplete; publication requires paired acyclic single-entry/single-exit regions, at most 16 human nodes, two nested regions, 2–4 branches and 32 predicate atoms. Exclusive outgoing edge order is FIRST_MATCH.",
       "x-java-record": {
         "source": "examples/approval-domain/src/main/java/com/arcflow/approval/graph/GraphDefinition.java",
         "name": "GraphDefinition",
         "synthetic": [],
         "optional": []
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "schemaVersion": {
+                "const": 6
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "id": {
+                "enum": [
+                  "travel-graph",
+                  "receiving-graph",
+                  "quote-graph"
+                ]
+              }
+            }
+          }
+        }
+      ]
     },
     "GraphDiagnostic": {
       "type": "object",
@@ -3025,7 +3050,7 @@
         "facts": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/RoutingFact"
+            "$ref": "#/$defs/GraphRoutingFact"
           },
           "maxItems": 8
         }
@@ -3211,7 +3236,7 @@
           "$ref": "#/$defs/GraphDefinition"
         },
         "business": {
-          "$ref": "#/$defs/PaymentRequest"
+          "$ref": "#/$defs/GraphBusinessDocument"
         },
         "tasks": {
           "type": "array",
@@ -3272,7 +3297,98 @@
         "name": "GraphInstance",
         "synthetic": [],
         "optional": []
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "definition": {
+                "properties": {
+                  "schemaVersion": {
+                    "const": 5
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "business": {
+                "$ref": "#/$defs/PaymentRequest"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "definition": {
+                "properties": {
+                  "schemaVersion": {
+                    "const": 6
+                  },
+                  "id": {
+                    "const": "travel-graph"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "business": {
+                "$ref": "#/$defs/Travel"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "definition": {
+                "properties": {
+                  "schemaVersion": {
+                    "const": 6
+                  },
+                  "id": {
+                    "const": "receiving-graph"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "business": {
+                "$ref": "#/$defs/Receiving"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "definition": {
+                "properties": {
+                  "schemaVersion": {
+                    "const": 6
+                  },
+                  "id": {
+                    "const": "quote-graph"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "business": {
+                "$ref": "#/$defs/QuoteDiscount"
+              }
+            }
+          }
+        }
+      ]
     },
     "GraphWorkspace": {
       "type": "object",
@@ -3370,7 +3486,7 @@
           "$ref": "#/$defs/GraphDefinition"
         },
         "business": {
-          "$ref": "#/$defs/PaymentRequest"
+          "$ref": "#/$defs/GraphBusinessDocument"
         }
       },
       "required": [
@@ -3383,7 +3499,98 @@
         "name": "Preview",
         "synthetic": [],
         "optional": []
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "definition": {
+                "properties": {
+                  "schemaVersion": {
+                    "const": 5
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "business": {
+                "$ref": "#/$defs/PaymentRequest"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "definition": {
+                "properties": {
+                  "schemaVersion": {
+                    "const": 6
+                  },
+                  "id": {
+                    "const": "travel-graph"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "business": {
+                "$ref": "#/$defs/Travel"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "definition": {
+                "properties": {
+                  "schemaVersion": {
+                    "const": 6
+                  },
+                  "id": {
+                    "const": "receiving-graph"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "business": {
+                "$ref": "#/$defs/Receiving"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "definition": {
+                "properties": {
+                  "schemaVersion": {
+                    "const": 6
+                  },
+                  "id": {
+                    "const": "quote-graph"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "business": {
+                "$ref": "#/$defs/QuoteDiscount"
+              }
+            }
+          }
+        }
+      ]
     },
     "GraphSubmission": {
       "type": "object",
@@ -3395,7 +3602,7 @@
           "maximum": 2147483647
         },
         "business": {
-          "$ref": "#/$defs/PaymentRequest"
+          "$ref": "#/$defs/GraphBusinessDocument"
         }
       },
       "required": [
@@ -3408,7 +3615,8 @@
         "name": "Submission",
         "synthetic": [],
         "optional": []
-      }
+      },
+      "description": "Expected published graph version plus the exact family business document. All graph submissions require Idempotency-Key. Quote requires quote: + lowercase SHA-256 of UTF-8 businessId + literal backslash+n + decimal quoteRevision; server enforces one original intent per applicant/source revision."
     },
     "GraphDecision": {
       "type": "object",
@@ -3522,17 +3730,27 @@
       "type": "object",
       "properties": {
         "field": {
-          "const": "payment.netTotal"
+          "enum": [
+            "payment.netTotal",
+            "travel.estimatedCost",
+            "receiving.hasRejectedLines",
+            "quote.reductionTotal",
+            "quote.discountPercent"
+          ]
         },
         "type": {
-          "const": "money"
+          "enum": [
+            "money",
+            "boolean",
+            "percent"
+          ]
         },
         "currencies": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/Currency"
           },
-          "minItems": 5,
+          "minItems": 0,
           "maxItems": 5,
           "uniqueItems": true
         },
@@ -3547,7 +3765,7 @@
               "LTE"
             ]
           },
-          "minItems": 5,
+          "minItems": 1,
           "maxItems": 5,
           "uniqueItems": true
         }
@@ -3564,7 +3782,86 @@
         "name": "Fact",
         "synthetic": [],
         "optional": []
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "field": {
+                "const": "receiving.hasRejectedLines"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "type": {
+                "const": "boolean"
+              },
+              "currencies": {
+                "maxItems": 0
+              },
+              "operators": {
+                "items": {
+                  "const": "EQ"
+                },
+                "minItems": 1,
+                "maxItems": 1
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "operators": {
+                "minItems": 5,
+                "maxItems": 5
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "field": {
+                "const": "quote.discountPercent"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "type": {
+                "const": "percent"
+              },
+              "currencies": {
+                "maxItems": 0
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "field": {
+                "enum": [
+                  "payment.netTotal",
+                  "travel.estimatedCost",
+                  "quote.reductionTotal"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "type": {
+                "const": "money"
+              },
+              "currencies": {
+                "minItems": 5,
+                "maxItems": 5
+              }
+            }
+          }
+        }
+      ]
     },
     "GraphPermissions": {
       "type": "object",
@@ -3592,10 +3889,18 @@
       "type": "object",
       "properties": {
         "schemaVersion": {
-          "const": 5
+          "enum": [
+            5,
+            6
+          ]
         },
         "businessType": {
-          "const": "paymentRequest"
+          "enum": [
+            "paymentRequest",
+            "travel",
+            "receiving",
+            "quoteDiscount"
+          ]
         },
         "nodeTypes": {
           "type": "array",
@@ -3624,7 +3929,8 @@
             "$ref": "#/$defs/GraphFact"
           },
           "minItems": 1,
-          "maxItems": 1
+          "maxItems": 2,
+          "uniqueItems": true
         },
         "permissions": {
           "$ref": "#/$defs/GraphPermissions"
@@ -3666,7 +3972,348 @@
         "name": "Capabilities",
         "synthetic": [],
         "optional": []
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "businessType": {
+                "const": "paymentRequest"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "schemaVersion": {
+                "const": 5
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "schemaVersion": {
+                "const": 6
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "businessType": {
+                "const": "paymentRequest"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "facts": {
+                "minItems": 1,
+                "maxItems": 1,
+                "items": {
+                  "properties": {
+                    "field": {
+                      "enum": [
+                        "payment.netTotal"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "businessType": {
+                "const": "travel"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "facts": {
+                "minItems": 1,
+                "maxItems": 1,
+                "items": {
+                  "properties": {
+                    "field": {
+                      "enum": [
+                        "travel.estimatedCost"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "businessType": {
+                "const": "receiving"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "facts": {
+                "minItems": 1,
+                "maxItems": 1,
+                "items": {
+                  "properties": {
+                    "field": {
+                      "enum": [
+                        "receiving.hasRejectedLines"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "businessType": {
+                "const": "quoteDiscount"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "facts": {
+                "minItems": 2,
+                "maxItems": 2,
+                "items": {
+                  "properties": {
+                    "field": {
+                      "enum": [
+                        "quote.reductionTotal",
+                        "quote.discountPercent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "GraphScenario": {
+      "type": "string",
+      "enum": [
+        "payment",
+        "travel",
+        "receiving",
+        "quote"
+      ]
+    },
+    "GraphBusinessDocument": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/PaymentRequest"
+        },
+        {
+          "$ref": "#/$defs/Travel"
+        },
+        {
+          "$ref": "#/$defs/Receiving"
+        },
+        {
+          "$ref": "#/$defs/QuoteDiscount"
+        }
+      ],
+      "description": "Business union for graph responses/commands. Schema 5 definitions always accept only paymentRequest, including historical custom IDs. Schema 6 binds travel-graph/travel, receiving-graph/receiving and quote-graph/quoteDiscount. The configured HTTP family and store enforce their schema/process pair even without predicates."
+    },
+    "TravelPredicate": {
+      "type": "object",
+      "properties": {
+        "field": {
+          "const": "travel.estimatedCost"
+        },
+        "operator": {
+          "type": "string",
+          "enum": [
+            "EQ",
+            "GT",
+            "GTE",
+            "LT",
+            "LTE"
+          ]
+        },
+        "currency": {
+          "$ref": "#/$defs/Currency"
+        },
+        "threshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 20000000000,
+          "multipleOf": 0.01,
+          "description": "JSON number, normalized through Jackson JsonNode before validation. At most two significant fractional decimal places after trailing-zero normalization, up to 20000000000; JPY is numerically whole. Unlike business-money DTOs, 1.000 is accepted here."
+        }
+      },
+      "required": [
+        "field",
+        "operator",
+        "currency",
+        "threshold"
+      ],
+      "additionalProperties": false
+    },
+    "QuoteReductionPredicate": {
+      "type": "object",
+      "properties": {
+        "field": {
+          "const": "quote.reductionTotal"
+        },
+        "operator": {
+          "type": "string",
+          "enum": [
+            "EQ",
+            "GT",
+            "GTE",
+            "LT",
+            "LTE"
+          ]
+        },
+        "currency": {
+          "$ref": "#/$defs/Currency"
+        },
+        "threshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 20000000000,
+          "multipleOf": 0.01,
+          "description": "JSON number, normalized through Jackson JsonNode before validation. At most two significant fractional decimal places after trailing-zero normalization, up to 20000000000; JPY is numerically whole. Unlike business-money DTOs, 1.000 is accepted here."
+        }
+      },
+      "required": [
+        "field",
+        "operator",
+        "currency",
+        "threshold"
+      ],
+      "additionalProperties": false
+    },
+    "QuotePercentPredicate": {
+      "type": "object",
+      "properties": {
+        "field": {
+          "const": "quote.discountPercent"
+        },
+        "operator": {
+          "type": "string",
+          "enum": [
+            "EQ",
+            "GT",
+            "GTE",
+            "LT",
+            "LTE"
+          ]
+        },
+        "threshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "multipleOf": 0.01,
+          "description": "Exact percentage threshold, 0–100 with at most two fractional decimal places after JsonNode trailing-zero normalization. No currency. Routing uses cross multiplication, never a rounded display percent."
+        }
+      },
+      "required": [
+        "field",
+        "operator",
+        "threshold"
+      ],
+      "additionalProperties": false
+    },
+    "GraphRoutingPredicate": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/PaymentPredicate"
+        },
+        {
+          "$ref": "#/$defs/TravelPredicate"
+        },
+        {
+          "$ref": "#/$defs/ReceivingPredicate"
+        },
+        {
+          "$ref": "#/$defs/QuoteReductionPredicate"
+        },
+        {
+          "$ref": "#/$defs/QuotePercentPredicate"
+        }
+      ]
+    },
+    "GraphRunIf": {
+      "type": "object",
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "ALL",
+            "ANY"
+          ]
+        },
+        "predicates": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/GraphRoutingPredicate"
+          },
+          "minItems": 1,
+          "maxItems": 8
+        }
+      },
+      "required": [
+        "mode",
+        "predicates"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/ConditionalRouting.java",
+        "name": "Rule",
+        "synthetic": [],
+        "optional": []
       }
+    },
+    "GraphRoutingFact": {
+      "type": "object",
+      "properties": {
+        "field": {
+          "type": "string",
+          "enum": [
+            "payment.netTotal",
+            "travel.estimatedCost",
+            "receiving.hasRejectedLines",
+            "quote.reductionTotal",
+            "quote.discountPercent"
+          ]
+        },
+        "actualValue": {
+          "type": "string"
+        },
+        "result": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "field",
+        "actualValue",
+        "result"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/approval-domain/src/main/java/com/arcflow/approval/ConditionalRouting.java",
+        "name": "Fact",
+        "synthetic": [],
+        "optional": []
+      },
+      "description": "Frozen evaluation evidence. Percent actualValue is the exact numerator/denominator% string, not a rounded percentage."
     }
   }
 }

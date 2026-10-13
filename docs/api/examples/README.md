@@ -96,6 +96,29 @@ curl --fail-with-body --user bob \
 
 ## 结构化图流程示例
 
-六个 `graph-*.json` 文件只用于 `/api/graphs/payment`。在全新图存储中，依次校验 `graph-definition.json`、预览 `graph-preview.json`、PUT `graph-draft.json`、POST `graph-publish.json`，再带幂等键提交 `graph-payment.json`。将 `graph-decision.json` 发送到返回的准确活动任务 URL，每条命令使用独立且稳定的幂等键。原始文件假设保存前发布版本为 1、草稿修订为 0，发布后为版本 2；用于已有状态前先读取工作区并明确调整版本。
+原付款图的六个文件保持不变：`graph-definition.json`、`graph-preview.json`、`graph-draft.json`、`graph-publish.json`、`graph-payment.json`、`graph-decision.json`。在全新图存储中，依次校验 `graph-definition.json`、预览 `graph-preview.json`、PUT `graph-draft.json`、POST `graph-publish.json`，再带幂等键提交 `graph-payment.json`。将 `graph-decision.json` 发送到返回的准确活动任务 URL，每条命令使用独立且稳定的幂等键。原始文件假设保存前发布版本为 1、草稿修订为 0，发布后为版本 2；用于已有状态前先读取工作区并明确调整版本。
 
 同一个验证程序会发送全部六个原始文件，检查多行净额的后端计算、预览无持久化、Bob 同时持有两个任务、未完成并行分支跨停机重启、汇合释放和终态命令安全重试，并按仓库 JSON Schema 验证图响应。它只使用可删除的回环测试文件，不接触生产服务或数据库。详见[图流程契约](../../GRAPH_DESIGNER.md)。
+
+
+另外三个原始示例向各业务初始版本 1 的图提交申请：
+
+| 文件 | POST 路径 | `Idempotency-Key` |
+| --- | --- | --- |
+| [graph-travel.json](graph-travel.json) | `/api/graphs/travel/requests` | 必需，稳定的重试键 |
+| [graph-receiving.json](graph-receiving.json) | `/api/graphs/receiving/requests` | 必需，稳定的重试键 |
+| [graph-quote.json](graph-quote.json) | `/api/graphs/quote/requests` | 必需，固定源版本键 |
+
+出差预计费用为 12,000.29 CNY；收货含拒收行；报价申请单价 750 CNY，源标价为 1,000 CNY。它们分别进入本业务的并行分支。报价应先读取 `/api/graphs/quote/quotes` 并保留源字段；以下命令为这一合成报价计算准确请求头：
+
+```sh
+KEY=$(python3 -c 'import hashlib; print("quote:" + hashlib.sha256(("Q-DEMO-001" + r"\n" + "1").encode("utf-8")).hexdigest())')
+curl --fail-with-body --user alice \
+  -H 'Content-Type: application/json' -H 'X-Arcflow-Client: approval-demo' \
+  -H "Idempotency-Key: $KEY" \
+  --data-binary @docs/api/examples/graph-quote.json "$BASE/api/graphs/quote/requests"
+```
+
+与旧报价提交不同，图报价必须带这个头。哈希输入的分隔符是反斜杠与 `n` 两个字面字符。重试保留原始业务、版本和键；同一源版本改价会冲突。这些示例与旧报价存储相互独立，即使用相同合成报价 ID 也不会共用申请。
+
+HTTP 验证程序发送全部九个图请求文件，检查四类响应 schema、预览无写入和固定报价键，使每种新业务停在并行部分完成状态，然后完整重启宿主，再确认各汇合只释放一次并安全重放。业务字段与源授权详见[业务审批图](../../GRAPH_BUSINESS_SCENARIOS.md)。这不替代更广的浏览器、领域与数据库测试。
