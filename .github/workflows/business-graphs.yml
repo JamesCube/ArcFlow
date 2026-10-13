@@ -28,7 +28,9 @@ jobs:
       - name: Require new business, compatibility and restart behaviors to execute
         run: python3 scripts/verify_graph_evidence.py --domain --http
       - name: Test the fail-closed browser evidence gate
-        run: python3 -m unittest discover -s scripts -p 'test_graph_business_browser.py' -v
+        run: |
+          python3 -m unittest discover -s scripts -p 'test_graph_business_browser.py' -v
+          node --test examples/approval-ui/tests/graph-business-restart.test.mjs
       - run: npm ci
         working-directory: examples/approval-ui
       - run: npx playwright install --with-deps chromium
