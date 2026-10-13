@@ -84,6 +84,12 @@ def check_capture(item, journey):
     layout = item.get('layout', {})
     require(layout.get('width') == item['viewport']['width'] and layout.get('document', float('inf')) <= layout['width'] and layout.get('body', float('inf')) <= layout['width'], 'Viewport horizontal overflow')
     require(layout.get('x') == layout.get('y') == 0, 'Capture not at document origin')
+    if item['viewport']['width'] == 320:
+        readability = item.get('readability', {})
+        require(readability.get('refresh') == {'word': '刷新' if item['locale'] == 'zh' else 'Refresh', 'lineCount': 1}, 'Refresh label breaks inside a word')
+        if scenario == 'quote' and state not in ('form', 'properties'):
+            words = readability.get('commercial')
+            require(isinstance(words, list) and words and all(word == {'word': 'Commercial', 'lineCount': 1} for word in words), 'Commercial node label breaks inside a word')
     if state in ('designer', 'form', 'properties'):
         require(item.get('request') is None and item.get('renderedState') is None, 'Form/designer falsely claims persisted runtime')
         if state in ('designer', 'properties'):

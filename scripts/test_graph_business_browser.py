@@ -88,7 +88,7 @@ class BusinessGraphEvidenceTests(unittest.TestCase):
             rule = {'field': FACTS[scenario], 'operator': 'EQ', 'expected': True} if scenario == 'receiving' else {'field': FACTS[scenario], 'operator': 'GTE', 'threshold': 20 if scenario == 'quote' else 10000, **({'currency': 'CNY'} if scenario == 'travel' else {})}
             definition['edges'] = [{'id': EDGES[scenario], 'label': 'Typed business branch', 'condition': {'mode': 'ALL', 'predicates': [rule]}}]
             value = {'scenario': scenario, 'businessType': BUSINESS[scenario], 'state': 'properties', 'locale': 'en',
-                     'viewport': {'width': 320, 'height': 844}, 'definition': definition, 'request': None, 'renderedState': None,
+                     'viewport': {'width': 320, 'height': 844}, 'readability': {'refresh': {'word': 'Refresh', 'lineCount': 1}, 'commercial': []}, 'definition': definition, 'request': None, 'renderedState': None,
                      'layout': {'width': 320, 'document': 320, 'body': 320, 'x': 0, 'y': 0},
                      'visible': {'scenario': 'quoteDiscount' if scenario == 'quote' else scenario,
                                  'definitionId': f'{scenario}-graph', 'processName': definition['name'],
@@ -117,6 +117,25 @@ class BusinessGraphEvidenceTests(unittest.TestCase):
             broken = copy.deepcopy(value); broken['viewport']['width'] = 390; broken['layout']['width'] = 390
             with self.assertRaisesRegex(ValueError, 'narrowest'):
                 check_capture(broken, journey)
+
+    def test_narrow_labels_cannot_break_refresh_or_commercial_inside_words(self):
+        journey = fixture('quote'); value = capture(journey)
+        value['viewport']['width'] = 320
+        value['layout'].update(width=320, document=320, body=320)
+        value['canvases'][0].update(clientWidth=280, scrollWidth=280, clientBounds={'left':20, 'top':100, 'right':300, 'bottom':1000})
+        value['readability'] = {'refresh': {'word': 'Refresh', 'lineCount': 1}, 'commercial': [{'word': 'Commercial', 'lineCount': 1}]}
+        check_capture(value, journey)
+        for key, expected in (('refresh', 'Refresh'), ('commercial', 'Commercial')):
+            broken = copy.deepcopy(value)
+            if key == 'refresh': broken['readability'][key]['lineCount'] = 2
+            else: broken['readability'][key][0]['lineCount'] = 2
+            with self.assertRaisesRegex(ValueError, expected):
+                check_capture(broken, journey)
+        broken = copy.deepcopy(value); broken['readability']['commercial'] = []
+        with self.assertRaisesRegex(ValueError, 'Commercial'):
+            check_capture(broken, journey)
+        value['locale'] = 'zh'; value['readability']['refresh']['word'] = '刷新'
+        check_capture(value, journey)
 
     def test_missing_behavior_checkpoint_is_rejected(self):
         value = fixture(); value['checkpoints'].remove(next(iter(CHECKPOINTS)))

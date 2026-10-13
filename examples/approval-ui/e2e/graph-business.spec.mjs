@@ -104,6 +104,30 @@ async function capture(page, info, scenario, state, {instance = null, definition
     expect(layout.document).toBeLessThanOrEqual(layout.width)
     expect(layout.body).toBeLessThanOrEqual(layout.width)
     await view.locator('.gf-canvas').evaluateAll(elements => { for (const element of elements) { element.scrollTop = 0; element.scrollLeft = 0 } })
+    const readability = await view.evaluate((element, locale) => {
+      const wordLines = (target, word) => {
+        if (!target) return null
+        const walker = document.createTreeWalker(target, NodeFilter.SHOW_TEXT)
+        for (let node; (node = walker.nextNode());) {
+          const index = node.textContent.indexOf(word)
+          if (index < 0) continue
+          const range = document.createRange(); range.setStart(node, index); range.setEnd(node, index + word.length)
+          const rects = Array.from(range.getClientRects()).filter(rect => rect.width > 0 && rect.height > 0)
+          return {word, lineCount: new Set(rects.map(rect => Math.round(rect.top * 10))).size}
+        }
+        return null
+      }
+      return {refresh: wordLines(element.querySelector('[data-testid="graph-refresh"]'), locale === 'zh' ? '刷新' : 'Refresh'),
+        commercial: Array.from(element.querySelectorAll('.gf-node-copy > strong')).filter(el => el.getBoundingClientRect().width > 0 && el.textContent.includes('Commercial'))
+          .map(el => wordLines(el, 'Commercial'))}
+    }, locale)
+    if (viewport.width === 320) {
+      expect(readability.refresh?.lineCount).toBe(1)
+      if (scenario.key === 'quote' && !['form', 'properties'].includes(state)) {
+        expect(readability.commercial.length).toBeGreaterThan(0)
+        for (const word of readability.commercial) expect(word.lineCount).toBe(1)
+      }
+    }
     const canvases = await view.evaluate(readGraphCanvasState)
     let renderedState = null
     if (instance) renderedState = assertRenderedGraphState(await view.getByTestId('graph-runtime').evaluate(readRenderedGraphState), instance)
@@ -123,7 +147,7 @@ async function capture(page, info, scenario, state, {instance = null, definition
     writeFileSync(info.outputPath(`${name}.png`), bytes)
     writeFileSync(info.outputPath(`${name}.json`), JSON.stringify({schemaVersion: 1, ...await sourceProvenance(), scenario: scenario.key, businessType: scenario.type,
       state, locale, viewport, fullPage: true, image: `${name}.png`, imageSHA256: hash(bytes), capturedAt: new Date().toISOString(),
-      layout, visible, canvases, renderedState, definition, request: instance}, null, 2))
+      layout, visible, readability, canvases, renderedState, definition, request: instance}, null, 2))
   }
   await page.setViewportSize(DESKTOP)
   await page.getByTestId('workspace-language').selectOption('en')
