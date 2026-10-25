@@ -2,6 +2,7 @@ import {mount,flushPromises} from '@vue/test-utils'
 import {afterEach,beforeEach,describe,expect,it,vi} from 'vitest'
 import GraphWorkspace from './GraphWorkspace.vue'
 import GraphRuntime from './GraphRuntime.vue'
+import GraphWorkspaceCore from './GraphWorkspaceCore.vue'
 import GraphInspector from './GraphInspector.vue'
 import GraphPaymentForm from './GraphPaymentForm.vue'
 import {api} from '../api.js'
@@ -268,5 +269,18 @@ describe('selected request list visibility',()=>{
   last.element.click();first.element.click();await flushPromises();expect(scrollWrites).toHaveLength(0);expect(first.attributes('aria-pressed')).toBe('true')
   geometry.hidden=true;await last.trigger('click');await flushPromises();expect(scrollWrites).toHaveLength(0)
   geometry.hidden=false;observers[0].fire();await flushPromises();scrollWrites=[];first.element.click();wrapper.unmount();await flushPromises();expect(scrollWrites).toHaveLength(0)
+ })
+})
+
+describe('native host permission gates',()=>{
+ it('hides voting and original-key retry without decide permission',()=>{const wrapper=mount(GraphRuntime,{props:{instance:instance(),people:directory,actor:directory[1],locale:'en',canDecide:false,uncertain:{'request-1:first':true}}});mounted.push(wrapper);expect(wrapper.find('[data-testid="graph-approve-first"]').exists()).toBe(false);expect(wrapper.find('[data-testid="graph-retry-first"]').exists()).toBe(false)})
+ it('native submit denial overrides server capability',async()=>{const{wrapper}=setup();await flushPromises();await wrapper.setProps({mode:'requests',allowSubmit:false});expect(button(wrapper,'graph-new-request').element.disabled).toBe(true)})
+})
+
+ describe('injected graph host',()=>{
+ it('uses only its explicitly supplied transport',async()=>{
+   const {wrapper:standalone}=setup();await flushPromises();const transport={request:vi.fn(api.request.getMockImplementation())};api.request.mockClear();
+   const wrapper=mount(GraphWorkspaceCore,{props:{actor:directory[0],transport}});mounted.push(wrapper);await flushPromises();
+   expect(transport.request).toHaveBeenCalled();expect(api.request).not.toHaveBeenCalled();expect(wrapper.find('[data-testid="graph-process-name"]').exists()).toBe(true);
  })
 })

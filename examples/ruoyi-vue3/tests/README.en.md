@@ -9,7 +9,7 @@
 
 
 <!-- topic:scope -->
-Applies to the current source. `smoke.py` launches the packaged official RuoYi backend with real MySQL/Redis and exercises upstream `/login`, `/getInfo`, `/getRouters`, `/logout` and ArcFlow routes without mocked authentication. Those upstream endpoints are not part of ArcFlow's 30 controller handlers.
+Applies to the current source. `smoke.py` launches the packaged official RuoYi backend with real MySQL/Redis and exercises upstream `/login`, `/getInfo`, `/getRouters`, `/logout` and ArcFlow routes without mocked authentication. Those upstream endpoints are not ArcFlow controller handlers.
 
 <!-- topic:prepare -->
 ## Prepare an isolated environment
@@ -66,3 +66,21 @@ Regressions include independent pending/handled cursors, empty/exhausted pages, 
 ## Interpret the result
 
 Syntax, model and DOM checks do not replace servers or browsers. Old screenshots/counts are not current acceptance. Mark unavailable real-service checks as unrun, never passed. The [documentation history](../../../docs/history/README.en.md) preserves earlier source records. Cross-check current test code, interface specifications and exact-commit CI.
+
+## Native travel graph acceptance / 原生出差图验收
+
+`smoke.py` now also invokes `graph_smoke.py` against real native sessions. It checks numeric identities/current RBAC, strict keys and raw sub-cent rejection, low/high cost routing, parallel ALL join/rejection/concurrent decisions, frozen v1 after v2 publication, actual JVM restart/replay and byte-identical sequential state. No mocked authentication is used. These are authored checks, not a runtime pass.
+
+Offline bootstrap boundary: `python3 examples/ruoyi-vue3/tests/test_graph_bootstrap.py` verifies exact shared dependency bytes and excludes standalone authentication/hub code.
+
+`browser.py` also authors a native travel-only menu/direct-route journey with read-only designer permissions, real submit, two-branch approvals/join, rejection cancellation, narrow locale switching, reload and logout. When executed, it captures 24 original native travel screenshots and JSON receipts as CI evidence only. Syntax-only checks do not establish that this journey ran.
+
+For slow local cold starts, set optional `ARCFLOW_TEST_HTTP_TIMEOUT=60` (finite positive seconds; default `15`). It applies to urllib and ordered-header HTTP calls only; expected statuses, state assertions and startup deadlines remain unchanged. / 本机冷启动较慢时可增加 HTTP 等待秒数，不改变状态码和业务断言。
+
+The travel smoke also corrupts only its disposable graph snapshot after shutdown, requires native startup to exit nonzero with the graph-corruption diagnostic (not a timeout/port failure), verifies untouched sequential bytes, restores the exact saved graph bytes in finally, then restarts and rechecks the final joined instance. / 出差验收还覆盖真实宿主的损坏拒绝启动与原字节恢复；只操作本测试临时数据。
+
+## Native travel capture evidence / 原生出差图截图证据
+
+Six actual lifecycle states (`designer`, `submitted`, `parallel`, `waiting`, `completed`, `rejected`) × Chinese/English × 1440/390 px produce exactly 24 original Chromium PNGs with 24 JSON receipts. Receipts bind checkout SHA, native numeric actor observed from `/arcflow/me`, real response business/definition/tasks/routes/events/commands, asserted DOM status/votes/join counters and image SHA256. No headers, credentials, HAR or login screenshots are saved. Files stay in the existing temporary CI artifact directory; nothing is added to repository images or a public gallery.
+
+`python3 examples/ruoyi-vue3/tests/verify_graph_captures.py PATH --expected-commit SHA` rejects missing/extra cells, changed source/identity/history, duplicate pixels, PNG corruption and viewport mismatch. These integrity/identity gates do not replace human review of actual pixels. `test_graph_captures.py` tests metadata gates only and creates no screenshots. If Chromium cannot run, no capture/pixel acceptance is claimed.

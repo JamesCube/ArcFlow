@@ -26,11 +26,13 @@
     "examples/approval-domain/src/main/java/com/arcflow/approval/graph/GraphEngine.java": "cb1806f2a23fe66b68757e1afa880ba1e14168c7072c89166e7474e17e2cbda1",
     "examples/approval-domain/src/main/java/com/arcflow/approval/graph/GraphInstance.java": "6422d99bdcf03f1cd50e261e35f9478120b882123917a4d9829300fc4a8dbeab",
     "examples/approval-domain/src/main/java/com/arcflow/approval/graph/GraphQuotePolicy.java": "434e8916472e833945fd6ad9542e00cfa975705dfde7fbe4a4b912b6d1777525",
-    "examples/approval-domain/src/main/java/com/arcflow/approval/graph/GraphSamples.java": "4f2080e538c4942e2dc711664cc9c08207bfaaaac3517d2b0b49416f3656351e",
+    "examples/approval-domain/src/main/java/com/arcflow/approval/graph/GraphSamples.java": "4e9ca06822b5f5e25e7834b2f11fe5f89e44ee25bd4e00ad4a746331bcefc7d3",
     "examples/approval-domain/src/main/java/com/arcflow/approval/graph/GraphScenarios.java": "3722de0285b29ae038b62c11c58d73f4ee60b9b6e414eaff10c014550c52cc01",
     "examples/approval-domain/src/main/java/com/arcflow/approval/graph/JsonGraphApprovalStore.java": "639cabc01f119a6e20419fa2c723a1ad1f1f7904209987328cd8c8e621f8cd91",
     "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowConfiguration.java": "fc255ffeb2400b8f1f276ffc0eb4f00477bcb48aef11e1425e3a85d57a752f26",
     "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowController.java": "994e1dc0606ea572e4a9a9140c30491b5a44d8d1ca92eebd72bb9427513b4cf3",
-    "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowErrors.java": "4abe942eaad37d13f41870c605e396ccd479ce15fa6a6cac431d9bf0bb86327e"
+    "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowErrors.java": "9c18ecdff83daa581bfaa87d4937bcb9fa8703ebf1767efe8cccc7555417b076",
+    "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowGraphConfiguration.java": "a2d67a3937e0e95fe212ce4d5c4123f1f209b8e3ee5150503d59ab4b69c41e35",
+    "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowGraphController.java": "a885ae153534f573186f2d81053b23bd186557d645b6b69ff9af2da0b1aa8533"
   }
 }

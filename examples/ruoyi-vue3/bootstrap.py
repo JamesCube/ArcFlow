@@ -2,6 +2,7 @@
 """Fetch exact upstream commits into an isolated, disposable directory and apply ArcFlow overlay."""
 import argparse
 import json
+import re
 from pathlib import Path
 import shutil
 import subprocess
@@ -10,6 +11,43 @@ HERE = Path(__file__).resolve().parent
 
 def run(*args):
     subprocess.run(args, check=True)
+
+def copy_graph_sources(destination):
+    """Copy only the transport-free shared dependency closure, byte for byte."""
+    shared = (HERE.parent / 'approval-ui' / 'src').resolve()
+    target = destination / 'src' / 'views' / 'arcflow' / 'graph' / 'shared'
+    # This namespace is generated exclusively from the shared closure. Refreshes
+    # must not retain removed dependencies (especially old standalone transport).
+    if target.is_symlink():
+        raise SystemExit('Refusing a symlink for generated native graph sources')
+    if target.exists():
+        shutil.rmtree(target)
+    pending = [shared / 'graph/GraphWorkspaceCore.vue', shared / 'scenarios/scenario-json.js']
+    visited = set()
+    imports = re.compile(r"(?:\bfrom\s*|\bimport\s*)['\"]([^'\"]+)['\"]")
+    while pending:
+        source = pending.pop().resolve()
+        if source in visited:
+            continue
+        relative = source.relative_to(shared)
+        if relative.as_posix() in ('api.js', 'style.css', 'graph/GraphWorkspace.vue', 'graph/GraphHub.vue'):
+            raise SystemExit(f'Standalone host dependency in native graph: {relative}')
+        if source.suffix not in ('.js', '.vue', '.css') or '.test' in source.name:
+            raise SystemExit(f'Unsupported native graph dependency: {relative}')
+        visited.add(source)
+        content = source.read_bytes()
+        for imported in imports.findall(content.decode()):
+            if imported.startswith('.'):
+                pending.append(source.parent / imported)
+            elif imported != 'vue':
+                raise SystemExit(f'Unexpected native graph package dependency: {imported}')
+        output = target / relative
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_bytes(content)
+        if output.read_bytes() != content:
+            raise SystemExit(f'Shared/native graph helper drift: {relative}')
+    return sorted(str(path.relative_to(shared)) for path in visited)
+
 
 def bootstrap(destination):
     destination = destination.resolve()
@@ -59,6 +97,7 @@ def bootstrap(destination):
         if overlay.read_bytes() != (shared / name).read_bytes():
             raise SystemExit(f'Shared/native helper drift: {name}')
         shutil.copyfile(shared / name, native / name)
+    copy_graph_sources(destination / 'frontend')
     npm_lock = HERE / 'frontend' / 'package-lock.json'
     if npm_lock.exists():
         shutil.copyfile(npm_lock, destination / 'frontend' / 'package-lock.json')

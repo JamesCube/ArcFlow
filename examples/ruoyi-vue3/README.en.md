@@ -17,7 +17,7 @@
 
 
 <!-- topic:scope -->
-Applies to the current ArcFlow overlay and official RuoYi backend/Vue 3 frontend pinned by `upstream-lock.json`. RuoYi owns login, JWT/Redis, numeric user IDs, menus and permissions. ArcFlow adds ordered and ALL/ANY processes, leave/procurement, immutable snapshots and individual history. Upstream MIT and ArcFlow Apache-2.0 licenses remain separate.
+Applies to the current ArcFlow overlay and official RuoYi backend/Vue 3 frontend pinned by `upstream-lock.json`. RuoYi owns login, JWT/Redis, numeric user IDs, menus and permissions. ArcFlow adds ordered and ALL/ANY processes, leave/procurement, and a separate native travel graph workspace with immutable snapshots and individual history. Upstream MIT and ArcFlow Apache-2.0 licenses remain separate.
 
 MySQL stores RuoYi users, roles and menus; approval state is still a private single-writer JSON file. This example does not automatically wire JDBC, join business SQL transactions, cluster approval storage or provide tenancy. Administrator wildcards never replace saved participant assignments. The overlay adds no second security chain or demo authentication and makes no global Jackson change.
 
@@ -79,7 +79,19 @@ Open `http://127.0.0.1:5173`, use normal RuoYi login and CAPTCHA, then open the 
 - Native keyed calls bypass only the short-window duplicate-submit interceptor, retaining authentication and RBAC. Shared helpers must match canonical bytes; bootstrap fails on drift.
 - `/arcflow/requests/inbox` uses read permission and returns `{items,nextCursor}` in AjaxResult.data. Pending/handled have independent pages and filters. Cancelled/late responses cannot enter another session. Applicant/history lists retain compatible routes.
 
-Definition schemas 2/3, keyed wrapper 4 and typed minimum wrapper 5 are not the highest current file version. Follow [persistence and migration](../../docs/development/PERSISTENCE.en.md), back up and upgrade every reader, and never mix incompatible writers. Restricted conditions are standalone scenario features and are unsupported by this RuoYi host.
+Definition schemas 2/3, keyed wrapper 4 and typed minimum wrapper 5 are not the highest current file version. Follow [persistence and migration](../../docs/development/PERSISTENCE.en.md), back up and upgrade every reader, and never mix incompatible writers. The separate travel graph supports bounded FIRST_MATCH cost routing and parallel ALL joins; other standalone graph families are not mounted by this native host.
+
+## Native travel graph (separate workspace)
+
+Menu `出差图工作台` (`arcflow/graph/index`, menu ID 21006) mounts **travel only**, not the standalone multi-scenario hub. `/arcflow/graphs/travel` uses the same real JWT session and read/submit/decide/publish permission vocabulary above. Permissions do not replace active-account, selected-participant or task-assignment checks; admin cannot vote for a reviewer. Assignee choices additionally require current read and decide permissions.
+
+Configure `ARCFLOW_TRAVEL_MANAGER_ID`, `ARCFLOW_TRAVEL_OPERATIONS_ID`, and `ARCFLOW_TRAVEL_FINANCE_ID` with existing numeric RuoYi user IDs (example defaults 101/101/102). These configure only a fresh store; they never rewrite saved definitions or historical assignments. They are explicit user assignments, not automatic role-to-user resolution. The initial route is manager → estimated-cost gateway: below CNY 10,000 finishes; at/above CNY 10,000 activates independent operations and finance tasks, then waits for both. Rejection cancels remaining work.
+
+`ARCFLOW_TRAVEL_GRAPH_DATA_FILE` defaults to `${ARCFLOW_DATA_FILE}.travel.graph.json`. It is a distinct private, single-writer JSON file: **storage wrapper 14**, **graph schema 6**, process ID `travel-graph`. It does not migrate or overwrite sequential leave/procurement state, and it does not enable JDBC or clustering. Back up both files. Corruption or a second writer fails closed; never delete state to bypass a startup error.
+
+Graph submissions and decisions require exactly one valid `Idempotency-Key`. Same-key/same-intent replay returns current saved state, including after restart or a newer publication; changed intent conflicts. A waiting join retains its original definition/business/tasks/history. Draft/publication revisions use optimistic concurrency. The native transport retains raw decimal parsing, uses Bearer authentication and `AjaxResult.data`, bypasses only keyed repeat-submit suppression, and discards stale responses after session changes. No standalone Basic login is copied into the native dependency closure.
+
+This scope does not add payment/receiving/quote graph routes, external CRM, H5 graph adoption, arbitrary BPMN, or production readiness. The authored native graph smoke must run against real MySQL/Redis and the packaged official host before claiming runtime acceptance.
 
 <!-- topic:verify -->
 ## Verify, recover and attribute

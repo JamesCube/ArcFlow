@@ -59,8 +59,8 @@
 
 原顺序 API 源码基线：[`main` 提交 `199db7548f6faba5dfef105eaaf7311972adb388`](https://github.com/JamesCube/ArcFlow/tree/199db7548f6faba5dfef105eaaf7311972adb388)。本文描述仓库中已实现的示例宿主接口，不是尚未实现的平台 API。Java 核心 `arcflow-core` 本身不启动 HTTP 服务。
 
-- [路由清单 JSON](./endpoint-inventory.json)：五个控制器的 43 项离线映射快照，供检查路由漂移；不是 OpenAPI。
-- 静态 OpenAPI 契约：[独立宿主](./openapi/standalone.openapi.json)（34 项操作）、[若依宿主](./openapi/ruoyi.openapi.json)（9 项操作），按各自认证、响应包装和状态码分别描述。
+- [路由清单 JSON](./endpoint-inventory.json)：六个控制器的 55 项离线映射快照，供检查路由漂移；不是 OpenAPI。
+- 静态 OpenAPI 契约：[独立宿主](./openapi/standalone.openapi.json)（34 项操作）、[若依宿主](./openapi/ruoyi.openapi.json)（21 项操作），按各自认证、响应包装和状态码分别描述。
 - [可执行请求示例](./examples/README.md)：使用自己的本地配置和合成数据；不要把密码、Authorization 或真实业务资料写入仓库。
 - 以文末链接的控制器、DTO 和领域校验为准。静态 OpenAPI 文件和可运行 HTTP 示例便于查阅与校验；金额词法精度、UTF-16 长度、跨字段约束、目录授权和并发规则仍由实际宿主验证，不能仅靠结构校验判断请求一定成功。
 
@@ -116,7 +116,7 @@
 
 ## 3. 路由清单
 
-五个控制器共声明 43 项路由映射：通用审批 9 项、场景 7 项、报价 5 项、图流程 13 项、若依 9 项。图映射使用固定集合的 `{scenario}` 参数，按处理方法计数，不乘以四种业务。场景计数包含优先匹配的用印专用提交路径。
+六个控制器共声明 55 项路由映射：通用审批 9 项、场景 7 项、报价 5 项、独立图流程 13 项、若依顺序流程 9 项、原生出差图流程 12 项。图映射使用固定集合的 `{scenario}` 参数，按处理方法计数，不乘以四种业务。场景计数包含优先匹配的用印专用提交路径。
 
 以下成功状态是实际控制器状态。独立宿主所有新建/重放提交均为 201；没有 `Location` 头契约。其他成功调用为 200。认证失败、状态冲突等见 §10。
 
@@ -566,6 +566,19 @@
 6. 两个提交路由支持同样可选幂等头；使用幂等键的原生客户端只绕过若依短时间重复提交拦截，让持久化幂等层解析，不关闭认证或 RBAC。
 7. 没有 `/arcflow/scenarios` 或 `/arcflow/crm` 控制器；没有把六场景/结构版本 4 条件路由接入原生 HTTP 的实现。通用流程发布只接受结构版本 2/3。
 8. 示例审批存储仍是单写者本地 JSON，若依 MySQL 用户库不代表审批已自动接入 JDBC 或分布式事务。
+
+原生图流程固定使用 **`/arcflow/graphs/travel`**，不接受 `{scenario}` 选择器。所有成功响应（包括提交）为 HTTP **200**，图对象位于 `AjaxResult.data`，保留显式 null 字段。
+
+| 图路径后缀 | 方法 | 必需原生权限 |
+| --- | --- | --- |
+| `/capabilities`、`/process`、`/users`、`/requests`、`/requests/{id}` | GET | `arcflow:request:read` |
+| `/workspace` | GET | `arcflow:process:publish` |
+| `/draft` | PUT | `arcflow:process:publish` |
+| `/validate`、`/preview`、`/publish` | POST | `arcflow:process:publish` |
+| `/requests` | POST | `arcflow:request:submit` |
+| `/requests/{id}/tasks/{taskId}/decision` | POST | `arcflow:request:decide` |
+
+图提交和任务决策必须带**恰好一个有效的 `Idempotency-Key`**。响应不确定时，保留原意图及原键重试；改变内容会冲突。流程固定为 `travel-graph` / schema **6**，只接收出差单及 `travel.estimatedCost` 规则。能力标志结合宿主权限与领域校验，审批还必须匹配实际活动任务的在职账号。初始审批角色使用配置的原生数字 ID，不使用独立演示用户名。图持久化使用单独 JSON 文件（wrapper **14**），不改写顺序审批。JWT 会话变更取消过期前端请求，图 JSON 在普通数值转换之前解码以保留金额精度。这不新增原生付款/收货/报价图、H5 图宿主、JDBC 宿主装配或外部业务执行。
 
 <!-- topic:maintenance -->
 

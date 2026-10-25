@@ -9,7 +9,7 @@ import http.client
 from pathlib import Path
 import re
 from threading import Thread
-from urllib.parse import parse_qs, urlsplit
+from urllib.parse import parse_qs, urlsplit, quote
 
 from playwright.sync_api import sync_playwright, expect
 
@@ -38,6 +38,9 @@ class Frontend(SimpleHTTPRequestHandler):
         super().do_GET()
 
     def do_POST(self):
+        self.proxy()
+
+    def do_PUT(self):
         self.proxy()
 
     def proxy(self):
@@ -493,6 +496,126 @@ def procurement_paging_journey(page, password, definition):
     expect(rows).to_have_count(0)
 
 
+def graph_journey(page, password, output_directory):
+    """Real native menu, raw transport and travel approvals; no response mocks."""
+    from graph_capture import capture
+    from verify_graph_captures import verify_directory
+    actor, graph_definition = None, None
+    base = '/arcflow/graphs/travel'
+    graph_url = ORIGIN + '/arcflow/graph'
+
+    def open_graph(name):
+        nonlocal actor, graph_definition
+        login(page, name, password)
+        with page.expect_response(lambda r: urlsplit(r.url).path == '/prod-api/arcflow/me' and r.request.method == 'GET') as me_response:
+            with page.expect_response(lambda r: urlsplit(r.url).path == '/prod-api' + base + '/process' and r.request.method == 'GET') as process_response:
+                page.locator('.sidebar-container').get_by_text('出差图工作台', exact=True).click()
+        assert me_response.value.status == 200 and process_response.value.status == 200
+        actor = me_response.value.json()['data']
+        graph_definition = process_response.value.json()['data']
+        assert actor['id'] == {'admin': '1', 'applicant': '100', 'first': '101', 'second': '102'}[name]
+        expect(page).to_have_url(graph_url)
+        view = page.get_by_test_id('graph-workspace')
+        expect(view).to_have_attribute('data-scenario', 'travel')
+        expect(view).to_have_attribute('data-definition-id', 'travel-graph')
+        expect(view.get_by_test_id('graph-new-request')).to_be_visible()
+        expect(view.get_by_test_id('graph-refresh')).to_be_enabled()
+        expect(page.get_by_test_id('graph-scenario')).to_have_count(0)
+        return view
+
+    view = open_graph('admin')
+    page.get_by_role('button', name='流程设计', exact=True).click()
+    expect(view.get_by_test_id('graph-process-name')).to_be_enabled()
+    expect(view.get_by_test_id('graph-publish')).to_be_visible()
+    capture(page, output_directory, 'designer', actor, graph_definition)
+    logout(page)
+    view = open_graph('applicant')
+    page.get_by_role('button', name='流程设计', exact=True).click()
+    expect(view.get_by_test_id('graph-process-name')).to_be_disabled()
+    expect(view.get_by_test_id('graph-publish')).to_have_count(0)
+    page.get_by_role('button', name='出差申请', exact=True).click()
+    view.get_by_test_id('graph-new-request').click()
+    for field, value in {'businessId': 'NATIVE-BROWSER-TRAVEL', 'title': 'Native browser travel graph',
+                         'reason': 'Disposable graph journey', 'destination': 'Shanghai',
+                         'startDate': '2028-02-28', 'endDate': '2028-03-01',
+                         'estimatedCost': '10000.00'}.items():
+        view.get_by_test_id('graph-travel-' + field).fill(value)
+    for field, value in {'currency': 'CNY', 'purpose': 'PROJECT_DELIVERY', 'costCenter': 'ENGINEERING'}.items():
+        view.get_by_test_id('graph-travel-' + field).select_option(value)
+    created = native_data(page, base + '/requests', lambda: view.get_by_test_id('graph-submit').click())
+    assert created['applicantId'] == '100' and created['business']['estimatedCost'] == 10000
+    expect(view.get_by_test_id('graph-approve-manager')).to_have_count(0)
+    capture(page, output_directory, 'submitted', actor, created['definition'], created)
+    request_id = created['id']
+    page.reload()
+    expect(page.get_by_test_id('graph-new-request')).to_be_visible()
+    page.get_by_test_id('graph-request-' + request_id).click()
+    expect(page.get_by_test_id('graph-runtime')).to_have_attribute('data-request-id', request_id)
+    logout(page)
+
+    def select_as(name):
+        view = open_graph(name)
+        view.get_by_test_id('graph-request-' + request_id).click()
+        expect(view.get_by_test_id('graph-runtime')).to_have_attribute('data-request-id', request_id)
+        return view
+
+    def approve(view, node):
+        task = view.get_by_test_id('graph-task-' + node).get_attribute('data-task-id')
+        result = native_data(page, base + '/requests/' + request_id + '/tasks/' + quote(task, safe='') + '/decision',
+                             lambda: view.get_by_test_id('graph-approve-' + node).click())
+        expect(view.get_by_test_id('graph-refresh')).to_be_enabled()
+        return result
+
+    view = select_as('first')
+    parallel = approve(view, 'manager')
+    assert parallel['status'] == 'PENDING'
+    expect(view.get_by_test_id('graph-active-count')).to_have_text('2')
+    capture(page, output_directory, 'parallel', actor, parallel['definition'], parallel)
+    waiting = approve(view, 'operations')
+    assert waiting['forks'][0]['fired'] is False
+    capture(page, output_directory, 'waiting', actor, waiting['definition'], waiting)
+    expect(view.get_by_test_id('graph-join-travelJoin')).to_have_attribute('data-fork-fired', 'false')
+    expect(view.get_by_test_id('graph-approve-finance')).to_have_count(0)
+    logout(page)
+    view = select_as('second')
+    done = approve(view, 'finance')
+    assert done['status'] == 'APPROVED' and done['forks'][0]['fired']
+    expect(view.get_by_test_id('graph-runtime')).to_have_attribute('data-request-status', 'APPROVED')
+    capture(page, output_directory, 'completed', actor, done['definition'], done)
+    page.set_viewport_size(NARROW)
+    page.get_by_test_id('native-travel-graph').locator('select').first.select_option('en')
+    expect(view.get_by_test_id('graph-runtime')).to_have_attribute('data-request-status', 'APPROVED')
+    page.reload()
+    expect(page.get_by_test_id('graph-new-request')).to_be_visible()
+    page.get_by_test_id('graph-request-' + request_id).click()
+    expect(page.get_by_test_id('graph-runtime')).to_have_attribute('data-request-status', 'APPROVED')
+    page.set_viewport_size(DESKTOP)
+    logout(page)
+    view = open_graph('applicant')
+    view.get_by_test_id('graph-new-request').click()
+    for field, value in {'businessId': 'NATIVE-BROWSER-TRAVEL-REJECT', 'title': 'Native browser travel rejection',
+                         'reason': 'Disposable rejection journey', 'destination': 'Shanghai',
+                         'startDate': '2028-02-28', 'endDate': '2028-03-01', 'estimatedCost': '10000.00'}.items():
+        view.get_by_test_id('graph-travel-' + field).fill(value)
+    for field, value in {'currency': 'CNY', 'purpose': 'PROJECT_DELIVERY', 'costCenter': 'ENGINEERING'}.items():
+        view.get_by_test_id('graph-travel-' + field).select_option(value)
+    rejected = native_data(page, base + '/requests', lambda: view.get_by_test_id('graph-submit').click())
+    request_id = rejected['id']
+    logout(page)
+    view = select_as('first')
+    approve(view, 'manager')
+    task = view.get_by_test_id('graph-task-operations').get_attribute('data-task-id')
+    rejected = native_data(page, base + '/requests/' + request_id + '/tasks/' + quote(task, safe='') + '/decision',
+                           lambda: view.get_by_test_id('graph-reject-operations').click())
+    assert rejected['status'] == 'REJECTED'
+    expect(view.get_by_test_id('graph-task-finance')).to_have_attribute('data-task-status', 'CANCELLED')
+    expect(view.get_by_test_id('graph-runtime')).to_have_attribute('data-request-status', 'REJECTED')
+    capture(page, output_directory, 'rejected', actor, rejected['definition'], rejected)
+    verify_directory(output_directory)
+    logout(page)
+    print('PASS: real native travel menu/direct reload, read-only designer, submitted numeric actor, task permissions, two-branch join/rejection and terminal reload')
+
+
 def run(frontend_directory, output_directory, password):
     frontend_directory = frontend_directory.resolve()
     assert (frontend_directory / "index.html").is_file(), "Build the official frontend first"
@@ -733,6 +856,7 @@ def run(frontend_directory, output_directory, password):
             logout(page)
             procurement_journey(page, output_directory, password, group_definition)
             procurement_paging_journey(page, password, group_definition)
+            graph_journey(page, password, output_directory)
             assert not errors, f"Uncaught browser exceptions: {errors}"
             context.close()
             browser.close()

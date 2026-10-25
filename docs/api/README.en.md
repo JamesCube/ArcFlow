@@ -12,9 +12,9 @@ This directory describes the HTTP hosts actually implemented in this repository.
 - Run complete requests: [executable examples](examples/README.en.md), comprising 21 synthetic request files
 - Import into OpenAPI 3.1-compatible tools: [standalone host](openapi/standalone.openapi.json), [RuoYi host](openapi/ruoyi.openapi.json)
 - Inspect reusable models: [JSON Schema](openapi/schemas.json), covering commands, responses, errors, nine business types, processes and finite conditions
-- Compare controllers: [43-route inventory](endpoint-inventory.json)
+- Compare controllers: [55-route inventory](endpoint-inventory.json)
 
-The standalone contract has 34 operations across generic approval, six linear scenarios, the dedicated quote example and four graph families. RuoYi has 9 operations and uses native identity, permissions and envelopes. The literal seal-use path and parameterized scenario path are two real handlers; do not merge their counts. Both contracts share models, but their authentication, status codes and response shapes are not interchangeable.
+The standalone contract has 34 operations across generic approval, six linear scenarios, the dedicated quote example and four graph families. RuoYi has 21 operations (9 sequential and 12 fixed travel graph handlers) and uses native identity, permissions and envelopes. The literal seal-use path and parameterized scenario path are two real handlers; do not merge their counts. Both contracts share models, but their authentication, status codes and response shapes are not interchangeable.
 
 <!-- topic:format-scope -->
 

@@ -36,7 +36,7 @@ def install(password):
                         (uid, 21001 if uid == 104 else 21000))
         cur.execute("""INSERT INTO sys_role_menu(role_id,menu_id)
             SELECT 21000,menu_id FROM sys_menu
-            WHERE menu_id BETWEEN 21000 AND 21005 AND
+            WHERE menu_id BETWEEN 21000 AND 21006 AND
               (COALESCE(perms,'')='' OR perms IN
                ('arcflow:request:read','arcflow:request:submit','arcflow:request:decide'))""")
 

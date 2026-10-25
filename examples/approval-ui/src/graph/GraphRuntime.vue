@@ -6,7 +6,7 @@ import { graphSequence, nodeById } from './model.js'
 import { businessSummary, factLabel, familyFor } from './business.js'
 import { formatRoutingFact, formatConditionResult } from './fact-display.js'
 import GraphBusinessSnapshot from './GraphBusinessSnapshot.vue'
-const props=defineProps({instance:Object,locale:String,people:Array,actor:Object,busy:Boolean,preview:Boolean,uncertain:Object})
+const props=defineProps({canDecide:{type:Boolean,default:true},instance:Object,locale:String,people:Array,actor:Object,busy:Boolean,preview:Boolean,uncertain:Object})
 const emit=defineEmits(['decide','retry'])
 const wideCanvas=ref(false)
 const t=computed(()=>copyFor(props.locale,familyFor(props.instance.business).key)), comments=reactive({})
@@ -14,7 +14,7 @@ const sequence=computed(()=>{try{return graphSequence(props.instance.definition)
 const summary=computed(()=>businessSummary(props.instance.business,props.locale))
 const name=id=>props.people?.find(p=>p.id===id)?.displayName||id
 const node=id=>nodeById(props.instance.definition,id)
-const canVote=task=>!props.preview&&task.status==='ACTIVE'&&task.participants.includes(props.actor?.id)&&!task.votes.some(v=>v.actorId===props.actor.id)
+const canVote=task=>props.canDecide&&!props.preview&&task.status==='ACTIVE'&&task.participants.includes(props.actor?.id)&&!task.votes.some(v=>v.actorId===props.actor.id)
 const status=value=>t.value[{PENDING:'pending',APPROVED:'approved',REJECTED:'rejected',ACTIVE:'active',COMPLETED:'completed',CANCELLED:'cancelled',APPROVE:'approved',REJECT:'rejected'}[value]]||value
 const factList=computed(()=>props.instance.routes.flatMap(route=>route.evaluations.flatMap(e=>e.facts||[])).filter((f,i,list)=>list.findIndex(x=>x.field===f.field&&x.actualValue===f.actualValue)===i))
 </script>

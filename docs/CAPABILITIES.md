@@ -66,7 +66,7 @@
 | 发布与版本冲突 | ✅ | 发布要求发布权限和期望版本；并发发布发生版本冲突，不能静默覆盖。 | [服务 / Service][service] · [Screen](DESIGNER_GALLERY.md#publish) |
 | 申请固定流程版本 | ✅ | 提交后固定顺序、参与人和规则；后续发布仅用于新申请，不迁移运行中实例。 | [服务 / Service][service] · [Screen](DESIGNER_GALLERY.md#versions) |
 | 受限条件路由 | 🟡 | 当前 main 已提供付款净额、收货拒收、合同条款的类型化条件，选择额外人工步骤；定义 schema 4／JSON wrapper 13，提交冻结完整路径。仅限三个独立场景，无任意表达式；具体提交的浏览器／数据库 CI 需另查。 | [合同 / Contract](CONDITIONAL_ROUTING.md) |
-| 结构化图流程工作区 | 🟡 | 相互隔离的付款（schema 5）、出差、收货和报价折扣（schema 6）图：有界配对条件/并行区域、持久草稿、准确任务命令和冻结运行态。支持独立宿主及可选 JDBC 库，不自动覆盖若依/移动端；具体提交的浏览器/数据库验收另查。 | [图流程契约](GRAPH_DESIGNER.md) |
+| 结构化图流程工作区 | 🟡 | 相互隔离的付款（schema 5）、出差、收货和报价折扣（schema 6）图：有界配对条件/并行区域、持久草稿、准确任务命令和冻结运行态。支持独立宿主及可选 JDBC 库；若依另有仅出差的 JSON 图工作区，不覆盖其他原生图业务或 H5；具体提交的浏览器/数据库验收另查。 | [图流程契约](GRAPH_DESIGNER.md) |
 | 任意分支／汇聚 | — | 图工作区支持有界配对区域，仍不支持任意跨区域连线、循环或非结构化 BPMN 图；原人工步骤保持顺序。 | [图流程边界](GRAPH_DESIGNER.md#支持范围) |
 | 运行中实例迁移 | — | 没有把已有申请迁到新流程版本的操作。 | [服务 / Service][service] |
 | BPMN 导入／导出与执行 | — | 没有 BPMN 兼容实现；路线图也未承诺完整规范。 | [路线图 / Roadmap][roadmap] |
@@ -114,7 +114,7 @@
 
 | 能力 | 状态 | 范围与限制 | 依据 / Evidence |
 | --- | --- | --- | --- |
-| 发起申请 | ✅ | 独立／若依桌面表单可发起请假、采购；报价从专用页面、报销从 /scenarios.html 发起，H5 不提供发起。 | [采购表单 / Forms](PROCUREMENT_UI.md) · [Screen](CASE_GALLERY.md#oa-submitted) |
+| 发起申请 | ✅ | 独立／若依桌面表单可发起请假、采购，若依另有出差图表单；报价从专用页面、报销从 /scenarios.html 发起，H5 不提供发起。 | [采购表单 / Forms](PROCUREMENT_UI.md) · [Screen](CASE_GALLERY.md#oa-submitted) |
 | 我的待办 | ✅ | 当前步骤中本人尚未投票才是待办，覆盖 ALL／ANY 的每位成员；未来步骤不提前待办。 | [契约 / Contract][inbox] · [Screen](CASE_GALLERY.md#oa-inbox) |
 | 我的已办 | ✅ | 必须有本人真实 APPROVE／REJECT 记录；提交不算已办，整笔申请可以仍在审批中。 | [测试 / Tests][inbox-tests] · [Screen](CASE_GALLERY.md#oa-pending-next) |
 | 游标分页与筛选 | ✅ | 每页 1–100 条，默认 25；可按状态、流程版本筛选。游标绑定身份和筛选，跨页不是冻结快照。 | [契约 / Contract][inbox] · [测试 / Tests][inbox-tests] |
@@ -324,3 +324,5 @@
 [seal]: SEAL_USE_SCENARIO.md
 [receiving]: RECEIVING_SCENARIO.md
 [unified]: UNIFIED_SCENARIO_INTEGRATION.md
+
+RuoYi 原生仅增加固定出差图工作区（`/arcflow/graphs/travel`），采用数字 JWT 身份、实时读/提交/决策/发布权限、领域任务校验和独立单写者 JSON 存储。图存储 wrapper 14 与出差定义 schema 6 是不同层次；原顺序请假/采购文件与 API 保持隔离。不表示新增原生 JDBC、其他原生图业务或 H5 图能力。参见[原生指南](../examples/ruoyi-vue3/README.md)。

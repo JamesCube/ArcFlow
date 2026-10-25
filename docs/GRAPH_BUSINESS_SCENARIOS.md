@@ -14,7 +14,7 @@
 | `/api/graphs/receiving` | `receiving-graph` | `receiving` | `receiving.hasRejectedLines` |
 | `/api/graphs/quote` | `quote-graph` | `quoteDiscount` | `quote.reductionTotal`、`quote.discountPercent` |
 
-端点、流程 ID、事实字段与业务类型必须一致；即使定义没有条件，也不能提交另一类型的单据。`GraphScenarios` 同时绑定 schema 与流程身份。所有历史 schema 5 定义仍仅限付款，包括恰好名为 `travel-graph`、`receiving-graph`、`quote-graph` 的自定义 ID。schema 6 才明确启用新的固定业务；新业务宿主不能把定义降为 schema 5。这是固定演示格式，不是任意可移植的多业务图格式。原顺序/分组场景 API、原报价页、付款图 URL、RuoYi 原生页面和 H5 契约不变；RuoYi 与 H5 没有因此获得图宿主能力。
+端点、流程 ID、事实字段与业务类型必须一致；即使定义没有条件，也不能提交另一类型的单据。`GraphScenarios` 同时绑定 schema 与流程身份。所有历史 schema 5 定义仍仅限付款，包括恰好名为 `travel-graph`、`receiving-graph`、`quote-graph` 的自定义 ID。schema 6 才明确启用新的固定业务；新业务宿主不能把定义降为 schema 5。这是固定演示格式，不是任意可移植的多业务图格式。原顺序/分组场景 API、原报价页、付款图 URL、RuoYi 原生页面和 H5 契约不变；RuoYi 原生集成层另行增加固定出差图工作区；H5 保持不变。
 
 <!-- topic:travel -->
 ## 出差：费用分支之前保留经理审批
@@ -72,7 +72,7 @@
 
 恢复校验依据冻结业务与命令，不依赖当时在线的 CRM 源权限；实时源授权在访问和命令边界检查。可选 JDBC 仍需宿主显式装配与数据库验收，不会随独立 JSON 宿主自动启用。
 
-所有源数据为演示数据，存储的是审批状态。没有外部 CRM 连接/报价写回、库存入账、采购订单占用、差旅预订、报销付款、银行指令或跨业务事务。也没有通用 BPMN、动态业务插件、撤回/返工、循环、补偿或 RuoYi 原生图审批能力。
+所有源数据为演示数据，存储的是审批状态。没有外部 CRM 连接/报价写回、库存入账、采购订单占用、差旅预订、报销付款、银行指令或跨业务事务。也没有通用 BPMN、动态业务插件、撤回/返工、循环、补偿或出差以外的 RuoYi 原生图审批能力。
 
 <!-- topic:sources-and-verification -->
 ## 来源与验证

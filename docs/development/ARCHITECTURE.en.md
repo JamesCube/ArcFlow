@@ -26,7 +26,7 @@
 | Optional storage | [`examples/approval-jdbc`](../../examples/approval-jdbc/README.en.md) | JDBC transactions, retained definitions, audit, and member projection; host owns DataSource, drivers, and migrations |
 | Standalone host | [`examples/approval-demo/backend`](../../examples/approval-demo/backend/src/main/java/com/arcflow/demo/) | Boot 4.1.1, Basic auth, fixed demo identities, strict JSON, and isolated generic, quote, scenario and graph endpoint families |
 | Standalone UI | [`examples/approval-ui`](../../examples/approval-ui/README.en.md) | Vue workspace, designer, quote page, and scenarios; never the final authority for permissions or money |
-| Other hosts/clients | [RuoYi](../../examples/ruoyi-vue3/README.en.md), [H5](../../examples/approval-mobile/README.en.md) | RuoYi reuses native authentication/permissions; H5 reads/reviews leave and procurement only |
+| Other hosts/clients | [RuoYi](../../examples/ruoyi-vue3/README.en.md), [H5](../../examples/approval-mobile/README.en.md) | RuoYi reuses native authentication/permissions for sequential leave/procurement and an isolated travel graph workspace; H5 reads/reviews leave and procurement only |
 
 The root POM does not aggregate examples. Dependencies normally run host → domain → core; JDBC depends on the domain, not the reverse. The domain uses Jackson 2 and Spring Web for status-bearing exceptions. Only the core has no third-party runtime dependencies.
 

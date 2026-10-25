@@ -48,6 +48,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Verify native graph bootstrap isolation
+        run: |
+          python3 examples/ruoyi-vue3/tests/test_graph_bootstrap.py
+          python3 examples/ruoyi-vue3/tests/test_graph_captures.py
       - name: Bootstrap immutable official upstream revisions
         run: python3 examples/ruoyi-vue3/bootstrap.py --directory "$RUNNER_TEMP/ruoyi"
       - name: Verify backend and shared approval domain
@@ -78,12 +82,16 @@ jobs:
             --jar "$RUNNER_TEMP/ruoyi/backend/ruoyi-admin/target/ruoyi-admin.jar" \
             --state-directory "$RUNNER_TEMP/ruoyi-smoke" \
             --frontend-directory "$RUNNER_TEMP/ruoyi/frontend/dist"
+      - name: Verify native travel capture identities and original pixels
+        run: python3 examples/ruoyi-vue3/tests/verify_graph_captures.py "$RUNNER_TEMP/ruoyi-smoke/screenshots" --expected-commit "$(git rev-parse HEAD)"
       - name: Save native RuoYi workspace screenshots (no auth traces)
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: ruoyi-native-browser-screenshots
-          path: ${{ runner.temp }}/ruoyi-smoke/screenshots/*.png
+          path: |
+            ${{ runner.temp }}/ruoyi-smoke/screenshots/*.png
+            ${{ runner.temp }}/ruoyi-smoke/screenshots/native-travel-*.json
           if-no-files-found: error
           retention-days: 7
       - name: Preserve diagnostic server log

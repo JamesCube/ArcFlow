@@ -79,7 +79,19 @@ npm run dev -- --host 127.0.0.1 --port 5173
 - 原生幂等调用只绕过短时重复提交拦截，认证与 RBAC 仍生效。前后端共享 helper 必须与 canonical 版本逐字节一致，bootstrap 漂移时失败。
 - `/arcflow/requests/inbox` 使用读取权限，AjaxResult.data 为 `{items,nextCursor}`。待办/已办各自分页与过滤；取消/旧响应不能进入新会话。发起与历史列表仍用兼容路径。
 
-定义 schema 2/3、提交键 wrapper 4、类型化写入最低 wrapper 5 不是当前文件最高版本。以[存储迁移](../../docs/development/PERSISTENCE.md)为准，备份并升级所有读取端，不混写旧新应用。条件路由只在独立专用场景，此若依宿主不支持。
+定义 schema 2/3、提交键 wrapper 4、类型化写入最低 wrapper 5 不是当前文件最高版本。以[存储迁移](../../docs/development/PERSISTENCE.md)为准，备份并升级所有读取端，不混写旧新应用。独立的原生出差图支持有限的 FIRST_MATCH 费用路由与并行 ALL 汇合；其他独立图场景尚未接入此若依宿主。
+
+## 原生出差图工作台（独立入口）
+
+菜单“出差图工作台”（`arcflow/graph/index`，菜单 ID 21006）只挂载出差，不引入独立演示的多场景入口。`/arcflow/graphs/travel` 使用若依真实 JWT 会话和现有 read/submit/decide/publish 权限；权限不能绕过账号有效性、业务参与者或任务受理人检查，管理员也不能代替审批人投票。候选审批人还必须具有当前查看和处理权限。
+
+用 `ARCFLOW_TRAVEL_MANAGER_ID`、`ARCFLOW_TRAVEL_OPERATIONS_ID`、`ARCFLOW_TRAVEL_FINANCE_ID` 指定已存在的若依数字用户 ID（示例默认 101/101/102）。它们仅初始化新存储，不改写已保存定义和历史受理人；这不是角色自动解析。初始路线为经理审批 → 费用条件分支：低于 CNY 10,000 结束；达到阈值则同时启动运营和财务任务，全部完成才汇合；拒绝取消剩余任务。
+
+`ARCFLOW_TRAVEL_GRAPH_DATA_FILE` 默认 `${ARCFLOW_DATA_FILE}.travel.graph.json`，与顺序请假/采购文件隔离，使用**存储包装版本 14**、**图定义版本 6**和固定流程 ID `travel-graph`。不自动接入 JDBC、不支持集群。应同时备份两个文件；损坏或第二写入者应启动失败，不可删数据掩盖错误。
+
+图提交和决策均必须携带恰好一个有效 `Idempotency-Key`。相同键和原意图重试返回当前记录，重启或发布新版后仍可重放；改变意图冲突。等待汇合的记录保留原定义、业务、任务和历史。草稿/发布采用乐观并发控制。原生传输保留原始金额精度，使用 Bearer 和 `AjaxResult.data`，只对带键写入关闭短时重复提交拦截，会话变化后丢弃迟到响应；不复制独立演示的 Basic 登录。
+
+范围不包含付款/收货/报价图接口、外部 CRM、H5 图接入、任意 BPMN 或生产就绪承诺。新增真实登录/重启测试只有在实际 MySQL、Redis 和官方宿主运行后才能称为通过。
 
 <!-- topic:verify -->
 ## 验证、恢复与归属

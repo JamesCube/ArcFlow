@@ -23,3 +23,9 @@ token:
 arcflow:
   data-file: ${ARCFLOW_DATA_FILE:./data/arcflow-approvals.json}
   initial-approver-id: ${ARCFLOW_INITIAL_APPROVER_ID:101}
+  # Fixed server-side JSON store; wrapper 14 is separate from executable travel schema 6.
+  travel-graph:
+    data-file: ${ARCFLOW_TRAVEL_GRAPH_DATA_FILE:${arcflow.data-file}.travel.graph.json}
+    manager-id: ${ARCFLOW_TRAVEL_MANAGER_ID:101}
+    operations-id: ${ARCFLOW_TRAVEL_OPERATIONS_ID:101}
+    finance-id: ${ARCFLOW_TRAVEL_FINANCE_ID:102}

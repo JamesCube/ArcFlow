@@ -9,8 +9,8 @@ import verify_developer_docs as docs
 class DeveloperDocsChecks(unittest.TestCase):
     def test_all_real_controllers_are_inventoried(self):
         endpoints = docs.inventory()
-        self.assertEqual(43, len(endpoints))
-        self.assertEqual(9, sum(e['host'] == 'ruoyi' for e in endpoints))
+        self.assertEqual(55, len(endpoints))
+        self.assertEqual(21, sum(e['host'] == 'ruoyi' for e in endpoints))
         self.assertEqual(34, sum(e['host'] == 'standalone' for e in endpoints))
         self.assertFalse(any(e['path'].endswith('/login') for e in endpoints))
 

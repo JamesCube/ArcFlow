@@ -94,3 +94,5 @@ JDBC 每次操作使用独立连接与自有事务，不加入 Spring `@Transact
 ## 验证不能相互替代
 
 [JsonSchemaUpgradeTest](../../examples/approval-domain/src/test/java/com/arcflow/approval/JsonSchemaUpgradeTest.java)、[UnifiedBusinessSchemaTest](../../examples/approval-domain/src/test/java/com/arcflow/approval/UnifiedBusinessSchemaTest.java) 和 [ConditionalRoutingStoreTest](../../examples/approval-domain/src/test/java/com/arcflow/approval/ConditionalRoutingStoreTest.java)覆盖文件兼容与恢复。数据库验证见 [JDBC 指南](../../examples/approval-jdbc/README.md)及[专用 CI](../../.github/workflows/approval-jdbc.yml)。没有设置 PostgreSQL／MySQL 测试环境变量时，对应真机测试会跳过；H2 通过不能证明它们通过。重开适配器也不等于数据库进程崩溃恢复验证。
+
+RuoYi 原生仅增加固定出差图工作区（`/arcflow/graphs/travel`），采用数字 JWT 身份、实时读/提交/决策/发布权限、领域任务校验和独立单写者 JSON 存储。图存储 wrapper 14 与出差定义 schema 6 是不同层次；原顺序请假/采购文件与 API 保持隔离。不表示新增原生 JDBC、其他原生图业务或 H5 图能力。参见[原生指南](../../examples/ruoyi-vue3/README.md)。
