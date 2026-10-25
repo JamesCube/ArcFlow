@@ -5,7 +5,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import static com.arcflow.approval.graph.GraphDefinition.*;
 
-/** Editable demonstration, using real payment facts and explicit demo user IDs, not role resolution. */
+/** Editable graph seeds. Default samples use demo IDs; native hosts supply explicit initial assignments. */
 public final class GraphSamples {
     private GraphSamples() {}
     public static GraphDefinition payment() {
@@ -29,12 +29,14 @@ public final class GraphSamples {
             edge("businessArrive","businessReview","reviewJoin","业务完成 / Business done"),edge("reviewMerged","reviewJoin","amountMerge","合流 / Merge"),
             edge("standardMerged","standard","amountMerge","合流 / Merge"),edge("toFinal","amountMerge","final","最终确认 / Final review"),edge("toEnd","final","end","完成 / Complete")));
     }
-    public static GraphDefinition travel() {
+    public static GraphDefinition travel() { return travel("bob", "bob", "carol"); }
+    /** Host-supplied initial assignments only; persisted definitions and instances are never rewritten. */
+    public static GraphDefinition travel(String manager, String operations, String finance) {
         return new GraphDefinition(6,"travel-graph",1,"出差分支与并行审批 / Travel graph",List.of(
-            structural("start","start","提交出差 / Submit travel",null), approval("manager","经理审批 / Manager review","bob"),
+            structural("start","start","提交出差 / Submit travel",null), approval("manager","经理审批 / Manager review",manager),
             structural("cost","exclusiveGateway","费用分支 / Estimated cost","costMerge"),
             structural("travelFork","parallelFork","独立出差复核 / Independent travel reviews","travelJoin"),
-            approval("operations","运营复核 / Operations review","bob"), approval("finance","财务复核 / Finance review","carol"),
+            approval("operations","运营复核 / Operations review",operations), approval("finance","财务复核 / Finance review",finance),
             structural("travelJoin","parallelJoin","等待全部复核 / Wait for all reviews","travelFork"),
             structural("costMerge","exclusiveMerge","所选路径汇合 / Selected path merge","cost"),
             structural("end","end","审批完成 / Completed",null)),List.of(

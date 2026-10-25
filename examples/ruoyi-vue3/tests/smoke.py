@@ -9,6 +9,7 @@ import base64
 import http.client
 import redis
 import json
+import math
 import os
 from pathlib import Path
 import secrets
@@ -21,6 +22,11 @@ import urllib.request
 from fixture import actor_state, connection, install
 
 BASE = os.getenv("ARCFLOW_TEST_URL", "http://127.0.0.1:8080").rstrip("/")
+# Cold official-host startup (notably user-agent parsing) can be slow on shared
+# machines. This changes only transport patience, never expected status/content.
+HTTP_TIMEOUT = float(os.getenv("ARCFLOW_TEST_HTTP_TIMEOUT", "15"))
+if not math.isfinite(HTTP_TIMEOUT) or HTTP_TIMEOUT <= 0:
+    raise ValueError("ARCFLOW_TEST_HTTP_TIMEOUT must be a finite positive number of seconds")
 
 
 def api(path, token=None, body=None, *, method=None, allowed=(200,), headers=None):
@@ -36,7 +42,7 @@ def api(path, token=None, body=None, *, method=None, allowed=(200,), headers=Non
         # duplicate Idempotency-Key lines and make that boundary test meaningless.
         target = urllib.parse.urlsplit(BASE + path)
         transport = http.client.HTTPSConnection if target.scheme == "https" else http.client.HTTPConnection
-        conn = transport(target.hostname, target.port, timeout=15)
+        conn = transport(target.hostname, target.port, timeout=HTTP_TIMEOUT)
         try:
             conn.putrequest(method, urllib.parse.urlunsplit(("", "", target.path, target.query, "")))
             for name, value in [*headers.items(), *extra_headers]:
@@ -51,7 +57,7 @@ def api(path, token=None, body=None, *, method=None, allowed=(200,), headers=Non
     else:
         req = urllib.request.Request(BASE + path, data=payload, headers=headers, method=method)
         try:
-            with urllib.request.urlopen(req, timeout=15) as res:
+            with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT) as res:
                 status, raw = res.status, res.read()
         except urllib.error.HTTPError as err:
             status, raw = err.code, err.read()
@@ -501,6 +507,9 @@ class Server:
                    ARCFLOW_MYSQL_URL="jdbc:mysql://127.0.0.1:3306/ry-vue?useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC",
                    REDIS_HOST="127.0.0.1", REDIS_PORT="6379", REDIS_PASSWORD="",
                    ARCFLOW_INITIAL_APPROVER_ID="101",
+                   ARCFLOW_TRAVEL_MANAGER_ID="101",
+                   ARCFLOW_TRAVEL_OPERATIONS_ID="101",
+                   ARCFLOW_TRAVEL_FINANCE_ID="102",
                    ARCFLOW_DATA_FILE=str(self.directory / "approval.json"),
                    RUOYI_UPLOAD_PATH=str(self.directory / "uploads"))
         self.log = (self.directory / "server.log").open("ab")
@@ -700,6 +709,8 @@ def run(server, password):
     print("PASS: official login/menu, RBAC, authoritative assignments, ordered approvals, keyed submission replay/conflict/header validation, applicant scope, current-state replay after publication/decisions, permission revocation, disabled/deleted identity, logout/expired Redis session, durable submission-key restart persistence")
     run_groups(server, password, published)
     run_documents(server, password)
+    from graph_smoke import run as run_graph
+    run_graph(server, password, api, data, login)
 
 
 def main():

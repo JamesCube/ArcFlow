@@ -14,7 +14,7 @@ The standalone backend and Vue graph workspace add travel, receiving and quote-d
 | `/api/graphs/receiving` | `receiving-graph` | `receiving` | `receiving.hasRejectedLines` |
 | `/api/graphs/quote` | `quote-graph` | `quoteDiscount` | `quote.reductionTotal`, `quote.discountPercent` |
 
-The endpoint, process ID, facts and document type must agree. Even a conditionless definition cannot accept another business family. `GraphScenarios` binds both schema and process identity. Every historical schema-5 definition remains payment-only, including custom IDs that happen to equal `travel-graph`, `receiving-graph` or `quote-graph`. Schema 6 explicitly enables the new fixed families. A new business host cannot downgrade its definition to schema 5. This is a fixed demo format, not an arbitrary portable multi-business graph format. Existing linear/group scenario APIs, the original quote page, payment graph URLs, RuoYi native pages and H5 contracts remain unchanged. RuoYi and H5 do not gain graph-host support.
+The endpoint, process ID, facts and document type must agree. Even a conditionless definition cannot accept another business family. `GraphScenarios` binds both schema and process identity. Every historical schema-5 definition remains payment-only, including custom IDs that happen to equal `travel-graph`, `receiving-graph` or `quote-graph`. Schema 6 explicitly enables the new fixed families. A new business host cannot downgrade its definition to schema 5. This is a fixed demo format, not an arbitrary portable multi-business graph format. Existing linear/group scenario APIs, the original quote page, payment graph URLs, RuoYi native pages and H5 contracts remain unchanged. The native RuoYi overlay now adds only a separate travel graph workspace; H5 remains unchanged.
 
 <!-- topic:travel -->
 ## Travel: manager review before the cost branch
@@ -72,7 +72,7 @@ Payment keeps `<APPROVAL_DATA_FILE>.graph.json`. The new files are `<APPROVAL_DA
 
 Restore validation uses frozen business and commands, independently of live CRM source permissions; current source authorization is checked at read and command boundaries. Optional JDBC still needs explicit host wiring and database acceptance; it is not automatically enabled for the standalone JSON host.
 
-All sources are synthetic, and stores contain approval state. There is no external CRM connection or quote writeback, stock posting, purchase-order reservation, travel booking, reimbursement payment, bank instruction or cross-business transaction. General BPMN, dynamic business plugins, withdrawal/rework, loops, compensation and RuoYi-native graph approval are also outside this implementation.
+All sources are synthetic, and stores contain approval state. There is no external CRM connection or quote writeback, stock posting, purchase-order reservation, travel booking, reimbursement payment, bank instruction or cross-business transaction. General BPMN, dynamic business plugins, withdrawal/rework, loops, compensation and native RuoYi graph families other than travel remain outside this implementation.
 
 <!-- topic:sources-and-verification -->
 ## Sources and verification

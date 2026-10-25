@@ -1,0 +1,17 @@
+/* Only native graph descendants: never import the standalone page reset. */
+.arcflow-native-graph{padding:24px;max-width:1800px;margin:auto;font-family:inherit}
+:where(.arcflow-native-graph) *{box-sizing:border-box}
+:where(.arcflow-native-graph) button,:where(.arcflow-native-graph) input,:where(.arcflow-native-graph) select,:where(.arcflow-native-graph) textarea{font:inherit}
+:where(.arcflow-native-graph) button{cursor:pointer;border:0;border-radius:7px;padding:10px 14px}
+:where(.arcflow-native-graph) button:disabled{cursor:not-allowed;opacity:.5}
+:where(.arcflow-native-graph) button:focus-visible{outline:3px solid #23766b;outline-offset:3px}
+:where(.arcflow-native-graph) .primary{color:white}
+:where(.arcflow-native-graph) .secondary{background:#edf3f0}
+:where(.arcflow-native-graph) label{display:block}
+:where(.arcflow-native-graph) input,:where(.arcflow-native-graph) select,:where(.arcflow-native-graph) textarea{display:block;max-width:100%;width:100%;padding:10px;border:1px solid #cfddd8;border-radius:6px;background:white;color:inherit;margin-top:6px}
+:where(.arcflow-native-graph) input[type=checkbox]{width:auto}
+.native-graph-controls{display:flex;justify-content:space-between;gap:20px;align-items:start;flex-wrap:wrap}
+.native-graph-controls>label{min-width:100px;font-size:12px}
+@media(max-width:600px){.arcflow-native-graph{padding:12px}}
+
+.native-current-actor{font-size:13px;color:#426356;margin:0 0 18px;overflow-wrap:anywhere}

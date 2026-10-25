@@ -4314,6 +4314,331 @@
         "optional": []
       },
       "description": "Frozen evaluation evidence. Percent actualValue is the exact numerator/denominator% string, not a rounded percentage."
+    },
+    "NativeGraphPermissions": {
+      "type": "object",
+      "properties": {
+        "canPublish": {
+          "type": "boolean"
+        },
+        "canSubmit": {
+          "type": "boolean"
+        },
+        "canDecide": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "canPublish",
+        "canSubmit",
+        "canDecide"
+      ],
+      "additionalProperties": false,
+      "x-java-record": {
+        "source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowGraphController.java",
+        "name": "Permissions",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "NativeGraphCapabilities": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "const": 6
+        },
+        "businessType": {
+          "const": "travel"
+        },
+        "nodeTypes": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "start",
+              "end",
+              "approval",
+              "parallelApproval",
+              "exclusiveGateway",
+              "exclusiveMerge",
+              "parallelFork",
+              "parallelJoin"
+            ]
+          },
+          "minItems": 8,
+          "maxItems": 8,
+          "uniqueItems": true
+        },
+        "limits": {
+          "$ref": "#/$defs/GraphLimits"
+        },
+        "facts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/GraphFact"
+          },
+          "minItems": 1,
+          "maxItems": 2,
+          "uniqueItems": true
+        },
+        "permissions": {
+          "$ref": "#/$defs/NativeGraphPermissions"
+        },
+        "hosts": {
+          "type": "array",
+          "items": {
+            "const": "ruoyi"
+          },
+          "minItems": 1,
+          "maxItems": 1
+        },
+        "persistence": {
+          "type": "array",
+          "items": {
+            "const": "json"
+          },
+          "minItems": 1,
+          "maxItems": 1
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "businessType",
+        "nodeTypes",
+        "limits",
+        "facts",
+        "permissions",
+        "hosts",
+        "persistence"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "businessType": {
+                "const": "paymentRequest"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "schemaVersion": {
+                "const": 5
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "schemaVersion": {
+                "const": 6
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "businessType": {
+                "const": "paymentRequest"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "facts": {
+                "minItems": 1,
+                "maxItems": 1,
+                "items": {
+                  "properties": {
+                    "field": {
+                      "enum": [
+                        "payment.netTotal"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "businessType": {
+                "const": "travel"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "facts": {
+                "minItems": 1,
+                "maxItems": 1,
+                "items": {
+                  "properties": {
+                    "field": {
+                      "enum": [
+                        "travel.estimatedCost"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "businessType": {
+                "const": "receiving"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "facts": {
+                "minItems": 1,
+                "maxItems": 1,
+                "items": {
+                  "properties": {
+                    "field": {
+                      "enum": [
+                        "receiving.hasRejectedLines"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "businessType": {
+                "const": "quoteDiscount"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "facts": {
+                "minItems": 2,
+                "maxItems": 2,
+                "items": {
+                  "properties": {
+                    "field": {
+                      "enum": [
+                        "quote.reductionTotal",
+                        "quote.discountPercent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "x-java-record": {
+        "source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowGraphController.java",
+        "name": "Capabilities",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "NativeTravelGraphDefinition": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/GraphDefinition"
+        },
+        {
+          "properties": {
+            "schemaVersion": {
+              "const": 6
+            },
+            "id": {
+              "const": "travel-graph"
+            }
+          }
+        }
+      ]
+    },
+    "NativeTravelGraphSubmission": {
+      "type": "object",
+      "properties": {
+        "expectedVersion": {
+          "type": "integer",
+          "minimum": 1,
+          "x-json-integer": true,
+          "maximum": 2147483647
+        },
+        "business": {
+          "$ref": "#/$defs/Travel"
+        }
+      },
+      "required": [
+        "expectedVersion",
+        "business"
+      ],
+      "additionalProperties": false,
+      "description": "Fixed native RuoYi travel graph input; no other business family or request-supplied actor identity.",
+      "x-java-record": {
+        "source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowGraphController.java",
+        "name": "Submission",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "NativeTravelGraphPreview": {
+      "type": "object",
+      "properties": {
+        "definition": {
+          "$ref": "#/$defs/NativeTravelGraphDefinition"
+        },
+        "business": {
+          "$ref": "#/$defs/Travel"
+        }
+      },
+      "required": [
+        "definition",
+        "business"
+      ],
+      "additionalProperties": false,
+      "description": "Fixed native RuoYi travel graph input; no other business family or request-supplied actor identity.",
+      "x-java-record": {
+        "source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowGraphController.java",
+        "name": "Preview",
+        "synthetic": [],
+        "optional": []
+      }
+    },
+    "NativeTravelGraphDraftInput": {
+      "type": "object",
+      "properties": {
+        "expectedRevision": {
+          "type": "integer",
+          "minimum": 0,
+          "x-json-integer": true,
+          "maximum": 9223372036854775807
+        },
+        "definition": {
+          "$ref": "#/$defs/NativeTravelGraphDefinition"
+        }
+      },
+      "required": [
+        "expectedRevision",
+        "definition"
+      ],
+      "additionalProperties": false,
+      "description": "Fixed native RuoYi travel graph input; no other business family or request-supplied actor identity.",
+      "x-java-record": {
+        "source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowGraphController.java",
+        "name": "DraftInput",
+        "synthetic": [],
+        "optional": []
+      }
     }
   }
 }

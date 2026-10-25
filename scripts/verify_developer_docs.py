@@ -19,6 +19,7 @@ CONTROLLERS = [
     ('standalone', 'examples/approval-demo/backend/src/main/java/com/arcflow/demo/QuoteDiscountController.java'),
     ('standalone', 'examples/approval-demo/backend/src/main/java/com/arcflow/demo/GraphController.java'),
     ('ruoyi', 'examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowController.java'),
+    ('ruoyi', 'examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowGraphController.java'),
 ]
 INVENTORY = ROOT / 'docs/api/endpoint-inventory.json'
 

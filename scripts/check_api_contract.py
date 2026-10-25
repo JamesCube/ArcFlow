@@ -23,7 +23,7 @@ RUOYI = 'examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/'
 SOURCE_GUARDS = ({DOMAIN + n + '.java' for n in ('ApprovalService', 'BusinessDocument', 'ConditionalRouting', 'ProcessDefinition', 'ScenarioCatalog', 'ScenarioCase', 'QuoteDiscountCase', 'InboxQuery', 'StrictBusinessTypeResolver')}
                  | {DEMO + n + '.java' for n in ('ApprovalController', 'ScenarioController', 'QuoteDiscountController', 'SecurityConfig', 'JsonConfig', 'ScenarioConfiguration', 'GraphController', 'GraphConfiguration', 'ApprovalConfiguration')}
                  | {DOMAIN + 'graph/' + n + '.java' for n in ('GraphDefinition', 'GraphInstance', 'GraphEngine', 'GraphApprovalStore', 'GraphApprovalService', 'GraphSamples', 'JsonGraphApprovalStore', 'GraphScenarios', 'GraphQuotePolicy')}
-                 | {RUOYI + n + '.java' for n in ('ArcFlowController', 'ArcFlowErrors', 'ArcFlowConfiguration')})
+                 | {RUOYI + n + '.java' for n in ('ArcFlowController', 'ArcFlowErrors', 'ArcFlowConfiguration', 'ArcFlowGraphController', 'ArcFlowGraphConfiguration')})
 METHODS = {'get', 'post', 'put', 'patch', 'delete', 'head', 'options', 'trace'}
 KEYWORDS = {'$schema', '$id', '$defs', '$ref', 'title', 'description', 'type', 'properties',
             'required', 'additionalProperties', 'items', 'minItems', 'maxItems', 'uniqueItems',
@@ -162,9 +162,9 @@ def controller_routes(root):
                            'success': '201' if created else '200',
                            'permission': permission[1] if permission else None,
                            'consumes': 'application/json' if 'MediaType.APPLICATION_JSON_VALUE' in args else None,
-                           'host': 'ruoyi' if bases[0] == '/arcflow' else 'standalone'}
-    require(len(files) == 5, f'Controller class inventory changed: found {len(files)}, expected 5')
-    require(len(routes) == 43, f'Controller route inventory changed: found {len(routes)}, expected 43')
+                           'host': 'ruoyi' if bases[0].startswith('/arcflow') else 'standalone'}
+    require(len(files) == 6, f'Controller class inventory changed: found {len(files)}, expected 6')
+    require(len(routes) == 55, f'Controller route inventory changed: found {len(routes)}, expected 55')
     return routes
 
 
@@ -349,6 +349,15 @@ class Checker:
         for name in ('GraphInstance', 'GraphPreview', 'GraphSubmission'):
             require(schemas[name]['properties']['business'] == {'$ref': '#/$defs/GraphBusinessDocument'}, 'Graph business model drift')
 
+        require(schemas['NativeTravelGraphDefinition'] == {'allOf': [{'$ref': '#/$defs/GraphDefinition'}, {'properties': {'schemaVersion': {'const': 6}, 'id': {'const': 'travel-graph'}}}]}, 'Native travel definition scope drift')
+        for model in ('NativeTravelGraphSubmission', 'NativeTravelGraphPreview'):
+            require(schemas[model]['properties']['business'] == {'$ref': '#/$defs/Travel'}, 'Native travel document scope drift')
+        require(set(schemas['NativeGraphPermissions']['properties']) == {'canPublish', 'canSubmit', 'canDecide'}, 'Native graph permission flags drift')
+        native_cap = schemas['NativeGraphCapabilities']['properties']
+        require(native_cap['schemaVersion'] == {'const': 6} and native_cap['businessType'] == {'const': 'travel'}, 'Native graph capability family drift')
+        require(native_cap['hosts'] == {'type': 'array', 'items': {'const': 'ruoyi'}, 'minItems': 1, 'maxItems': 1}, 'Native graph host scope drift')
+        require(native_cap['persistence'] == {'type': 'array', 'items': {'const': 'json'}, 'minItems': 1, 'maxItems': 1}, 'Native graph storage scope drift')
+
         operations = {}; ids = set()
         for host in ('standalone', 'ruoyi'):
             path = self.root / SPEC_DIR / (host + '.openapi.json'); spec = self.document(path)
@@ -400,7 +409,7 @@ class Checker:
                         require(bool(response.get('description')), f'{key}: response description missing')
                         for media in response.get('content', {}).values(): self.lint_schema(media['schema'], path)
                     self.operation_contract(host, key, op, parameters, path)
-            require(count == spec['x-controller-route-count'] == (34 if host == 'standalone' else 9), f'{host}: operation count drift')
+            require(count == spec['x-controller-route-count'] == (34 if host == 'standalone' else 21), f'{host}: operation count drift')
         require(set(operations) == set(routes), 'OpenAPI omits actual controller handlers')
         files = {p.name for p in (self.root / 'docs/api/examples').glob('*.json')}
         require(len(files) == 21 and self.examples == files, 'Every one of the 21 request examples must be referenced and schema checked')
@@ -409,7 +418,7 @@ class Checker:
         require(set(manifest['sources']) == SOURCE_GUARDS, 'Source review guard inventory drift')
         for source, digest in manifest['sources'].items():
             require(source_digest(self.root / source) == digest, f'{source}: reviewed semantic source changed; review HTTP contract, schemas and tests before updating its digest')
-        return f'PASS: 43 controller handlers; 2 OpenAPI 3.1 contracts; {len(schemas)} shared models; 9 types; 6 scenarios; 3 legacy condition families; 4 graph families / 5 facts; 21 schema-checked examples; {len(manifest["sources"])} source review guards.'
+        return f'PASS: 55 controller handlers; 2 OpenAPI 3.1 contracts; {len(schemas)} shared models; 9 types; 6 scenarios; 3 legacy condition families; 4 graph families / 5 facts; 21 schema-checked examples; {len(manifest["sources"])} source review guards.'
 
     def operation_contract(self, host, key, op, parameters, path):
         method, endpoint = key
@@ -417,13 +426,13 @@ class Checker:
         if method in ('POST', 'PUT'): required_errors |= {'400', '409', '503'} | ({'415'} if host == 'standalone' else set())
         if endpoint.endswith('/inbox'): required_errors |= {'400', '503'}
         if endpoint.endswith('/decisions') or '/scenarios/' in endpoint or endpoint == '/api/crm/documents': required_errors.add('404')
-        if endpoint.startswith('/api/graphs/{scenario}/'):
-            suffix = endpoint.removeprefix('/api/graphs/{scenario}')
-            required_errors = {'401', '403', '404'}
+        if endpoint.startswith(('/api/graphs/{scenario}/', '/arcflow/graphs/travel/')):
+            suffix = endpoint.removeprefix('/api/graphs/{scenario}').removeprefix('/arcflow/graphs/travel')
+            required_errors = {'401', '403', '404'} if host == 'standalone' else {'403'}
             if suffix not in ('/users', '/validate', '/preview', '/quotes'): required_errors.add('503')
             if suffix == '/quotes': required_errors.add('400')
             if suffix == '/preview': required_errors.add('409')
-            if method in ('POST', 'PUT'): required_errors |= {'400', '415'}
+            if method in ('POST', 'PUT'): required_errors |= {'400'} | ({'415'} if host == 'standalone' else set())
             if method in ('POST', 'PUT') and suffix not in ('/validate', '/preview'): required_errors.add('409')
             if '{id}' in suffix: required_errors.add('404')
             require({e for e in op['responses'] if e.isdigit() and int(e) >= 400} == required_errors, f'{key}: graph controlled error status drift')
@@ -435,13 +444,14 @@ class Checker:
         if host == 'ruoyi':
             require(set(schema.get('properties', {})) == {'code', 'msg', 'data'} and schema['properties']['code'] == {'type': 'integer', 'const': 200}, f'{key}: native envelope drift')
             schema = schema['properties']['data']
-        graph = endpoint.startswith('/api/graphs/{scenario}/')
+        graph = endpoint.startswith(('/api/graphs/{scenario}/', '/arcflow/graphs/travel/'))
         if graph:
-            suffix = endpoint.removeprefix('/api/graphs/{scenario}')
+            suffix = endpoint.removeprefix('/api/graphs/{scenario}').removeprefix('/arcflow/graphs/travel')
             responses = {'/capabilities': 'GraphCapabilities', '/process': 'GraphDefinition', '/workspace': 'GraphWorkspace', '/users': 'Person', '/draft': 'GraphDraft', '/validate': 'GraphValidation', '/preview': 'GraphInstance', '/publish': 'GraphDefinition', '/requests': 'GraphInstance', '/requests/{id}': 'GraphInstance', '/requests/{id}/tasks/{taskId}/decision': 'GraphInstance', '/quotes': 'QuoteVersion'}
             expected = responses[suffix]
+            if host == 'ruoyi' and suffix == '/capabilities': expected = 'NativeGraphCapabilities'
             scenario = [p for p in parameters if p['in'] == 'path' and p['name'] == 'scenario']
-            require(len(scenario) == 1 and scenario[0]['schema'] == {'$ref': '#/components/schemas/GraphScenario'}, f'{key}: graph scenario parameter drift')
+            require((len(scenario) == 1 and scenario[0]['schema'] == {'$ref': '#/components/schemas/GraphScenario'}) if host == 'standalone' else not scenario, f'{key}: graph scenario parameter drift')
             is_list = method == 'GET' and suffix in ('/users', '/requests', '/quotes')
         else:
             expected = 'ScenarioTemplate' if endpoint == '/api/scenarios' else 'NativePerson' if endpoint == '/arcflow/me' else 'Person' if endpoint.endswith(('/me', '/people')) else 'ProcessDefinition' if '/scenarios/' in endpoint and endpoint.endswith('/process') else 'GenericProcessDefinition' if endpoint.endswith('/process') else 'QuoteVersion' if endpoint.endswith('/quotes') else 'InboxPage' if endpoint.endswith('/inbox') else 'ScenarioView' if '/scenarios/' in endpoint else 'QuoteView' if '/crm/' in endpoint else 'Request'
@@ -451,6 +461,7 @@ class Checker:
         if method in ('POST', 'PUT'):
             if graph:
                 expected_body = {'/draft': 'GraphDraftInput', '/validate': 'GraphDefinition', '/preview': 'GraphPreview', '/publish': 'GraphPublication', '/requests': 'GraphSubmission', '/requests/{id}/tasks/{taskId}/decision': 'GraphDecision'}[suffix]
+                if host == 'ruoyi' and suffix in ('/draft', '/validate', '/preview', '/requests'): expected_body = 'NativeTravel' + expected_body
                 expected_key = 'required-header' if suffix == '/requests' or suffix.endswith('/decision') else 'none'
             else:
                 expected_body = 'NativeDecision' if host == 'ruoyi' and endpoint.endswith('/decisions') else 'Decision' if endpoint.endswith('/decisions') else 'Publication' if '/scenarios/' in endpoint and endpoint.endswith('/process') else 'GenericPublication' if endpoint.endswith('/process') else 'LegacySubmission' if endpoint.endswith('/requests') else 'SealSubmission' if endpoint.endswith('/oa-seal-use/documents') else 'ScenarioSubmission' if '/scenarios/' in endpoint else 'QuoteSubmission' if '/crm/' in endpoint else 'GenericSubmission'

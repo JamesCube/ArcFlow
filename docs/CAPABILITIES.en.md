@@ -66,7 +66,7 @@ The flow designer configures approval stages. A business-form designer is still 
 | Publication conflicts | ✅ | Publication requires permission and an expected version; a conflicting publication cannot silently overwrite the current version. | [服务 / Service][service] · [Screen](DESIGNER_GALLERY.en.md#publish) |
 | Pinned process version | ✅ | Submission freezes order, people and rules. Later publications apply to new requests; running instances are not migrated. | [服务 / Service][service] · [Screen](DESIGNER_GALLERY.en.md#versions) |
 | Restricted conditional routing | 🟡 | Current main includes typed payment/receipt/contract conditions selecting extra human stages, using definition schema 4 and JSON wrapper 13 with frozen routes. Only three standalone scenarios support them; no arbitrary expressions. Check browser/database CI for the exact commit. | [合同 / Contract](CONDITIONAL_ROUTING.en.md) |
-| Structured graph workspace | 🟡 | Separate payment (schema 5), travel, receiving and quote-discount (schema 6) graphs: bounded paired conditional/parallel regions, durable drafts, exact task commands and frozen runtime. Standalone host plus optional JDBC library; no automatic RuoYi/mobile support. Check browser/database gates for the exact commit. | [Graph contract](GRAPH_DESIGNER.en.md) |
+| Structured graph workspace | 🟡 | Separate payment (schema 5), travel, receiving and quote-discount (schema 6) graphs: bounded paired conditional/parallel regions, durable drafts, exact task commands and frozen runtime. Standalone host plus optional JDBC library; native RuoYi has a separate travel-only JSON workspace, not the other graph families or H5. Check browser/database gates for the exact commit. | [Graph contract](GRAPH_DESIGNER.en.md) |
 | Arbitrary forks/joins | — | The graph workspace supports bounded paired regions; arbitrary cross-region edges, loops and unstructured BPMN graphs are not supported. Legacy human stages remain sequential. | [Graph limits](GRAPH_DESIGNER.en.md#what-is-supported) |
 | Running-instance migration | — | No operation migrates an existing request to a new process version. | [服务 / Service][service] |
 | BPMN import/export/execution | — | No BPMN-compatible implementation or commitment to the full specification. | [路线图 / Roadmap][roadmap] |
@@ -114,7 +114,7 @@ The flow designer configures approval stages. A business-form designer is still 
 
 | Capability | Status | Scope and limits | Evidence |
 | --- | --- | --- | --- |
-| Submit a request | ✅ | Standalone/RuoYi desktop forms submit leave and procurement; quotes use a separate page and six scenarios use /scenarios.html; H5 has no authoring. | [采购表单 / Forms](PROCUREMENT_UI.en.md) · [Screen](CASE_GALLERY.en.md#oa-submitted) |
+| Submit a request | ✅ | Standalone/RuoYi desktop forms submit leave and procurement, and native RuoYi has a separate travel graph form; quotes use a separate page and six scenarios use /scenarios.html; H5 has no authoring. | [采购表单 / Forms](PROCUREMENT_UI.en.md) · [Screen](CASE_GALLERY.en.md#oa-submitted) |
 | Pending worklist | ✅ | Pending means an unvoted member of the current stage, including every ALL/ANY member; future stages are not pending yet. | [契约 / Contract][inbox] · [Screen](CASE_GALLERY.en.md#oa-inbox) |
 | Handled worklist | ✅ | Requires an actual saved APPROVE/REJECT by that actor. Submission does not count; the request may still be pending. | [测试 / Tests][inbox-tests] · [Screen](CASE_GALLERY.en.md#oa-pending-next) |
 | Cursor paging and filters | ✅ | 1–100 rows per page, default 25; filter by status/process version. Cursors bind actor and filters; pages are not a frozen global snapshot. | [契约 / Contract][inbox] · [测试 / Tests][inbox-tests] |
@@ -324,3 +324,5 @@ The [existing roadmap](ROADMAP.en.md) covers broader engine directions. This sec
 [seal]: SEAL_USE_SCENARIO.en.md
 [receiving]: RECEIVING_SCENARIO.en.md
 [unified]: UNIFIED_SCENARIO_INTEGRATION.en.md
+
+Native RuoYi has one fixed travel graph workspace (`/arcflow/graphs/travel`), with numeric JWT actors, live read/submit/decide/publish permissions, domain task checks and dedicated single-writer JSON storage. Graph wrapper 14 and travel definition schema 6 are distinct. Existing sequential leave/procurement files and APIs remain isolated. No native JDBC, other native graph families or H5 graph support is implied. See the [native guide](../examples/ruoyi-vue3/README.en.md).

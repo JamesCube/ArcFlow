@@ -60,6 +60,7 @@ export const previewBody = (definition, business) => `{"definition":${JSON.strin
 export function graphCapabilities(value, family) {
   const expected = familyFor(family)
   if (!value || value.schemaVersion !== expected.schemaVersion || value.businessType !== expected.type || !Array.isArray(value.facts) || value.facts.length !== expected.fields.length || new Set(value.facts.map(fact => fact.field)).size !== value.facts.length || typeof value.permissions?.canPublish !== 'boolean' || typeof value.permissions?.canSubmit !== 'boolean') bad()
+  if (Object.hasOwn(value.permissions, 'canDecide') && typeof value.permissions.canDecide !== 'boolean') bad()
   for (const fact of value.facts) {
     const type = factType(fact.field), operators = type === 'boolean' ? ['EQ'] : ['EQ','GT','GTE','LT','LTE']
     if (!keys(fact, ['field','type','currencies','operators']) || !expected.fields.includes(fact.field) || fact.type !== type || !strings(fact.operators) || !same(fact.operators, operators) || !strings(fact.currencies) || type !== 'money' && fact.currencies.length || type === 'money' && (!fact.currencies.length || fact.currencies.some(currency => !['CNY','USD','EUR','GBP','JPY'].includes(currency)))) bad()

@@ -3,7 +3,7 @@
   "info": {
     "title": "ArcFlow RuoYi native ArcFlow overlay",
     "version": "0.1.0-SNAPSHOT",
-    "description": "Checked-in contract, not a deployed Swagger endpoint. No login or single-request GET route is implemented. RuoYi owns token authentication, permissions, sessions and host error behavior. Only these nine /arcflow mappings belong to this overlay. Configure the server URL/token transport for your actual RuoYi host. No Basic authentication, quote/scenario controller or added login route."
+    "description": "Checked-in contract, not a deployed Swagger endpoint. RuoYi owns JWT sessions, permissions and host error behavior. Nine sequential handlers plus twelve fixed travel graph handlers. No Basic authentication, generic graph selector, quote source, or added login route."
   },
   "servers": [
     {
@@ -19,6 +19,9 @@
   "tags": [
     {
       "name": "native"
+    },
+    {
+      "name": "graphs"
     }
   ],
   "paths": {
@@ -824,213 +827,1373 @@
         },
         "x-idempotency": "decision-replay"
       }
+    },
+    "/arcflow/graphs/travel/capabilities": {
+      "get": {
+        "operationId": "ruoyi_graph_capabilities",
+        "tags": [
+          "graphs"
+        ],
+        "summary": "capabilities in the selected structured business graph workspace",
+        "description": "Fixed native travel-graph schema 6. Numeric authenticated RuoYi actor, live native permission and shared domain checks are all required. Runtime reads remain applicant or selected frozen-path participants; publication and administrator permission do not bypass task assignment. Authoring uses CAS; submission and decision require exactly one valid command key. Null graph fields are preserved in AjaxResult.data.",
+        "x-source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowGraphController.java",
+        "x-handler": "capabilities",
+        "x-java-return": "AjaxResult",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Current graph result. Preview does not write; decisions and submissions replay without duplicate side effects.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 200
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/NativeGraphCapabilities"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "msg",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Inactive/deleted native actor, missing live native permission, authoring permission, selected-path visibility, or task assignment check failed. Native authentication failures remain owned by the RuoYi host.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Storage unavailable; no change confirmed. Refresh before retrying.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unhandled framework exceptions have no uniform envelope guarantee."
+          }
+        },
+        "x-ruoyi-permission": "arcflow:request:read"
+      }
+    },
+    "/arcflow/graphs/travel/process": {
+      "get": {
+        "operationId": "ruoyi_graph_process",
+        "tags": [
+          "graphs"
+        ],
+        "summary": "process in the selected structured business graph workspace",
+        "description": "Fixed native travel-graph schema 6. Numeric authenticated RuoYi actor, live native permission and shared domain checks are all required. Runtime reads remain applicant or selected frozen-path participants; publication and administrator permission do not bypass task assignment. Authoring uses CAS; submission and decision require exactly one valid command key. Null graph fields are preserved in AjaxResult.data.",
+        "x-source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowGraphController.java",
+        "x-handler": "process",
+        "x-java-return": "AjaxResult",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Current graph result. Preview does not write; decisions and submissions replay without duplicate side effects.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 200
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GraphDefinition"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "msg",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Inactive/deleted native actor, missing live native permission, authoring permission, selected-path visibility, or task assignment check failed. Native authentication failures remain owned by the RuoYi host.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Storage unavailable; no change confirmed. Refresh before retrying.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unhandled framework exceptions have no uniform envelope guarantee."
+          }
+        },
+        "x-ruoyi-permission": "arcflow:request:read"
+      }
+    },
+    "/arcflow/graphs/travel/workspace": {
+      "get": {
+        "operationId": "ruoyi_graph_workspace",
+        "tags": [
+          "graphs"
+        ],
+        "summary": "workspace in the selected structured business graph workspace",
+        "description": "Fixed native travel-graph schema 6. Numeric authenticated RuoYi actor, live native permission and shared domain checks are all required. Runtime reads remain applicant or selected frozen-path participants; publication and administrator permission do not bypass task assignment. Authoring uses CAS; submission and decision require exactly one valid command key. Null graph fields are preserved in AjaxResult.data.",
+        "x-source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowGraphController.java",
+        "x-handler": "workspace",
+        "x-java-return": "AjaxResult",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Current graph result. Preview does not write; decisions and submissions replay without duplicate side effects.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 200
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GraphWorkspace"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "msg",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Inactive/deleted native actor, missing live native permission, authoring permission, selected-path visibility, or task assignment check failed. Native authentication failures remain owned by the RuoYi host.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Storage unavailable; no change confirmed. Refresh before retrying.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unhandled framework exceptions have no uniform envelope guarantee."
+          }
+        },
+        "x-ruoyi-permission": "arcflow:process:publish"
+      }
+    },
+    "/arcflow/graphs/travel/users": {
+      "get": {
+        "operationId": "ruoyi_graph_users",
+        "tags": [
+          "graphs"
+        ],
+        "summary": "users in the selected structured business graph workspace",
+        "description": "Fixed native travel-graph schema 6. Numeric authenticated RuoYi actor, live native permission and shared domain checks are all required. Runtime reads remain applicant or selected frozen-path participants; publication and administrator permission do not bypass task assignment. Authoring uses CAS; submission and decision require exactly one valid command key. Null graph fields are preserved in AjaxResult.data.",
+        "x-source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowGraphController.java",
+        "x-handler": "users",
+        "x-java-return": "AjaxResult",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Current graph result. Preview does not write; decisions and submissions replay without duplicate side effects.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 200
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Person"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "msg",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Inactive/deleted native actor, missing live native permission, authoring permission, selected-path visibility, or task assignment check failed. Native authentication failures remain owned by the RuoYi host.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unhandled framework exceptions have no uniform envelope guarantee."
+          }
+        },
+        "x-ruoyi-permission": "arcflow:request:read"
+      }
+    },
+    "/arcflow/graphs/travel/draft": {
+      "put": {
+        "operationId": "ruoyi_graph_saveDraft",
+        "tags": [
+          "graphs"
+        ],
+        "summary": "saveDraft in the selected structured business graph workspace",
+        "description": "Fixed native travel-graph schema 6. Numeric authenticated RuoYi actor, live native permission and shared domain checks are all required. Runtime reads remain applicant or selected frozen-path participants; publication and administrator permission do not bypass task assignment. Authoring uses CAS; submission and decision require exactly one valid command key. Null graph fields are preserved in AjaxResult.data.",
+        "x-source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowGraphController.java",
+        "x-handler": "saveDraft",
+        "x-java-return": "AjaxResult",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Current graph result. Preview does not write; decisions and submissions replay without duplicate side effects.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 200
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GraphDraft"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "msg",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed or unknown input fields, wrong fixed travel graph identity/business type, invalid definition/business/decision, or missing/repeated/invalid command key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Inactive/deleted native actor, missing live native permission, authoring permission, selected-path visibility, or task assignment check failed. Native authentication failures remain owned by the RuoYi host.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Draft/publication version conflict, changed payload for the original command key, or command/state conflict; refresh before retrying the original intent.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Storage unavailable; no change confirmed. Refresh before retrying.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unhandled framework exceptions have no uniform envelope guarantee."
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NativeTravelGraphDraftInput"
+              }
+            }
+          }
+        },
+        "x-idempotency": "none",
+        "x-ruoyi-permission": "arcflow:process:publish"
+      }
+    },
+    "/arcflow/graphs/travel/validate": {
+      "post": {
+        "operationId": "ruoyi_graph_validate",
+        "tags": [
+          "graphs"
+        ],
+        "summary": "validate in the selected structured business graph workspace",
+        "description": "Fixed native travel-graph schema 6. Numeric authenticated RuoYi actor, live native permission and shared domain checks are all required. Runtime reads remain applicant or selected frozen-path participants; publication and administrator permission do not bypass task assignment. Authoring uses CAS; submission and decision require exactly one valid command key. Null graph fields are preserved in AjaxResult.data.",
+        "x-source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowGraphController.java",
+        "x-handler": "validate",
+        "x-java-return": "AjaxResult",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Current graph result. Preview does not write; decisions and submissions replay without duplicate side effects.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 200
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GraphValidation"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "msg",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed or unknown input fields, wrong fixed travel graph identity/business type, invalid definition/business/decision, or missing/repeated/invalid command key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Inactive/deleted native actor, missing live native permission, authoring permission, selected-path visibility, or task assignment check failed. Native authentication failures remain owned by the RuoYi host.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unhandled framework exceptions have no uniform envelope guarantee."
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NativeTravelGraphDefinition"
+              }
+            }
+          }
+        },
+        "x-idempotency": "none",
+        "x-ruoyi-permission": "arcflow:process:publish"
+      }
+    },
+    "/arcflow/graphs/travel/preview": {
+      "post": {
+        "operationId": "ruoyi_graph_preview",
+        "tags": [
+          "graphs"
+        ],
+        "summary": "preview in the selected structured business graph workspace",
+        "description": "Fixed native travel-graph schema 6. Numeric authenticated RuoYi actor, live native permission and shared domain checks are all required. Runtime reads remain applicant or selected frozen-path participants; publication and administrator permission do not bypass task assignment. Authoring uses CAS; submission and decision require exactly one valid command key. Null graph fields are preserved in AjaxResult.data.",
+        "x-source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowGraphController.java",
+        "x-handler": "preview",
+        "x-java-return": "AjaxResult",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Current graph result. Preview does not write; decisions and submissions replay without duplicate side effects.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 200
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GraphInstance"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "msg",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed or unknown input fields, wrong fixed travel graph identity/business type, invalid definition/business/decision, or missing/repeated/invalid command key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Inactive/deleted native actor, missing live native permission, authoring permission, selected-path visibility, or task assignment check failed. Native authentication failures remain owned by the RuoYi host.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unhandled framework exceptions have no uniform envelope guarantee."
+          },
+          "409": {
+            "description": "Draft/publication version conflict, changed payload for the original command key, or command/state conflict; refresh before retrying the original intent.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NativeTravelGraphPreview"
+              }
+            }
+          }
+        },
+        "x-idempotency": "none",
+        "x-ruoyi-permission": "arcflow:process:publish"
+      }
+    },
+    "/arcflow/graphs/travel/publish": {
+      "post": {
+        "operationId": "ruoyi_graph_publish",
+        "tags": [
+          "graphs"
+        ],
+        "summary": "publish in the selected structured business graph workspace",
+        "description": "Fixed native travel-graph schema 6. Numeric authenticated RuoYi actor, live native permission and shared domain checks are all required. Runtime reads remain applicant or selected frozen-path participants; publication and administrator permission do not bypass task assignment. Authoring uses CAS; submission and decision require exactly one valid command key. Null graph fields are preserved in AjaxResult.data.",
+        "x-source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowGraphController.java",
+        "x-handler": "publish",
+        "x-java-return": "AjaxResult",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Current graph result. Preview does not write; decisions and submissions replay without duplicate side effects.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 200
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GraphDefinition"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "msg",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed or unknown input fields, wrong fixed travel graph identity/business type, invalid definition/business/decision, or missing/repeated/invalid command key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Inactive/deleted native actor, missing live native permission, authoring permission, selected-path visibility, or task assignment check failed. Native authentication failures remain owned by the RuoYi host.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Draft/publication version conflict, changed payload for the original command key, or command/state conflict; refresh before retrying the original intent.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Storage unavailable; no change confirmed. Refresh before retrying.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unhandled framework exceptions have no uniform envelope guarantee."
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GraphPublication"
+              },
+              "examples": {
+                "reviewed": {
+                  "externalValue": "../examples/graph-publish.json"
+                }
+              }
+            }
+          }
+        },
+        "x-idempotency": "none",
+        "x-ruoyi-permission": "arcflow:process:publish"
+      }
+    },
+    "/arcflow/graphs/travel/requests": {
+      "get": {
+        "operationId": "ruoyi_graph_requests",
+        "tags": [
+          "graphs"
+        ],
+        "summary": "requests in the selected structured business graph workspace",
+        "description": "Fixed native travel-graph schema 6. Numeric authenticated RuoYi actor, live native permission and shared domain checks are all required. Runtime reads remain applicant or selected frozen-path participants; publication and administrator permission do not bypass task assignment. Authoring uses CAS; submission and decision require exactly one valid command key. Null graph fields are preserved in AjaxResult.data.",
+        "x-source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowGraphController.java",
+        "x-handler": "requests",
+        "x-java-return": "AjaxResult",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Current graph result. Preview does not write; decisions and submissions replay without duplicate side effects.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 200
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/GraphInstance"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "msg",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Inactive/deleted native actor, missing live native permission, authoring permission, selected-path visibility, or task assignment check failed. Native authentication failures remain owned by the RuoYi host.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Storage unavailable; no change confirmed. Refresh before retrying.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unhandled framework exceptions have no uniform envelope guarantee."
+          }
+        },
+        "x-ruoyi-permission": "arcflow:request:read"
+      },
+      "post": {
+        "operationId": "ruoyi_graph_submit",
+        "tags": [
+          "graphs"
+        ],
+        "summary": "submit in the selected structured business graph workspace",
+        "description": "Fixed native travel-graph schema 6. Numeric authenticated RuoYi actor, live native permission and shared domain checks are all required. Runtime reads remain applicant or selected frozen-path participants; publication and administrator permission do not bypass task assignment. Authoring uses CAS; submission and decision require exactly one valid command key. Null graph fields are preserved in AjaxResult.data.",
+        "x-source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowGraphController.java",
+        "x-handler": "submit",
+        "x-java-return": "AjaxResult",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/RequiredIdempotencyKey"
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Malformed or unknown input fields, wrong fixed travel graph identity/business type, invalid definition/business/decision, or missing/repeated/invalid command key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Inactive/deleted native actor, missing live native permission, authoring permission, selected-path visibility, or task assignment check failed. Native authentication failures remain owned by the RuoYi host.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Draft/publication version conflict, changed payload for the original command key, or command/state conflict; refresh before retrying the original intent.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Storage unavailable; no change confirmed. Refresh before retrying.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unhandled framework exceptions have no uniform envelope guarantee."
+          },
+          "200": {
+            "description": "Current graph result. Preview does not write; decisions and submissions replay without duplicate side effects.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 200
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GraphInstance"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "msg",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NativeTravelGraphSubmission"
+              },
+              "examples": {
+                "travel": {
+                  "externalValue": "../examples/graph-travel.json"
+                }
+              }
+            }
+          }
+        },
+        "x-idempotency": "required-header",
+        "x-ruoyi-permission": "arcflow:request:submit"
+      }
+    },
+    "/arcflow/graphs/travel/requests/{id}": {
+      "get": {
+        "operationId": "ruoyi_graph_request",
+        "tags": [
+          "graphs"
+        ],
+        "summary": "request in the selected structured business graph workspace",
+        "description": "Fixed native travel-graph schema 6. Numeric authenticated RuoYi actor, live native permission and shared domain checks are all required. Runtime reads remain applicant or selected frozen-path participants; publication and administrator permission do not bypass task assignment. Authoring uses CAS; submission and decision require exactly one valid command key. Null graph fields are preserved in AjaxResult.data.",
+        "x-source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowGraphController.java",
+        "x-handler": "request",
+        "x-java-return": "AjaxResult",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Use the returned stable ID and URL-encode the path segment."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current graph result. Preview does not write; decisions and submissions replay without duplicate side effects.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 200
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GraphInstance"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "msg",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Inactive/deleted native actor, missing live native permission, authoring permission, selected-path visibility, or task assignment check failed. Native authentication failures remain owned by the RuoYi host.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Graph request or task does not exist.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Storage unavailable; no change confirmed. Refresh before retrying.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unhandled framework exceptions have no uniform envelope guarantee."
+          }
+        },
+        "x-ruoyi-permission": "arcflow:request:read"
+      }
+    },
+    "/arcflow/graphs/travel/requests/{id}/tasks/{taskId}/decision": {
+      "post": {
+        "operationId": "ruoyi_graph_decide",
+        "tags": [
+          "graphs"
+        ],
+        "summary": "decide in the selected structured business graph workspace",
+        "description": "Fixed native travel-graph schema 6. Numeric authenticated RuoYi actor, live native permission and shared domain checks are all required. Runtime reads remain applicant or selected frozen-path participants; publication and administrator permission do not bypass task assignment. Authoring uses CAS; submission and decision require exactly one valid command key. Null graph fields are preserved in AjaxResult.data.",
+        "x-source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowGraphController.java",
+        "x-handler": "decide",
+        "x-java-return": "AjaxResult",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Use the returned stable ID and URL-encode the path segment."
+          },
+          {
+            "name": "taskId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Use the returned stable ID and URL-encode the path segment."
+          },
+          {
+            "$ref": "#/components/parameters/RequiredIdempotencyKey"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current graph result. Preview does not write; decisions and submissions replay without duplicate side effects.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 200
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/GraphInstance"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "msg",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed or unknown input fields, wrong fixed travel graph identity/business type, invalid definition/business/decision, or missing/repeated/invalid command key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Inactive/deleted native actor, missing live native permission, authoring permission, selected-path visibility, or task assignment check failed. Native authentication failures remain owned by the RuoYi host.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Graph request or task does not exist.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Draft/publication version conflict, changed payload for the original command key, or command/state conflict; refresh before retrying the original intent.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Storage unavailable; no change confirmed. Refresh before retrying.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unhandled framework exceptions have no uniform envelope guarantee."
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GraphDecision"
+              },
+              "examples": {
+                "reviewed": {
+                  "externalValue": "../examples/graph-decision.json"
+                }
+              }
+            }
+          }
+        },
+        "x-idempotency": "required-header",
+        "x-ruoyi-permission": "arcflow:request:decide"
+      }
     }
   },
   "components": {
     "schemas": {
       "Reference": {
-        "$ref": "./schemas.json#/$defs/Reference"
+        "$ref": "schemas.json#/$defs/Reference"
       },
       "ActorId": {
-        "$ref": "./schemas.json#/$defs/ActorId"
+        "$ref": "schemas.json#/$defs/ActorId"
       },
       "Currency": {
-        "$ref": "./schemas.json#/$defs/Currency"
+        "$ref": "schemas.json#/$defs/Currency"
       },
       "Date": {
-        "$ref": "./schemas.json#/$defs/Date"
+        "$ref": "schemas.json#/$defs/Date"
       },
       "Money": {
-        "$ref": "./schemas.json#/$defs/Money"
+        "$ref": "schemas.json#/$defs/Money"
       },
       "NonnegativeMoney": {
-        "$ref": "./schemas.json#/$defs/NonnegativeMoney"
+        "$ref": "schemas.json#/$defs/NonnegativeMoney"
       },
       "DisplayMoney": {
-        "$ref": "./schemas.json#/$defs/DisplayMoney"
+        "$ref": "schemas.json#/$defs/DisplayMoney"
       },
       "DocumentType": {
-        "$ref": "./schemas.json#/$defs/DocumentType"
+        "$ref": "schemas.json#/$defs/DocumentType"
       },
       "Leave": {
-        "$ref": "./schemas.json#/$defs/Leave"
+        "$ref": "schemas.json#/$defs/Leave"
       },
       "Procurement": {
-        "$ref": "./schemas.json#/$defs/Procurement"
+        "$ref": "schemas.json#/$defs/Procurement"
       },
       "QuoteDiscount": {
-        "$ref": "./schemas.json#/$defs/QuoteDiscount"
+        "$ref": "schemas.json#/$defs/QuoteDiscount"
       },
       "ExpenseLine": {
-        "$ref": "./schemas.json#/$defs/ExpenseLine"
+        "$ref": "schemas.json#/$defs/ExpenseLine"
       },
       "Expense": {
-        "$ref": "./schemas.json#/$defs/Expense"
+        "$ref": "schemas.json#/$defs/Expense"
       },
       "Travel": {
-        "$ref": "./schemas.json#/$defs/Travel"
+        "$ref": "schemas.json#/$defs/Travel"
       },
       "SealUse": {
-        "$ref": "./schemas.json#/$defs/SealUse"
+        "$ref": "schemas.json#/$defs/SealUse"
       },
       "ReceivingLine": {
-        "$ref": "./schemas.json#/$defs/ReceivingLine"
+        "$ref": "schemas.json#/$defs/ReceivingLine"
       },
       "Receiving": {
-        "$ref": "./schemas.json#/$defs/Receiving"
+        "$ref": "schemas.json#/$defs/Receiving"
       },
       "PaymentLine": {
-        "$ref": "./schemas.json#/$defs/PaymentLine"
+        "$ref": "schemas.json#/$defs/PaymentLine"
       },
       "PaymentRequest": {
-        "$ref": "./schemas.json#/$defs/PaymentRequest"
+        "$ref": "schemas.json#/$defs/PaymentRequest"
       },
       "ContractMilestone": {
-        "$ref": "./schemas.json#/$defs/ContractMilestone"
+        "$ref": "schemas.json#/$defs/ContractMilestone"
       },
       "ContractApproval": {
-        "$ref": "./schemas.json#/$defs/ContractApproval"
+        "$ref": "schemas.json#/$defs/ContractApproval"
       },
       "BusinessDocument": {
-        "$ref": "./schemas.json#/$defs/BusinessDocument"
+        "$ref": "schemas.json#/$defs/BusinessDocument"
       },
       "GenericBusinessDocument": {
-        "$ref": "./schemas.json#/$defs/GenericBusinessDocument"
+        "$ref": "schemas.json#/$defs/GenericBusinessDocument"
       },
       "ScenarioBusinessDocument": {
-        "$ref": "./schemas.json#/$defs/ScenarioBusinessDocument"
+        "$ref": "schemas.json#/$defs/ScenarioBusinessDocument"
       },
       "LegacySubmission": {
-        "$ref": "./schemas.json#/$defs/LegacySubmission"
+        "$ref": "schemas.json#/$defs/LegacySubmission"
       },
       "GenericSubmission": {
-        "$ref": "./schemas.json#/$defs/GenericSubmission"
+        "$ref": "schemas.json#/$defs/GenericSubmission"
       },
       "QuoteSubmission": {
-        "$ref": "./schemas.json#/$defs/QuoteSubmission"
+        "$ref": "schemas.json#/$defs/QuoteSubmission"
       },
       "ScenarioSubmission": {
-        "$ref": "./schemas.json#/$defs/ScenarioSubmission"
+        "$ref": "schemas.json#/$defs/ScenarioSubmission"
       },
       "SealSubmission": {
-        "$ref": "./schemas.json#/$defs/SealSubmission"
+        "$ref": "schemas.json#/$defs/SealSubmission"
       },
       "Decision": {
-        "$ref": "./schemas.json#/$defs/Decision"
+        "$ref": "schemas.json#/$defs/Decision"
       },
       "NativeDecision": {
-        "$ref": "./schemas.json#/$defs/NativeDecision"
+        "$ref": "schemas.json#/$defs/NativeDecision"
       },
       "PaymentPredicate": {
-        "$ref": "./schemas.json#/$defs/PaymentPredicate"
+        "$ref": "schemas.json#/$defs/PaymentPredicate"
       },
       "ReceivingPredicate": {
-        "$ref": "./schemas.json#/$defs/ReceivingPredicate"
+        "$ref": "schemas.json#/$defs/ReceivingPredicate"
       },
       "ContractPredicate": {
-        "$ref": "./schemas.json#/$defs/ContractPredicate"
+        "$ref": "schemas.json#/$defs/ContractPredicate"
       },
       "RoutingPredicate": {
-        "$ref": "./schemas.json#/$defs/RoutingPredicate"
+        "$ref": "schemas.json#/$defs/RoutingPredicate"
       },
       "RunIf": {
-        "$ref": "./schemas.json#/$defs/RunIf"
+        "$ref": "schemas.json#/$defs/RunIf"
       },
       "BoundaryNode": {
-        "$ref": "./schemas.json#/$defs/BoundaryNode"
+        "$ref": "schemas.json#/$defs/BoundaryNode"
       },
       "ApprovalNode": {
-        "$ref": "./schemas.json#/$defs/ApprovalNode"
+        "$ref": "schemas.json#/$defs/ApprovalNode"
       },
       "ParallelNode": {
-        "$ref": "./schemas.json#/$defs/ParallelNode"
+        "$ref": "schemas.json#/$defs/ParallelNode"
       },
       "ProcessNode": {
-        "$ref": "./schemas.json#/$defs/ProcessNode"
+        "$ref": "schemas.json#/$defs/ProcessNode"
       },
       "ProcessDefinition": {
-        "$ref": "./schemas.json#/$defs/ProcessDefinition"
+        "$ref": "schemas.json#/$defs/ProcessDefinition"
       },
       "GenericProcessDefinition": {
-        "$ref": "./schemas.json#/$defs/GenericProcessDefinition"
+        "$ref": "schemas.json#/$defs/GenericProcessDefinition"
       },
       "Publication": {
-        "$ref": "./schemas.json#/$defs/Publication"
+        "$ref": "schemas.json#/$defs/Publication"
       },
       "GenericPublication": {
-        "$ref": "./schemas.json#/$defs/GenericPublication"
+        "$ref": "schemas.json#/$defs/GenericPublication"
       },
       "Person": {
-        "$ref": "./schemas.json#/$defs/Person"
+        "$ref": "schemas.json#/$defs/Person"
       },
       "NativePerson": {
-        "$ref": "./schemas.json#/$defs/NativePerson"
+        "$ref": "schemas.json#/$defs/NativePerson"
       },
       "Event": {
-        "$ref": "./schemas.json#/$defs/Event"
+        "$ref": "schemas.json#/$defs/Event"
       },
       "RoutingFact": {
-        "$ref": "./schemas.json#/$defs/RoutingFact"
+        "$ref": "schemas.json#/$defs/RoutingFact"
       },
       "RoutingEvaluation": {
-        "$ref": "./schemas.json#/$defs/RoutingEvaluation"
+        "$ref": "schemas.json#/$defs/RoutingEvaluation"
       },
       "FrozenRoute": {
-        "$ref": "./schemas.json#/$defs/FrozenRoute"
+        "$ref": "schemas.json#/$defs/FrozenRoute"
       },
       "Request": {
-        "$ref": "./schemas.json#/$defs/Request"
+        "$ref": "schemas.json#/$defs/Request"
       },
       "InboxPage": {
-        "$ref": "./schemas.json#/$defs/InboxPage"
+        "$ref": "schemas.json#/$defs/InboxPage"
       },
       "ReceivingQuantities": {
-        "$ref": "./schemas.json#/$defs/ReceivingQuantities"
+        "$ref": "schemas.json#/$defs/ReceivingQuantities"
       },
       "ReceivingSummary": {
-        "$ref": "./schemas.json#/$defs/ReceivingSummary"
+        "$ref": "schemas.json#/$defs/ReceivingSummary"
       },
       "PaymentSummary": {
-        "$ref": "./schemas.json#/$defs/PaymentSummary"
+        "$ref": "schemas.json#/$defs/PaymentSummary"
       },
       "ScenarioView": {
-        "$ref": "./schemas.json#/$defs/ScenarioView"
+        "$ref": "schemas.json#/$defs/ScenarioView"
       },
       "QuoteView": {
-        "$ref": "./schemas.json#/$defs/QuoteView"
+        "$ref": "schemas.json#/$defs/QuoteView"
       },
       "QuoteVersion": {
-        "$ref": "./schemas.json#/$defs/QuoteVersion"
+        "$ref": "schemas.json#/$defs/QuoteVersion"
       },
       "LocalizedText": {
-        "$ref": "./schemas.json#/$defs/LocalizedText"
+        "$ref": "schemas.json#/$defs/LocalizedText"
       },
       "FieldOption": {
-        "$ref": "./schemas.json#/$defs/FieldOption"
+        "$ref": "schemas.json#/$defs/FieldOption"
       },
       "FormField": {
-        "$ref": "./schemas.json#/$defs/FormField"
+        "$ref": "schemas.json#/$defs/FormField"
       },
       "FormSection": {
-        "$ref": "./schemas.json#/$defs/FormSection"
+        "$ref": "schemas.json#/$defs/FormSection"
       },
       "LineItems": {
-        "$ref": "./schemas.json#/$defs/LineItems"
+        "$ref": "schemas.json#/$defs/LineItems"
       },
       "ScenarioId": {
-        "$ref": "./schemas.json#/$defs/ScenarioId"
+        "$ref": "schemas.json#/$defs/ScenarioId"
       },
       "ScenarioTemplate": {
-        "$ref": "./schemas.json#/$defs/ScenarioTemplate"
+        "$ref": "schemas.json#/$defs/ScenarioTemplate"
       },
       "Error": {
-        "$ref": "./schemas.json#/$defs/Error"
+        "$ref": "schemas.json#/$defs/Error"
       },
       "NativeError": {
-        "$ref": "./schemas.json#/$defs/NativeError"
+        "$ref": "schemas.json#/$defs/NativeError"
       },
       "ScenarioDate": {
-        "$ref": "./schemas.json#/$defs/ScenarioDate"
+        "$ref": "schemas.json#/$defs/ScenarioDate"
+      },
+      "GraphNodeId": {
+        "$ref": "schemas.json#/$defs/GraphNodeId"
+      },
+      "GraphKey": {
+        "$ref": "schemas.json#/$defs/GraphKey"
+      },
+      "GraphNode": {
+        "$ref": "schemas.json#/$defs/GraphNode"
+      },
+      "GraphEdge": {
+        "$ref": "schemas.json#/$defs/GraphEdge"
+      },
+      "GraphDefinition": {
+        "$ref": "schemas.json#/$defs/GraphDefinition"
+      },
+      "GraphDiagnostic": {
+        "$ref": "schemas.json#/$defs/GraphDiagnostic"
+      },
+      "GraphDraft": {
+        "$ref": "schemas.json#/$defs/GraphDraft"
+      },
+      "GraphFrame": {
+        "$ref": "schemas.json#/$defs/GraphFrame"
+      },
+      "GraphVote": {
+        "$ref": "schemas.json#/$defs/GraphVote"
+      },
+      "GraphTask": {
+        "$ref": "schemas.json#/$defs/GraphTask"
+      },
+      "GraphFork": {
+        "$ref": "schemas.json#/$defs/GraphFork"
+      },
+      "GraphEvaluation": {
+        "$ref": "schemas.json#/$defs/GraphEvaluation"
+      },
+      "GraphRoute": {
+        "$ref": "schemas.json#/$defs/GraphRoute"
+      },
+      "GraphEvent": {
+        "$ref": "schemas.json#/$defs/GraphEvent"
+      },
+      "GraphCommand": {
+        "$ref": "schemas.json#/$defs/GraphCommand"
+      },
+      "GraphInstance": {
+        "$ref": "schemas.json#/$defs/GraphInstance"
+      },
+      "GraphWorkspace": {
+        "$ref": "schemas.json#/$defs/GraphWorkspace"
+      },
+      "GraphDraftInput": {
+        "$ref": "schemas.json#/$defs/GraphDraftInput"
+      },
+      "GraphPublication": {
+        "$ref": "schemas.json#/$defs/GraphPublication"
+      },
+      "GraphPreview": {
+        "$ref": "schemas.json#/$defs/GraphPreview"
+      },
+      "GraphSubmission": {
+        "$ref": "schemas.json#/$defs/GraphSubmission"
+      },
+      "GraphDecision": {
+        "$ref": "schemas.json#/$defs/GraphDecision"
+      },
+      "GraphValidation": {
+        "$ref": "schemas.json#/$defs/GraphValidation"
+      },
+      "GraphLimits": {
+        "$ref": "schemas.json#/$defs/GraphLimits"
+      },
+      "GraphFact": {
+        "$ref": "schemas.json#/$defs/GraphFact"
+      },
+      "GraphPermissions": {
+        "$ref": "schemas.json#/$defs/GraphPermissions"
+      },
+      "GraphCapabilities": {
+        "$ref": "schemas.json#/$defs/GraphCapabilities"
+      },
+      "GraphScenario": {
+        "$ref": "schemas.json#/$defs/GraphScenario"
+      },
+      "GraphBusinessDocument": {
+        "$ref": "schemas.json#/$defs/GraphBusinessDocument"
+      },
+      "TravelPredicate": {
+        "$ref": "schemas.json#/$defs/TravelPredicate"
+      },
+      "QuoteReductionPredicate": {
+        "$ref": "schemas.json#/$defs/QuoteReductionPredicate"
+      },
+      "QuotePercentPredicate": {
+        "$ref": "schemas.json#/$defs/QuotePercentPredicate"
+      },
+      "GraphRoutingPredicate": {
+        "$ref": "schemas.json#/$defs/GraphRoutingPredicate"
+      },
+      "GraphRunIf": {
+        "$ref": "schemas.json#/$defs/GraphRunIf"
+      },
+      "GraphRoutingFact": {
+        "$ref": "schemas.json#/$defs/GraphRoutingFact"
+      },
+      "NativeGraphPermissions": {
+        "$ref": "schemas.json#/$defs/NativeGraphPermissions"
+      },
+      "NativeGraphCapabilities": {
+        "$ref": "schemas.json#/$defs/NativeGraphCapabilities"
+      },
+      "NativeTravelGraphDefinition": {
+        "$ref": "schemas.json#/$defs/NativeTravelGraphDefinition"
+      },
+      "NativeTravelGraphSubmission": {
+        "$ref": "schemas.json#/$defs/NativeTravelGraphSubmission"
+      },
+      "NativeTravelGraphPreview": {
+        "$ref": "schemas.json#/$defs/NativeTravelGraphPreview"
+      },
+      "NativeTravelGraphDraftInput": {
+        "$ref": "schemas.json#/$defs/NativeTravelGraphDraftInput"
       }
     },
     "securitySchemes": {
@@ -1060,10 +2223,19 @@
           "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}(?![\\s\\S])"
         },
         "description": "Exactly one value when present; case-sensitive, no comma-combined value. Same actor/key/normalized intent replays current state; changed intent conflicts."
+      },
+      "ClientHeader": {
+        "name": "X-Arcflow-Client",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "const": "approval-demo"
+        },
+        "description": "Required for every unsafe method by SecurityConfig."
       }
     },
     "responses": {}
   },
-  "x-controller-route-count": 9,
+  "x-controller-route-count": 21,
   "x-host": "ruoyi"
 }

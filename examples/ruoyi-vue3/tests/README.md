@@ -66,3 +66,21 @@ cd examples/ruoyi-vue3/frontend
 ## 结果如何解读
 
 语法、模型、DOM 不替代服务器/浏览器；旧截图和数量不作为本次验收。真实服务不可用时标明未运行，不把跳过写成通过。原始历史说明保存在[文档历史索引](../../../docs/history/README.md)，当前行为以测试源码、接口规范和同提交 CI 相互核对。
+
+## Native travel graph acceptance / 原生出差图验收
+
+`smoke.py` now also invokes `graph_smoke.py` against real native sessions. It checks numeric identities/current RBAC, strict keys and raw sub-cent rejection, low/high cost routing, parallel ALL join/rejection/concurrent decisions, frozen v1 after v2 publication, actual JVM restart/replay and byte-identical sequential state. No mocked authentication is used. These are authored checks, not a runtime pass.
+
+Offline bootstrap boundary: `python3 examples/ruoyi-vue3/tests/test_graph_bootstrap.py` verifies exact shared dependency bytes and excludes standalone authentication/hub code.
+
+`browser.py` 新增真实原生出差菜单/直接刷新、只读设计器权限、提交、双分支审批/汇合、拒绝取消、窄屏语言切换和退出流程；实际运行时生成 24 张原生出差截图及 JSON 凭据，仅作为 CI 验收证据。仅语法检查不代表浏览器流程已运行。
+
+For slow local cold starts, set optional `ARCFLOW_TEST_HTTP_TIMEOUT=60` (finite positive seconds; default `15`). It applies to urllib and ordered-header HTTP calls only; expected statuses, state assertions and startup deadlines remain unchanged. / 本机冷启动较慢时可增加 HTTP 等待秒数，不改变状态码和业务断言。
+
+The travel smoke also corrupts only its disposable graph snapshot after shutdown, requires native startup to exit nonzero with the graph-corruption diagnostic (not a timeout/port failure), verifies untouched sequential bytes, restores the exact saved graph bytes in finally, then restarts and rechecks the final joined instance. / 出差验收还覆盖真实宿主的损坏拒绝启动与原字节恢复；只操作本测试临时数据。
+
+## Native travel capture evidence / 原生出差图截图证据
+
+Six actual lifecycle states (`designer`, `submitted`, `parallel`, `waiting`, `completed`, `rejected`) × Chinese/English × 1440/390 px produce exactly 24 original Chromium PNGs with 24 JSON receipts. Receipts bind checkout SHA, native numeric actor observed from `/arcflow/me`, real response business/definition/tasks/routes/events/commands, asserted DOM status/votes/join counters and image SHA256. No headers, credentials, HAR or login screenshots are saved. Files stay in the existing temporary CI artifact directory; nothing is added to repository images or a public gallery.
+
+`python3 examples/ruoyi-vue3/tests/verify_graph_captures.py PATH --expected-commit SHA` rejects missing/extra cells, changed source/identity/history, duplicate pixels, PNG corruption and viewport mismatch. These integrity/identity gates do not replace human review of actual pixels. `test_graph_captures.py` tests metadata gates only and creates no screenshots. If Chromium cannot run, no capture/pixel acceptance is claimed.

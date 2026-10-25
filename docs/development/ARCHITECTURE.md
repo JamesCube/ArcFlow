@@ -26,7 +26,7 @@
 | 可选存储 | [`examples/approval-jdbc`](../../examples/approval-jdbc/README.md) | JDBC 事务、保留版本、独立审计和成员索引；宿主管理 DataSource、驱动和迁移 |
 | 独立宿主 | [`examples/approval-demo/backend`](../../examples/approval-demo/backend/src/main/java/com/arcflow/demo/) | Boot 4.1.1、HTTP Basic、固定演示目录、严格 JSON、相互隔离的通用、报价、场景和图流程端点家族 |
 | 独立界面 | [`examples/approval-ui`](../../examples/approval-ui/README.md) | Vue 工作区、设计器、报价页与场景页；不作为最终权限或金额校验依据 |
-| 其他宿主／客户端 | [RuoYi](../../examples/ruoyi-vue3/README.md)、[H5](../../examples/approval-mobile/README.md) | 若依复用原生账号权限；H5 只读／审批请假与采购，不自动获得全部场景能力 |
+| 其他宿主／客户端 | [RuoYi](../../examples/ruoyi-vue3/README.md)、[H5](../../examples/approval-mobile/README.md) | 若依顺序请假/采购与独立出差图工作区复用原生账号权限；H5 只读／审批请假与采购，不自动获得全部场景能力 |
 
 根 POM 不聚合示例。运行依赖通常为宿主 → 领域 → 内核；JDBC 适配器依赖领域，不反向进入内核。领域有 Jackson 2 和 Spring Web 依赖（用于状态异常），不是“零依赖”模块；只有内核没有第三方运行时依赖。
 

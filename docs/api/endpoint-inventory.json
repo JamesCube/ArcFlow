@@ -11,6 +11,78 @@
     {
       "host": "ruoyi",
       "method": "GET",
+      "path": "/arcflow/graphs/travel/capabilities",
+      "source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowGraphController.java"
+    },
+    {
+      "host": "ruoyi",
+      "method": "PUT",
+      "path": "/arcflow/graphs/travel/draft",
+      "source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowGraphController.java"
+    },
+    {
+      "host": "ruoyi",
+      "method": "POST",
+      "path": "/arcflow/graphs/travel/preview",
+      "source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowGraphController.java"
+    },
+    {
+      "host": "ruoyi",
+      "method": "GET",
+      "path": "/arcflow/graphs/travel/process",
+      "source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowGraphController.java"
+    },
+    {
+      "host": "ruoyi",
+      "method": "POST",
+      "path": "/arcflow/graphs/travel/publish",
+      "source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowGraphController.java"
+    },
+    {
+      "host": "ruoyi",
+      "method": "GET",
+      "path": "/arcflow/graphs/travel/requests",
+      "source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowGraphController.java"
+    },
+    {
+      "host": "ruoyi",
+      "method": "POST",
+      "path": "/arcflow/graphs/travel/requests",
+      "source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowGraphController.java"
+    },
+    {
+      "host": "ruoyi",
+      "method": "GET",
+      "path": "/arcflow/graphs/travel/requests/{id}",
+      "source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowGraphController.java"
+    },
+    {
+      "host": "ruoyi",
+      "method": "POST",
+      "path": "/arcflow/graphs/travel/requests/{id}/tasks/{taskId}/decision",
+      "source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowGraphController.java"
+    },
+    {
+      "host": "ruoyi",
+      "method": "GET",
+      "path": "/arcflow/graphs/travel/users",
+      "source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowGraphController.java"
+    },
+    {
+      "host": "ruoyi",
+      "method": "POST",
+      "path": "/arcflow/graphs/travel/validate",
+      "source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowGraphController.java"
+    },
+    {
+      "host": "ruoyi",
+      "method": "GET",
+      "path": "/arcflow/graphs/travel/workspace",
+      "source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowGraphController.java"
+    },
+    {
+      "host": "ruoyi",
+      "method": "GET",
       "path": "/arcflow/me",
       "source": "examples/ruoyi-vue3/backend/src/main/java/com/ruoyi/arcflow/ArcFlowController.java"
     },

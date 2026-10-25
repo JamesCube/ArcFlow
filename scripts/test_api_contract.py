@@ -48,11 +48,39 @@ class ContractMutationTests(unittest.TestCase):
             Checker(self.root).check()
 
     def test_baseline(self):
-        self.assertIn('43 controller handlers', Checker(self.root).check())
+        self.assertIn('55 controller handlers', Checker(self.root).check())
 
-    def test_graph_route_inventory_is_standalone_only(self):
+    def test_standalone_graph_route_inventory_is_complete(self):
         self.spec(lambda s: s['paths'].pop('/api/graphs/{scenario}/requests/{id}/tasks/{taskId}/decision'))
         self.rejected('count|omits')
+
+    def test_native_graph_is_not_an_arbitrary_scenario_route(self):
+        self.spec(lambda s: s['paths'].__setitem__('/arcflow/graphs/{scenario}/process', s['paths'].pop('/arcflow/graphs/travel/process')), 'ruoyi')
+        self.rejected('Invented')
+
+    def test_native_graph_decision_requires_command_key(self):
+        self.spec(lambda s: s['paths']['/arcflow/graphs/travel/requests/{id}/tasks/{taskId}/decision']['post'].__setitem__('x-idempotency', 'none'), 'ruoyi')
+        self.rejected('idempotency')
+
+    def test_native_graph_decision_requires_native_permission(self):
+        self.spec(lambda s: s['paths']['/arcflow/graphs/travel/requests/{id}/tasks/{taskId}/decision']['post'].__setitem__('x-ruoyi-permission', 'arcflow:request:read'), 'ruoyi')
+        self.rejected('native permission')
+
+    def test_native_graph_submission_cannot_claim_standalone_union(self):
+        self.spec(lambda s: s['paths']['/arcflow/graphs/travel/requests']['post']['requestBody']['content']['application/json'].__setitem__('schema', {'$ref': '#/components/schemas/GraphSubmission'}), 'ruoyi')
+        self.rejected('request DTO')
+
+    def test_native_graph_capabilities_cannot_claim_standalone_hosts(self):
+        self.spec(lambda s: s['paths']['/arcflow/graphs/travel/capabilities']['get']['responses']['200']['content']['application/json']['schema']['properties'].__setitem__('data', {'$ref': '#/components/schemas/GraphCapabilities'}), 'ruoyi')
+        self.rejected('response model')
+
+    def test_native_travel_model_cannot_expand_to_other_business_types(self):
+        self.schema(lambda s: s['NativeTravelGraphSubmission']['properties'].__setitem__('business', {'$ref': '#/$defs/GraphBusinessDocument'}))
+        self.rejected('Native travel document scope')
+
+    def test_native_capabilities_cannot_claim_jdbc_host_wiring(self):
+        self.schema(lambda s: s['NativeGraphCapabilities']['properties']['persistence']['items'].__setitem__('const', 'jdbc-library'))
+        self.rejected('Native graph storage scope')
 
     def test_graph_put_requires_client_header(self):
         self.spec(lambda s: s['paths']['/api/graphs/{scenario}/draft']['put'].__setitem__('parameters', [p for p in s['paths']['/api/graphs/{scenario}/draft']['put']['parameters'] if p.get('in') == 'path']))

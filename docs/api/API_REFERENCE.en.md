@@ -38,8 +38,8 @@
 
 Original linear API source baseline: [`main` at `199db7548f6faba5dfef105eaaf7311972adb388`](https://github.com/JamesCube/ArcFlow/tree/199db7548f6faba5dfef105eaaf7311972adb388). This reference describes the example hosts implemented in this repository. It is not a specification for an unimplemented platform API. The Java `arcflow-core` library does not start an HTTP server.
 
-- [Endpoint inventory JSON](./endpoint-inventory.json): 43 offline mappings from the five Controllers for detecting route drift; this is not OpenAPI.
-- Static OpenAPI contracts: [standalone host](./openapi/standalone.openapi.json) (34 operations) and [RuoYi host](./openapi/ruoyi.openapi.json) (9 operations), with separate authentication, envelopes and status codes.
+- [Endpoint inventory JSON](./endpoint-inventory.json): 55 offline mappings from the six Controllers for detecting route drift; this is not OpenAPI.
+- Static OpenAPI contracts: [standalone host](./openapi/standalone.openapi.json) (34 operations) and [RuoYi host](./openapi/ruoyi.openapi.json) (21 operations), with separate authentication, envelopes and status codes.
 - [Executable request examples](./examples/README.en.md): use your own local configuration and synthetic data. Never commit passwords, Authorization headers or real business information.
 - Controller, DTO and domain-validation source links at the end are authoritative. The static OpenAPI files and executable HTTP examples support inspection and verification. Numeric token precision, raw UTF-16 lengths, cross-field rules, authorization and concurrency remain server-enforced contracts; structural validation alone cannot guarantee that a request succeeds.
 
@@ -95,7 +95,7 @@ The demo directory contains active `alice`, `bob` and `carol`. Alice may publish
 
 ## 3. Endpoint inventory
 
-The five Controllers declare 43 mappings: 9 generic, 7 scenario, 5 quote, 13 graph and 9 RuoYi mappings. Graph mappings use one finite `{scenario}` parameter and are counted once per handler, not four times. The scenario count includes the literal seal-use submission path, which takes precedence over the scenario template.
+The six Controllers declare 55 mappings: 9 generic, 7 scenario, 5 quote, 13 standalone graph, 9 sequential RuoYi and 12 native travel graph mappings. Graph mappings use one finite `{scenario}` parameter and are counted once per handler, not four times. The scenario count includes the literal seal-use submission path, which takes precedence over the scenario template.
 
 The success codes below are the actual Controller statuses. All standalone submissions return 201, including successful replays; no `Location` response header is promised. Other successful operations return 200. See §10 for errors.
 
@@ -535,6 +535,19 @@ Sources: [ArcFlowController.java](../../examples/ruoyi-vue3/backend/src/main/jav
 | POST `/arcflow/documents` | Same | **200** data=`Request`; leave/procurement only |
 | POST `/arcflow/requests/{id}/decisions` | `arcflow:request:decide` | 200 data=`Request` |
 
+The fixed native graph prefix is **`/arcflow/graphs/travel`**, not a `{scenario}` selector. All successes are HTTP **200** with graph JSON in `AjaxResult.data`, including explicit null fields.
+
+| Graph suffix | Method | Required native permission |
+| --- | --- | --- |
+| `/capabilities`, `/process`, `/users`, `/requests`, `/requests/{id}` | GET | `arcflow:request:read` |
+| `/workspace` | GET | `arcflow:process:publish` |
+| `/draft` | PUT | `arcflow:process:publish` |
+| `/validate`, `/preview`, `/publish` | POST | `arcflow:process:publish` |
+| `/requests` | POST | `arcflow:request:submit` |
+| `/requests/{id}/tasks/{taskId}/decision` | POST | `arcflow:request:decide` |
+
+Graph submission and task decisions require **exactly one valid `Idempotency-Key`**. Reuse it with the original intent after uncertain acknowledgement; changed intent conflicts. Native graph definition identity is permanently `travel-graph` / schema **6**, with only travel documents and `travel.estimatedCost` rules. Capability flags combine native permissions and domain checks; a task still requires the assigned active actor. Seed roles use configured numeric native IDs, never standalone demo names. Graph storage uses a dedicated JSON snapshot (wrapper **14**), separate from sequential approvals. JWT session changes cancel stale frontend work; raw graph JSON decoding preserves decimal precision before validation. This does not add native payment/receiving/quote graphs, H5 graph support, JDBC host wiring, or external business actions.
+
 A typical success envelope is `{ "code":200,"msg":"操作成功","data":… }`. Domain errors retain the actual HTTP status and use `AjaxResult.error(code,msg)`. Native authentication/permission failures belong to the host and are not guaranteed to look like standalone `{message}`. Do not infer business success for unrelated RuoYi APIs from HTTP 200 alone.
 
 Important differences:
@@ -544,7 +557,7 @@ Important differences:
 3. The overlay does not add standalone X-Arcflow-Client/Origin requirements. Security behavior belongs to the configured RuoYi host. Frontend `/dev-api` and `/prod-api` prefixes are proxies, not this Controller's root path.
 4. `@PreAuthorize` is the outer permission check; the shared domain still checks exact historical assignment. An administrator wildcard does not authorize voting for someone else. Native `/me` includes `canPublish`.
 5. Strict decoding is scoped to ArcFlow endpoints, without replacing RuoYi's global ObjectMapper. Native DTOs do not have every standalone Bean Validation annotation; shared business/process/idempotency/state rules still apply. For example, malformed stage IDs are resolved against the domain request/stage and may not fail at the same earliest validation layer as standalone.
-6. Both submission routes support the same optional key. Native keyed clients bypass only the host's short-window duplicate-submit interception so durable idempotency can resolve retries, not authentication or RBAC.
+6. Both sequential submission routes support the same optional key. Native keyed clients bypass only the host's short-window duplicate-submit interception so durable idempotency can resolve retries, not authentication or RBAC.
 7. No `/arcflow/scenarios` or `/arcflow/crm` Controller exists. The overlay has no native six-scenario/schema-4 HTTP integration. Generic publication accepts schema 2/3 only.
 8. Approval storage remains single-writer local JSON in this example. RuoYi's MySQL identity database does not imply JDBC approval storage or distributed business transactions.
 
