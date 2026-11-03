@@ -891,6 +891,19 @@
         "persistence-and-boundaries",
         "sources-and-verification"
       ]
+    },
+    {
+      "path": "docs/verification/GRAPH_REFERENCE_MODEL.md",
+      "category": "explanation",
+      "topics": [
+        "purpose",
+        "expert-practice",
+        "original-sources",
+        "method",
+        "reproduce",
+        "evidence-and-limits",
+        "provenance"
+      ]
     }
   ],
   "historicalSources": [
